@@ -1,0 +1,6 @@
+mysql -e  -e "show variables like '%con%'"
+
+mysql --help --verbose
+Default options are read from the following files in the given order:
+C:\WINDOWS\my.ini C:\WINDOWS\my.cnf C:\my.ini C:\my.cnf C:\wamp64\bin\mysql\mysql5.7.14\my.ini C:\wamp64\bin\mysql\mysql5.7.14\my.cnf
+

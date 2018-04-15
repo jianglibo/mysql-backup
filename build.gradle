@@ -1,0 +1,71 @@
+buildscript {
+    ext {
+        springBootVersion = '2.0.0.RELEASE'
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+        mavenLocal()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+        classpath("io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse-wtp'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+// https://docs.spring.io/spring-boot/docs/current/gradle-plugin/reference/html/
+
+eclipse {
+    classpath {
+        downloadSources = true
+    }
+}
+springBoot {
+    mainClassName = 'com.go2wheel.mysqlbackup.StartPointer'
+}
+
+bootJar {
+	classifier = 'boot'
+}
+
+sourceSets {
+    main {
+        resources {
+            exclude '**/node_modules/*'
+            exclude '**/bower_components/*'
+        }
+    }
+}
+
+jar {
+    baseName = 'copy-project'
+    version = '0.0.1-SNAPSHOT'
+}
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    jcenter()
+    mavenCentral()
+    mavenLocal()
+}
+
+
+configurations {
+}
+
+dependencies {
+    compile('org.springframework.boot:spring-boot-starter')
+	compile('org.springframework.shell:spring-shell-starter:2.0.0.RELEASE')
+//	testCompile("junit:junit")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.6'
+}
