@@ -1,3 +1,0 @@
-## ** matches everything. * matches everything except path separator.
-**.xtx
-ignoreme/
