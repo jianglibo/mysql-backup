@@ -21,8 +21,9 @@ public class MyCnfHolder {
 	 * @return true if changed or else false.
 	 */
 	public boolean enableBinLog(String...filename) {
+		String logBinKey = "log-bin";
 		Optional<String> fnOp = filename.length > 0 ? Optional.of(filename[0]) : Optional.empty(); 
-		ConfigValue cv = getConfigValue("log-bin");
+		ConfigValue cv = getConfigValue(logBinKey);
 		if (cv.getState() == ConfigValueState.EXIST) {
 			if (fnOp.isPresent()) {
 				if (cv.getValue().equals(fnOp.get())) {
@@ -30,8 +31,31 @@ public class MyCnfHolder {
 				}
 			}
 		}
-		
-		return true;
+		boolean changed = false;
+		switch (cv.getState()) {
+		case EXIST: // set new value.
+		case COMMENT_OUTED:
+			if (fnOp.isPresent()) {
+				lines.set(cv.getLineIndex(), cv.getKey() + "=" + fnOp.get());
+			} else {
+				lines.set(cv.getLineIndex(), cv.getKey() + "=" + cv.getValue());
+			}
+			changed = true;
+			break;
+		case NOT_EXIST:
+			Pattern ptn = Pattern.compile("\\s*\\[mysqld\\]\\s*");
+			for(int i=0; i< lines.size(); i++) {
+				String line = lines.get(i);
+				if (ptn.matcher(line).matches()) {
+					lines.add(i + 1, logBinKey + "=" + fnOp.orElse("mysql-bin"));
+					changed = true;
+				}
+			}
+			break;
+		default:
+			break;
+		}
+		return changed;
 	}
 	
 	public ConfigValue getConfigValue(String cnfName) {

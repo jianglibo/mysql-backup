@@ -6,7 +6,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.FileSystems;
@@ -46,8 +45,7 @@ public class TestGlob {
 		PathMatcher matcher =
 			    FileSystems.getDefault().getPathMatcher("glob:/**/*.{java,class}");
 		
-		File f = JarLocationGetter.myLocation();
-		Path bp = f.toPath();
+		Path bp = PathUtil.getJarLocation().get();
 		long c = Files.find(bp, Integer.MAX_VALUE, (p, a) -> {
 //			Path rp = bp.resolve(p);
 			return matcher.matches(p);
@@ -61,8 +59,7 @@ public class TestGlob {
 		PathMatcher matcher =
 			    FileSystems.getDefault().getPathMatcher("glob:**/*");
 		
-		File f = JarLocationGetter.myLocation();
-		Path bp = f.toPath();
+		Path bp = PathUtil.getJarLocation().get();
 		long c = Files.find(bp, Integer.MAX_VALUE, (p, a) -> {
 			Path rp = bp.resolve(p);
 			return matcher.matches(rp);
@@ -76,8 +73,7 @@ public class TestGlob {
 		PathMatcher matcher =
 			    FileSystems.getDefault().getPathMatcher("glob:**\\\\*.{java,class}");
 		
-		File f = JarLocationGetter.myLocation();
-		Path bp = f.toPath();
+		Path bp = PathUtil.getJarLocation().get();
 		long c = Files.find(bp, Integer.MAX_VALUE, (p, a) -> {
 			Path rp = bp.resolve(p);
 			return matcher.matches(rp);
@@ -92,8 +88,7 @@ public class TestGlob {
 		PathMatcher matcher =
 			    FileSystems.getDefault().getPathMatcher("glob:**/*.{java,class}");
 		
-		File f = JarLocationGetter.myLocation();
-		Path bp = f.toPath();
+		Path bp = PathUtil.getJarLocation().get();
 		long c = Files.find(bp, Integer.MAX_VALUE, (p, a) -> {
 			Path rp = bp.resolve(p);
 			return matcher.matches(rp);
