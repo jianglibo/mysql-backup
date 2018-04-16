@@ -28,10 +28,6 @@ public class ResultHandlerConfigMine {
 		return new TypeHierarchyResultHandlerMine();
 	}
 	
-	@Bean
-	public CopyResultHandler copyResultHandler() {
-		return new CopyResultHandler();
-	}
 
 	@Bean
 	public IterableResultHandlerMine iterableResultHandler() {

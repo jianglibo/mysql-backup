@@ -15,8 +15,9 @@ import org.springframework.shell.ExitRequest;
 import org.springframework.shell.Input;
 import org.springframework.shell.InputProvider;
 import org.springframework.shell.Shell;
-import org.springframework.shell.jline.InteractiveShellApplicationRunner;
 import org.springframework.util.StringUtils;
+
+import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
 
 @Configuration
 public class ExecuteAndExitApplicationRunnerConfiguration {
@@ -46,7 +47,7 @@ public class ExecuteAndExitApplicationRunnerConfiguration {
  * this particular example, any program (process) arguments are assumed to be shell
  * commands that need to be executed (and the shell then quits).
  */
-@Order(InteractiveShellApplicationRunner.PRECEDENCE - 2)
+@Order(InteractiveShellApplicationRunnerMine.PRECEDENCE - 2)
 class CopyProjectCommandLineRunner implements CommandLineRunner {
 
 	private Shell shell;
@@ -64,7 +65,7 @@ class CopyProjectCommandLineRunner implements CommandLineRunner {
 				.filter(w -> !w.startsWith("@"))
 				.collect(Collectors.toList());
 		if (!commandsToRun.isEmpty()) {
-			InteractiveShellApplicationRunner.disable(environment);
+			InteractiveShellApplicationRunnerMine.disable(environment);
 			shell.run(new StringInputProvider(commandsToRun));
 		}
 	}

@@ -8,8 +8,6 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
-import com.go2wheel.mysqlbackup.value.CopyEnv;
-
 public class UtilForTe {
 
 	public static void printme(Object o) {
@@ -40,19 +38,6 @@ public class UtilForTe {
 	        return FileVisitResult.CONTINUE;
 	    }
 		});
-	}
-	
-	
-	public static CopyEnv copyEnv() {
-		return new CopyEnv(Paths.get(""), Paths.get("..", "abc"), "a.b.c", "c.d.e");
-	}
-	
-	public static CopyEnv copyEnv(String srcRootPackageDot, String dstRootPackageDot) {
-		return new CopyEnv(Paths.get(""), Paths.get("..", "abc"), srcRootPackageDot, dstRootPackageDot);
-	}
-	
-	public static CopyEnv copyEnvDemoproject(Path dstFolder, String srcRootPackageDot, String dstRootPackageDot) {
-		return new CopyEnv(Paths.get("fixtures", "demoproject"), dstFolder, srcRootPackageDot, dstRootPackageDot);
 	}
 	
 	public static Path createTmpDirectory() throws IOException {
