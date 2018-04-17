@@ -33,6 +33,10 @@ public class ResultHandlerConfigMine {
 		return new ExecuteResultHandler();
 	}
 	
+	@Bean
+	public ListInstanceResultHandler listInstanceResultHandler() {
+		return new ListInstanceResultHandler();
+	}
 
 	@Bean
 	public IterableResultHandlerMine iterableResultHandler() {

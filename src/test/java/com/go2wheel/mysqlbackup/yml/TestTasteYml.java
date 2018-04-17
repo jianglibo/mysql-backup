@@ -30,5 +30,9 @@ public class TestTasteYml {
 		System.out.println(s);
 		
 	}
+	
+	public void testYamlInstance() {
+		YamlInstance.INSTANCE.getYaml();
+	}
 
 }

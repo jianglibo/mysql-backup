@@ -7,6 +7,9 @@ how to debug:
 
 java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar .\build\libs\mysql-backup-boot.jar
 
+netstat -ano | Where-Object {$_ -match '8000'}
+netstat -ano | Where-Object {$_ -match '8000'} | ForEach-Object {$_ -split '\s+'} | Select-Object -Last 1 | Stop-Process -Id {$_}
+
 gradle -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n bootRun
  
 grade bootJar -t

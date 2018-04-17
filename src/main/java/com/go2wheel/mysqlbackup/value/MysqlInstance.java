@@ -3,12 +3,15 @@ package com.go2wheel.mysqlbackup.value;
 public class MysqlInstance {
 	
 	private String host;
+	
 	private int port;
 	
 	private String username;
 	private String password;
 	
 	private String mycnfFile;
+	
+	private String sshKeyFile;
 	
 	public String getHost() {
 		return host;
@@ -39,5 +42,11 @@ public class MysqlInstance {
 	}
 	public void setMycnfFile(String mycnfFile) {
 		this.mycnfFile = mycnfFile;
+	}
+	public String getSshKeyFile() {
+		return sshKeyFile;
+	}
+	public void setSshKeyFile(String sshKeyFile) {
+		this.sshKeyFile = sshKeyFile;
 	}
 }
