@@ -1,0 +1,40 @@
+command list:
+1. from --srcFolder --rootPackage --excludes
+2. to --dstFolder --rootPackage
+
+
+how to debug:
+
+java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar .\build\libs\mysql-backup-boot.jar
+
+gradle -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=n bootRun
+ 
+grade bootJar -t
+
+ 
+ JLineShellAutoConfiguration hooks all together.
+ 
+ ## runner
+ 
+ ApplicationRunner vs CommandLineRunner. They two different on arguments.
+ 
+ 
+ SpringApplication.callRunners will call ApplicationRunners and CommandLineRunners in context.
+ 
+ ResultHandlers is passed in to Shell.
+ 
+ExtendedDefaultParserMine line 114.
+if (eofOnEscapedNewLine && isEscapeChar(line, line.length() - 1)) {
+	throw new EOFError(-1, -1, "Escaped new line", "newline");
+}
+
+Shell. set parameterResolvers.
+
+eclipse static import test package.
+Window > Preferences > Java > Editor > Content Assist > Favorites
+org.hamcrest.Matchers.*
+org.hamcrest.CoreMatchers.*
+org.junit.*
+org.junit.Assert.*
+org.junit.Assume.*
+org.junit.matchers.JUnitMatchers.*

@@ -28,6 +28,11 @@ public class ResultHandlerConfigMine {
 		return new TypeHierarchyResultHandlerMine();
 	}
 	
+	@Bean
+	public ExecuteResultHandler executeResultHandler() {
+		return new ExecuteResultHandler();
+	}
+	
 
 	@Bean
 	public IterableResultHandlerMine iterableResultHandler() {

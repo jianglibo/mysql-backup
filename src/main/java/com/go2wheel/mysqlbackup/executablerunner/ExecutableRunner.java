@@ -10,9 +10,11 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+
 public interface ExecutableRunner<T> {
 	
-	ExecuteResult<T> execute(String...commandWords);
+	ExternalExecuteResult<T> execute(String...commandWords);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

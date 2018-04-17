@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
@@ -24,12 +26,21 @@ public class PathUtil {
 	}
 	
 	public static Optional<Path> getJarLocation() {
-		ProtectionDomain pd = PathUtil.class.getProtectionDomain();
-		CodeSource cs = pd.getCodeSource();
-		URL url = cs.getLocation();
 		try {
-			return Optional.of(new File(url.toURI().getPath()).toPath());
-		} catch (URISyntaxException e) {
+			ProtectionDomain pd = PathUtil.class.getProtectionDomain();
+			CodeSource cs = pd.getCodeSource();
+			URL url = cs.getLocation();
+			URI uri = url.toURI();
+			String rawSchemeSpecificPart = uri.getRawSchemeSpecificPart();
+			//jar:file:/D:/Documents/GitHub/mysql-backup/build/libs/mysql-backup-boot.jar!/BOOT-INF/classes!/
+			
+			int c = rawSchemeSpecificPart.indexOf('!');
+			if (c != -1) {
+				rawSchemeSpecificPart = rawSchemeSpecificPart.substring(0, c);
+			}
+			File f = new File(new URL(rawSchemeSpecificPart).toURI());
+			return Optional.of(f.toPath().getParent());
+		} catch (URISyntaxException | MalformedURLException e) {
 			return Optional.empty();
 		}
 	}

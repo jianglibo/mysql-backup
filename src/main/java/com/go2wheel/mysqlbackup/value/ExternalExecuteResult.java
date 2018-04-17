@@ -1,6 +1,6 @@
-package com.go2wheel.mysqlbackup.executablerunner;
+package com.go2wheel.mysqlbackup.value;
 
-public class ExecuteResult<T> {
+public class ExternalExecuteResult<T> {
 	
 	private T result;
 	
@@ -10,15 +10,15 @@ public class ExecuteResult<T> {
 	
 	private int exitValue;
 	
-	public ExecuteResult() {}
+	public ExternalExecuteResult() {}
 	
-	public ExecuteResult(T result, int exitValue) {
+	public ExternalExecuteResult(T result, int exitValue) {
 		this.result = result;
 		this.exitValue = exitValue;
 	}
 	
-	public static <T1> ExecuteResult<T1> failedResult(String reason) {
-		ExecuteResult<T1> er = new ExecuteResult<>();
+	public static <T1> ExternalExecuteResult<T1> failedResult(String reason) {
+		ExternalExecuteResult<T1> er = new ExternalExecuteResult<>();
 		er.setSuccess(false);
 		er.reason = reason;
 		return er;

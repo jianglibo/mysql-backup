@@ -6,12 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MysqlCnfFileGetter implements ExecutableRunner<List<String>> {
+import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+
+public class MysqlCnfFileFinder implements ExecutableRunner<List<String>> {
 	
 	private static String matcherline = "Default options are read from the following"; 
 
 	@Override
-	public ExecuteResult<List<String>> execute(String... commandWords) {
+	public ExternalExecuteResult<List<String>> execute(String... commandWords) {
 		if (commandWords.length == 0) {
 			commandWords = new String[] {"mysql", "--help", "--verbose"};
 		}
@@ -36,10 +38,10 @@ public class MysqlCnfFileGetter implements ExecutableRunner<List<String>> {
 				}
 			}
 		    
-		    return new ExecuteResult<>(cfgfiles, exitValue);
+		    return new ExternalExecuteResult<>(cfgfiles, exitValue);
 			
 		} catch (IOException | InterruptedException e) {
-			return ExecuteResult.failedResult(e.getMessage());
+			return ExternalExecuteResult.failedResult(e.getMessage());
 		}
 	}
 

@@ -13,6 +13,11 @@ public class UtilForTe {
 	public static void printme(Object o) {
 		System.out.println(o);
 	}
+	
+	
+	public static Path getMysqlInstanceDescription(String hostname) {
+		return Paths.get("fixtures", "mysqls", hostname, "description.yml");
+	}
 
 	public static Path getPathInThisProjectRelative(String fn) {
 		Path currentRelativePath = Paths.get("").toAbsolutePath();
