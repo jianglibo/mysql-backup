@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,10 +9,30 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 
+import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
+
 public class UtilForTe {
 
 	public static void printme(Object o) {
 		System.out.println(o);
+	}
+	
+	public static YmlConfigFort getYmlConfigFort() {
+		InputStream is =ClassLoader.class.getResourceAsStream("/test.yml"); 
+		if (is != null) {
+			return YamlInstance.INSTANCE.getYaml().loadAs(is, YmlConfigFort.class);
+		} else {
+			return new YmlConfigFort();
+		}
+		
+	}
+	
+	
+	public static BackupCommand backupCommandInstance() throws IOException {
+		BackupCommand bc = new BackupCommand();
+		bc.setInstancesBase(Files.createTempDirectory("backupcommandbase"));
+		return bc;
 	}
 	
 	
@@ -25,6 +46,13 @@ public class UtilForTe {
 	}
 	
 	public static void deleteFolder(Path folder) throws IOException {
+		if (folder == null || !Files.exists(folder)) {
+			return;
+		}
+		
+		if (Files.isRegularFile(folder)) {
+			Files.delete(folder);
+		}
 		Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
 		    @Override
 		    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)

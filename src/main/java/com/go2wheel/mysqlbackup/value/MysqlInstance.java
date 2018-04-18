@@ -4,7 +4,9 @@ public class MysqlInstance {
 	
 	private String host;
 	
-	private int port;
+	private int sshPort = 22;
+	
+	private int mysqlPort = 3306;
 	
 	private String username;
 	private String password;
@@ -13,18 +15,34 @@ public class MysqlInstance {
 	
 	private String sshKeyFile;
 	
+	@Override
+	public String toString() {
+		return String.format("[host: %s:%s, username: %s, password: %s]", getHost(), getSshPort(), getUsername(), getPassword() == null ? "" : getPassword().replaceAll(".", "*"));
+	}
+	
 	public String getHost() {
 		return host;
 	}
 	public void setHost(String host) {
 		this.host = host;
 	}
-	public int getPort() {
-		return port;
+	
+	public int getSshPort() {
+		return sshPort;
 	}
-	public void setPort(int port) {
-		this.port = port;
+
+	public void setSshPort(int sshPort) {
+		this.sshPort = sshPort;
 	}
+
+	public int getMysqlPort() {
+		return mysqlPort;
+	}
+
+	public void setMysqlPort(int mysqlPort) {
+		this.mysqlPort = mysqlPort;
+	}
+
 	public String getUsername() {
 		return username;
 	}

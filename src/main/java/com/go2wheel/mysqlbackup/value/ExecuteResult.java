@@ -6,12 +6,15 @@ public class ExecuteResult<T> {
 	
 	private boolean success;
 	
+	private String message;
+	
 	private String reason;
 	
 	public ExecuteResult() {}
 	
 	public ExecuteResult(T result) {
 		this.result = result;
+		this.success = true;
 	}
 	
 	public static <T1> ExecuteResult<T1> failedResult(String reason) {
@@ -43,5 +46,14 @@ public class ExecuteResult<T> {
 
 	public void setReason(String reason) {
 		this.reason = reason;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public ExecuteResult<T> setMessage(String message) {
+		this.message = message;
+		return this;
 	}
 }

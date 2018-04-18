@@ -35,3 +35,4 @@ templateRoot/
 **/t.properties
 pb.log
 **/*.log
+test.yml

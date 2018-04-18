@@ -31,14 +31,18 @@ public class PathUtil {
 			CodeSource cs = pd.getCodeSource();
 			URL url = cs.getLocation();
 			URI uri = url.toURI();
-			String rawSchemeSpecificPart = uri.getRawSchemeSpecificPart();
-			//jar:file:/D:/Documents/GitHub/mysql-backup/build/libs/mysql-backup-boot.jar!/BOOT-INF/classes!/
+			String schemeSpecificPart = uri.getRawSchemeSpecificPart();
 			
-			int c = rawSchemeSpecificPart.indexOf('!');
-			if (c != -1) {
-				rawSchemeSpecificPart = rawSchemeSpecificPart.substring(0, c);
+			if (!schemeSpecificPart.startsWith("file:")) {
+				schemeSpecificPart = "file:" + schemeSpecificPart;
 			}
-			File f = new File(new URL(rawSchemeSpecificPart).toURI());
+			// jar:file:/D:/Documents/GitHub/mysql-backup/build/libs/mysql-backup-boot.jar!/BOOT-INF/classes!/
+			// file:/D:/Documents/GitHub/mysql-backup/bin/main/
+			int c = schemeSpecificPart.indexOf('!');
+			if (c != -1) {
+				schemeSpecificPart = schemeSpecificPart.substring(0, c);
+			}
+			File f = new File(new URL(schemeSpecificPart).toURI());
 			return Optional.of(f.toPath().getParent());
 		} catch (URISyntaxException | MalformedURLException e) {
 			return Optional.empty();

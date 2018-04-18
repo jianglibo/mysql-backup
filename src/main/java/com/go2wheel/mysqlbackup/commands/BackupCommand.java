@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.commands;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,6 +8,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -22,9 +24,12 @@ import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.value.ExecuteResult;
 import com.go2wheel.mysqlbackup.value.ListInstanceResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ShellComponent()
 public class BackupCommand {
+	
+	public static final String DESCRIPTION_FILENAME = "description.yml";
 	
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, ON_INSTANCE
@@ -36,32 +41,31 @@ public class BackupCommand {
 	
 	private CommandStepState state = CommandStepState.INIT_START;
 	
+	private Path instancesBase;
+	
 	@ShellMethod(value = "List all managed mysql instances.")
 	public ListInstanceResult listInstance() throws IOException {
-		return listInstance(PathUtil.getJarLocation().get().resolve("mysqls"));
+		return listInstanceInternal();
 	}
 	
 	@ShellMethod(value = "Pickup an instance as working instance.")
 	public ListInstanceResult selectInstance() throws IOException {
 		this.state = CommandStepState.WAITING_SELECT;
-		return listInstance(getInstanceRootDir());
+		return listInstanceInternal();
 	}
 	
-	private Path getInstanceRootDir() {
+	@PostConstruct
+	private void findInstanceRootDir() throws IOException {
 		Path p = PathUtil.getJarLocation().get().resolve("mysqls");
 		if (!Files.exists(p)) {
-			try {
-				Files.createDirectories(p);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			Files.createDirectories(p);
 		}
-		return p;
 	}
 	
 	@ShellMethod(value = "Create a mysql instance.")
-	public ExecuteResult<Boolean> createInstance(@NotNull String host,
-			@ShellOption(defaultValue = "3306") @NotNull @Pattern(regexp = "[1-9][0-9]*") int port,
+	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,
+			@ShellOption(defaultValue = "22") @NotNull @Pattern(regexp = "[1-9][0-9]*") int sshPort,
+			@ShellOption(defaultValue = "3306") @NotNull @Pattern(regexp = "[1-9][0-9]*") int mysqlPort,
 			@ShellOption(defaultValue = "") String sshKeyFile,
 			@ShellOption(defaultValue = "root") @NotNull  String username,
 			@ShellOption(defaultValue = "") String password) {
@@ -70,7 +74,7 @@ public class BackupCommand {
 			return ExecuteResult.failedResult("Either sshKeyFile or password is required!");
 		}
 		
-		Path ph = getInstanceRootDir().resolve(host);
+		Path ph = instancesBase.resolve(host);
 		if (Files.exists(ph)) {
 			return ExecuteResult.failedResult(String.format("Host: '%s' already exists.", host));
 		}
@@ -78,6 +82,8 @@ public class BackupCommand {
 		MysqlInstance mi = new MysqlInstance();
 		mi.setHost(host);
 		mi.setUsername(username);
+		mi.setMysqlPort(mysqlPort == 0 ? 3306 : mysqlPort);
+		mi.setSshPort(sshPort == 0 ? 22 : sshPort);
 		if (password.isEmpty()) {
 			if (!Files.exists(Paths.get(sshKeyFile))) {
 				return ExecuteResult.failedResult(String.format("sshKeyFile: '%s' doesn't exists.", sshKeyFile));
@@ -87,17 +93,33 @@ public class BackupCommand {
 		} else {
 			mi.setPassword(password);
 		}
-		
-		
-		
-		return new ExecuteResult<Boolean>(true);
+		return writeInstance(mi);
 	}
 	
-	protected ListInstanceResult listInstance(Path instancesBasePath) throws IOException {
-		if (!Files.exists(instancesBasePath)) {
-			Files.createDirectories(instancesBasePath);
+	private ExecuteResult<MysqlInstance> writeInstance(MysqlInstance mi) {
+		Path mp = instancesBase.resolve(mi.getHost());
+		if (!Files.exists(mp)) {
+			try {
+				Files.createDirectories(mp);
+			} catch (IOException e) {
+				return ExecuteResult.failedResult(String.format("Create directory: '%s' failed.", mp.toString()));
+			}
 		}
-		allInstancePaths = Files.list(instancesBasePath).collect(Collectors.toList());
+		Path df = mp.resolve(DESCRIPTION_FILENAME);
+		
+		String s = YamlInstance.INSTANCE.getYaml().dumpAsMap(mi);
+		try (BufferedWriter bw = Files.newBufferedWriter(df)) {
+			bw.write(s);
+			bw.flush();
+			bw.close();
+		} catch (IOException e) {
+			return ExecuteResult.failedResult(String.format("Write Yml file : '%s' failed.", df.toString()));
+		}
+		return new ExecuteResult<>(mi).setMessage(String.format("Mysql on host: %s created.", mi.getHost())); 
+	}
+
+	protected ListInstanceResult listInstanceInternal() throws IOException {
+		allInstancePaths = Files.list(instancesBase).collect(Collectors.toList());
 		return new ListInstanceResult(allInstancePaths);
 	}
 	
@@ -128,5 +150,12 @@ public class BackupCommand {
 	public void setState(CommandStepState state) {
 		this.state = state;
 	}
+	
+	public Path getInstancesBase() {
+		return instancesBase;
+	}
 
+	public void setInstancesBase(Path instancesBase) {
+		this.instancesBase = instancesBase;
+	}
 }

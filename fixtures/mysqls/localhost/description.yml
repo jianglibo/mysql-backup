@@ -1,5 +1,6 @@
 # abc
 host: localhost
-port: 3306
+mysqlPort: 3306
+sshPort: 22
 username: root
 password: 123456

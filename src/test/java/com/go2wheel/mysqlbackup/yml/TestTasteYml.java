@@ -19,7 +19,8 @@ public class TestTasteYml {
 		Yaml yaml = new Yaml();
 		MysqlInstance instance =  yaml.loadAs(Files.newInputStream(UtilForTe.getMysqlInstanceDescription("localhost")), MysqlInstance.class);
 		assertThat(instance.getHost(), equalTo("localhost"));
-		assertThat(instance.getPort(), equalTo(3306));
+		assertThat(instance.getSshPort(), equalTo(22));
+		assertThat(instance.getMysqlPort(), equalTo(3306));
 		assertThat(instance.getUsername(), equalTo("root"));
 		assertThat(instance.getPassword(), equalTo("123456"));
 		
