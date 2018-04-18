@@ -36,3 +36,4 @@ templateRoot/
 pb.log
 **/*.log
 test.yml
+Vagrantfile
