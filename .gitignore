@@ -37,3 +37,4 @@ pb.log
 **/*.log
 test.yml
 Vagrantfile
+.vagrant
