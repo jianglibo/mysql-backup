@@ -1,52 +1,94 @@
 package com.go2wheel.mysqlbackup.sshj;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assume;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.UtilForTe;
-import com.go2wheel.mysqlbackup.YmlConfigFort;
-
-import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
+import net.schmizz.sshj.common.SSHRuntimeException;
+import net.schmizz.sshj.connection.ConnectionException;
 import net.schmizz.sshj.connection.channel.direct.Session;
 import net.schmizz.sshj.connection.channel.direct.Session.Command;
+import net.schmizz.sshj.connection.channel.direct.Session.Shell;
+import net.schmizz.sshj.transport.TransportException;
 
-public class TestExec {
+public class TestExec extends SshBaseFort {
+
+	// Multiple sessions
+	// Session objects are not reusable, so you can only have one
+	// command/shell/subsystem via exec(), startShell() or startSubsystem()
+	// respectively. But you can start multiple sessions over a single connection.
 	
-	private YmlConfigFort c = UtilForTe.getYmlConfigFort();
+	@Test
+	public void testStartShell() throws ConnectionException, TransportException {
+		final Session session = sshClient.startSession();
+		Shell shell = session.startShell();
+		long l = shell.getRemoteWinSize();
+		shell.close();
+		session.close();
+	}
+	
+	//	Subsystems are a set of remote commands predefined on the server machine so they can be executed conveniently
+	@Test
+	public void testSubsystems() {
+		assertTrue(true);
+	}
 
 	@Test
-	public void t() throws IOException {
-		Assume.assumeTrue(c.isEnvExists());
-        final SSHClient ssh = new SSHClient();
-        Path knownHosts = Paths.get(c.getKnownHosts()); 
-        assertTrue(Files.exists(knownHosts) && Files.isRegularFile(knownHosts));
+	public void testExec() throws IOException {
+		final Session session = sshClient.startSession();
+		try {
+			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
+			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
+			assertThat(cmdOut.trim(), equalTo("abc"));
+			cmd.join(5, TimeUnit.SECONDS);
+			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
+		} finally {
+			session.close();
+		}
+	}
 
-        ssh.loadKnownHosts(knownHosts.toFile());
-        ssh.connect(c.getSshHost());
-        try {
-//            ssh.authPublickey("root");
-            ssh.authPublickey("root", c.getSshIdrsa());
-            
-            final Session session = ssh.startSession();
-            try {
-                final Command cmd = session.exec("ping -c 1 bing.com");
-                System.out.println(IOUtils.readFully(cmd.getInputStream()).toString());
-                cmd.join(5, TimeUnit.SECONDS);
-                System.out.println("\n** exit status: " + cmd.getExitStatus());
-            } finally {
-                session.close();
-            }
-        } finally {
-            ssh.disconnect();
-        }
+	@Test(expected= SSHRuntimeException.class)
+	public void testReuseSession() throws IOException {
+		final Session session = sshClient.startSession();
+		try {
+			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
+			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
+			assertThat(cmdOut.trim(), equalTo("abc"));
+			cmd.join(5, TimeUnit.SECONDS);
+			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
+			// then reuse session.
+			final Command cmd1 = session.exec("ls -lh");
+			assertThat("resuse exit code should be 0.", cmd1.getExitStatus(), equalTo(0));
+		} finally {
+			session.close();
+		}
+	}
+	
+	@Test
+	public void multipleSession() throws IOException {
+		for(int i =0;i < 10; i++) {
+			oneSessionOneCommand();
+		}
+		time();
+	}
+	
+	private void oneSessionOneCommand() throws IOException {
+		final Session session = sshClient.startSession();
+		try {
+			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
+			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
+			assertThat(cmdOut.trim(), equalTo("abc"));
+			cmd.join(5, TimeUnit.SECONDS);
+			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
+		} finally {
+			session.close();
+		}
+
 	}
 }

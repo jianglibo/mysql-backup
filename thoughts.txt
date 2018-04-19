@@ -4,3 +4,23 @@ mysql --help --verbose
 Default options are read from the following files in the given order:
 C:\WINDOWS\my.ini C:\WINDOWS\my.cnf C:\my.ini C:\my.cnf C:\wamp64\bin\mysql\mysql5.7.14\my.ini C:\wamp64\bin\mysql\mysql5.7.14\my.cnf
 
+install mysql:
+https://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/
+
+curl -O https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
+
+sudo rpm -Uvh platform-and-version-specific-package-name.rpm
+
+sudo yum-config-manager --disable mysql57-community
+sudo yum-config-manager --enable mysql56-community
+
+yum repolist enabled | grep mysql
+sudo yum install mysql-community-server
+
+for 5.6:
+mysql_secure_installation
+
+systemctl start mysqld
+
+
+ /etc/yum.repos.d/mysql-community.repo enable5.6
