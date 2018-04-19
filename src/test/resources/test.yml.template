@@ -1,4 +1,4 @@
-sshHost: 10.19.183.50
+sshHost: 192.168.33.110
 sshIdrsa: D:/cygwin64/home/admin/.ssh/id_rsa
 knownHosts: D:/cygwin64/home/admin/.ssh/known_hosts
 envExists: true

@@ -37,7 +37,7 @@ pb.log
 **/*.log
 test.yml
 Vagrantfile
-.vagrant/
+.vagrant
 **/*.msi
 common.cab
 log/
