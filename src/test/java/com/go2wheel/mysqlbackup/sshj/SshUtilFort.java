@@ -10,13 +10,13 @@ import net.schmizz.sshj.SSHClient;
 
 public class SshUtilFort {
 	
-	public static SSHClient getConnectedSSHClient(YmlConfigFort c) throws IOException {
-		final SSHClient ssh = new SSHClient();
-		Path knownHosts = Paths.get(c.getKnownHosts());
-		ssh.loadKnownHosts(knownHosts.toFile());
-		ssh.connect(c.getSshHost());
-		ssh.authPublickey("root", c.getSshIdrsa());
-		return ssh;
-	}
+//	public static SSHClient getConnectedSSHClient(YmlConfigFort c) throws IOException {
+//		final SSHClient ssh = new SSHClient();
+//		Path knownHosts = Paths.get(c.getKnownHosts());
+//		ssh.loadKnownHosts(knownHosts.toFile());
+//		ssh.connect(c.getSshHost());
+//		ssh.authPublickey("root", c.getSshIdrsa());
+//		return ssh;
+//	}
 
 }

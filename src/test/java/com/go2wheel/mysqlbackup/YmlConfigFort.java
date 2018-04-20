@@ -1,12 +1,15 @@
 package com.go2wheel.mysqlbackup;
 
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
+
 public class YmlConfigFort {
 
 	private String sshHost;
 	private String sshIdrsa;
 	private String knownHosts;
-	
 	private boolean envExists;
+	
+	private MysqlInstance demoinstance;
 	
 	public String getSshHost() {
 		return sshHost;
@@ -31,6 +34,12 @@ public class YmlConfigFort {
 	}
 	public void setEnvExists(boolean envExists) {
 		this.envExists = envExists;
+	}
+	public MysqlInstance getDemoinstance() {
+		return demoinstance;
+	}
+	public void setDemoinstance(MysqlInstance demoinstance) {
+		this.demoinstance = demoinstance;
 	}
 	
 	

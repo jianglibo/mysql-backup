@@ -4,14 +4,11 @@ spring:
       enabled: true
     script:
       enabled: true
-copyconfig:
-  disablebuiltins:
-    performers:
-      - name.of.performer
-    ignorecheckers:
-      - name.of.checker
-    pathadjusters:
-      - name.of.adjuster
+myapp:
+  ssh:
+    sshIdrsa: D:/cygwin64/home/admin/.ssh/id_rsa
+    knownHosts: D:/cygwin64/home/admin/.ssh/known_hosts
+
 ---
 spring:
     profiles: dev

@@ -1,0 +1,6 @@
+|-
+  --binlog-row-event-max-size=8192 --binlog-rows-query-log-events=false --log-bin[=base_name] --log-bin-index[=file_name] --binlog-do-db=db_name
+  Statement-based logging.  Only those statements are written to the binary log where the default database (that is, the one selected by USE) is db_name. To specify more than one database, use this option multiple times, once for each database; however, doing so does not cause cross-database statements such as UPDATE some_db.some_table SET foo='bar' to be logged while a different database (or no database) is selected.
+  Warning To specify multiple databases you must use multiple instances of this option. Because database names can contain commas, the list will be treated as the name of a single database if you supply a comma-separated list.
+  
+  

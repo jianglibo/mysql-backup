@@ -7,6 +7,7 @@ import org.junit.Before;
 
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.YmlConfigFort;
+import com.go2wheel.mysqlbackup.util.SshClientFactory;
 
 import net.schmizz.sshj.SSHClient;
 
@@ -19,7 +20,9 @@ public class SshBaseFort {
 	
 	@Before
 	public void before() throws IOException {
-		sshClient = SshUtilFort.getConnectedSSHClient(c);
+		SshClientFactory scf = new SshClientFactory();
+		scf.setAppSettings(UtilForTe.getMyAppSettings());
+		sshClient = scf.getConnectedSSHClient(c.getDemoinstance());
 		startTime = System.currentTimeMillis();
 	}
 

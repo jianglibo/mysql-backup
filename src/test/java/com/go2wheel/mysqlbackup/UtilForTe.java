@@ -1,23 +1,60 @@
 package com.go2wheel.mysqlbackup;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class UtilForTe {
+	
+	private static Pattern getItemPtn(String name) {
+		return Pattern.compile("\\s+" + name + ":\\s*(.*?)\\s*");
+	}
 
 	public static void printme(Object o) {
 		System.out.println(o);
 	}
 	
+	public static MyAppSettings getMyAppSettings() {
+		InputStream is =ClassLoader.class.getResourceAsStream("/application.yml");
+		
+		 MyAppSettings mas = new MyAppSettings();
+		 SshConfig sc = new SshConfig();
+		 mas.setSsh(sc);
+		if (is != null) {
+			BufferedReader in = new BufferedReader(new InputStreamReader(is));
+			String line = null;
+			try {
+				while((line = in.readLine()) != null) {
+					Matcher m = getItemPtn("sshIdrsa").matcher(line);
+					if (m.matches()) {
+						 sc.setSshIdrsa((String) m.group(1));
+					}
+					m = getItemPtn("knownHosts").matcher(line);
+					if (m.matches()) {
+						sc.setKnownHosts((m.group(1)));
+					}
+				}
+			} catch (IOException e) {
+			}
+			 
+		}
+		return mas;
+	}
+
 	public static YmlConfigFort getYmlConfigFort() {
 		InputStream is =ClassLoader.class.getResourceAsStream("/test.yml"); 
 		if (is != null) {
@@ -38,6 +75,10 @@ public class UtilForTe {
 	
 	public static Path getMysqlInstanceDescription(String hostname) {
 		return Paths.get("fixtures", "mysqls", hostname, "description.yml");
+	}
+	
+	public static MysqlInstance getDemoInstance() {
+		return getYmlConfigFort().getDemoinstance();
 	}
 
 	public static Path getPathInThisProjectRelative(String fn) {
