@@ -1,5 +1,9 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
+
 public class MysqlInstance {
 	
 	private String host;
@@ -8,12 +12,16 @@ public class MysqlInstance {
 	
 	private int mysqlPort = 3306;
 	
+	private String fingerprint;
+	
 	private String username;
 	private String password;
 	
 	private String mycnfFile;
 	
 	private String sshKeyFile;
+	
+	private List<String> mycnfContent;
 	
 	@Override
 	public String toString() {
@@ -66,5 +74,34 @@ public class MysqlInstance {
 	}
 	public void setSshKeyFile(String sshKeyFile) {
 		this.sshKeyFile = sshKeyFile;
+	}
+
+	public String getFingerprint() {
+		return fingerprint;
+	}
+	
+	public boolean hasFingerPrint() {
+		return fingerprint != null && !fingerprint.trim().isEmpty();
+				
+	}
+
+	public void setFingerprint(String fingerprint) {
+		this.fingerprint = fingerprint;
+	}
+	
+	public boolean canSShKeyAuth() {
+		return sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile));
+	}
+	
+	public boolean canPasswordAuth() {
+		return password != null && !password.trim().isEmpty();
+	}
+
+	public List<String> getMycnfContent() {
+		return mycnfContent;
+	}
+
+	public void setMycnfContent(List<String> mycnfContent) {
+		this.mycnfContent = mycnfContent;
 	}
 }

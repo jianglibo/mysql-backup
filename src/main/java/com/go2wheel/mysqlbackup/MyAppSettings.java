@@ -1,13 +1,38 @@
 package com.go2wheel.mysqlbackup;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import javax.annotation.PostConstruct;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+
+import com.go2wheel.mysqlbackup.util.PathUtil;
 
 @ConfigurationProperties(prefix = "myapp")
 @Component
 public class MyAppSettings {
 	
 	private SshConfig ssh;
+	
+	private String dataDir;
+	
+	private Path dataRoot;
+	
+	@PostConstruct
+	public void post() throws IOException {
+		Path tmp = Paths.get(this.dataDir);
+		if (!tmp.isAbsolute()) {
+			tmp = PathUtil.getJarLocation().get().resolve(this.dataDir);
+		}
+		if (!Files.exists(tmp)) {
+			Files.createDirectories(tmp);
+		}
+		this.dataRoot = tmp;
+	}
 	
 	
 	public SshConfig getSsh() {
@@ -19,6 +44,19 @@ public class MyAppSettings {
 		this.ssh = ssh;
 	}
 	
+
+	public void setDataDir(String dataDir) {
+		this.dataDir = dataDir;
+	}
+	
+	public Path getDataRoot() {
+		return dataRoot;
+	}
+
+	public void setDataRoot(Path dataRoot) {
+		this.dataRoot = dataRoot;
+	}
+
 	public static class SshConfig {
 		private String sshIdrsa;
 		private String knownHosts;
@@ -34,6 +72,14 @@ public class MyAppSettings {
 		}
 		public void setKnownHosts(String knownHosts) {
 			this.knownHosts = knownHosts;
+		}
+		
+		public boolean knownHostsExists() {
+			return knownHosts != null && !knownHosts.trim().isEmpty() && Files.exists(Paths.get(knownHosts));
+		}
+		
+		public boolean sshIdrsaExists() {
+			return sshIdrsa != null && !sshIdrsa.trim().isEmpty() && Files.exists(Paths.get(sshIdrsa));
 		}
 	}
 

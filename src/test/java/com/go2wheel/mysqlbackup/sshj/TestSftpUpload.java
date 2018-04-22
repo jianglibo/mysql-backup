@@ -1,33 +1,25 @@
 package com.go2wheel.mysqlbackup.sshj;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.junit.Test;
 
-import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.xfer.FileSystemFile;
 
-public class TestSftpUpload {
+public class TestSftpUpload extends SshBaseFort {
 	
 	@Test
-	public void t() throws IOException {
-        final SSHClient ssh = new SSHClient();
-        ssh.loadKnownHosts();
-        ssh.connect("localhost");
-        try {
-            ssh.authPublickey(System.getProperty("user.name"));
-            final String src = System.getProperty("user.home") + File.separator + "test_file";
-            final SFTPClient sftp = ssh.newSFTPClient();
+	public void tUploadFile() throws IOException {
+            Path lf = createALocalFile();
+            final SFTPClient sftp = sshClient.newSFTPClient();
             try {
-                sftp.put(new FileSystemFile(src), "/tmp");
+                sftp.put(new FileSystemFile(lf.toFile()), "/tmp");
             } finally {
                 sftp.close();
             }
-        } finally {
-            ssh.disconnect();
-        }
+
 	}
 
 }

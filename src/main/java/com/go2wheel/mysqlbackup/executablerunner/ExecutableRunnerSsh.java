@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 public interface ExecutableRunnerSsh<T> {
 	
-	ExternalExecuteResult<T> execute(MysqlInstance instance, String commandString);
+	ExternalExecuteResult<T> execute(MysqlInstance instance);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

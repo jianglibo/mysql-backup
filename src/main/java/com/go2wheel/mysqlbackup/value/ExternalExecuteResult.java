@@ -1,12 +1,12 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.Optional;
+
 public class ExternalExecuteResult<T> {
 	
 	private T result;
 	
-	private boolean success;
-	
-	private String reason;
+	private Optional<String> reason = Optional.empty();
 	
 	private int exitValue;
 	
@@ -19,8 +19,7 @@ public class ExternalExecuteResult<T> {
 	
 	public static <T1> ExternalExecuteResult<T1> failedResult(String reason) {
 		ExternalExecuteResult<T1> er = new ExternalExecuteResult<>();
-		er.setSuccess(false);
-		er.reason = reason;
+		er.reason = Optional.of(reason);
 		return er;
 	}
 
@@ -33,19 +32,12 @@ public class ExternalExecuteResult<T> {
 	}
 
 	public boolean isSuccess() {
-		return success;
+		return exitValue == 0 && !reason.isPresent();
 	}
 
-	public void setSuccess(boolean success) {
-		this.success = success;
-	}
 
-	public String getReason() {
+	public Optional<String> getReason() {
 		return reason;
-	}
-
-	public void setReason(String reason) {
-		this.reason = reason;
 	}
 
 	public int getExitValue() {

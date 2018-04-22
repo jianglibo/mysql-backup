@@ -11,11 +11,7 @@ import java.nio.file.Paths;
 import java.security.PublicKey;
 import java.util.concurrent.TimeUnit;
 
-import org.junit.Assume;
 import org.junit.Test;
-
-import com.go2wheel.mysqlbackup.UtilForTe;
-import com.go2wheel.mysqlbackup.YmlConfigFort;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
@@ -26,60 +22,55 @@ import net.schmizz.sshj.transport.TransportException;
 import net.schmizz.sshj.transport.verification.HostKeyVerifier;
 import net.schmizz.sshj.userauth.UserAuthException;
 
-public class TestKnownHosts {
+public class TestKnownHosts extends SshBaseFort {
 
-	private YmlConfigFort c = UtilForTe.getYmlConfigFort();
 	
 	@Test(expected = TransportException.class)
 	public void testNoKnownHostSetting() throws IOException {
-		Assume.assumeTrue(c.isEnvExists());
-		new SSHClient().connect(c.getSshHost());
+		new SSHClient().connect(demoInstance.getHost());
 	}
 	
 	@Test()
 	public void testKnownHostFromFile() throws IOException {
-		Assume.assumeTrue(c.isEnvExists());
 		final SSHClient ssh = new SSHClient();
-		Path knownHosts = Paths.get(c.getKnownHosts());
+		Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
 		assertTrue(Files.exists(knownHosts) && Files.isRegularFile(knownHosts));
 		ssh.loadKnownHosts(knownHosts.toFile());
-		ssh.connect(c.getSshHost());
+		ssh.connect(demoInstance.getHost());
 		executeEcho(ssh);
 	}
 	
 	@Test
 	public void testVerifier() throws IOException {
-		Assume.assumeTrue(c.isEnvExists());
 		final SSHClient ssh = new SSHClient();
 		ssh.addHostKeyVerifier(new HostKeyVerifier() {
 			@Override
 			public boolean verify(String hostname, int port, PublicKey key) {
-				Path knownHosts = Paths.get(c.getKnownHosts());
+				Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
 				assertTrue(Files.exists(knownHosts) && Files.isRegularFile(knownHosts));
 				return true;
 			}
 		});
-		ssh.connect(c.getSshHost());
+		ssh.connect(demoInstance.getHost());
 		executeEcho(ssh);
 	}
 	
 //	@Test
 	// ssh-keygen -lf ~/.ssh/id_rsa.pub, fingerprint is md5 of host's public key.
 	public void testFingerprint() throws IOException {
-		Assume.assumeTrue(c.isEnvExists());
 		final SSHClient ssh = new SSHClient();
-		String fingerprintline = Files.lines(Paths.get(c.getKnownHosts())).filter(line -> line.indexOf(c.getSshHost()) != -1).findAny().get();
+		String fingerprintline = Files.lines(Paths.get(appSettings.getSsh().getKnownHosts())).filter(line -> line.indexOf(demoInstance.getHost()) != -1).findAny().get();
 		String[] splited = fingerprintline.split("\\s+");
 		assertThat("host fingerprint should has three columns.", splited.length, equalTo(3));
 		ssh.addHostKeyVerifier("ecdsa-sha2-nistp256:" + splited[2]);
-		ssh.connect(c.getSshHost());
+		ssh.connect(demoInstance.getHost());
 		executeEcho(ssh);
 	}
 
 	private void executeEcho(final SSHClient ssh)
 			throws UserAuthException, TransportException, ConnectionException, IOException {
 		try {
-			ssh.authPublickey("root", c.getSshIdrsa());
+			ssh.authPublickey("root", appSettings.getSsh().getSshIdrsa());
 
 			final Session session = ssh.startSession();
 			try {

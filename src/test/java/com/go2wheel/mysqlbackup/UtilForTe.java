@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +21,11 @@ import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
+import net.schmizz.sshj.SSHClient;
+import net.schmizz.sshj.common.IOUtils;
+import net.schmizz.sshj.connection.channel.direct.Session;
+import net.schmizz.sshj.connection.channel.direct.Session.Command;
+
 public class UtilForTe {
 	
 	private static Pattern getItemPtn(String name) {
@@ -32,6 +40,7 @@ public class UtilForTe {
 		InputStream is =ClassLoader.class.getResourceAsStream("/application.yml");
 		
 		 MyAppSettings mas = new MyAppSettings();
+		 mas.setDataRoot(Paths.get("mysqls"));
 		 SshConfig sc = new SshConfig();
 		 mas.setSsh(sc);
 		if (is != null) {
@@ -54,16 +63,21 @@ public class UtilForTe {
 		}
 		return mas;
 	}
-
-	public static YmlConfigFort getYmlConfigFort() {
-		InputStream is =ClassLoader.class.getResourceAsStream("/test.yml"); 
-		if (is != null) {
-			return YamlInstance.INSTANCE.getYaml().loadAs(is, YmlConfigFort.class);
-		} else {
-			return new YmlConfigFort();
-		}
-		
+	
+	public static MysqlInstance loadDemoInstance() throws IOException {
+		InputStream is = Files.newInputStream(Paths.get("mysqls", "demoinstance", "description.yml")); 
+		return YamlInstance.INSTANCE.getYaml().loadAs(is, MysqlInstance.class);
 	}
+
+//	public static YmlConfigFort getYmlConfigFort() {
+//		InputStream is =ClassLoader.class.getResourceAsStream("/test.yml"); 
+//		if (is != null) {
+//			return YamlInstance.INSTANCE.getYaml().loadAs(is, YmlConfigFort.class);
+//		} else {
+//			return new YmlConfigFort();
+//		}
+//		
+//	}
 	
 	
 	public static BackupCommand backupCommandInstance() throws IOException {
@@ -77,9 +91,9 @@ public class UtilForTe {
 		return Paths.get("fixtures", "mysqls", hostname, "description.yml");
 	}
 	
-	public static MysqlInstance getDemoInstance() {
-		return getYmlConfigFort().getDemoinstance();
-	}
+//	public static MysqlInstance getDemoInstance() {
+//		return getYmlConfigFort().getDemoinstance();
+//	}
 
 	public static Path getPathInThisProjectRelative(String fn) {
 		Path currentRelativePath = Paths.get("").toAbsolutePath();
@@ -141,6 +155,22 @@ public class UtilForTe {
 			}
 		}
 		return tmpFolder;
+	}
+	
+	public static void sshEcho(SSHClient sshClient) throws IOException {
+		final Session session = sshClient.startSession();
+		try {
+			final Command cmd = session.exec("echo abc");
+			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
+			assertThat(cmdOut.trim(), equalTo("abc"));;
+			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
+		} finally {
+			session.close();
+		}
+		try {
+			sshClient.disconnect();
+		} catch (IOException e) {
+		}
 	}
 
 }

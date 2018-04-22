@@ -21,7 +21,7 @@ public class MysqlCnfFileFinder implements ExecutableRunner<List<String>> {
 		try {
 			Process process = pb.start();
 			List<String> resultLines = getWhatProcessWriteOut(process.getInputStream());
-			List<String> errorLines = getWhatProcessWriteOut(process.getErrorStream());
+//			List<String> errorLines = getWhatProcessWriteOut(process.getErrorStream());
 			PrintWriter pw = getProcessWriter(process.getOutputStream());
 			pw.write("123456");
 		    int exitValue = process.waitFor();

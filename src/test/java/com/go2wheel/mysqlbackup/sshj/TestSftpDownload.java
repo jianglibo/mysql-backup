@@ -1,31 +1,32 @@
 package com.go2wheel.mysqlbackup.sshj;
 
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.junit.Assert.assertThat;
+
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import org.junit.Test;
 
-import net.schmizz.sshj.SSHClient;
+import com.go2wheel.mysqlbackup.UtilForTe;
+
 import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.xfer.FileSystemFile;
 
-public class TestSftpDownload {
-	
+public class TestSftpDownload extends SshBaseFort {
+
 	@Test
-	public void t() throws IOException {
-        final SSHClient ssh = new SSHClient();
-        ssh.loadKnownHosts();
-        ssh.connect("localhost");
-        try {
-            ssh.authPublickey(System.getProperty("user.name"));
-            final SFTPClient sftp = ssh.newSFTPClient();
-            try {
-                sftp.get("test_file", new FileSystemFile("/tmp"));
-            } finally {
-                sftp.close();
-            }
-        } finally {
-            ssh.disconnect();
-        }
+	public void tDownloadAfile() throws IOException {
+		createAfileOnServer();
+		Path dst = UtilForTe.createTmpDirectory();
+		final SFTPClient sftp = sshClient.newSFTPClient();
+		try {
+			sftp.get(TMP_SERVER_FILE_NAME, new FileSystemFile(dst.toFile()));
+		} finally {
+			sftp.close();
+		}
+		assertThat(new String(Files.readAllBytes(dst.resolve("abc.txt"))).trim(), equalTo(TMP_FILE_CONTENT));
 	}
 
 }

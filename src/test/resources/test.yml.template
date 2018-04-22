@@ -4,7 +4,8 @@ knownHosts: D:/cygwin64/home/admin/.ssh/known_hosts
 envExists: true
 demoinstance:
   host: 192.168.33.110
+  fingerprint: '4a:16:7b:fd:e4:5a:7b:5d:f7:cc:b0:53:0d:5b:ce:69'
   mysqlPort: 3306
   sshPort: 22
   username: root
-  password: 123456
+  password: vagrant

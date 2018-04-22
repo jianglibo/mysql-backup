@@ -5,6 +5,7 @@ spring:
     script:
       enabled: true
 myapp:
+  dataDir: mysqls
   ssh:
     sshIdrsa: D:/cygwin64/home/admin/.ssh/id_rsa
     knownHosts: D:/cygwin64/home/admin/.ssh/known_hosts

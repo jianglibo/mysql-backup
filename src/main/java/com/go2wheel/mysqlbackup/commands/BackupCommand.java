@@ -8,7 +8,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
@@ -20,7 +19,6 @@ import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
-import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.value.ExecuteResult;
 import com.go2wheel.mysqlbackup.value.ListInstanceResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
@@ -54,13 +52,6 @@ public class BackupCommand {
 		return listInstanceInternal();
 	}
 	
-	@PostConstruct
-	private void findInstanceRootDir() throws IOException {
-		Path p = PathUtil.getJarLocation().get().resolve("mysqls");
-		if (!Files.exists(p)) {
-			Files.createDirectories(p);
-		}
-	}
 	
 	@ShellMethod(value = "Create a mysql instance.")
 	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,

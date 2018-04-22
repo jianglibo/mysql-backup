@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
 
-public class TestMysqlCnfFileGetter {
+public class TestMysqlCnfFileFinder {
 	
 	@Test
 	public void t() throws IOException {
