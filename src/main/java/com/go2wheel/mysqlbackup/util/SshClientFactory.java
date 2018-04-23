@@ -22,14 +22,18 @@ public class SshClientFactory {
 
 	private Logger logger = LoggerFactory.getLogger(SshClientFactory.class);
 
-	public Optional<SSHClient> getConnectedSSHClient(MysqlInstance instance) throws IOException {
+	public Optional<SSHClient> getConnectedSSHClient(MysqlInstance instance) {
 		final SSHClient ssh = new SSHClient();
 
 		if (instance.hasFingerPrint()) {
 			ssh.addHostKeyVerifier(instance.getFingerprint());
 		} else if(appSettings.getSsh().knownHostsExists()) {
 			Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
-			ssh.loadKnownHosts(knownHosts.toFile());
+			try {
+				ssh.loadKnownHosts(knownHosts.toFile());
+			} catch (IOException e) {
+				logger.error("knownhosts configarated to: {}, but cannot be loaded.", appSettings.getSsh().getKnownHosts());
+			}
 		} else {
 			logger.error("instance: {}, message: {}", instance, "No way to verify it's a known host.");
 			try {

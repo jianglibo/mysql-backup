@@ -11,11 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 public interface ExecutableRunnerSsh<T> {
 	
-	ExternalExecuteResult<T> execute(MysqlInstance instance);
+	ExternalExecuteResult<T> execute();
+	
+	void setPrevResult(ExternalExecuteResult<T> prevResult);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
@@ -19,11 +20,29 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 	
 	protected SSHClient sshClient;
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient) {
+	protected ExternalExecuteResult<List<String>> prevResult;
+	
+	protected MysqlInstance instance;
+	
+	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance) {
 		this.sshClient = sshClient;
+		this.instance = instance;
+		this.prevResult = null;
 	}
+	
+	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance, ExternalExecuteResult<List<String>> prevResult) {
+		this.sshClient = sshClient;
+		this.prevResult = prevResult;
+		this.instance = instance;
+	}
+	
 	@Override
-	public ExternalExecuteResult<List<String>> execute(MysqlInstance instance) {
+	public void setPrevResult(ExternalExecuteResult<List<String>> prevResult) {
+		this.prevResult = prevResult;
+	}
+
+	@Override
+	public ExternalExecuteResult<List<String>> execute() {
 		String reason;
 		try {
 			final Session session = sshClient.startSession();
@@ -64,7 +83,7 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 			}
 		}
 		String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-		return new ExternalExecuteResult<List<String>>(Arrays.asList(cmdOut.split("[\\r\\n]+")), cmd.getExitStatus());
+		return new ExternalExecuteResult<List<String>>(StringUtil.splitLines(cmdOut), cmd.getExitStatus());
 	}
 	
 	protected abstract String[] getLinesToFeed();

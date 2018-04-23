@@ -24,6 +24,9 @@ public class MyAppSettings {
 	
 	@PostConstruct
 	public void post() throws IOException {
+		if (this.dataDir == null) {
+			this.dataDir = "mysqls";
+		}
 		Path tmp = Paths.get(this.dataDir);
 		if (!tmp.isAbsolute()) {
 			tmp = PathUtil.getJarLocation().get().resolve(this.dataDir);

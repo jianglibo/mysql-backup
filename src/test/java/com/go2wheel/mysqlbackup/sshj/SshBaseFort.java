@@ -34,22 +34,26 @@ public class SshBaseFort {
 	
 	protected SSHClient sshClient;
 	
+	protected SshClientFactory sshClientFactory;
+	
 	private long startTime;
 	
 	@Before
 	public void before() throws IOException {
 		demoInstance = UtilForTe.loadDemoInstance();
 		appSettings = UtilForTe.getMyAppSettings();
-		SshClientFactory scf = new SshClientFactory();
-		scf.setAppSettings(UtilForTe.getMyAppSettings());
-		sshClient = scf.getConnectedSSHClient(demoInstance).get();
+		sshClientFactory = new SshClientFactory();
+		sshClientFactory.setAppSettings(UtilForTe.getMyAppSettings());
+		sshClient = sshClientFactory.getConnectedSSHClient(demoInstance).get();
 		startTime = System.currentTimeMillis();
 	}
 
 	@After
 	public void after() {
 		try {
-			sshClient.disconnect();
+			if (sshClient != null) {
+				sshClient.disconnect();
+			}
 		} catch (IOException e) {
 		}
 	}

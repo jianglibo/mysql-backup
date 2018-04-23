@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
 import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 import net.schmizz.sshj.SSHClient;
 
@@ -16,8 +17,12 @@ public class MysqlCnfFileLister extends ExecutableRunnerSshBase {
 	
 	private Logger logger = LoggerFactory.getLogger(MysqlCnfFileLister.class);
 	
-	public MysqlCnfFileLister(SSHClient sshClient) {
-		super(sshClient);
+	public MysqlCnfFileLister(SSHClient sshClient, MysqlInstance instance, ExternalExecuteResult<List<String>> prevResult) {
+		super(sshClient, instance, prevResult);
+	}
+
+	public MysqlCnfFileLister(SSHClient sshClient, MysqlInstance instance) {
+		super(sshClient, instance);
 	}
 
 	private static String matcherline = "Default options are read from the following";

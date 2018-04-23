@@ -24,7 +24,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFile();
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient) {
+        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;
@@ -40,7 +40,7 @@ public class TestScpUpload extends SshBaseFort {
 					ExternalExecuteResult<List<String>> externalExecuteResult) {
 				return externalExecuteResult;
 			}
-		}.execute(demoInstance);
+		}.execute();
 		assertTrue(er.getResult().get(0).indexOf(p.getFileName().toString()) != -1);
 	}
 	
@@ -51,7 +51,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFileDirectory(2);
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient) {
+        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;
@@ -67,7 +67,7 @@ public class TestScpUpload extends SshBaseFort {
 					ExternalExecuteResult<List<String>> executeInternal) {
 				return executeInternal;
 			}
-		}.execute(demoInstance);
+		}.execute();
 		assertThat(er.getResult().size(), equalTo(4));
 	}
 
