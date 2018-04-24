@@ -1,36 +1,36 @@
 package com.go2wheel.mysqlbackup.executablerunner;
 
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.InputStream;
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 import com.go2wheel.mysqlbackup.value.Box;
 
-import net.schmizz.sshj.SSHClient;
-import net.schmizz.sshj.common.IOUtils;
-import net.schmizz.sshj.connection.ConnectionException;
-import net.schmizz.sshj.connection.channel.direct.Session;
-import net.schmizz.sshj.connection.channel.direct.Session.Command;
-import net.schmizz.sshj.transport.TransportException;
+
 
 public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<List<String>> {
 	
-	protected SSHClient sshClient;
+	protected Session sshSession;
 	
 	protected RemoteCommandResult<List<String>> prevResult;
 	
 	protected Box box;
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient,Box box) {
-		this.sshClient = sshClient;
+	public ExecutableRunnerSshBase(Session sshSession,Box box) {
+		this.sshSession = sshSession;
 		this.box = box;
 		this.prevResult = null;
 	}
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient,Box box, RemoteCommandResult<List<String>> prevResult) {
-		this.sshClient = sshClient;
+	public ExecutableRunnerSshBase(Session sshClient,Box box, RemoteCommandResult<List<String>> prevResult) {
+		this.sshSession = sshClient;
 		this.prevResult = prevResult;
 		this.box = box;
 	}
@@ -42,11 +42,11 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 
 	@Override
 	public RemoteCommandResult<List<String>> execute() {
-		String reason;
+		String reason = "";
 		try {
-			final Session session = sshClient.startSession();
+			final Channel channel = sshSession.openChannel("exec");
 			try {
-				RemoteCommandResult<List<String>> er = executeInternal(session, box);
+				RemoteCommandResult<List<String>> er = executeInternal(channel, box);
 				if (er.isSuccess()) {
 					RemoteCommandResult<List<String>> er1 = afterSuccessInvoke(er);
 					return er1 == null ? er : er1;
@@ -58,31 +58,27 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 				reason = e.getMessage();
 				e.printStackTrace();
 			} finally {
-				session.close();
+				channel.disconnect();
 			}
-		} catch (ConnectionException | TransportException e) {
-			reason = e.getMessage();
-			e.printStackTrace();
+		} catch (Exception e) {
 		}
 		return RemoteCommandResult.failedResult(reason);
 	}
 	
 	protected abstract RemoteCommandResult<List<String>> afterSuccessInvoke(RemoteCommandResult<List<String>> externalExecuteResult);
 	
-	protected RemoteCommandResult<List<String>> executeInternal(Session session, Box box) throws ConnectionException, TransportException, IOException {
+	protected RemoteCommandResult<List<String>> executeInternal(Channel channel, Box box) throws IOException, JSchException {
 		if (getCommandString() == null || getCommandString().trim().isEmpty()) {
 			return RemoteCommandResult.failedResult("empty ssh command invoked.");
 		}
-		final Command cmd = session.exec(getCommandString());
-		PrintWriter pw = getProcessWriter(cmd.getOutputStream());
-		String[] linesToFeed = getLinesToFeed();
-		if (linesToFeed != null && linesToFeed.length > 0) {
-			for(String line: linesToFeed) {
-				pw.println(line);
-			}
-		}
-		String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-		return new RemoteCommandResult<List<String>>(StringUtil.splitLines(cmdOut), cmd.getExitStatus());
+		((ChannelExec) channel).setCommand(getCommandString());
+		channel.setInputStream(null);
+		((ChannelExec) channel).setErrStream(System.err);
+		InputStream in = channel.getInputStream();
+		channel.connect();
+		RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+
+		return new RemoteCommandResult<List<String>>(StringUtil.splitLines(cmdOut.getResult()), cmdOut.getExitValue());
 	}
 	
 	protected abstract String[] getLinesToFeed();

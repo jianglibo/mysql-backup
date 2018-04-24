@@ -43,3 +43,5 @@ common.cab
 log/
 LOG_FILE_IS_UNDEFINED
 boxes/
+demobox.yml
+notingit/

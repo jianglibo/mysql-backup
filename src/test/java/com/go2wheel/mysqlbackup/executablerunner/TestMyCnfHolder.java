@@ -16,7 +16,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
-import com.go2wheel.mysqlbackup.value.MyCnfHolder;
+import com.go2wheel.mysqlbackup.value.MyCnfFileLikeHolder;
 
 public class TestMyCnfHolder {
 	
@@ -27,7 +27,7 @@ public class TestMyCnfHolder {
 	@Test
 	public void testCommentOutedLogbin() throws IOException {
 		List<String> lines = Files.readAllLines(fixture);
-		MyCnfHolder mcf = new MyCnfHolder(lines);
+		MyCnfFileLikeHolder mcf = new MyCnfFileLikeHolder(lines);
 
 		ConfigValue cv = mcf.getConfigValue("log-bin");
 		assertThat(cv.getState(), equalTo(ConfigValueState.COMMENT_OUTED));
@@ -52,7 +52,7 @@ public class TestMyCnfHolder {
 	@Test
 	public void testNoLogbin() throws IOException {
 		List<String> lines = Files.readAllLines(fixtureNoLogBin);
-		MyCnfHolder mcf = new MyCnfHolder(lines);
+		MyCnfFileLikeHolder mcf = new MyCnfFileLikeHolder(lines);
 
 		ConfigValue cv = mcf.getConfigValue("log-bin");
 		assertThat(cv.getState(), equalTo(ConfigValueState.NOT_EXIST));

@@ -7,11 +7,11 @@ import java.util.regex.Pattern;
 
 import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
 
-public class MyCnfHolder {
+public class MyCnfFileLikeHolder {
 	
 	private List<String> lines;
 
-	public MyCnfHolder(List<String> lines) {
+	public MyCnfFileLikeHolder(List<String> lines) {
 		super();
 		this.lines = lines;
 	}

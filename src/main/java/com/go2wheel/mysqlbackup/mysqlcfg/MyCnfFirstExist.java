@@ -6,18 +6,18 @@ import java.util.Optional;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.Session;
 import com.go2wheel.mysqlbackup.value.Box;
 
-import net.schmizz.sshj.SSHClient;
 
 public class MyCnfFirstExist extends ExecutableRunnerSshBase {
 
-	public MyCnfFirstExist(SSHClient sshClient, Box box, RemoteCommandResult<List<String>> prevResult) {
-		super(sshClient, box, prevResult);
+	public MyCnfFirstExist(Session sshSession, Box box, RemoteCommandResult<List<String>> prevResult) {
+		super(sshSession, box, prevResult);
 	}
 
-	public MyCnfFirstExist(SSHClient sshClient, Box box) {
-		super(sshClient, box);
+	public MyCnfFirstExist(Session sshSession, Box box) {
+		super(sshSession, box);
 	}
 
 

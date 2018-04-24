@@ -12,24 +12,20 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 
-import net.schmizz.sshj.sftp.OpenMode;
-import net.schmizz.sshj.sftp.RemoteFile;
-import net.schmizz.sshj.sftp.SFTPClient;
-import net.schmizz.sshj.xfer.FileSystemFile;
 
 public class TestSftpUpload extends SshBaseFort {
 	
-	@Test
-	public void tUploadFile() throws IOException {
-            Path lf = createALocalFile();
-            final SFTPClient sftp = sshClient.newSFTPClient();
-            try {
-                sftp.put(new FileSystemFile(lf.toFile()), "/tmp");
-            } finally {
-                sftp.close();
-            }
-
-	}
+//	@Test
+//	public void tUploadFile() throws IOException {
+//            Path lf = createALocalFile();
+//            final SFTPClient sftp = sshSession.newSFTPClient();
+//            try {
+//                sftp.put(new FileSystemFile(lf.toFile()), "/tmp");
+//            } finally {
+//                sftp.close();
+//            }
+//
+//	}
 
 //	@Test
 //	public void tWriteRemoteFile() throws IOException {

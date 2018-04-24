@@ -15,7 +15,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
-import com.go2wheel.mysqlbackup.value.MyCnfHolder;
+import com.go2wheel.mysqlbackup.value.MyCnfFileLikeHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
 
@@ -34,7 +34,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	
 	@Test
 	public void tFetchMyCnfAndSave() throws IOException {
-		MyCnfHolder mcf = mysqlUtil.getMycnf(demoBox);
+		MyCnfFileLikeHolder mcf = mysqlUtil.getMycnf(demoBox);
 		ConfigValue cv = mcf.getConfigValue("datadir");
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
 		assertThat(cv.getValue(), equalTo("/var/lib/mysql"));
@@ -51,7 +51,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	@Test
 	public void t() {
 		Assume.assumeTrue(Files.exists(mysqlUtil.getDescriptionFile(demoBox)));
-		MyCnfHolder mcf = new MyCnfHolder(demoBox.getMysqlInstance().getMycnfContent());
+		MyCnfFileLikeHolder mcf = new MyCnfFileLikeHolder(demoBox.getMysqlInstance().getMycnfContent());
 		
 	}
 

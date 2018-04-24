@@ -16,11 +16,9 @@ import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.MyCnfHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MyCnfFileLikeHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
-
-import net.schmizz.sshj.SSHClient;
+import com.jcraft.jsch.Session;
 
 @Component
 public class MysqlUtil {
@@ -29,16 +27,15 @@ public class MysqlUtil {
 	
 	private MyAppSettings appSettings;
 
-	public MyCnfHolder getMycnf(Box box) {
-		SSHClient sshClient;
-		sshClient = sshClientFactory.getConnectedSSHClient(box).get();
+	public MyCnfFileLikeHolder getMycnf(Box box) {
+		Session sshSession = sshClientFactory.getConnectedSession(box).get();
 		
 		RemoteCommandResult<List<String>> er = ExecutorUtil.runListOfCommands(Arrays.asList(
-				new MysqlCnfFileLister(sshClient, box),
-				new MyCnfFirstExist(sshClient, box),
-				new MyCnfContentGetter(sshClient, box)));
+				new MysqlCnfFileLister(sshSession, box),
+				new MyCnfFirstExist(sshSession, box),
+				new MyCnfContentGetter(sshSession, box)));
 		List<String> lines = er.getResult();
-		return new MyCnfHolder(lines);
+		return new MyCnfFileLikeHolder(lines);
 	}
 	
 	public void writeDescription(Box box) throws IOException {
@@ -65,7 +62,4 @@ public class MysqlUtil {
 	public void setAppSettings(MyAppSettings appSettings) {
 		this.appSettings = appSettings;
 	}
-	
-	
-
 }

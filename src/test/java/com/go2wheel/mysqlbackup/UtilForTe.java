@@ -18,13 +18,14 @@ import java.util.regex.Pattern;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
-
-import net.schmizz.sshj.SSHClient;
-import net.schmizz.sshj.common.IOUtils;
-import net.schmizz.sshj.connection.channel.direct.Session;
-import net.schmizz.sshj.connection.channel.direct.Session.Command;
+import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 public class UtilForTe {
 	
@@ -36,13 +37,16 @@ public class UtilForTe {
 		System.out.println(o);
 	}
 	
-	public static MyAppSettings getMyAppSettings() {
+	public static MyAppSettings getMyAppSettings() throws IOException {
 		InputStream is =ClassLoader.class.getResourceAsStream("/application.yml");
 		
-		 MyAppSettings mas = new MyAppSettings();
-		 mas.setDataRoot(Paths.get("boxes"));
-		 SshConfig sc = new SshConfig();
-		 mas.setSsh(sc);
+		MyAppSettings mas = new MyAppSettings();
+		mas.setDataRoot(Paths.get("boxes"));
+		mas.setDownloadRoot(Paths.get("notingit"));
+		Files.createDirectories(Paths.get("notingit"));
+		Files.createDirectories(Paths.get("boxes"));
+		SshConfig sc = new SshConfig();
+		mas.setSsh(sc);
 		if (is != null) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(is));
 			String line = null;
@@ -142,19 +146,21 @@ public class UtilForTe {
 		return tmpFolder;
 	}
 	
-	public static void sshEcho(SSHClient sshClient) throws IOException {
-		final Session session = sshClient.startSession();
+	public static void sshEcho(Session sshSession) throws IOException, JSchException {
+		
+		final Channel channel = sshSession.openChannel("exec");
 		try {
-			final Command cmd = session.exec("echo abc");
-			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-			assertThat(cmdOut.trim(), equalTo("abc"));;
-			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
+			((ChannelExec) channel).setCommand("echo abc");
+			channel.setInputStream(null);
+			((ChannelExec) channel).setErrStream(System.err);
+			InputStream in = channel.getInputStream();
+			channel.connect();
+
+			RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			assertThat(cmdOut.getResult().trim(), equalTo("abc"));
+			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
-			session.close();
-		}
-		try {
-			sshClient.disconnect();
-		} catch (IOException e) {
+			channel.disconnect();
 		}
 	}
 

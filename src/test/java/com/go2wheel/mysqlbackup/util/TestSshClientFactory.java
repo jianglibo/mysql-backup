@@ -11,8 +11,8 @@ import org.junit.Test;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.value.Box;
-
-import net.schmizz.sshj.SSHClient;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 public class TestSshClientFactory {
 	
@@ -30,41 +30,41 @@ public class TestSshClientFactory {
 	}
 	
 	@Test
-	public void tPasswordSuccess() throws IOException {
-		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
-		UtilForTe.sshEcho(sshClient);
+	public void tPasswordSuccess() throws IOException, JSchException {
+		Session sshSession = scf.getConnectedSession(box).get();
+		UtilForTe.sshEcho(sshSession);
 	}
 	
 	@Test
 	public void tPasswordFailed() throws IOException {
 		box.setPassword("wrongpassword");
-		Optional<SSHClient> sshClient = scf.getConnectedSSHClient(box);
-		assertFalse(sshClient.isPresent());
+		Optional<Session> sshSession = scf.getConnectedSession(box);
+		assertFalse(sshSession.isPresent());
 	}
 	
 	@Test
-	public void tSshkeyFileSuccess() throws IOException {
+	public void tSshkeyFileSuccess() throws IOException, JSchException {
 		box.setSshKeyFile(UtilForTe.getMyAppSettings().getSsh().getSshIdrsa());
 		box.setPassword(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
-		UtilForTe.sshEcho(sshClient);
+		Session sshSession = scf.getConnectedSession(box).get();
+		UtilForTe.sshEcho(sshSession);
 	}
 	
 	@Test
-	public void tGlobalSshkeyFileSuccess() throws IOException {
+	public void tGlobalSshkeyFileSuccess() throws IOException, JSchException {
 		box.setSshKeyFile(null);
 		box.setPassword(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
-		UtilForTe.sshEcho(sshClient);
+		Session sshSession = scf.getConnectedSession(box).get();
+		UtilForTe.sshEcho(sshSession);
 	}
 	
 	@Test
-	public void tGlobalKnownHostsSuccess() throws IOException {
+	public void tGlobalKnownHostsSuccess() throws IOException, JSchException {
 		box.setSshKeyFile(null);
 		box.setPassword(null);
 		box.setFingerprint(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
-		UtilForTe.sshEcho(sshClient);
+		Session sshSession = scf.getConnectedSession(box).get();
+		UtilForTe.sshEcho(sshSession);
 	}
 	
 	@Test
@@ -73,7 +73,7 @@ public class TestSshClientFactory {
 		box.setFingerprint(null);
 		box.setSshKeyFile(null);
 		box.setPassword(null);
-		assertFalse(scf.getConnectedSSHClient(box).isPresent());
+		assertFalse(scf.getConnectedSession(box).isPresent());
 	}
 
 }

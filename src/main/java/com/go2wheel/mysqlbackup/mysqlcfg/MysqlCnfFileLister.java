@@ -9,20 +9,19 @@ import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.Session;
 import com.go2wheel.mysqlbackup.value.Box;
-
-import net.schmizz.sshj.SSHClient;
 
 public class MysqlCnfFileLister extends ExecutableRunnerSshBase {
 	
 	private Logger logger = LoggerFactory.getLogger(MysqlCnfFileLister.class);
 	
-	public MysqlCnfFileLister(SSHClient sshClient, Box box, RemoteCommandResult<List<String>> prevResult) {
-		super(sshClient, box, prevResult);
+	public MysqlCnfFileLister(Session sshSession, Box box, RemoteCommandResult<List<String>> prevResult) {
+		super(sshSession, box, prevResult);
 	}
 
-	public MysqlCnfFileLister(SSHClient sshClient, Box box) {
-		super(sshClient, box);
+	public MysqlCnfFileLister(Session sshSession, Box box) {
+		super(sshSession, box);
 	}
 
 	private static String matcherline = "Default options are read from the following";

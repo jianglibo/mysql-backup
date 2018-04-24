@@ -22,6 +22,10 @@ public class MyAppSettings {
 	
 	private Path dataRoot;
 	
+	private String downloadFolder;
+	
+	private Path downloadRoot;
+	
 	@PostConstruct
 	public void post() throws IOException {
 		if (this.dataDir == null) {
@@ -35,6 +39,16 @@ public class MyAppSettings {
 			Files.createDirectories(tmp);
 		}
 		this.dataRoot = tmp;
+		
+		tmp = Paths.get(this.downloadFolder);
+		if (!tmp.isAbsolute()) {
+			tmp = PathUtil.getJarLocation().get().resolve(this.downloadFolder);
+		}
+		if (!Files.exists(tmp)) {
+			Files.createDirectories(tmp);
+		}
+		this.dataRoot = tmp;
+
 	}
 	
 	
@@ -58,6 +72,24 @@ public class MyAppSettings {
 
 	public void setDataRoot(Path dataRoot) {
 		this.dataRoot = dataRoot;
+	}
+
+	public String getDownloadFolder() {
+		return downloadFolder;
+	}
+
+
+	public void setDownloadFolder(String downloadFolder) {
+		this.downloadFolder = downloadFolder;
+	}
+
+	public Path getDownloadRoot() {
+		return downloadRoot;
+	}
+
+
+	public void setDownloadRoot(Path downloadRoot) {
+		this.downloadRoot = downloadRoot;
 	}
 
 	public static class SshConfig {
@@ -85,6 +117,4 @@ public class MyAppSettings {
 			return sshIdrsa != null && !sshIdrsa.trim().isEmpty() && Files.exists(Paths.get(sshIdrsa));
 		}
 	}
-
-
 }
