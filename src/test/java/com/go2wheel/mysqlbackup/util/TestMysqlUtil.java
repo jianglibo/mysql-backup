@@ -34,24 +34,24 @@ public class TestMysqlUtil extends SshBaseFort {
 	
 	@Test
 	public void tFetchMyCnfAndSave() throws IOException {
-		MyCnfHolder mcf = mysqlUtil.getMycnf(demoInstance);
+		MyCnfHolder mcf = mysqlUtil.getMycnf(demoBox);
 		ConfigValue cv = mcf.getConfigValue("datadir");
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
 		assertThat(cv.getValue(), equalTo("/var/lib/mysql"));
 		assertFalse(mcf.getLines().isEmpty());
 		
-		demoInstance.setMycnfContent(mcf.getLines());
-		String oneline = YamlInstance.INSTANCE.getYaml().dumpAsMap(demoInstance);
+		demoBox.getMysqlInstance().setMycnfContent(mcf.getLines());
+		String oneline = YamlInstance.INSTANCE.getYaml().dumpAsMap(demoBox);
 		System.out.println(oneline);
 		Optional<String> aline = StringUtil.splitLines(oneline).stream().filter(line -> line.indexOf("# For advice on how to change settings please see") != -1).findFirst();
 		assertTrue(aline.isPresent());
-		mysqlUtil.writeDescription(demoInstance);
+		mysqlUtil.writeDescription(demoBox);
 	}
 	
 	@Test
 	public void t() {
-		Assume.assumeTrue(Files.exists(mysqlUtil.getDescriptionFile(demoInstance)));
-		MyCnfHolder mcf = new MyCnfHolder(demoInstance.getMycnfContent());
+		Assume.assumeTrue(Files.exists(mysqlUtil.getDescriptionFile(demoBox)));
+		MyCnfHolder mcf = new MyCnfHolder(demoBox.getMysqlInstance().getMycnfContent());
 		
 	}
 

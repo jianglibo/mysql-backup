@@ -13,6 +13,7 @@ import org.junit.Before;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.util.SshClientFactory;
+import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 import net.schmizz.sshj.SSHClient;
@@ -22,7 +23,7 @@ import net.schmizz.sshj.connection.channel.direct.Session.Command;
 
 public class SshBaseFort {
 	
-	protected MysqlInstance demoInstance;
+	protected Box demoBox;
 	
 	protected MyAppSettings appSettings;
 	
@@ -47,10 +48,10 @@ public class SshBaseFort {
 		
 		startTime = System.currentTimeMillis();
 		if (!Files.exists(appSettings.getDataRoot())) {
-			Files.createDirectories(appSettings.getDataRoot().resolve("demoinstance"));
+			Files.createDirectories(appSettings.getDataRoot().resolve("demobox"));
 		}
-		demoInstance = UtilForTe.loadDemoInstance();
-		sshClient = sshClientFactory.getConnectedSSHClient(demoInstance).get();
+		demoBox = UtilForTe.loadDemoBox();
+		sshClient = sshClientFactory.getConnectedSSHClient(demoBox).get();
 	}
 
 	@After

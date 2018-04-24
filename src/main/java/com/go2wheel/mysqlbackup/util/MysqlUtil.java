@@ -15,6 +15,7 @@ import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfContentGetter;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.MyCnfHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -28,21 +29,21 @@ public class MysqlUtil {
 	
 	private MyAppSettings appSettings;
 
-	public MyCnfHolder getMycnf(MysqlInstance instance) {
+	public MyCnfHolder getMycnf(Box box) {
 		SSHClient sshClient;
-		sshClient = sshClientFactory.getConnectedSSHClient(instance).get();
+		sshClient = sshClientFactory.getConnectedSSHClient(box).get();
 		
 		RemoteCommandResult<List<String>> er = ExecutorUtil.runListOfCommands(Arrays.asList(
-				new MysqlCnfFileLister(sshClient, instance),
-				new MyCnfFirstExist(sshClient, instance),
-				new MyCnfContentGetter(sshClient, instance)));
+				new MysqlCnfFileLister(sshClient, box),
+				new MyCnfFirstExist(sshClient, box),
+				new MyCnfContentGetter(sshClient, box)));
 		List<String> lines = er.getResult();
 		return new MyCnfHolder(lines);
 	}
 	
-	public void writeDescription(MysqlInstance instance) throws IOException {
-		String ds = YamlInstance.INSTANCE.getYaml().dumpAsMap(instance);
-		Path dstDir = appSettings.getDataRoot().resolve(instance.getHost());
+	public void writeDescription(Box box) throws IOException {
+		String ds = YamlInstance.INSTANCE.getYaml().dumpAsMap(box);
+		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
 		}
@@ -50,7 +51,7 @@ public class MysqlUtil {
 		Files.write(dstFile, ds.getBytes());
 	}
 	
-	public Path getDescriptionFile(MysqlInstance instance) {
+	public Path getDescriptionFile(Box instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
 	}
 

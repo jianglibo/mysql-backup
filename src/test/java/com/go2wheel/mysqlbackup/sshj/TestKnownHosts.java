@@ -27,7 +27,7 @@ public class TestKnownHosts extends SshBaseFort {
 	
 	@Test(expected = TransportException.class)
 	public void testNoKnownHostSetting() throws IOException {
-		new SSHClient().connect(demoInstance.getHost());
+		new SSHClient().connect(demoBox.getHost());
 	}
 	
 	@Test()
@@ -36,7 +36,7 @@ public class TestKnownHosts extends SshBaseFort {
 		Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
 		assertTrue(Files.exists(knownHosts) && Files.isRegularFile(knownHosts));
 		ssh.loadKnownHosts(knownHosts.toFile());
-		ssh.connect(demoInstance.getHost());
+		ssh.connect(demoBox.getHost());
 		executeEcho(ssh);
 	}
 	
@@ -51,7 +51,7 @@ public class TestKnownHosts extends SshBaseFort {
 				return true;
 			}
 		});
-		ssh.connect(demoInstance.getHost());
+		ssh.connect(demoBox.getHost());
 		executeEcho(ssh);
 	}
 	
@@ -59,11 +59,11 @@ public class TestKnownHosts extends SshBaseFort {
 	// ssh-keygen -lf ~/.ssh/id_rsa.pub, fingerprint is md5 of host's public key.
 	public void testFingerprint() throws IOException {
 		final SSHClient ssh = new SSHClient();
-		String fingerprintline = Files.lines(Paths.get(appSettings.getSsh().getKnownHosts())).filter(line -> line.indexOf(demoInstance.getHost()) != -1).findAny().get();
+		String fingerprintline = Files.lines(Paths.get(appSettings.getSsh().getKnownHosts())).filter(line -> line.indexOf(demoBox.getHost()) != -1).findAny().get();
 		String[] splited = fingerprintline.split("\\s+");
 		assertThat("host fingerprint should has three columns.", splited.length, equalTo(3));
 		ssh.addHostKeyVerifier("ecdsa-sha2-nistp256:" + splited[2]);
-		ssh.connect(demoInstance.getHost());
+		ssh.connect(demoBox.getHost());
 		executeEcho(ssh);
 	}
 

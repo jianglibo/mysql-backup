@@ -53,61 +53,61 @@ public class BackupCommand {
 	}
 	
 	
-	@ShellMethod(value = "Create a mysql instance.")
-	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,
-			@ShellOption(defaultValue = "22") @NotNull @Pattern(regexp = "[1-9][0-9]*") int sshPort,
-			@ShellOption(defaultValue = "3306") @NotNull @Pattern(regexp = "[1-9][0-9]*") int mysqlPort,
-			@ShellOption(defaultValue = "") String sshKeyFile,
-			@ShellOption(defaultValue = "root") @NotNull  String username,
-			@ShellOption(defaultValue = "") String password) {
-		
-		if (password.isEmpty() && sshKeyFile.isEmpty()) {
-			return ExecuteResult.failedResult("Either sshKeyFile or password is required!");
-		}
-		
-		Path ph = instancesBase.resolve(host);
-		if (Files.exists(ph)) {
-			return ExecuteResult.failedResult(String.format("Host: '%s' already exists.", host));
-		}
-		
-		MysqlInstance mi = new MysqlInstance();
-		mi.setHost(host);
-		mi.setUsername(username);
-		mi.setMysqlPort(mysqlPort == 0 ? 3306 : mysqlPort);
-		mi.setSshPort(sshPort == 0 ? 22 : sshPort);
-		if (password.isEmpty()) {
-			if (!Files.exists(Paths.get(sshKeyFile))) {
-				return ExecuteResult.failedResult(String.format("sshKeyFile: '%s' doesn't exists.", sshKeyFile));
-			} else {
-				mi.setSshKeyFile(Paths.get(sshKeyFile).toAbsolutePath().normalize().toString());
-			}
-		} else {
-			mi.setPassword(password);
-		}
-		return writeInstance(mi);
-	}
+//	@ShellMethod(value = "Create a mysql instance.")
+//	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,
+//			@ShellOption(defaultValue = "22") @NotNull @Pattern(regexp = "[1-9][0-9]*") int sshPort,
+//			@ShellOption(defaultValue = "3306") @NotNull @Pattern(regexp = "[1-9][0-9]*") int mysqlPort,
+//			@ShellOption(defaultValue = "") String sshKeyFile,
+//			@ShellOption(defaultValue = "root") @NotNull  String username,
+//			@ShellOption(defaultValue = "") String password) {
+//		
+//		if (password.isEmpty() && sshKeyFile.isEmpty()) {
+//			return ExecuteResult.failedResult("Either sshKeyFile or password is required!");
+//		}
+//		
+//		Path ph = instancesBase.resolve(host);
+//		if (Files.exists(ph)) {
+//			return ExecuteResult.failedResult(String.format("Host: '%s' already exists.", host));
+//		}
+//		
+//		MysqlInstance mi = new MysqlInstance();
+//		mi.setHost(host);
+//		mi.setUsername(username);
+//		mi.setMysqlPort(mysqlPort == 0 ? 3306 : mysqlPort);
+//		mi.setSshPort(sshPort == 0 ? 22 : sshPort);
+//		if (password.isEmpty()) {
+//			if (!Files.exists(Paths.get(sshKeyFile))) {
+//				return ExecuteResult.failedResult(String.format("sshKeyFile: '%s' doesn't exists.", sshKeyFile));
+//			} else {
+//				mi.setSshKeyFile(Paths.get(sshKeyFile).toAbsolutePath().normalize().toString());
+//			}
+//		} else {
+//			mi.setPassword(password);
+//		}
+//		return writeInstance(mi);
+//	}
 	
-	private ExecuteResult<MysqlInstance> writeInstance(MysqlInstance mi) {
-		Path mp = instancesBase.resolve(mi.getHost());
-		if (!Files.exists(mp)) {
-			try {
-				Files.createDirectories(mp);
-			} catch (IOException e) {
-				return ExecuteResult.failedResult(String.format("Create directory: '%s' failed.", mp.toString()));
-			}
-		}
-		Path df = mp.resolve(DESCRIPTION_FILENAME);
-		
-		String s = YamlInstance.INSTANCE.getYaml().dumpAsMap(mi);
-		try (BufferedWriter bw = Files.newBufferedWriter(df)) {
-			bw.write(s);
-			bw.flush();
-			bw.close();
-		} catch (IOException e) {
-			return ExecuteResult.failedResult(String.format("Write Yml file : '%s' failed.", df.toString()));
-		}
-		return new ExecuteResult<>(mi).setMessage(String.format("Mysql on host: %s created.", mi.getHost())); 
-	}
+//	private ExecuteResult<MysqlInstance> writeInstance(MysqlInstance mi) {
+//		Path mp = instancesBase.resolve(mi.getHost());
+//		if (!Files.exists(mp)) {
+//			try {
+//				Files.createDirectories(mp);
+//			} catch (IOException e) {
+//				return ExecuteResult.failedResult(String.format("Create directory: '%s' failed.", mp.toString()));
+//			}
+//		}
+//		Path df = mp.resolve(DESCRIPTION_FILENAME);
+//		
+//		String s = YamlInstance.INSTANCE.getYaml().dumpAsMap(mi);
+//		try (BufferedWriter bw = Files.newBufferedWriter(df)) {
+//			bw.write(s);
+//			bw.flush();
+//			bw.close();
+//		} catch (IOException e) {
+//			return ExecuteResult.failedResult(String.format("Write Yml file : '%s' failed.", df.toString()));
+//		}
+//		return new ExecuteResult<>(mi).setMessage(String.format("Mysql on host: %s created.", mi.getHost())); 
+//	}
 
 	protected ListInstanceResult listInstanceInternal() throws IOException {
 		allInstancePaths = Files.list(instancesBase).collect(Collectors.toList());

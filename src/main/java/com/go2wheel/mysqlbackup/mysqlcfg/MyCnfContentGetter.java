@@ -4,19 +4,19 @@ import java.util.List;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.Box;
 
 import net.schmizz.sshj.SSHClient;
 
 public class MyCnfContentGetter extends ExecutableRunnerSshBase {
 
-	public MyCnfContentGetter(SSHClient sshClient, MysqlInstance instance, RemoteCommandResult<List<String>> prevResult) {
-		super(sshClient, instance, prevResult);
+	public MyCnfContentGetter(SSHClient sshClient, Box box, RemoteCommandResult<List<String>> prevResult) {
+		super(sshClient, box, prevResult);
 	}
 
 
-	public MyCnfContentGetter(SSHClient sshClient, MysqlInstance instance) {
-		super(sshClient, instance);
+	public MyCnfContentGetter(SSHClient sshClient, Box box) {
+		super(sshClient, box);
 	}
 
 

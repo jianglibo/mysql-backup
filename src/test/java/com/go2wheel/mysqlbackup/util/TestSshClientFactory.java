@@ -10,70 +10,70 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.Box;
 
 import net.schmizz.sshj.SSHClient;
 
 public class TestSshClientFactory {
 	
 	private MyAppSettings appSettings;
-	private MysqlInstance instance;
+	private Box box;
 	private SshClientFactory scf;
 	
 	
 	@Before
 	public void before() throws IOException {
 		appSettings = UtilForTe.getMyAppSettings();
-		instance = UtilForTe.loadDemoInstance();
+		box = UtilForTe.loadDemoBox();
 		scf = new SshClientFactory();
 		scf.setAppSettings(appSettings);
 	}
 	
 	@Test
 	public void tPasswordSuccess() throws IOException {
-		SSHClient sshClient = scf.getConnectedSSHClient(instance).get();
+		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
 		UtilForTe.sshEcho(sshClient);
 	}
 	
 	@Test
 	public void tPasswordFailed() throws IOException {
-		instance.setPassword("wrongpassword");
-		Optional<SSHClient> sshClient = scf.getConnectedSSHClient(instance);
+		box.setPassword("wrongpassword");
+		Optional<SSHClient> sshClient = scf.getConnectedSSHClient(box);
 		assertFalse(sshClient.isPresent());
 	}
 	
 	@Test
 	public void tSshkeyFileSuccess() throws IOException {
-		instance.setSshKeyFile(UtilForTe.getMyAppSettings().getSsh().getSshIdrsa());
-		instance.setPassword(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(instance).get();
+		box.setSshKeyFile(UtilForTe.getMyAppSettings().getSsh().getSshIdrsa());
+		box.setPassword(null);
+		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
 		UtilForTe.sshEcho(sshClient);
 	}
 	
 	@Test
 	public void tGlobalSshkeyFileSuccess() throws IOException {
-		instance.setSshKeyFile(null);
-		instance.setPassword(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(instance).get();
+		box.setSshKeyFile(null);
+		box.setPassword(null);
+		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
 		UtilForTe.sshEcho(sshClient);
 	}
 	
 	@Test
 	public void tGlobalKnownHostsSuccess() throws IOException {
-		instance.setSshKeyFile(null);
-		instance.setPassword(null);
-		instance.setFingerprint(null);
-		SSHClient sshClient = scf.getConnectedSSHClient(instance).get();
+		box.setSshKeyFile(null);
+		box.setPassword(null);
+		box.setFingerprint(null);
+		SSHClient sshClient = scf.getConnectedSSHClient(box).get();
 		UtilForTe.sshEcho(sshClient);
 	}
 	
 	@Test
 	public void tFingerPrintFail() throws IOException {
 		appSettings.getSsh().setKnownHosts(null);
-		instance.setFingerprint(null);
-		instance.setSshKeyFile(null);
-		instance.setPassword(null);
-		assertFalse(scf.getConnectedSSHClient(instance).isPresent());
+		box.setFingerprint(null);
+		box.setSshKeyFile(null);
+		box.setPassword(null);
+		assertFalse(scf.getConnectedSSHClient(box).isPresent());
 	}
 
 }

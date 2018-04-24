@@ -38,19 +38,19 @@ public class TestBackupCommand {
 	
 	
 	
-	@Test
-	public void testCreateInstance() throws IOException {
-		ExecuteResult<MysqlInstance> er = bc.createInstance("localhost", 0, 0, "", "root", "123");
-		assertTrue(er.isSuccess());
-		assertTrue("host directory should be created.", Files.exists(bc.getInstancesBase().resolve(er.getResult().getHost())));
-		Path df = bc.getInstancesBase().resolve(er.getResult().getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
-		MysqlInstance miCreated = er.getResult();
-		MysqlInstance miLoaded = YamlInstance.INSTANCE.getYaml().loadAs(Files.newInputStream(df), MysqlInstance.class);
-		assertThat(miCreated.getPassword(), equalTo(miLoaded.getPassword()));
-		assertThat(miCreated.getSshPort(), equalTo(miLoaded.getSshPort()));
-		
-		assertThat(miLoaded.getSshPort(), equalTo(22));
-		assertThat(miLoaded.getMysqlPort(), equalTo(3306));
-	}
+//	@Test
+//	public void testCreateInstance() throws IOException {
+//		ExecuteResult<MysqlInstance> er = bc.createInstance("localhost", 0, 0, "", "root", "123");
+//		assertTrue(er.isSuccess());
+//		assertTrue("host directory should be created.", Files.exists(bc.getInstancesBase().resolve(er.getResult().getHost())));
+//		Path df = bc.getInstancesBase().resolve(er.getResult().getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
+//		MysqlInstance miCreated = er.getResult();
+//		MysqlInstance miLoaded = YamlInstance.INSTANCE.getYaml().loadAs(Files.newInputStream(df), MysqlInstance.class);
+//		assertThat(miCreated.getPassword(), equalTo(miLoaded.getPassword()));
+//		assertThat(miCreated.getSshPort(), equalTo(miLoaded.getSshPort()));
+//		
+//		assertThat(miLoaded.getSshPort(), equalTo(22));
+//		assertThat(miLoaded.getMysqlPort(), equalTo(3306));
+//	}
 
 }

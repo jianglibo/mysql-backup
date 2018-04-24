@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.Box;
 
 import net.schmizz.sshj.SSHClient;
 
@@ -22,11 +22,11 @@ public class SshClientFactory {
 
 	private Logger logger = LoggerFactory.getLogger(SshClientFactory.class);
 
-	public Optional<SSHClient> getConnectedSSHClient(MysqlInstance instance) {
+	public Optional<SSHClient> getConnectedSSHClient(Box box) {
 		final SSHClient ssh = new SSHClient();
 
-		if (instance.hasFingerPrint()) {
-			ssh.addHostKeyVerifier(instance.getFingerprint());
+		if (box.hasFingerPrint()) {
+			ssh.addHostKeyVerifier(box.getFingerprint());
 		} else if(appSettings.getSsh().knownHostsExists()) {
 			Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
 			try {
@@ -35,7 +35,7 @@ public class SshClientFactory {
 				logger.error("knownhosts configarated to: {}, but cannot be loaded.", appSettings.getSsh().getKnownHosts());
 			}
 		} else {
-			logger.error("instance: {}, message: {}", instance, "No way to verify it's a known host.");
+			logger.error("instance: {}, message: {}", box, "No way to verify it's a known host.");
 			try {
 				ssh.close();
 			} catch (Exception e1) {
@@ -44,9 +44,9 @@ public class SshClientFactory {
 		}
 
 		try {
-			ssh.connect(instance.getHost(), instance.getSshPort() == 0 ? 22 : instance.getSshPort());
+			ssh.connect(box.getHost(), box.getPort() == 0 ? 22 : box.getPort());
 		} catch (Exception e2) {
-			logger.error("instance: {}, message: {}", instance, e2.getMessage());
+			logger.error("instance: {}, message: {}", box, e2.getMessage());
 			try {
 				ssh.close();
 			} catch (Exception e1) {
@@ -55,17 +55,17 @@ public class SshClientFactory {
 		}
 		
 		try {
-			if (instance.canSShKeyAuth()) {
-				ssh.authPublickey(instance.getUsername(), instance.getSshKeyFile());
-			} else if (instance.canPasswordAuth()) {
-				ssh.authPassword(instance.getUsername(), instance.getPassword());
+			if (box.canSShKeyAuth()) {
+				ssh.authPublickey(box.getUsername(), box.getSshKeyFile());
+			} else if (box.canPasswordAuth()) {
+				ssh.authPassword(box.getUsername(), box.getPassword());
 			} else if(appSettings.getSsh().sshIdrsaExists()) {
-				ssh.authPublickey(instance.getUsername(), appSettings.getSsh().getSshIdrsa());
+				ssh.authPublickey(box.getUsername(), appSettings.getSsh().getSshIdrsa());
 			} else {
 				logger.error("no authentication method found.");
 			}
 		} catch (Exception e) {
-			logger.error("instance: {}, message: {}", instance, e.getMessage());
+			logger.error("instance: {}, message: {}", box, e.getMessage());
 			try {
 				ssh.close();
 			} catch (Exception e1) {

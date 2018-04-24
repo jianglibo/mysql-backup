@@ -18,7 +18,7 @@ import java.util.regex.Pattern;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 import net.schmizz.sshj.SSHClient;
@@ -40,7 +40,7 @@ public class UtilForTe {
 		InputStream is =ClassLoader.class.getResourceAsStream("/application.yml");
 		
 		 MyAppSettings mas = new MyAppSettings();
-		 mas.setDataRoot(Paths.get("mysqls"));
+		 mas.setDataRoot(Paths.get("boxes"));
 		 SshConfig sc = new SshConfig();
 		 mas.setSsh(sc);
 		if (is != null) {
@@ -64,21 +64,10 @@ public class UtilForTe {
 		return mas;
 	}
 	
-	public static MysqlInstance loadDemoInstance() throws IOException {
-		InputStream is = Files.newInputStream(Paths.get("mysqls", "demoinstance", "description.yml")); 
-		return YamlInstance.INSTANCE.getYaml().loadAs(is, MysqlInstance.class);
+	public static Box loadDemoBox() throws IOException {
+		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
+		return YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
 	}
-
-//	public static YmlConfigFort getYmlConfigFort() {
-//		InputStream is =ClassLoader.class.getResourceAsStream("/test.yml"); 
-//		if (is != null) {
-//			return YamlInstance.INSTANCE.getYaml().loadAs(is, YmlConfigFort.class);
-//		} else {
-//			return new YmlConfigFort();
-//		}
-//		
-//	}
-	
 	
 	public static BackupCommand backupCommandInstance() throws IOException {
 		BackupCommand bc = new BackupCommand();
@@ -88,12 +77,8 @@ public class UtilForTe {
 	
 	
 	public static Path getMysqlInstanceDescription(String hostname) {
-		return Paths.get("fixtures", "mysqls", hostname, "description.yml");
+		return Paths.get("fixtures", "boxes", hostname, "description.yml");
 	}
-	
-//	public static MysqlInstance getDemoInstance() {
-//		return getYmlConfigFort().getDemoinstance();
-//	}
 
 	public static Path getPathInThisProjectRelative(String fn) {
 		Path currentRelativePath = Paths.get("").toAbsolutePath();

@@ -24,7 +24,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFile();
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
+        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoBox) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;
@@ -51,7 +51,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFileDirectory(2);
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
+        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoBox) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;

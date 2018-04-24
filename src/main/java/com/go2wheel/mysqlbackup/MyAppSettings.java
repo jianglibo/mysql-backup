@@ -25,7 +25,7 @@ public class MyAppSettings {
 	@PostConstruct
 	public void post() throws IOException {
 		if (this.dataDir == null) {
-			this.dataDir = "mysqls";
+			this.dataDir = "boxes";
 		}
 		Path tmp = Paths.get(this.dataDir);
 		if (!tmp.isAbsolute()) {

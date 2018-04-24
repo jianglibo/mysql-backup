@@ -2,12 +2,11 @@ package com.go2wheel.mysqlbackup.executablerunner;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
 import java.util.List;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.Box;
 
 import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.common.IOUtils;
@@ -22,18 +21,18 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 	
 	protected RemoteCommandResult<List<String>> prevResult;
 	
-	protected MysqlInstance instance;
+	protected Box box;
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance) {
+	public ExecutableRunnerSshBase(SSHClient sshClient,Box box) {
 		this.sshClient = sshClient;
-		this.instance = instance;
+		this.box = box;
 		this.prevResult = null;
 	}
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance, RemoteCommandResult<List<String>> prevResult) {
+	public ExecutableRunnerSshBase(SSHClient sshClient,Box box, RemoteCommandResult<List<String>> prevResult) {
 		this.sshClient = sshClient;
 		this.prevResult = prevResult;
-		this.instance = instance;
+		this.box = box;
 	}
 	
 	@Override
@@ -47,7 +46,7 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 		try {
 			final Session session = sshClient.startSession();
 			try {
-				RemoteCommandResult<List<String>> er = executeInternal(session, instance);
+				RemoteCommandResult<List<String>> er = executeInternal(session, box);
 				if (er.isSuccess()) {
 					RemoteCommandResult<List<String>> er1 = afterSuccessInvoke(er);
 					return er1 == null ? er : er1;
@@ -70,7 +69,7 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 	
 	protected abstract RemoteCommandResult<List<String>> afterSuccessInvoke(RemoteCommandResult<List<String>> externalExecuteResult);
 	
-	protected RemoteCommandResult<List<String>> executeInternal(Session session, MysqlInstance instance) throws ConnectionException, TransportException, IOException {
+	protected RemoteCommandResult<List<String>> executeInternal(Session session, Box box) throws ConnectionException, TransportException, IOException {
 		if (getCommandString() == null || getCommandString().trim().isEmpty()) {
 			return RemoteCommandResult.failedResult("empty ssh command invoked.");
 		}

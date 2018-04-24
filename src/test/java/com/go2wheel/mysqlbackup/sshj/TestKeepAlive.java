@@ -21,7 +21,7 @@ public class TestKeepAlive extends SshBaseFort {
         final SSHClient ssh = new SSHClient(defaultConfig);
         try {
             ssh.addHostKeyVerifier(new PromiscuousVerifier());
-            ssh.connect(demoInstance.getHost());
+            ssh.connect(demoBox.getHost());
             ssh.getConnection().getKeepAlive().setKeepAliveInterval(5); //every 60sec
             ssh.authPublickey("root", appSettings.getSsh().getSshIdrsa());
             Session session = ssh.startSession();
