@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 import net.schmizz.sshj.SSHClient;
@@ -17,7 +17,7 @@ public class MysqlCnfFileLister extends ExecutableRunnerSshBase {
 	
 	private Logger logger = LoggerFactory.getLogger(MysqlCnfFileLister.class);
 	
-	public MysqlCnfFileLister(SSHClient sshClient, MysqlInstance instance, ExternalExecuteResult<List<String>> prevResult) {
+	public MysqlCnfFileLister(SSHClient sshClient, MysqlInstance instance, RemoteCommandResult<List<String>> prevResult) {
 		super(sshClient, instance, prevResult);
 	}
 
@@ -33,7 +33,7 @@ public class MysqlCnfFileLister extends ExecutableRunnerSshBase {
 	}
 
 	@Override
-	protected ExternalExecuteResult<List<String>> afterSuccessInvoke(ExternalExecuteResult<List<String>> externalExecuteResult) {
+	protected RemoteCommandResult<List<String>> afterSuccessInvoke(RemoteCommandResult<List<String>> externalExecuteResult) {
 		List<String> lines = externalExecuteResult.getResult();
 		String targetLine = null;
 		int maxIndex = lines.size();

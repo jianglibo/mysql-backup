@@ -7,7 +7,7 @@ C:\WINDOWS\my.ini C:\WINDOWS\my.cnf C:\my.ini C:\my.cnf C:\wamp64\bin\mysql\mysq
 install mysql:
 https://dev.mysql.com/doc/mysql-yum-repo-quick-guide/en/
 
-curl -O https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
+curl -OL https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm
 
 sudo rpm -Uvh platform-and-version-specific-package-name.rpm
 

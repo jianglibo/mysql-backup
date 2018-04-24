@@ -14,7 +14,7 @@ import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfContentGetter;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.MyCnfHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -32,7 +32,7 @@ public class MysqlUtil {
 		SSHClient sshClient;
 		sshClient = sshClientFactory.getConnectedSSHClient(instance).get();
 		
-		ExternalExecuteResult<List<String>> er = ExecutorUtil.runListOfCommands(Arrays.asList(
+		RemoteCommandResult<List<String>> er = ExecutorUtil.runListOfCommands(Arrays.asList(
 				new MysqlCnfFileLister(sshClient, instance),
 				new MyCnfFirstExist(sshClient, instance),
 				new MyCnfContentGetter(sshClient, instance)));

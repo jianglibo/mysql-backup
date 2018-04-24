@@ -14,16 +14,18 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
 import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 public class TestMysqlCnfFileFinderSsh extends SshBaseFort {
 	
 	@Test
 	public void t() throws IOException {
 		MysqlCnfFileLister mcfg = new MysqlCnfFileLister(sshClient, demoInstance);
-		ExternalExecuteResult<List<String>> er = mcfg.execute();
+		RemoteCommandResult<List<String>> er = mcfg.execute();
 		assertFalse("reason shouldn't present.", er.getReason().isPresent());
 		assertTrue("invoke should be successed.", er.isSuccess());
+		
+		assertThat("exit value should be 0", er.getExitValue(), equalTo(0));
 		
 		assertThat(er.getResult().size(), greaterThan(0));
 		
@@ -42,8 +44,8 @@ public class TestMysqlCnfFileFinderSsh extends SshBaseFort {
 			}
 			
 			@Override
-			protected ExternalExecuteResult<List<String>> afterSuccessInvoke(
-					ExternalExecuteResult<List<String>> externalExecuteResult) {
+			protected RemoteCommandResult<List<String>> afterSuccessInvoke(
+					RemoteCommandResult<List<String>> externalExecuteResult) {
 				String f = externalExecuteResult.getResult().stream().filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
 				externalExecuteResult.setResult(Arrays.asList(f));
 				return externalExecuteResult;

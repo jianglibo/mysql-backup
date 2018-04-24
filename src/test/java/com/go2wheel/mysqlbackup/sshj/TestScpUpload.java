@@ -11,7 +11,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 import net.schmizz.sshj.xfer.FileSystemFile;
 
@@ -24,7 +24,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFile();
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
+        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;
@@ -36,8 +36,8 @@ public class TestScpUpload extends SshBaseFort {
 			}
 			
 			@Override
-			protected ExternalExecuteResult<List<String>> afterSuccessInvoke(
-					ExternalExecuteResult<List<String>> externalExecuteResult) {
+			protected RemoteCommandResult<List<String>> afterSuccessInvoke(
+					RemoteCommandResult<List<String>> externalExecuteResult) {
 				return externalExecuteResult;
 			}
 		}.execute();
@@ -51,7 +51,7 @@ public class TestScpUpload extends SshBaseFort {
 		Path p = createALocalFileDirectory(2);
         sshClient.useCompression();
         sshClient.newSCPFileTransfer().upload(new FileSystemFile(p.toFile()), "/tmp/");
-        ExternalExecuteResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
+        RemoteCommandResult<List<String>> er = new ExecutableRunnerSshBase(sshClient, demoInstance) {
 			@Override
 			protected String[] getLinesToFeed() {
 				return null;
@@ -63,8 +63,8 @@ public class TestScpUpload extends SshBaseFort {
 			}
 			
 			@Override
-			protected ExternalExecuteResult<List<String>> afterSuccessInvoke(
-					ExternalExecuteResult<List<String>> executeInternal) {
+			protected RemoteCommandResult<List<String>> afterSuccessInvoke(
+					RemoteCommandResult<List<String>> executeInternal) {
 				return executeInternal;
 			}
 		}.execute();

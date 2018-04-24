@@ -6,22 +6,22 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 public class MysqlCnfContentGetter implements ExecutableRunner<List<String>> {
 	
 	@Override
-	public ExternalExecuteResult<List<String>> execute(String...cnfFile) {
+	public RemoteCommandResult<List<String>> execute(String...cnfFile) {
 		if (cnfFile.length != 1) {
-			return ExternalExecuteResult.failedResult(String.format("Can read Only one file. But %s", cnfFile.length));
+			return RemoteCommandResult.failedResult(String.format("Can read Only one file. But %s", cnfFile.length));
 		}
 		try {
 			Path p = Paths.get(cnfFile[0]);
 			List<String> lines = Files.readAllLines(p);
-		    return new ExternalExecuteResult<>(lines, 0);
+		    return new RemoteCommandResult<>(lines, 0);
 			
 		} catch (IOException e) {
-			return ExternalExecuteResult.failedResult(e.getMessage());
+			return RemoteCommandResult.failedResult(e.getMessage());
 		}
 	}
 	

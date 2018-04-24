@@ -40,12 +40,17 @@ public class SshBaseFort {
 	
 	@Before
 	public void before() throws IOException {
-		demoInstance = UtilForTe.loadDemoInstance();
+		
 		appSettings = UtilForTe.getMyAppSettings();
 		sshClientFactory = new SshClientFactory();
 		sshClientFactory.setAppSettings(UtilForTe.getMyAppSettings());
-		sshClient = sshClientFactory.getConnectedSSHClient(demoInstance).get();
+		
 		startTime = System.currentTimeMillis();
+		if (!Files.exists(appSettings.getDataRoot())) {
+			Files.createDirectories(appSettings.getDataRoot().resolve("demoinstance"));
+		}
+		demoInstance = UtilForTe.loadDemoInstance();
+		sshClient = sshClientFactory.getConnectedSSHClient(demoInstance).get();
 	}
 
 	@After

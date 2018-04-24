@@ -10,13 +10,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 public interface ExecutableRunnerSsh<T> {
 	
-	ExternalExecuteResult<T> execute();
+	RemoteCommandResult<T> execute();
 	
-	void setPrevResult(ExternalExecuteResult<T> prevResult);
+	void setPrevResult(RemoteCommandResult<T> prevResult);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

@@ -61,6 +61,8 @@ public class SshClientFactory {
 				ssh.authPassword(instance.getUsername(), instance.getPassword());
 			} else if(appSettings.getSsh().sshIdrsaExists()) {
 				ssh.authPublickey(instance.getUsername(), appSettings.getSsh().getSshIdrsa());
+			} else {
+				logger.error("no authentication method found.");
 			}
 		} catch (Exception e) {
 			logger.error("instance: {}, message: {}", instance, e.getMessage());

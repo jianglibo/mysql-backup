@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 
 import net.schmizz.sshj.SSHClient;
@@ -20,7 +20,7 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 	
 	protected SSHClient sshClient;
 	
-	protected ExternalExecuteResult<List<String>> prevResult;
+	protected RemoteCommandResult<List<String>> prevResult;
 	
 	protected MysqlInstance instance;
 	
@@ -30,26 +30,26 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 		this.prevResult = null;
 	}
 	
-	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance, ExternalExecuteResult<List<String>> prevResult) {
+	public ExecutableRunnerSshBase(SSHClient sshClient,MysqlInstance instance, RemoteCommandResult<List<String>> prevResult) {
 		this.sshClient = sshClient;
 		this.prevResult = prevResult;
 		this.instance = instance;
 	}
 	
 	@Override
-	public void setPrevResult(ExternalExecuteResult<List<String>> prevResult) {
+	public void setPrevResult(RemoteCommandResult<List<String>> prevResult) {
 		this.prevResult = prevResult;
 	}
 
 	@Override
-	public ExternalExecuteResult<List<String>> execute() {
+	public RemoteCommandResult<List<String>> execute() {
 		String reason;
 		try {
 			final Session session = sshClient.startSession();
 			try {
-				ExternalExecuteResult<List<String>> er = executeInternal(session, instance);
+				RemoteCommandResult<List<String>> er = executeInternal(session, instance);
 				if (er.isSuccess()) {
-					ExternalExecuteResult<List<String>> er1 = afterSuccessInvoke(er);
+					RemoteCommandResult<List<String>> er1 = afterSuccessInvoke(er);
 					return er1 == null ? er : er1;
 				} else {
 					return er;
@@ -65,14 +65,14 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 			reason = e.getMessage();
 			e.printStackTrace();
 		}
-		return ExternalExecuteResult.failedResult(reason);
+		return RemoteCommandResult.failedResult(reason);
 	}
 	
-	protected abstract ExternalExecuteResult<List<String>> afterSuccessInvoke(ExternalExecuteResult<List<String>> externalExecuteResult);
+	protected abstract RemoteCommandResult<List<String>> afterSuccessInvoke(RemoteCommandResult<List<String>> externalExecuteResult);
 	
-	protected ExternalExecuteResult<List<String>> executeInternal(Session session, MysqlInstance instance) throws ConnectionException, TransportException, IOException {
+	protected RemoteCommandResult<List<String>> executeInternal(Session session, MysqlInstance instance) throws ConnectionException, TransportException, IOException {
 		if (getCommandString() == null || getCommandString().trim().isEmpty()) {
-			return ExternalExecuteResult.failedResult("empty ssh command invoked.");
+			return RemoteCommandResult.failedResult("empty ssh command invoked.");
 		}
 		final Command cmd = session.exec(getCommandString());
 		PrintWriter pw = getProcessWriter(cmd.getOutputStream());
@@ -83,7 +83,7 @@ public abstract class ExecutableRunnerSshBase implements ExecutableRunnerSsh<Lis
 			}
 		}
 		String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-		return new ExternalExecuteResult<List<String>>(StringUtil.splitLines(cmdOut), cmd.getExitStatus());
+		return new RemoteCommandResult<List<String>>(StringUtil.splitLines(cmdOut), cmd.getExitStatus());
 	}
 	
 	protected abstract String[] getLinesToFeed();

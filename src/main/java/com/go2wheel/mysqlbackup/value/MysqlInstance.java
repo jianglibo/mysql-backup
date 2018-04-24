@@ -90,7 +90,8 @@ public class MysqlInstance {
 	}
 	
 	public boolean canSShKeyAuth() {
-		return sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile));
+		boolean b =  sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile));
+		return b;
 	}
 	
 	public boolean canPasswordAuth() {
