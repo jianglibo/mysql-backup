@@ -55,7 +55,7 @@ public class SshBaseFort {
 	}
 
 	@After
-	public void after() {
+	public void after() throws IOException {
 		try {
 			if (sshClient != null) {
 				sshClient.disconnect();
