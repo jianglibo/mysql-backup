@@ -6,8 +6,10 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Optional;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -26,11 +28,12 @@ public class TestMysqlUtil extends SshBaseFort {
 		super.before();
 		mysqlUtil = new MysqlUtil();
 		mysqlUtil.setSshClientFactory(sshClientFactory);
+		mysqlUtil.setAppSettings(appSettings);
 	}
 	
 	
 	@Test
-	public void t() {
+	public void tFetchMyCnfAndSave() throws IOException {
 		MyCnfHolder mcf = mysqlUtil.getMycnf(demoInstance);
 		ConfigValue cv = mcf.getConfigValue("datadir");
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
@@ -42,6 +45,14 @@ public class TestMysqlUtil extends SshBaseFort {
 		System.out.println(oneline);
 		Optional<String> aline = StringUtil.splitLines(oneline).stream().filter(line -> line.indexOf("# For advice on how to change settings please see") != -1).findFirst();
 		assertTrue(aline.isPresent());
+		mysqlUtil.writeDescription(demoInstance);
+	}
+	
+	@Test
+	public void t() {
+		Assume.assumeTrue(Files.exists(mysqlUtil.getDescriptionFile(demoInstance)));
+		MyCnfHolder mcf = new MyCnfHolder(demoInstance.getMycnfContent());
+		
 	}
 
 }

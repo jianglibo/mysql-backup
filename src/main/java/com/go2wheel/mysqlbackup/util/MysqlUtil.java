@@ -1,17 +1,23 @@
 package com.go2wheel.mysqlbackup.util;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSsh;
+import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfContentGetter;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
 import com.go2wheel.mysqlbackup.value.ExternalExecuteResult;
 import com.go2wheel.mysqlbackup.value.MyCnfHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 import net.schmizz.sshj.SSHClient;
 
@@ -20,34 +26,43 @@ public class MysqlUtil {
 	
 	private SshClientFactory sshClientFactory;
 	
-	public static <T> ExternalExecuteResult<T> runListOfCommands(ExecutableRunnerSsh<T>...commands) {
-		ExternalExecuteResult<T> er = null;
-		for(ExecutableRunnerSsh<T> command: commands) {
-			command.setPrevResult(er);
-			er = command.execute();
-			if (!er.isSuccess()) {
-				return er;
-			}
-		}
-		return er;
-	}
-	
+	private MyAppSettings appSettings;
+
 	public MyCnfHolder getMycnf(MysqlInstance instance) {
 		SSHClient sshClient;
 		sshClient = sshClientFactory.getConnectedSSHClient(instance).get();
-		ExternalExecuteResult<List<String>> er = runListOfCommands(
+		
+		ExternalExecuteResult<List<String>> er = ExecutorUtil.runListOfCommands(Arrays.asList(
 				new MysqlCnfFileLister(sshClient, instance),
 				new MyCnfFirstExist(sshClient, instance),
-				new MyCnfContentGetter(sshClient, instance)
-				);
+				new MyCnfContentGetter(sshClient, instance)));
 		List<String> lines = er.getResult();
 		return new MyCnfHolder(lines);
+	}
+	
+	public void writeDescription(MysqlInstance instance) throws IOException {
+		String ds = YamlInstance.INSTANCE.getYaml().dumpAsMap(instance);
+		Path dstDir = appSettings.getDataRoot().resolve(instance.getHost());
+		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+			Files.createDirectories(dstDir);
+		}
+		Path dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
+		Files.write(dstFile, ds.getBytes());
+	}
+	
+	public Path getDescriptionFile(MysqlInstance instance) {
+		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
 	}
 
 	
 	@Autowired
 	public void setSshClientFactory(SshClientFactory sshClientFactory) {
 		this.sshClientFactory = sshClientFactory;
+	}
+	
+	@Autowired
+	public void setAppSettings(MyAppSettings appSettings) {
+		this.appSettings = appSettings;
 	}
 	
 	
