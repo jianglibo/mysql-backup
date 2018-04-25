@@ -13,7 +13,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.executablerunner.ExecutableRunnerSshBase;
-import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
+import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 public class TestMysqlCnfFileFinderSsh extends SshBaseFort {

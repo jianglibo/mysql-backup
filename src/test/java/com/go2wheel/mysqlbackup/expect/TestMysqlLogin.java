@@ -7,7 +7,7 @@ import java.io.IOException;
 
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
+import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;

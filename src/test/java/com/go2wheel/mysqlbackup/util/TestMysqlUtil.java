@@ -13,7 +13,7 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
+import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.MyCnfFileLikeHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;

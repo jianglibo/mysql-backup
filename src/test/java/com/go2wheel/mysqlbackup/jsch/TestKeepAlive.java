@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.sshj;
+package com.go2wheel.mysqlbackup.jsch;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;

@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.sshj;
+package com.go2wheel.mysqlbackup.jsch;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
+
+import com.go2wheel.mysqlbackup.UtilForTe;
+import com.jcraft.jsch.JSchException;
 
 public class TestExec extends SshBaseFort {
 
@@ -31,19 +34,10 @@ public class TestExec extends SshBaseFort {
 		assertTrue(true);
 	}
 
-//	@Test
-//	public void testExec() throws IOException {
-//		final Session session = sshSession.startSession();
-//		try {
-//			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
-//			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-//			assertThat(cmdOut.trim(), equalTo("abc"));
-//			cmd.join(5, TimeUnit.SECONDS);
-//			assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
-//		} finally {
-//			session.close();
-//		}
-//	}
+	@Test
+	public void testExec() throws IOException, JSchException {
+		UtilForTe.sshEcho(sshSession);
+	}
 
 //	@Test(expected= SSHRuntimeException.class)
 //	public void testReuseSession() throws IOException {

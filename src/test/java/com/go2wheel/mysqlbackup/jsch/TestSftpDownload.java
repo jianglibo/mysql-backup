@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.sshj;
+package com.go2wheel.mysqlbackup.jsch;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;

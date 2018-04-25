@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import org.apache.http.client.ClientProtocolException;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.sshj.SshBaseFort;
+import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 
 public class TestFileDownloader extends SshBaseFort {
 	

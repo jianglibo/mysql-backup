@@ -1,5 +1,5 @@
 host: 192.168.33.110
-fingerprint: '4a:16:7b:fd:e4:5a:7b:5d:f7:cc:b0:53:0d:5b:ce:69'
+fingerprint: 'b:94:7b:9e:0d:0b:df:dc:38:08:73:a4:cd:05:cc:16'
 port: 22
 username: root
 password: vagrant

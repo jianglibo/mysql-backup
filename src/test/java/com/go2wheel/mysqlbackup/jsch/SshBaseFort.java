@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.sshj;
+package com.go2wheel.mysqlbackup.jsch;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -36,12 +36,21 @@ public class SshBaseFort {
 	protected com.jcraft.jsch.Session sshSession;
 
 	protected SshClientFactory sshClientFactory;
+	
+	protected Path tmpDirectory;
+	
+	protected Path tmpFile;
+	
+	protected String remoteFile;
 
 	private long startTime;
 
 	@Before
 	public void before() throws IOException {
-
+		doBefore();
+	}
+	
+	private void doBefore() throws IOException {
 		appSettings = UtilForTe.getMyAppSettings();
 		sshClientFactory = new SshClientFactory();
 		sshClientFactory.setAppSettings(UtilForTe.getMyAppSettings());
@@ -51,11 +60,24 @@ public class SshBaseFort {
 			Files.createDirectories(appSettings.getDataRoot().resolve("demobox"));
 		}
 		demoBox = UtilForTe.loadDemoBox();
-		sshSession = sshClientFactory.getConnectedSession(demoBox).get();
+		sshSession = sshClientFactory.getConnectedSession(demoBox).orElse(null);
 	}
 
 	@After
 	public void after() throws IOException, JSchException {
+		if (tmpDirectory != null) {
+			try {
+				UtilForTe.deleteFolder(tmpDirectory);
+			} catch (Exception e) {
+			}
+		}
+		if (tmpFile != null) {
+			Files.delete(tmpFile);
+		}
+		if (remoteFile != null) {
+			SSHcommonUtil.deleteRemoteFile(sshSession, remoteFile);
+		}
+		
 		if (sshSession != null) {
 			sshSession.disconnect();
 		}
@@ -65,11 +87,12 @@ public class SshBaseFort {
 		System.out.println(String.format("time elapsed: %s ms", System.currentTimeMillis() - startTime));
 	}
 
-	protected void createAfileOnServer() throws IOException, JSchException {
+	protected void createAfileOnServer(String rfile, String content) throws IOException, JSchException {
+		remoteFile = rfile;
 		final Channel channel = sshSession.openChannel("exec");
 		try {
-			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", TMP_FILE_CONTENT,
-					TMP_SERVER_FILE_NAME, TMP_SERVER_FILE_NAME));
+			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", content,
+					rfile, rfile));
 			channel.setInputStream(null);
 			((ChannelExec) channel).setErrStream(System.err);
 			InputStream in = channel.getInputStream();
@@ -113,11 +136,14 @@ public class SshBaseFort {
 			channel.disconnect();
 		}
 	}
+	
+	public void createALocalDir() throws IOException {
+		tmpDirectory = Files.createTempDirectory("tmpfortest");
+	}
 
-	public Path createALocalFile() throws IOException {
-		Path p = Files.createTempFile("sshbase", "txt");
-		Files.write(p, TMP_FILE_CONTENT.getBytes());
-		return p;
+	public void createALocalFile(String content) throws IOException {
+		tmpFile = Files.createTempFile("sshbase", "txt");
+		Files.write(tmpFile, content.getBytes());
 	}
 
 	public Path createALocalFileDirectory(int number) throws IOException {
