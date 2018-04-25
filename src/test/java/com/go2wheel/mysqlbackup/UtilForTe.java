@@ -146,19 +146,19 @@ public class UtilForTe {
 		return tmpFolder;
 	}
 	
-	public static void sshEcho(Session sshSession) throws IOException, JSchException {
-		
+	public static String sshEcho(Session sshSession, String str) throws IOException, JSchException {
 		final Channel channel = sshSession.openChannel("exec");
 		try {
-			((ChannelExec) channel).setCommand("echo abc");
+			((ChannelExec) channel).setCommand("echo " + str);
 			channel.setInputStream(null);
 			((ChannelExec) channel).setErrStream(System.err);
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
 			RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-			assertThat(cmdOut.getResult().trim(), equalTo("abc"));
+			assertThat(cmdOut.getResult().trim(), equalTo(str));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
+			return cmdOut.getResult();
 		} finally {
 			channel.disconnect();
 		}

@@ -14,25 +14,25 @@ import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-public class TestSshClientFactory {
+public class TestSshSessionFactory {
 	
 	private MyAppSettings appSettings;
 	private Box box;
-	private SshClientFactory scf;
+	private SshSessionFactory scf;
 	
 	
 	@Before
 	public void before() throws IOException {
 		appSettings = UtilForTe.getMyAppSettings();
 		box = UtilForTe.loadDemoBox();
-		scf = new SshClientFactory();
+		scf = new SshSessionFactory();
 		scf.setAppSettings(appSettings);
 	}
 	
 	@Test
 	public void tPasswordSuccess() throws IOException, JSchException {
 		Session sshSession = scf.getConnectedSession(box).get();
-		UtilForTe.sshEcho(sshSession);
+		UtilForTe.sshEcho(sshSession, "abc");
 	}
 	
 	@Test
@@ -47,7 +47,7 @@ public class TestSshClientFactory {
 		box.setSshKeyFile(UtilForTe.getMyAppSettings().getSsh().getSshIdrsa());
 		box.setPassword(null);
 		Session sshSession = scf.getConnectedSession(box).get();
-		UtilForTe.sshEcho(sshSession);
+		UtilForTe.sshEcho(sshSession, "abc");
 	}
 	
 	@Test
@@ -55,7 +55,7 @@ public class TestSshClientFactory {
 		box.setSshKeyFile(null);
 		box.setPassword(null);
 		Session sshSession = scf.getConnectedSession(box).get();
-		UtilForTe.sshEcho(sshSession);
+		UtilForTe.sshEcho(sshSession, "abc");
 	}
 	
 	@Test
@@ -64,16 +64,7 @@ public class TestSshClientFactory {
 		box.setPassword(null);
 		box.setFingerprint(null);
 		Session sshSession = scf.getConnectedSession(box).get();
-		UtilForTe.sshEcho(sshSession);
-	}
-	
-	@Test
-	public void tFingerPrintFail() throws IOException {
-		appSettings.getSsh().setKnownHosts(null);
-		box.setFingerprint(null);
-		box.setSshKeyFile(null);
-		box.setPassword(null);
-		assertFalse(scf.getConnectedSession(box).isPresent());
+		UtilForTe.sshEcho(sshSession, "abc");
 	}
 
 }

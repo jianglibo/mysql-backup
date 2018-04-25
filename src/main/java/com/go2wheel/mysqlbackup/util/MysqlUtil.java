@@ -23,7 +23,7 @@ import com.jcraft.jsch.Session;
 @Component
 public class MysqlUtil {
 	
-	private SshClientFactory sshClientFactory;
+	private SshSessionFactory sshClientFactory;
 	
 	private MyAppSettings appSettings;
 
@@ -54,7 +54,7 @@ public class MysqlUtil {
 
 	
 	@Autowired
-	public void setSshClientFactory(SshClientFactory sshClientFactory) {
+	public void setSshClientFactory(SshSessionFactory sshClientFactory) {
 		this.sshClientFactory = sshClientFactory;
 	}
 	

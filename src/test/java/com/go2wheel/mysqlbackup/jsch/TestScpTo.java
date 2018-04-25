@@ -29,6 +29,21 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
+	public void scpToFileToDir() throws IOException, JSchException {
+		createALocalFile("abc");
+		String rfile = "/tmp";
+		String lfile = tmpFile.toAbsolutePath().toString();
+
+		ScpUtil.to(sshSession, lfile, rfile);
+		
+		String rfullpath = "/tmp/" + tmpFile.getFileName().toString(); 
+		
+		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls -lh %s", rfullpath));
+		assertThat(er.size(), equalTo(1));
+		SSHcommonUtil.deleteRemoteFile(sshSession, rfullpath);
+	}
+	
+	@Test
 	public void scpToStringToFile() throws IOException, JSchException {
 		String rfile = "/tmp/" + new Random().nextDouble();
 		ScpUtil.to(sshSession, rfile, "abc".getBytes());

@@ -14,7 +14,7 @@ import org.junit.Before;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.util.SshClientFactory;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
@@ -35,7 +35,7 @@ public class SshBaseFort {
 
 	protected com.jcraft.jsch.Session sshSession;
 
-	protected SshClientFactory sshClientFactory;
+	protected SshSessionFactory sshClientFactory;
 	
 	protected Path tmpDirectory;
 	
@@ -52,7 +52,7 @@ public class SshBaseFort {
 	
 	private void doBefore() throws IOException {
 		appSettings = UtilForTe.getMyAppSettings();
-		sshClientFactory = new SshClientFactory();
+		sshClientFactory = new SshSessionFactory();
 		sshClientFactory.setAppSettings(UtilForTe.getMyAppSettings());
 
 		startTime = System.currentTimeMillis();

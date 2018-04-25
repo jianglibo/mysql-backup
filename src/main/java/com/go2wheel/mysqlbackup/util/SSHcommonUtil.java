@@ -87,9 +87,9 @@ public class SSHcommonUtil {
 //	}
 
 	
-	public static void touchAfile(Session sshSession, String remoteFile) throws IOException, JSchException {
-		runRemoteCommand(sshSession, String.format("touch %s", remoteFile));
-	}
+//	public static void touchAfile(Session sshSession, String remoteFile) throws IOException, JSchException {
+//		runRemoteCommand(sshSession, String.format("touch %s", remoteFile));
+//	}
 	
 	public static RemoteCommandResult<String> readChannelOutput(final Channel channel, InputStream in) throws IOException {
 		StringBuffer sb = new StringBuffer();
@@ -106,6 +106,37 @@ public class SSHcommonUtil {
 				if (in.available() > 0)
 					continue;
 				exitValue = channel.getExitStatus();
+				break;
+			}
+		}
+		return new RemoteCommandResult<String>(sb.toString(), exitValue);
+	}
+	
+	public static RemoteCommandResult<String> readChannelOutputDoBest(final Channel channel, InputStream in, String ptn) throws IOException {
+		StringBuffer sb = new StringBuffer();
+		int exitValue = 0;
+		byte[] tmp = new byte[1024];
+		long startTime = System.currentTimeMillis();
+		while (true) {
+			while (in.available() > 0) {
+				int i = in.read(tmp, 0, 1024);
+				if (i < 0)
+					break;
+				sb.append(new String(tmp, 0, i));
+				startTime = System.currentTimeMillis();
+			}
+			if (channel.isClosed()) {
+				if (in.available() > 0)
+					continue;
+				exitValue = channel.getExitStatus();
+				break;
+			}
+			Pattern pp = Pattern.compile(ptn, Pattern.DOTALL);
+			Matcher m = pp.matcher(sb.toString().trim()); 
+			if (m.matches()) {
+				break;
+			}
+			if ((System.currentTimeMillis() - startTime) > 3000) {
 				break;
 			}
 		}

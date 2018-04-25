@@ -14,11 +14,11 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Component
-public class SshClientFactory {
+public class SshSessionFactory {
 
 	private MyAppSettings appSettings;
 
-	private Logger logger = LoggerFactory.getLogger(SshClientFactory.class);
+	private Logger logger = LoggerFactory.getLogger(SshSessionFactory.class);
 
 	public Optional<Session> getConnectedSession(Box box) {
 		

@@ -5,7 +5,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
@@ -36,7 +35,16 @@ public class TestExec extends SshBaseFort {
 
 	@Test
 	public void testExec() throws IOException, JSchException {
-		UtilForTe.sshEcho(sshSession);
+		String s = UtilForTe.sshEcho(sshSession, "helo");
+		assertThat(s.trim(), equalTo("helo"));
+	}
+	
+	@Test
+	public void testExecReuseSession() throws IOException, JSchException {
+		String s = UtilForTe.sshEcho(sshSession, "helo");
+		s = UtilForTe.sshEcho(sshSession, "helo");
+		s = UtilForTe.sshEcho(sshSession, "helo");
+		assertThat(s.trim(), equalTo("helo"));
 	}
 
 //	@Test(expected= SSHRuntimeException.class)
