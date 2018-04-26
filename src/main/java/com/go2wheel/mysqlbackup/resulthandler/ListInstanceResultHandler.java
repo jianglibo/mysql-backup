@@ -8,12 +8,12 @@ import org.springframework.shell.result.TerminalAwareResultHandler;
 import com.go2wheel.mysqlbackup.value.ListInstanceResult;
 
 public class ListInstanceResultHandler extends TerminalAwareResultHandler<ListInstanceResult> {
-
+	
 	@Override
 	protected void doHandleResult(ListInstanceResult result) {
 		if (result.isSuccess()) {
 			if (result.getResult() == null || result.getResult().isEmpty()) {
-				terminal.writer().println("No instance exists. Please use create-instance command to create one.");
+				terminal.writer().println("尚未配置服务器。相关信息可以通过system-info命令查看。");
 			} else {
 				List<String> ss = new ArrayList<>();
 				for(int i = 0; i < result.getResult().size(); i++) {

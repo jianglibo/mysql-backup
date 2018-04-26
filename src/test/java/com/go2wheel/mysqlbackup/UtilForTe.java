@@ -17,7 +17,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
-import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -73,11 +72,11 @@ public class UtilForTe {
 		return YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
 	}
 	
-	public static BackupCommand backupCommandInstance() throws IOException {
-		BackupCommand bc = new BackupCommand();
-		bc.setInstancesBase(Files.createTempDirectory("backupcommandbase"));
-		return bc;
-	}
+//	public static BackupCommand backupCommandInstance() throws IOException {
+//		BackupCommand bc = new BackupCommand();
+//		bc.setInstancesBase(Files.createTempDirectory("backupcommandbase"));
+//		return bc;
+//	}
 	
 	
 	public static Path getMysqlInstanceDescription(String hostname) {

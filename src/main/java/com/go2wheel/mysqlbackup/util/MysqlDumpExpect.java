@@ -18,13 +18,19 @@ import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
 import net.sf.expectit.Result;
 
-public abstract class MysqlExpect<T> {
+public abstract class MysqlDumpExpect<T> {
 
 	private Session session;
 	private Box box;
 	protected Expect expect;
 	
-	public MysqlExpect(Session session, Box box) {
+	public static final String DUMP_FILE = "/tmp/mysqldump.sql";
+	
+	public static class DumpResult {
+		
+	}
+	
+	public MysqlDumpExpect(Session session, Box box) {
 		this.session = session;
 		this.box = box;
 	}
@@ -42,12 +48,11 @@ public abstract class MysqlExpect<T> {
 				.withEchoInput(System.err)
 				.withExceptionOnFailure().build();
 		try {
-			String cmd = String.format("mysql -u%s -p", StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"));
+			String cmd = "mysqldump -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
+			cmd = String.format(cmd, StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"), DUMP_FILE);
 			expect.sendLine(cmd);
 			expect.expect(contains("password: "));
 			expect.sendLine(box.getMysqlInstance().getPassword());
-			expect.expect(contains(MysqlUtil.MYSQL_PROMPT));
-			
 			return afterLogin();
 		} finally {
 			expect.close();

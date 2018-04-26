@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -15,6 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.util.MysqlDumpExpect.DumpResult;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -35,10 +37,16 @@ public class TestMysqlUtil extends SshBaseFort {
 	
 	@Test
 	public void testMysqlVariable() throws JSchException, IOException {
-		Map<String, String> map = mysqlUtil.getLogbinState(demoBox);
-		
+		Map<String, String> map = mysqlUtil.getLogbinState(sshSession, demoBox);
 		assertThat(map.size(), equalTo(3));
 	}
+	
+	@Test
+	public void testMysqlDump() throws JSchException, IOException {
+		DumpResult map = mysqlUtil.mysqldump(sshSession, demoBox);
+		assertNotNull(map);
+	}
+
 	
 	
 	@Test

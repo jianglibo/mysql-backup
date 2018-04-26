@@ -1,33 +1,37 @@
 package com.go2wheel.mysqlbackup.commands;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.shell.jline.PromptProvider;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
-import com.go2wheel.mysqlbackup.value.ExecuteResult;
+import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.ListInstanceResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ShellComponent()
 public class BackupCommand {
 	
 	public static final String DESCRIPTION_FILENAME = "description.yml";
+	
+	@Autowired
+	private MyAppSettings appSettings;
+	
+	@Autowired
+	private MysqlUtil mysqlUtil;
 	
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, ON_INSTANCE
@@ -39,17 +43,37 @@ public class BackupCommand {
 	
 	private CommandStepState state = CommandStepState.INIT_START;
 	
-	private Path instancesBase;
-	
-	@ShellMethod(value = "List all managed mysql instances.")
-	public ListInstanceResult listInstance() throws IOException {
+	@ShellMethod(value = "List all managed servers.")
+	public ListInstanceResult listServer() throws IOException {
 		return listInstanceInternal();
 	}
 	
-	@ShellMethod(value = "Pickup an instance as working instance.")
-	public ListInstanceResult selectInstance() throws IOException {
+	@ShellMethod(value = "Pickup a server to work on.")
+	public ListInstanceResult selectServer() throws IOException {
 		this.state = CommandStepState.WAITING_SELECT;
 		return listInstanceInternal();
+	}
+
+	@ShellMethod(value = "新建一个服务器.")
+	public String createServer(@ShellOption(help = "服务器主机名或者IP") String host, @ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
+		if(Files.exists(appSettings.getDataRoot().resolve(host))) {
+			return "该主机已经存在！";
+		}
+		Box box = new Box();
+		box.setHost(host);
+		box.setPort(sshPort);
+		box.setMysqlInstance(new MysqlInstance());
+		mysqlUtil.writeDescription(box);
+		return String.format("配置文件：%s已创建在%s目录下 ，请编辑修改参数，请填写你知道的参数即可。", DESCRIPTION_FILENAME, appSettings.getDataRoot().resolve(host));
+	}
+	
+	@ShellMethod(value = "显示配置相关信息。")
+	public List<String> SystemInfo() throws IOException {
+		return Arrays.asList(formatKeyVal("数据文件路径", appSettings.getDataRoot().toAbsolutePath().toString()));
+	}
+	
+	private String formatKeyVal(String k, String v) {
+		return String.format("%s: %s", k, v);
 	}
 	
 	/**
@@ -59,9 +83,11 @@ public class BackupCommand {
 	 * @return
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
-	public String mysqlPrepareBackup() {
-		
-		return null;
+	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force) {
+		if (workingPath == null) {
+			return "请先执行list-server和select-server确定使用哪台服务器。";
+		}
+		return force + "";
 	}
 	
 	
@@ -122,7 +148,7 @@ public class BackupCommand {
 //	}
 
 	protected ListInstanceResult listInstanceInternal() throws IOException {
-		allInstancePaths = Files.list(instancesBase).collect(Collectors.toList());
+		allInstancePaths = Files.list(appSettings.getDataRoot()).collect(Collectors.toList());
 		return new ListInstanceResult(allInstancePaths);
 	}
 	
@@ -152,13 +178,5 @@ public class BackupCommand {
 
 	public void setState(CommandStepState state) {
 		this.state = state;
-	}
-	
-	public Path getInstancesBase() {
-		return instancesBase;
-	}
-
-	public void setInstancesBase(Path instancesBase) {
-		this.instancesBase = instancesBase;
 	}
 }

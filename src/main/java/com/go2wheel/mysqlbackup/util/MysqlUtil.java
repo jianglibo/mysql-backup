@@ -17,6 +17,7 @@ import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfContentGetter;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
+import com.go2wheel.mysqlbackup.util.MysqlDumpExpect.DumpResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -46,9 +47,8 @@ public class MysqlUtil {
 		return new MycnfFileHolder(lines);
 	}
 	
-	public Map<String, String> getLogbinState(Box box) throws JSchException, IOException {
-		Session sshSession = sshClientFactory.getConnectedSession(box).get();
-		return new MysqlExpect<Map<String, String>>(sshSession, box) {
+	public Map<String, String> getLogbinState(Session session, Box box) throws JSchException, IOException {
+		return new MysqlExpect<Map<String, String>>(session, box) {
 			@Override
 			protected Map<String, String> afterLogin() {
 				Map<String, String> binmap = new HashMap<>();
@@ -81,6 +81,15 @@ public class MysqlUtil {
 	public Path getDescriptionFile(Box instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
 	}
+	
+	public DumpResult mysqldump(Session session, Box box) throws JSchException, IOException {
+		return new MysqlDumpExpect<DumpResult>(session, box) {
+			@Override
+			protected DumpResult afterLogin() {
+				return new DumpResult();
+			}
+		}.start();
+	}
 
 	
 	@Autowired
@@ -92,4 +101,5 @@ public class MysqlUtil {
 	public void setAppSettings(MyAppSettings appSettings) {
 		this.appSettings = appSettings;
 	}
+
 }
