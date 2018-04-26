@@ -52,6 +52,18 @@ public class BackupCommand {
 		return listInstanceInternal();
 	}
 	
+	/**
+	 * 1. check if already initialized.
+	 * 2. get my.cnf content
+	 * 3. check if 
+	 * @return
+	 */
+	@ShellMethod(value = "为备份MYSQL作准备。")
+	public String mysqlPrepareBackup() {
+		
+		return null;
+	}
+	
 	
 //	@ShellMethod(value = "Create a mysql instance.")
 //	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,

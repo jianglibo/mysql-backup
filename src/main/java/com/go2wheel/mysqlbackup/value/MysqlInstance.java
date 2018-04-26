@@ -1,12 +1,11 @@
 package com.go2wheel.mysqlbackup.value;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
 
 public class MysqlInstance {
 	
 	private int port = 3306;
+	private String password;
 	private String mycnfFile;
 	
 	private List<String> mycnfContent;
@@ -34,5 +33,13 @@ public class MysqlInstance {
 
 	public void setMycnfContent(List<String> mycnfContent) {
 		this.mycnfContent = mycnfContent;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
 	}
 }

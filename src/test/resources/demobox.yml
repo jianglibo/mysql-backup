@@ -5,3 +5,4 @@ username: root
 password: vagrant
 mysqlInstance:
   port: 3306
+  password: 123456
