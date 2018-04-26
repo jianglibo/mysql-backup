@@ -9,6 +9,7 @@ import org.springframework.shell.CommandRegistry;
 import org.springframework.shell.result.ThrowableResultHandler;
 import org.springframework.util.StringUtils;
 
+import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
 
 public class ThrowableResultHandlerMine  extends ThrowableResultHandler {

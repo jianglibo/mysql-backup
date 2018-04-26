@@ -1,26 +1,30 @@
 package com.go2wheel.mysqlbackup.commands;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
 import org.springframework.shell.jline.PromptProvider;
 import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
+import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.ListInstanceResult;
+import com.go2wheel.mysqlbackup.value.ListBoxResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ShellComponent()
 public class BackupCommand {
@@ -33,25 +37,24 @@ public class BackupCommand {
 	@Autowired
 	private MysqlUtil mysqlUtil;
 	
-	public static enum CommandStepState {
-		INIT_START, WAITING_SELECT, ON_INSTANCE
-	}
+	@Autowired
+	private Environment environment;
 	
-	private List<Path> allInstancePaths;
+	@Autowired
+	private ApplicationState appState;
 	
 	private Path workingPath;
-	
-	private CommandStepState state = CommandStepState.INIT_START;
+
 	
 	@ShellMethod(value = "List all managed servers.")
-	public ListInstanceResult listServer() throws IOException {
-		return listInstanceInternal();
+	public ApplicationState listServer() throws IOException {
+		return appState;
 	}
 	
 	@ShellMethod(value = "Pickup a server to work on.")
-	public ListInstanceResult selectServer() throws IOException {
-		this.state = CommandStepState.WAITING_SELECT;
-		return listInstanceInternal();
+	public ApplicationState selectServer() throws IOException {
+		this.appState.setStep(CommandStepState.WAITING_SELECT);
+		return appState;
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
@@ -69,12 +72,23 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "显示配置相关信息。")
 	public List<String> SystemInfo() throws IOException {
-		return Arrays.asList(formatKeyVal("数据文件路径", appSettings.getDataRoot().toAbsolutePath().toString()));
+		return Arrays.asList(
+				formatKeyVal("数据文件路径", appSettings.getDataRoot().toAbsolutePath().toString()),
+				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles()))
+				);
+	}
+	
+	@ShellMethod(value = "加载示例服务器。")
+	public void loadDemoServer() throws IOException {
+		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
+		Box box =  YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
+		appState.getServers().add(box);
 	}
 	
 	private String formatKeyVal(String k, String v) {
 		return String.format("%s: %s", k, v);
 	}
+	
 	
 	/**
 	 * 1. check if already initialized.
@@ -87,6 +101,7 @@ public class BackupCommand {
 		if (workingPath == null) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
+		
 		return force + "";
 	}
 	
@@ -147,15 +162,15 @@ public class BackupCommand {
 //		return new ExecuteResult<>(mi).setMessage(String.format("Mysql on host: %s created.", mi.getHost())); 
 //	}
 
-	protected ListInstanceResult listInstanceInternal() throws IOException {
-		allInstancePaths = Files.list(appSettings.getDataRoot()).collect(Collectors.toList());
-		return new ListInstanceResult(allInstancePaths);
-	}
+//	protected ListBoxResult listInstanceInternal() throws IOException {
+//		allInstancePaths = Files.list(appSettings.getDataRoot()).collect(Collectors.toList());
+//		return new ListBoxResult(allInstancePaths);
+//	}
 	
 	private String getPromptString() {
-		switch (state) {
+		switch (appState.getStep()) {
 		case WAITING_SELECT:
-			return "Please choose an instance by preceding number :>";
+			return "Please choose an instance by preceding number: ";
 		default:
 			if (workingPath != null) {
 				return workingPath.toString() + ":>";
@@ -170,13 +185,4 @@ public class BackupCommand {
 		return () -> new AttributedString(getPromptString(), AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 	}
 
-
-	public CommandStepState getState() {
-		return state;
-	}
-
-
-	public void setState(CommandStepState state) {
-		this.state = state;
-	}
 }

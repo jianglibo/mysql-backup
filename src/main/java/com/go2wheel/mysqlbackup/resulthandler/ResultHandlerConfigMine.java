@@ -34,8 +34,13 @@ public class ResultHandlerConfigMine {
 	}
 	
 	@Bean
-	public ListInstanceResultHandler listInstanceResultHandler() {
-		return new ListInstanceResultHandler();
+	public MyThrowableResultHandler myThrowableResultHandler() {
+		return new MyThrowableResultHandler();
+	}
+	
+	@Bean
+	public AppStateResultHandler listInstanceResultHandler() {
+		return new AppStateResultHandler();
 	}
 
 	@Bean
