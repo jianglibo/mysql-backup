@@ -8,6 +8,7 @@ public class MysqlInstance {
 	private String username;
 	private String password;
 	private String mycnfFile;
+	private String logBin;
 	private String logBinBasename;
 	private String logBinIndex;
 	
@@ -27,8 +28,6 @@ public class MysqlInstance {
 	public void setMycnfFile(String mycnfFile) {
 		this.mycnfFile = mycnfFile;
 	}
-
-	
 
 	public List<String> getMycnfContent() {
 		return mycnfContent;
@@ -68,5 +67,13 @@ public class MysqlInstance {
 
 	public void setLogBinIndex(String logBinIndex) {
 		this.logBinIndex = logBinIndex;
+	}
+
+	public String getLogBin() {
+		return logBin;
+	}
+
+	public void setLogBin(String logBin) {
+		this.logBin = logBin;
 	}
 }

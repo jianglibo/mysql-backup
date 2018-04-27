@@ -3,14 +3,17 @@ package com.go2wheel.mysqlbackup.commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+
+import javax.annotation.PostConstruct;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.shell.jline.PromptProvider;
 import org.springframework.shell.standard.ShellComponent;
@@ -20,9 +23,10 @@ import org.springframework.shell.standard.ShellOption;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.ListBoxResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -43,8 +47,13 @@ public class BackupCommand {
 	@Autowired
 	private ApplicationState appState;
 	
-	private Path workingPath;
-
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
+	
+	@PostConstruct
+	public void post() {
+		
+	}
 	
 	@ShellMethod(value = "List all managed servers.")
 	public ApplicationState listServer() throws IOException {
@@ -83,10 +92,16 @@ public class BackupCommand {
 		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
 		Box box =  YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
 		appState.getServers().add(box);
+		appState.setCurrentIndexAndFireEvent(appState.getServers().size() - 1);
 	}
 	
 	private String formatKeyVal(String k, String v) {
 		return String.format("%s: %s", k, v);
+	}
+	
+	@EventListener
+	public void whenServerChanged(ServerChangeEvent sce) {
+		System.out.println(sce);
 	}
 	
 	
@@ -98,9 +113,11 @@ public class BackupCommand {
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force) {
-		if (workingPath == null) {
+		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
+		
+//		Map<String, String> map = mysqlUtil.getLogbinState(sshSession, demoBox);
 		
 		return force + "";
 	}
@@ -172,10 +189,10 @@ public class BackupCommand {
 		case WAITING_SELECT:
 			return "Please choose an instance by preceding number: ";
 		default:
-			if (workingPath != null) {
-				return workingPath.toString() + ":>";
+			if (appState.currentBox().isPresent()) {
+				return appState.currentBox().get().getHost() + "> ";
 			} else {
-				return "mysqlbackup:>";
+				return "serverbackup> ";
 			}
 		}
 	}

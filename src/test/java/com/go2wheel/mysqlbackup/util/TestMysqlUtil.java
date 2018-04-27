@@ -43,8 +43,8 @@ public class TestMysqlUtil extends SshBaseFort {
 	
 	@Test
 	public void testMysqlDump() throws JSchException, IOException {
-		DumpResult map = mysqlUtil.mysqldump(sshSession, demoBox);
-		assertNotNull(map);
+		DumpResult dumpResult = mysqlUtil.mysqldump(sshSession, demoBox);
+		assertNotNull(dumpResult);
 	}
 
 	

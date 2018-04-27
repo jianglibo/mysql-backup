@@ -25,8 +25,8 @@ public class MyThrowableResultHandler  extends TerminalAwareResultHandler<Comman
 			Matcher m = ptn.matcher(msg);
 			if (m.matches()) {
 				int i = Integer.valueOf(m.group(1));
-				if (i < appState.getServers().size()) {
-					appState.setCurrentIndex(i);
+				if (i != appState.getCurrentIndex() && i < appState.getServers().size()) {
+					appState.setCurrentIndexAndFireEvent(i);
 					appState.setStep(CommandStepState.BOX_SELECTED);
 					msg = String.format("切换到新的服务器： %s", appState.currentBox().get().getHost());
 				}
