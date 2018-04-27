@@ -5,7 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -24,8 +24,13 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
+import com.go2wheel.mysqlbackup.util.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.util.StringUtil.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -54,11 +59,18 @@ public class BackupCommand {
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 	
-	private Session currentSession;
+	private Session _session;
 	
 	@PostConstruct
 	public void post() {
 		
+	}
+	
+	private Session getSession() {
+		if (_session == null || !_session.isConnected()) {
+			_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
+		}
+		return _session;
 	}
 	
 	@ShellMethod(value = "List all managed servers.")
@@ -107,13 +119,13 @@ public class BackupCommand {
 	
 	@EventListener
 	public void whenServerChanged(ServerChangeEvent sce) {
-		if (currentSession != null) {
+		if (_session != null) {
 			try {
-				currentSession.disconnect();
+				_session.disconnect();
 			} catch (Exception e) {
 			}
 		}
-		currentSession = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
+		_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
 	}
 	
 	
@@ -126,21 +138,59 @@ public class BackupCommand {
 	 * @throws JSchException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
-	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force) throws JSchException, IOException {
+	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force, @ShellOption(help = "Mysql log_bin的值。" , defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME)String logBinValue) throws JSchException, IOException {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		LogBinSetting lbs = mysqlUtil.getLogbinState(currentSession, appState.currentBox().get());
-		// log_bin doesn't enabled.
-		if (lbs.isEnabled()) {
-			// enable log_bin.
+		Box box = appState.currentBox().get();
+		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
+		boolean alreadyEnabled = false;
+		if (lbs != null && lbs.isEnabled()) {
+			alreadyEnabled = true;
 		} else {
-			
+			lbs = mysqlUtil.getLogbinState(getSession(), box);
+			if (lbs.isEnabled()) {
+				box.getMysqlInstance().setLogBinSetting(lbs);
+				mysqlUtil.writeDescription(box);
+				alreadyEnabled = true;
+			} else {
+				MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(getSession(), box);
+				String mycnfFile = box.getMysqlInstance().getMycnfFile();
+				mfh.enableBinLog(logBinValue);
+				SSHcommonUtil.backupFile(getSession(), mycnfFile);
+				ScpUtil.to(getSession(), mycnfFile, mfh.toByteArray());
+				mysqlUtil.restartMysql(getSession());
+				lbs = mysqlUtil.getLogbinState(getSession(), box);
+				if (!lbs.isEnabled()) {
+					throw new EnableLogBinFailedException(box.getHost());
+				}
+				box.getMysqlInstance().setLogBinSetting(lbs);
+				mysqlUtil.writeDescription(box);
+			}
 		}
-		
-		return force + "";
+		return lbs.toString();
 	}
 	
+	@ShellMethod(value = "执行Mysqldump命令")
+	public String mysqlDump() throws JSchException, IOException {
+		if (!appState.currentBox().isPresent()) {
+			return "请先执行list-server和select-server确定使用哪台服务器。";
+		}
+		Optional<LinuxLsl> ll = new MysqlDumpExpect(getSession(), appState.currentBox().get()).start();
+		if (ll.isPresent()) {
+			return String.format("mysqldump到%s, 长度：%s", ll.get().getFilename(), ll.get().getSize());
+		} else {
+			return "mysqldump失败";
+		}
+	}
+	
+	@ShellMethod(value = "显示当前选定服务器的描述文件。")
+	public String serverDescription() throws JSchException, IOException {
+		if (!appState.currentBox().isPresent()) {
+			return "请先执行list-server和select-server确定使用哪台服务器。";
+		}
+		return YamlInstance.INSTANCE.getYaml().dumpAsMap(appState.currentBox().get());
+	}
 	
 //	@ShellMethod(value = "Create a mysql instance.")
 //	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,

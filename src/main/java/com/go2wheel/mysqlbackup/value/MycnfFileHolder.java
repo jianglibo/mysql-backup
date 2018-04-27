@@ -9,8 +9,6 @@ import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
 public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	
 	public static final String DEFAULT_LOG_BIN_BASE_NAME = "hm-log-bin";
-	
-	
 
 	public MycnfFileHolder(List<String> lines) {
 		super(lines);
@@ -18,6 +16,10 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	
 	public boolean enableBinLog() {
 		return enableBinLog(DEFAULT_LOG_BIN_BASE_NAME);
+	}
+	
+	public byte[] toByteArray() {
+		return String.join("\n", getLines()).getBytes();
 	}
 	
 	/**

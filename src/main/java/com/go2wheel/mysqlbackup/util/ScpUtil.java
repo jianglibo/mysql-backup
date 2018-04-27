@@ -219,12 +219,12 @@ public class ScpUtil {
 		}
 	}
 
-	public static String from(Session session, String rfile) {
-		OutputStream os = null;
+	public static ByteArrayOutputStream from(Session session, String rfile) {
+		ByteArrayOutputStream os = null;
 		try {
 			os = new ByteArrayOutputStream();
 			from(session, rfile, os);
-			return os.toString();
+			return os;
 		} catch (Exception e) {
 			try {
 				if (os != null)

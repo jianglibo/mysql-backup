@@ -23,7 +23,7 @@ import com.jcraft.jsch.JSchException;
 
 public class SshBaseFort {
 
-	protected Box demoBox;
+	protected Box box;
 
 	protected MyAppSettings appSettings;
 
@@ -33,7 +33,7 @@ public class SshBaseFort {
 
 	protected String TMP_FILE_CONTENT = "abc";
 
-	protected com.jcraft.jsch.Session sshSession;
+	protected com.jcraft.jsch.Session session;
 
 	protected SshSessionFactory sshClientFactory;
 	
@@ -59,8 +59,8 @@ public class SshBaseFort {
 		if (!Files.exists(appSettings.getDataRoot())) {
 			Files.createDirectories(appSettings.getDataRoot().resolve("demobox"));
 		}
-		demoBox = UtilForTe.loadDemoBox();
-		sshSession = sshClientFactory.getConnectedSession(demoBox).orElse(null);
+		box = UtilForTe.loadDemoBox();
+		session = sshClientFactory.getConnectedSession(box).orElse(null);
 	}
 
 	@After
@@ -75,11 +75,11 @@ public class SshBaseFort {
 			Files.delete(tmpFile);
 		}
 		if (remoteDemoFile != null) {
-			SSHcommonUtil.deleteRemoteFile(sshSession, remoteDemoFile);
+			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
 		}
 		
-		if (sshSession != null) {
-			sshSession.disconnect();
+		if (session != null) {
+			session.disconnect();
 		}
 	}
 
@@ -89,7 +89,7 @@ public class SshBaseFort {
 
 	protected void createAfileOnServer(String rfile, String content) throws IOException, JSchException {
 		remoteDemoFile = rfile;
-		final Channel channel = sshSession.openChannel("exec");
+		final Channel channel = session.openChannel("exec");
 		try {
 			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", content,
 					rfile, rfile));
@@ -109,7 +109,7 @@ public class SshBaseFort {
 
 
 	protected void createADirOnServer(int number) throws IOException, JSchException {
-		final Channel channel = sshSession.openChannel("exec");
+		final Channel channel = session.openChannel("exec");
 		StringBuilder sb = new StringBuilder(String.format("mkdir -p %s; rm -rf %s/*; mkdir %s/aabbcc",
 				TMP_SERVER_DIR_NAME, TMP_SERVER_DIR_NAME, TMP_SERVER_DIR_NAME));
 		for (int i = 0; i < number; i++) {

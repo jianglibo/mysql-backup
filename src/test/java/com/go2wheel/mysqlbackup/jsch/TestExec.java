@@ -20,7 +20,7 @@ public class TestExec extends SshBaseFort {
 	
 //	@Test
 //	public void testStartShell() throws ConnectionException, TransportException {
-//		final Session session = sshSession.startSession();
+//		final Session session = session.startSession();
 //		Shell shell = session.startShell();
 //		long l = shell.getRemoteWinSize();
 //		shell.close();
@@ -35,21 +35,21 @@ public class TestExec extends SshBaseFort {
 
 	@Test
 	public void testExec() throws IOException, JSchException {
-		String s = UtilForTe.sshEcho(sshSession, "helo");
+		String s = UtilForTe.sshEcho(session, "helo");
 		assertThat(s.trim(), equalTo("helo"));
 	}
 	
 	@Test
 	public void testExecReuseSession() throws IOException, JSchException {
-		String s = UtilForTe.sshEcho(sshSession, "helo");
-		s = UtilForTe.sshEcho(sshSession, "helo");
-		s = UtilForTe.sshEcho(sshSession, "helo");
+		String s = UtilForTe.sshEcho(session, "helo");
+		s = UtilForTe.sshEcho(session, "helo");
+		s = UtilForTe.sshEcho(session, "helo");
 		assertThat(s.trim(), equalTo("helo"));
 	}
 
 //	@Test(expected= SSHRuntimeException.class)
 //	public void testReuseSession() throws IOException {
-//		final Session session = sshSession.startSession();
+//		final Session session = session.startSession();
 //		try {
 //			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
 //			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
@@ -73,7 +73,7 @@ public class TestExec extends SshBaseFort {
 //	}
 	
 //	private void oneSessionOneCommand() throws IOException {
-//		final Session session = sshSession.startSession();
+//		final Session session = session.startSession();
 //		try {
 //			final Command cmd = session.exec("cd ~;rm -f testexec.txt;echo 'abc' > testexec.txt;cat testexec.txt");
 //			String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();

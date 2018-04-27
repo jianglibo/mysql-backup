@@ -280,16 +280,11 @@ public class TestGetMysqlCnf extends SshBaseFort {
 				"binary-mode                       FALSE\r\n" + 
 				"connect-expired-password          FALSE\r\n" + 
 				"[root@localhost ~]# ";
-		
-		Matcher m = MysqlUtil.MYSQL_HELP_MY_CNF.matcher(s);
-		assertTrue(m.matches());
-		String s1 = m.group(1);
-		assertThat(s1, equalTo("/etc/my.cnf /etc/mysql/my.cnf /usr/etc/my.cnf ~/.my.cnf "));
 	}
 
 	@Test
 	public void tLogin() throws IOException, JSchException {
-		Channel channel = sshSession.openChannel("shell");
+		Channel channel = session.openChannel("shell");
 		channel.connect();
 
 		// @formatter:off

@@ -22,7 +22,7 @@ public class TestMysqlLogin extends SshBaseFort {
 
 	@Test
 	public void tLogin() throws IOException, JSchException {
-		Channel channel = sshSession.openChannel("shell");
+		Channel channel = session.openChannel("shell");
 		channel.connect();
 
 		// @formatter:off

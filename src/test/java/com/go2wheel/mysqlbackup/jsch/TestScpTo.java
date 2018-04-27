@@ -23,11 +23,11 @@ public class TestScpTo extends SshBaseFort {
 		String rfile = "/tmp/" + tmpFile.getFileName().toString();
 		String lfile = tmpFile.toAbsolutePath().toString();
 
-		ScpUtil.to(sshSession, lfile, rfile);
+		ScpUtil.to(session, lfile, rfile);
 		
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls -lh %s", rfile));
+		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
 		assertThat(er.size(), equalTo(1));
-		SSHcommonUtil.deleteRemoteFile(sshSession, rfile);
+		SSHcommonUtil.deleteRemoteFile(session, rfile);
 	}
 	
 	@Test
@@ -36,24 +36,24 @@ public class TestScpTo extends SshBaseFort {
 		String rfile = "/tmp";
 		String lfile = tmpFile.toAbsolutePath().toString();
 
-		ScpUtil.to(sshSession, lfile, rfile);
+		ScpUtil.to(session, lfile, rfile);
 		
 		String rfullpath = "/tmp/" + tmpFile.getFileName().toString(); 
 		
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls -lh %s", rfullpath));
+		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfullpath));
 		assertThat(er.size(), equalTo(1));
-		SSHcommonUtil.deleteRemoteFile(sshSession, rfullpath);
+		SSHcommonUtil.deleteRemoteFile(session, rfullpath);
 	}
 	
 	@Test
 	public void scpToStringToFile() throws IOException, JSchException {
 		String rfile = "/tmp/" + new Random().nextDouble();
-		ScpUtil.to(sshSession, rfile, "abc".getBytes());
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls -lh %s", rfile));
+		ScpUtil.to(session, rfile, "abc".getBytes());
+		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
 		assertThat(er.size(), equalTo(1));
 		
-		assertThat(ScpUtil.from(sshSession, rfile), equalTo("abc"));
-		SSHcommonUtil.deleteRemoteFile(sshSession, rfile);
+		assertThat(ScpUtil.from(session, rfile), equalTo("abc"));
+		SSHcommonUtil.deleteRemoteFile(session, rfile);
 	}
 	
 	@Test
@@ -63,8 +63,8 @@ public class TestScpTo extends SshBaseFort {
 		}).collect(Collectors.toList());
 		
 		String rfile = "/tmp/random_content.txt";
-		ScpUtil.to(sshSession, rfile, Strings.join(ss, '\n').getBytes());
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls -lh %s", rfile));
+		ScpUtil.to(session, rfile, Strings.join(ss, '\n').getBytes());
+		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
 		assertThat(er.size(), equalTo(1));
 
 	}

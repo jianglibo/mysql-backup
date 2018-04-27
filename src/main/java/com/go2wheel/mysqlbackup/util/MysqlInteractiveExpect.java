@@ -1,11 +1,9 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static net.sf.expectit.matcher.Matchers.contains;
-import static net.sf.expectit.matcher.Matchers.regexp;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -16,15 +14,14 @@ import com.jcraft.jsch.Session;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
-import net.sf.expectit.Result;
 
-public abstract class MysqlExpect<T> {
+public abstract class MysqlInteractiveExpect<T> {
 
 	private Session session;
 	private Box box;
 	protected Expect expect;
 	
-	public MysqlExpect(Session session, Box box) {
+	public MysqlInteractiveExpect(Session session, Box box) {
 		this.session = session;
 		this.box = box;
 	}

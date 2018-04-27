@@ -17,7 +17,7 @@ public class TestJschShellChannel extends SshBaseFort {
 
 	@Test
 	public void t() throws JSchException, IOException {
-	      Channel channel = sshSession.openChannel("shell");
+	      Channel channel = session.openChannel("shell");
 	      OutputStream ops = channel.getOutputStream();
 	      PrintStream ps = new PrintStream(ops, true);
 	      

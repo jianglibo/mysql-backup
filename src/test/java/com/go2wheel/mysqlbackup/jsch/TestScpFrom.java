@@ -21,7 +21,7 @@ public class TestScpFrom extends SshBaseFort {
 		createAfileOnServer(rfile, "abc");
 		createALocalDir();
 		String lfile = tmpDirectory.toAbsolutePath().toString();
-		ScpUtil.from(sshSession, rfile, lfile);
+		ScpUtil.from(session, rfile, lfile);
 		Path lf = tmpDirectory.resolve("xx.txt");
 		assertTrue(Files.exists(lf));
 	}
@@ -30,7 +30,7 @@ public class TestScpFrom extends SshBaseFort {
 	public void tFromFileToString() throws IOException, JSchException {
 		String rfile = "/tmp/xx.txt";
 		createAfileOnServer(rfile, "abc");
-		String content = ScpUtil.from(sshSession, rfile);
+		String content = ScpUtil.from(session, rfile).toString();
 		assertThat(content.trim(), equalTo("abc"));
 	}
 

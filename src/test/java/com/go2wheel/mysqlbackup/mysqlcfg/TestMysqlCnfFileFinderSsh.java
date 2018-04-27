@@ -20,7 +20,7 @@ public class TestMysqlCnfFileFinderSsh extends SshBaseFort {
 	
 	@Test
 	public void t() throws IOException {
-		MysqlCnfFileLister mcfg = new MysqlCnfFileLister(sshSession, demoBox);
+		MysqlCnfFileLister mcfg = new MysqlCnfFileLister(session, box);
 		RemoteCommandResult<List<String>> er = mcfg.execute();
 		assertFalse("reason shouldn't present.", er.getReason().isPresent());
 		assertTrue("invoke should be successed.", er.isSuccess());
@@ -31,7 +31,7 @@ public class TestMysqlCnfFileFinderSsh extends SshBaseFort {
 		
 		String lscmd = "ls " + String.join(" ", er.getResult());
 		
-		er = new ExecutableRunnerSshBase(sshSession, demoBox) {
+		er = new ExecutableRunnerSshBase(session, box) {
 			
 			@Override
 			protected String[] getLinesToFeed() {

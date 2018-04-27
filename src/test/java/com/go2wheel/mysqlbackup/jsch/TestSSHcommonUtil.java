@@ -22,7 +22,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	@After
 	public void after() throws IOException, JSchException {
 		for(String fn : remoteFiles) {
-			SSHcommonUtil.runRemoteCommand(sshSession, String.format("rm %s", fn));
+			SSHcommonUtil.runRemoteCommand(session, String.format("rm %s", fn));
 		}
 		super.after();
 	}
@@ -31,10 +31,10 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	@Test
 	public void tWriteRemoteFile() throws IOException {
 		String rfn = "/tmp/hello.txt";
-		ScpUtil.to(sshSession, rfn, "abc".getBytes());
-		ScpUtil.to(sshSession, rfn, "abc".getBytes());
+		ScpUtil.to(session, rfn, "abc".getBytes());
+		ScpUtil.to(session, rfn, "abc".getBytes());
 		
-		String content = ScpUtil.from(sshSession, rfn);
+		String content = ScpUtil.from(session, rfn).toString();
 		assertThat(content, equalTo("abc"));
 	}
 	
@@ -44,17 +44,17 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		remoteFiles.add(rfn);
 		remoteFiles.add(rfn + ".1");
 		remoteFiles.add(rfn + ".2");
-		ScpUtil.to(sshSession, rfn, "abc".getBytes());
-		SSHcommonUtil.backupFile(sshSession, rfn);
-		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls %s", rfn + "*"));
+		ScpUtil.to(session, rfn, "abc".getBytes());
+		SSHcommonUtil.backupFile(session, rfn);
+		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(2));
 		assertThat(fns.get(0), equalTo(rfn));
 		assertThat(fns.get(1), equalTo(rfn + ".1"));
 		
 		
-		SSHcommonUtil.revertFile(sshSession, rfn);
-		fns = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls %s", rfn + "*"));
+		SSHcommonUtil.revertFile(session, rfn);
+		fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(1));
 		assertThat(fns.get(0), equalTo(rfn));
@@ -67,8 +67,8 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		remoteFiles.add(rfn);
 		remoteFiles.add(rfn + ".1");
 		remoteFiles.add(rfn + ".2");
-		SSHcommonUtil.backupFile(sshSession, rfn);
-		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(sshSession, String.format("ls %s", rfn + "*"));
+		SSHcommonUtil.backupFile(session, rfn);
+		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(0));
 	}

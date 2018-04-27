@@ -34,7 +34,7 @@ public class TestKnownHosts extends SshBaseFort {
 
 	// @Test(expected = TransportException.class)
 	// public void testNoKnownHostSetting() throws IOException {
-	// new SSHClient().connect(demoBox.getHost());
+	// new SSHClient().connect(box.getHost());
 	// }
 
 	@Test()
@@ -51,7 +51,7 @@ public class TestKnownHosts extends SshBaseFort {
 			System.out.println("Host keys in " + hkr.getKnownHostsRepositoryID());
 			for (int i = 0; i < hks.length; i++) {
 				HostKey hk = hks[i];
-				if (hk.getHost().equals(demoBox.getHost())) {
+				if (hk.getHost().equals(box.getHost())) {
 					demoKey = hk;
 				}
 			}
@@ -59,8 +59,8 @@ public class TestKnownHosts extends SshBaseFort {
 		assertNotNull(demoKey);
 		System.out.println(demoKey.getType());
 		System.out.println(demoKey.getFingerPrint(jsch));
-		Session session=jsch.getSession(demoBox.getUsername(), demoBox.getHost(), demoBox.getPort());
-		session.setPassword(demoBox.getPassword());
+		Session session=jsch.getSession(box.getUsername(), box.getHost(), box.getPort());
+		session.setPassword(box.getPassword());
 		session.connect();
 		List<String> sl = SSHcommonUtil.runRemoteCommandAndGetList(session, "ls -lh /tmp");
 		
@@ -101,7 +101,7 @@ public class TestKnownHosts extends SshBaseFort {
 	// return true;
 	// }
 	// });
-	// ssh.connect(demoBox.getHost());
+	// ssh.connect(box.getHost());
 	// executeEcho(ssh);
 	// }
 	//
@@ -111,12 +111,12 @@ public class TestKnownHosts extends SshBaseFort {
 	// final SSHClient ssh = new SSHClient();
 	// String fingerprintline =
 	// Files.lines(Paths.get(appSettings.getSsh().getKnownHosts())).filter(line ->
-	// line.indexOf(demoBox.getHost()) != -1).findAny().get();
+	// line.indexOf(box.getHost()) != -1).findAny().get();
 	// String[] splited = fingerprintline.split("\\s+");
 	// assertThat("host fingerprint should has three columns.", splited.length,
 	// equalTo(3));
 	// ssh.addHostKeyVerifier("ecdsa-sha2-nistp256:" + splited[2]);
-	// ssh.connect(demoBox.getHost());
+	// ssh.connect(box.getHost());
 	// executeEcho(ssh);
 	// }
 	//

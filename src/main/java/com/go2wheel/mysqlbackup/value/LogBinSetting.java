@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class LogBinSetting {
 	
@@ -14,7 +15,20 @@ public class LogBinSetting {
 	
 	private Map<String, String> map = new HashMap<>();
 	
+	@Override
+	public String toString() {
+		return map.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(", ", "[", "]"));
+	}
+	
 	public LogBinSetting() {
+	}
+	
+	public String getLogBinBasename() {
+		return map.getOrDefault(LOG_BIN_BASENAME, "");
+	}
+	
+	public String getLogBinIndex() {
+		return map.getOrDefault(LOG_BIN_INDEX, "");
 	}
 
 	public LogBinSetting(Map<String, String> map) {
