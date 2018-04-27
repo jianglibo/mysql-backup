@@ -36,6 +36,11 @@ public class ConfigValue {
 		return cv;
 	}
 	
+	@Override
+	public String toString() {
+		return String.format("[key: %s, value: %s, lineIndex: %s, state: %s]", getKey(), getValue(), getLineIndex(), getState());
+	}
+	
 	private ConfigValue() {
 	}
 

@@ -8,6 +8,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
+import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -18,25 +20,78 @@ public class SSHcommonUtil {
 	
 	/**
 	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3
-	 * @param sshClient
+	 * @param session
 	 * @param remoteFile
 	 * @throws IOException 
 	 * @throws JSchException 
 	 */
-	public static void backupFile(Session sshClient, String remoteFile) throws IOException, JSchException {
-		List<String> fns = runRemoteCommandAndGetList(sshClient, String.format("ls -p %s | grep -v /$", remoteFile + "*"));
+	public static void backupFile(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		if (bfs.isOriginExists()) {
+			runRemoteCommand(session, String.format("cp %s %s",remoteFile, remoteFile + "." + bfs.getNextInt()));
+		}
+	}
+	
+	public static void deleteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		List<String> backed = bfs.getBackups();
+		if (backed.size() > 0) {
+			backed.remove(0);
+		}
+		if (backed.size() > 0) {
+			deleteRemoteFile(session, bfs.getBackups());
+		}
+	}
+	
+	public static BackupedFiles getBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = new BackupedFiles(remoteFile);
+		List<String> fns = runRemoteCommandAndGetList(session, String.format("ls -p %s | grep -v /$", remoteFile + "*"));
 		if (fns == null || fns.isEmpty()) {
-			return;
+			bfs.setOriginExists(false);
+		} else {
+			bfs.setOriginExists(true);
+			Pattern ptn = Pattern.compile(remoteFile + "\\.(\\d+)$");
+			fns = fns.stream().filter(fn -> ptn.matcher(fn).matches()).collect(Collectors.toList()); // not include origin file.
+			Collections.sort(fns);
+			if (fns.size() > 0) {
+				Matcher m = ptn.matcher(fns.get(fns.size() - 1));
+				m.matches();
+				bfs.setNextInt(Integer.valueOf(m.group(1)) + 1);
+			} else {
+				bfs.setNextInt(1);
+			}
+			bfs.setBackups(fns);
 		}
-		fns = fns.stream().filter(fn -> fn.startsWith(remoteFile)).collect(Collectors.toList());
-		Collections.sort(fns);
-		Pattern ptn = Pattern.compile(remoteFile + "\\.(\\d+)$");
-		Matcher m = ptn.matcher(fns.get(fns.size() - 1));
-		int i = 1;
-		if (m.matches()) {
-			i = Integer.valueOf(m.group(1)) + 1;
+		return bfs;
+	}
+	
+	public static void deketeBackupFiles(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
+			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
+			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
 		}
-		runRemoteCommand(sshClient, String.format("cp %s %s",remoteFile, remoteFile + "." + i));
+	}
+	
+	public static void revertFile(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
+			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
+			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
+		}
+	}
+	
+	public static void revertFileToOrigin(Session session, String remoteFile) throws IOException, JSchException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
+			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
+		}
 	}
 	
 	public static String runRemoteCommand(Session sshSession, String command) throws IOException, JSchException {
@@ -58,8 +113,8 @@ public class SSHcommonUtil {
 		return StringUtil.splitLines(runRemoteCommand(sshSession, command)).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 	}
 
-//	public static String getRemoteFileContent(SSHClient sshClient, String remoteFile) throws IOException {
-//        final SFTPClient sftp = sshClient.newSFTPClient();
+//	public static String getRemoteFileContent(session session, String remoteFile) throws IOException {
+//        final SFTPClient sftp = session.newSFTPClient();
 //        Set<OpenMode> om = new HashSet<>();
 //        om.add(OpenMode.READ);
 //        RemoteFile rf = sftp.open(remoteFile, om);
@@ -75,11 +130,15 @@ public class SSHcommonUtil {
 		runRemoteCommand(sshSession, String.format("rm %s", remoteFile));
 	}
 	
-//	public static void writeRemoteFile(SSHClient sshClient, String remoteFile, String content) throws IOException {
-//        sshClient.useCompression();
+	public static void deleteRemoteFile(Session sshSession, List<String> remoteFiles) throws IOException, JSchException {
+		runRemoteCommand(sshSession, String.format("rm %s", String.join(" ",remoteFiles)));
+	}
+	
+//	public static void writeRemoteFile(session session, String remoteFile, String content) throws IOException {
+//        session.useCompression();
 //        Path tmp = Files.createTempFile("writeremtefile", null);
 //        Files.write(tmp, content.getBytes());
-//        sshClient.newSCPFileTransfer().upload(new FileSystemFile(tmp.toFile()), remoteFile);
+//        session.newSCPFileTransfer().upload(new FileSystemFile(tmp.toFile()), remoteFile);
 //        try {
 //			Files.delete(tmp);
 //		} catch (Exception e) {

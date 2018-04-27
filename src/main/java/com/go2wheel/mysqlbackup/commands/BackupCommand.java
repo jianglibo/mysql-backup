@@ -27,8 +27,12 @@ import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.LogBinSetting;
+import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 @ShellComponent()
 public class BackupCommand {
@@ -49,6 +53,8 @@ public class BackupCommand {
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	private Session currentSession;
 	
 	@PostConstruct
 	public void post() {
@@ -101,7 +107,13 @@ public class BackupCommand {
 	
 	@EventListener
 	public void whenServerChanged(ServerChangeEvent sce) {
-		System.out.println(sce);
+		if (currentSession != null) {
+			try {
+				currentSession.disconnect();
+			} catch (Exception e) {
+			}
+		}
+		currentSession = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
 	}
 	
 	
@@ -110,14 +122,21 @@ public class BackupCommand {
 	 * 2. get my.cnf content
 	 * 3. check if 
 	 * @return
+	 * @throws IOException 
+	 * @throws JSchException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
-	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force) {
+	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force) throws JSchException, IOException {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		
-//		Map<String, String> map = mysqlUtil.getLogbinState(sshSession, demoBox);
+		LogBinSetting lbs = mysqlUtil.getLogbinState(currentSession, appState.currentBox().get());
+		// log_bin doesn't enabled.
+		if (lbs.isEnabled()) {
+			// enable log_bin.
+		} else {
+			
+		}
 		
 		return force + "";
 	}

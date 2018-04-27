@@ -8,11 +8,8 @@ import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
 
 public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	
-	// host_name-bin
-	public static final String LOG_BIN = "log_bin";
-	//	Holds the base name and path for the binary log files, which can be set with the --log-bin server option. In MySQL 5.7, the default base name is the name of the host machine with the suffix -bin. The default location is the data directory.
-	public static final String LOG_BIN_BASENAME = "log_bin_basename";
-	public static final String LOG_BIN_INDEX = "log_bin_index";
+	public static final String DEFAULT_LOG_BIN_BASE_NAME = "hm-log-bin";
+	
 	
 
 	public MycnfFileHolder(List<String> lines) {
@@ -20,7 +17,7 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	}
 	
 	public boolean enableBinLog() {
-		return enableBinLog("");
+		return enableBinLog(DEFAULT_LOG_BIN_BASE_NAME);
 	}
 	
 	/**
@@ -28,8 +25,8 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	 * @return true if changed or else false.
 	 */
 	public boolean enableBinLog(String filename) {
-		Optional<String> fnOp = filename == null || filename.trim().isEmpty() ? Optional.of(filename.trim()) : Optional.empty(); 
-		ConfigValue cv = getConfigValue(LOG_BIN);
+		Optional<String> fnOp = filename == null || filename.trim().isEmpty() ? Optional.empty() : Optional.of(filename.trim()); 
+		ConfigValue cv = getConfigValue(LogBinSetting.LOG_BIN);
 		if (cv.getState() == ConfigValueState.EXIST) {
 			if (fnOp.isPresent()) {
 				if (cv.getValue().equals(fnOp.get())) {
@@ -53,7 +50,7 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 			for(int i=0; i< getLines().size(); i++) {
 				String line = getLines().get(i);
 				if (ptn.matcher(line).matches()) {
-					getLines().add(i + 1, LOG_BIN + "=" + fnOp.orElse("mysql-bin"));
+					getLines().add(i + 1, LogBinSetting.LOG_BIN + "=" + fnOp.orElse(DEFAULT_LOG_BIN_BASE_NAME));
 					changed = true;
 				}
 			}

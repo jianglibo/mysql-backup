@@ -41,7 +41,7 @@ public class SshBaseFort {
 	
 	protected Path tmpFile;
 	
-	protected String remoteFile;
+	protected String remoteDemoFile;
 
 	private long startTime;
 
@@ -74,8 +74,8 @@ public class SshBaseFort {
 		if (tmpFile != null) {
 			Files.delete(tmpFile);
 		}
-		if (remoteFile != null) {
-			SSHcommonUtil.deleteRemoteFile(sshSession, remoteFile);
+		if (remoteDemoFile != null) {
+			SSHcommonUtil.deleteRemoteFile(sshSession, remoteDemoFile);
 		}
 		
 		if (sshSession != null) {
@@ -88,7 +88,7 @@ public class SshBaseFort {
 	}
 
 	protected void createAfileOnServer(String rfile, String content) throws IOException, JSchException {
-		remoteFile = rfile;
+		remoteDemoFile = rfile;
 		final Channel channel = sshSession.openChannel("exec");
 		try {
 			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", content,
