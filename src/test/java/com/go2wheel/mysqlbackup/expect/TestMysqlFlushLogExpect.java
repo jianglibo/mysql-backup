@@ -10,32 +10,36 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.jcraft.jsch.JSchException;
 
-public class TestMysqlDumpExpect extends SshBaseFort {
+public class TestMysqlFlushLogExpect extends SshBaseFort {
 	
 	@Test
 	public void t() throws Exception {
+		
+		MysqlUtil mysqlUtil = new MysqlUtil();
+		mysqlUtil.setAppSettings(appSettings);
+		
 		createALocalFile(" ");
-		MysqlDumpExpect mde = new MysqlDumpExpect(session, box);
-		Optional<LinuxFileInfo> result = mde.start();
-		assertTrue(result.isPresent());
-		ScpUtil.from(session, MysqlDumpExpect.DUMP_FILE, tmpFile.toAbsolutePath().toString()); 
+		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, box);
+		List<String> lines = mfe.start();
 		
-		assertThat(Files.size(tmpFile), equalTo(result.get().getSize()));
+		MysqlFlushLogExpect mfe1 = new MysqlFlushLogExpect(session, box);
+		List<String> lines1 = mfe.start();
 		
-		String md5 = Md5Checksum.getMD5Checksum(tmpFile.toString());
+		assertThat(lines.size(), equalTo(lines1.size() - 1));
 		
-		assertThat(md5, equalTo(result.get().getMd5()));
-	
+		mysqlUtil.writeBinLogIndex(session, box, lines1);
 	}
 
 }

@@ -7,3 +7,8 @@ mysqlInstance:
   port: 3306
   username: root
   password: 123456
+  logBinSetting:
+    map:
+      log_bin: ON
+      log_bin_basename: /var/lib/mysql/hm-log-bin
+      log_bin_index: /var/lib/mysql/hm-log-bin.index

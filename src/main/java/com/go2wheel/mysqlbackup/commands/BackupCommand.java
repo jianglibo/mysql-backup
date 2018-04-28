@@ -25,12 +25,12 @@ import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
-import com.go2wheel.mysqlbackup.util.MysqlDumpExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.StringUtil.LinuxLsl;
+import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -176,7 +176,7 @@ public class BackupCommand {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		Optional<LinuxLsl> ll = new MysqlDumpExpect(getSession(), appState.currentBox().get()).start();
+		Optional<LinuxFileInfo> ll = new MysqlDumpExpect(getSession(), appState.currentBox().get()).start();
 		if (ll.isPresent()) {
 			return String.format("mysqldump到%s, 长度：%s", ll.get().getFilename(), ll.get().getSize());
 		} else {

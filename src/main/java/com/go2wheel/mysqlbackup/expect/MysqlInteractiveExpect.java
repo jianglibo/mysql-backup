@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.util;
+package com.go2wheel.mysqlbackup.expect;
 
 import static net.sf.expectit.matcher.Matchers.contains;
 
@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;

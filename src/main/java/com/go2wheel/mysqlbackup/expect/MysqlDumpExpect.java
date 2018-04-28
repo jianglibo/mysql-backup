@@ -1,13 +1,14 @@
-package com.go2wheel.mysqlbackup.util;
+package com.go2wheel.mysqlbackup.expect;
 
 import java.io.IOException;
 import java.util.Optional;
 
-import com.go2wheel.mysqlbackup.util.StringUtil.LinuxLsl;
+import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Session;
 
-public class MysqlDumpExpect extends MysqlPasswordReadyExpect<Optional<LinuxLsl>> {
+public class MysqlDumpExpect extends MysqlPasswordReadyExpect<Optional<LinuxFileInfo>> {
 
 	public static final String DUMP_FILE = "/tmp/mysqldump.sql";
 	
@@ -24,14 +25,20 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect<Optional<LinuxLsl>
 
 
 	@Override
-	protected Optional<LinuxLsl> afterLogin() throws IOException {
+	protected Optional<LinuxFileInfo> afterLogin() throws IOException {
 		expectBashPromptAndReturnRaw();
 		expect.sendLine("ls -l " + DUMP_FILE);
 		String s = expectBashPromptAndReturnRaw();
 		if (s.indexOf("cannot access") != -1) {
 			return Optional.empty();
 		} else {
-			return StringUtil.splitLines(s).stream().map(StringUtil::matchLinuxLsl).filter(op -> op.isPresent()).findFirst().orElse(Optional.empty());
+			Optional<LinuxFileInfo> lff = StringUtil.splitLines(s).stream().map(StringUtil::matchLinuxLsl).filter(op -> op.isPresent()).findFirst().orElse(Optional.empty());
+			if (lff.isPresent()) {
+				expect.sendLine(String.format("md5sum %s", DUMP_FILE));
+				s = expectBashPromptAndReturnRaw();
+				lff.get().setMd5ByMd5sumOutput(s);
+			}
+			return lff;
 		}
 	}
 }

@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.mysqlcfg.MyCnfFirstExist;
 import com.go2wheel.mysqlbackup.mysqlcfg.MysqlCnfFileLister;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -73,9 +75,8 @@ public class MysqlUtil {
 		}.start();
 	}
 	
-	public void flushLogs(Session session, Box box) {
-		String content = ScpUtil.from(session, box.getMysqlInstance().getLogBinSetting().getLogBinIndex()).toString();
-		List<String> logFiles = StringUtil.splitLines(content);
+	public void downloadLogBin() {
+		// downloa
 	}
 	
 	public void writeDescription(Box box) throws IOException {
@@ -97,6 +98,24 @@ public class MysqlUtil {
 		Path dstFile = dstDir.resolve(rfile);
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
+	
+	private Path getHostDir(Box box) {
+		return appSettings.getDataRoot().resolve(box.getHost());
+	}
+	
+	private Path getLogBinDir(Box box) throws IOException {
+		Path dstDir = getHostDir(box).resolve("logbin");
+		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+			Files.createDirectories(dstDir);
+		}
+		return dstDir;
+	}
+	
+	public void writeBinLogIndex(Session session, Box box, List<String> lines) throws IOException {
+		Path dstFile = getLogBinDir(box).resolve(Paths.get(box.getMysqlInstance().getLogBinSetting().getLogBinIndex()).getFileName());
+		Files.write(dstFile, String.join("\n", lines).getBytes());
+	}
+
 	
 	public Path getDescriptionFile(Box instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);

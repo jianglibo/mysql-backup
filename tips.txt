@@ -35,12 +35,13 @@ Shell. set parameterResolvers.
 
 eclipse static import test package.
 Window > Preferences > Java > Editor > Content Assist > Favorites
-org.hamcrest.Matchers.*
-org.hamcrest.CoreMatchers.*
-org.junit.*
-org.junit.Assert.*
-org.junit.Assume.*
-org.junit.matchers.JUnitMatchers.*
+org.hamcrest.Matchers
+org.hamcrest.CoreMatchers
+org.junit
+org.junit.Assert
+org.junit.Assume
+org.junit.matchers.JUnitMatchers
+net.sf.expectit.matcher.Matchers
 
 
 file-appender.xml

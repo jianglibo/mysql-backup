@@ -8,11 +8,18 @@ import java.util.regex.Pattern;
 
 public class StringUtil {
 	
-	public static class LinuxLsl {
+	public static class LinuxFileInfo {
 		
-		public static final Pattern LINUX_LSL_PATTERN = Pattern.compile("^([^\\s]+)\\s+(\\d+)\\s+([^ ]+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(.*)$"); 
+		public static final Pattern LINUX_LSL_PATTERN = Pattern.compile("^([^\\s]+)\\s+(\\d+)\\s+([^ ]+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(.*)$");
 		
-		public LinuxLsl(Matcher m) {
+		public void setMd5ByMd5sumOutput(String expectOut) {
+			Optional<String[]> md5pair = splitLines(expectOut).stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(filename) && pair[0].length() == 32).findAny();
+			if (md5pair.isPresent()) {
+				setMd5(md5pair.get()[0]);
+			}
+		}
+		
+		public LinuxFileInfo(Matcher m) {
 			pm = m.group(1);
 			numberOfLinks = Integer.valueOf(m.group(2));
 			owner= m.group(3);
@@ -29,7 +36,15 @@ public class StringUtil {
 		private long size;
 		private String lastModified;
 		private String filename;
+		
+		public String md5;
 
+		public String getMd5() {
+			return md5;
+		}
+		public void setMd5(String md5) {
+			this.md5 = md5;
+		}
 		public String getPm() {
 			return pm;
 		}
@@ -93,12 +108,12 @@ public class StringUtil {
 		return url.substring(i + 1);
 	}
 	
-	public static Optional<LinuxLsl> matchLinuxLsl(String oneLine) {
+	public static Optional<LinuxFileInfo> matchLinuxLsl(String oneLine) {
 		String s = oneLine.trim();
-		Matcher m = LinuxLsl.LINUX_LSL_PATTERN.matcher(s);
+		Matcher m = LinuxFileInfo.LINUX_LSL_PATTERN.matcher(s);
 		boolean success = m.matches();
 		if (success) {
-			return Optional.of(new LinuxLsl(m));
+			return Optional.of(new LinuxFileInfo(m));
 		}
 		return Optional.empty();
 	}
