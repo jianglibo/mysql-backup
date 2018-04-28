@@ -16,7 +16,7 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect<Optional<LinuxFile
 		super(session, box);
 	}
 
-	@Override
+//	@Override
 	protected String getCmd() {
 		String cmd = "mysqldump -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
 		cmd = String.format(cmd, StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"), DUMP_FILE);
@@ -26,19 +26,26 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect<Optional<LinuxFile
 
 	@Override
 	protected Optional<LinuxFileInfo> afterLogin() throws IOException {
-		expectBashPromptAndReturnRaw();
+		expectBashPromptAndReturnRaw(1);
 		expect.sendLine("ls -l " + DUMP_FILE);
-		String s = expectBashPromptAndReturnRaw();
+		String s = expectBashPromptAndReturnRaw(1);
 		if (s.indexOf("cannot access") != -1) {
 			return Optional.empty();
 		} else {
 			Optional<LinuxFileInfo> lff = StringUtil.splitLines(s).stream().map(StringUtil::matchLinuxLsl).filter(op -> op.isPresent()).findFirst().orElse(Optional.empty());
 			if (lff.isPresent()) {
 				expect.sendLine(String.format("md5sum %s", DUMP_FILE));
-				s = expectBashPromptAndReturnRaw();
+				s = expectBashPromptAndReturnRaw(1);
 				lff.get().setMd5ByMd5sumOutput(s);
 			}
 			return lff;
 		}
+	}
+
+	@Override
+	protected void tillPasswordRequired() throws IOException {
+		String cmd = "mysqldump -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
+		cmd = String.format(cmd, StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"), DUMP_FILE);
+		expect.sendLine(cmd);
 	}
 }

@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
@@ -24,15 +23,9 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
-import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
-import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
-import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -58,6 +51,9 @@ public class BackupCommand {
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private MysqlTaskFacade mysqlTaskFacade;
 	
 	private Session _session;
 	
@@ -138,37 +134,11 @@ public class BackupCommand {
 	 * @throws JSchException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
-	public String mysqlPrepareBackup(@ShellOption(help = "重新初始化。") boolean force, @ShellOption(help = "Mysql log_bin的值。" , defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME)String logBinValue) throws JSchException, IOException {
+	public String mysqlEnableLogbin(@ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。" , defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME)String logBinValue) throws JSchException, IOException {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		Box box = appState.currentBox().get();
-		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
-		boolean alreadyEnabled = false;
-		if (lbs != null && lbs.isEnabled()) {
-			alreadyEnabled = true;
-		} else {
-			lbs = mysqlUtil.getLogbinState(getSession(), box);
-			if (lbs.isEnabled()) {
-				box.getMysqlInstance().setLogBinSetting(lbs);
-				mysqlUtil.writeDescription(box);
-				alreadyEnabled = true;
-			} else {
-				MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(getSession(), box);
-				String mycnfFile = box.getMysqlInstance().getMycnfFile();
-				mfh.enableBinLog(logBinValue);
-				SSHcommonUtil.backupFile(getSession(), mycnfFile);
-				ScpUtil.to(getSession(), mycnfFile, mfh.toByteArray());
-				mysqlUtil.restartMysql(getSession());
-				lbs = mysqlUtil.getLogbinState(getSession(), box);
-				if (!lbs.isEnabled()) {
-					throw new EnableLogBinFailedException(box.getHost());
-				}
-				box.getMysqlInstance().setLogBinSetting(lbs);
-				mysqlUtil.writeDescription(box);
-			}
-		}
-		return lbs.toString();
+		return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
 	}
 	
 	@ShellMethod(value = "执行Mysqldump命令")
@@ -176,12 +146,7 @@ public class BackupCommand {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		Optional<LinuxFileInfo> ll = new MysqlDumpExpect(getSession(), appState.currentBox().get()).start();
-		if (ll.isPresent()) {
-			return String.format("mysqldump到%s, 长度：%s", ll.get().getFilename(), ll.get().getSize());
-		} else {
-			return "mysqldump失败";
-		}
+		return mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get());
 	}
 	
 	@ShellMethod(value = "显示当前选定服务器的描述文件。")
@@ -191,67 +156,6 @@ public class BackupCommand {
 		}
 		return YamlInstance.INSTANCE.getYaml().dumpAsMap(appState.currentBox().get());
 	}
-	
-//	@ShellMethod(value = "Create a mysql instance.")
-//	public ExecuteResult<MysqlInstance> createInstance(@NotNull String host,
-//			@ShellOption(defaultValue = "22") @NotNull @Pattern(regexp = "[1-9][0-9]*") int sshPort,
-//			@ShellOption(defaultValue = "3306") @NotNull @Pattern(regexp = "[1-9][0-9]*") int mysqlPort,
-//			@ShellOption(defaultValue = "") String sshKeyFile,
-//			@ShellOption(defaultValue = "root") @NotNull  String username,
-//			@ShellOption(defaultValue = "") String password) {
-//		
-//		if (password.isEmpty() && sshKeyFile.isEmpty()) {
-//			return ExecuteResult.failedResult("Either sshKeyFile or password is required!");
-//		}
-//		
-//		Path ph = instancesBase.resolve(host);
-//		if (Files.exists(ph)) {
-//			return ExecuteResult.failedResult(String.format("Host: '%s' already exists.", host));
-//		}
-//		
-//		MysqlInstance mi = new MysqlInstance();
-//		mi.setHost(host);
-//		mi.setUsername(username);
-//		mi.setMysqlPort(mysqlPort == 0 ? 3306 : mysqlPort);
-//		mi.setSshPort(sshPort == 0 ? 22 : sshPort);
-//		if (password.isEmpty()) {
-//			if (!Files.exists(Paths.get(sshKeyFile))) {
-//				return ExecuteResult.failedResult(String.format("sshKeyFile: '%s' doesn't exists.", sshKeyFile));
-//			} else {
-//				mi.setSshKeyFile(Paths.get(sshKeyFile).toAbsolutePath().normalize().toString());
-//			}
-//		} else {
-//			mi.setPassword(password);
-//		}
-//		return writeInstance(mi);
-//	}
-	
-//	private ExecuteResult<MysqlInstance> writeInstance(MysqlInstance mi) {
-//		Path mp = instancesBase.resolve(mi.getHost());
-//		if (!Files.exists(mp)) {
-//			try {
-//				Files.createDirectories(mp);
-//			} catch (IOException e) {
-//				return ExecuteResult.failedResult(String.format("Create directory: '%s' failed.", mp.toString()));
-//			}
-//		}
-//		Path df = mp.resolve(DESCRIPTION_FILENAME);
-//		
-//		String s = YamlInstance.INSTANCE.getYaml().dumpAsMap(mi);
-//		try (BufferedWriter bw = Files.newBufferedWriter(df)) {
-//			bw.write(s);
-//			bw.flush();
-//			bw.close();
-//		} catch (IOException e) {
-//			return ExecuteResult.failedResult(String.format("Write Yml file : '%s' failed.", df.toString()));
-//		}
-//		return new ExecuteResult<>(mi).setMessage(String.format("Mysql on host: %s created.", mi.getHost())); 
-//	}
-
-//	protected ListBoxResult listInstanceInternal() throws IOException {
-//		allInstancePaths = Files.list(appSettings.getDataRoot()).collect(Collectors.toList());
-//		return new ListBoxResult(allInstancePaths);
-//	}
 	
 	private String getPromptString() {
 		switch (appState.getStep()) {

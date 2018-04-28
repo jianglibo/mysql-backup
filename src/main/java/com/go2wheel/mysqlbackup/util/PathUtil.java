@@ -1,14 +1,24 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import net.bytebuddy.description.field.FieldDescription.InGenericShape;
 
 public class PathUtil {
 	
@@ -23,6 +33,44 @@ public class PathUtil {
 			return s.substring(p + 1);
 		}
 		return "";
+	}
+	
+	private static String getZeros(int n) {
+		char[] chars = new char[n];
+		Arrays.fill(chars, '0');
+		return new String(chars);
+	}
+	
+	private static String prependZeros(int v, int length) {
+		String si = v + "";
+		int need = length - si.length();
+		if (need > 0) {
+			return getZeros(need) + si;
+		} else {
+			return si;
+		}
+	}
+	
+	public static Path getNextAvailable(Path dir, String name, int postfixNumber) {
+		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", name, postfixNumber));
+		List<String> paths = null;
+		try {
+			paths = Files.list(dir).filter(f -> Files.isRegularFile(f)).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString()).collect(Collectors.toList());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Collections.sort(paths);
+		
+		if (paths.isEmpty()) {
+			return dir.resolve(name + "." + getZeros(postfixNumber));
+		} else {
+			Matcher m = ptn.matcher(paths.get(paths.size() - 1));
+			m.matches();
+			String nm = m.group(1);
+			int i = Integer.valueOf(nm);
+			return dir.resolve(name + "." + prependZeros(++i, postfixNumber));
+			
+		}
 	}
 	
 	public static Optional<Path> getJarLocation() {

@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.expect;
 
 import static net.sf.expectit.matcher.Matchers.contains;
+import static net.sf.expectit.matcher.Matchers.times;
 
 import java.io.IOException;
 import java.util.List;
@@ -41,7 +42,7 @@ public abstract class MysqlPasswordReadyExpect<T> {
 				.withEchoInput(System.err)
 				.withExceptionOnFailure().build();
 		try {
-			expect.sendLine(getCmd());
+			tillPasswordRequired();
 			expect.expect(contains("password: "));
 			expect.sendLine(box.getMysqlInstance().getPassword());
 			return afterLogin();
@@ -52,15 +53,15 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		}
 	}
 	
-	protected String expectBashPromptAndReturnRaw() throws IOException {
-		return expect.expect(contains(BASH_PROMPT)).getBefore();
+	protected abstract void tillPasswordRequired() throws IOException;
+	
+	protected String expectBashPromptAndReturnRaw(int num) throws IOException {
+		return expect.expect(times(num, contains(BASH_PROMPT))).getBefore();
 	}
 	
 	protected List<String> expectBashPromptAndReturnList() throws IOException {
 		return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
 	}
 	
-	protected abstract String getCmd();
-
 	protected abstract T afterLogin() throws IOException;
 }

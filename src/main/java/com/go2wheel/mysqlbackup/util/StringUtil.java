@@ -37,7 +37,7 @@ public class StringUtil {
 		private String lastModified;
 		private String filename;
 		
-		public String md5;
+		private String md5;
 
 		public String getMd5() {
 			return md5;
