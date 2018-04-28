@@ -7,10 +7,12 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
@@ -49,14 +51,25 @@ public class SSHcommonUtil {
 		}
 	}
 	
+	public static String getRemoteFileMd5(Session session, String remoteFile) {
+		Optional<String[]> md5pair =  runRemoteCommandAndGetList(session, String.format("md5sum %s", remoteFile)).stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32).findAny();
+		return md5pair.get()[0];
+	}
+	
 	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) {
 		Path localDir = lfile.getParent();
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		ScpUtil.from(session, rfile, localTmpFile.toString());
-		try {
-			Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
-		} catch (IOException e) {
-			throw new MyCommonException("atomicmove", e.getMessage());
+		String remoteMd5 = getRemoteFileMd5(session, rfile);
+		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
+		if (remoteMd5.equalsIgnoreCase(localMd5)) {
+			try {
+				Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
+			} catch (IOException e) {
+				throw new MyCommonException("atomicmove", e.getMessage());
+			}
+		} else {
+			throw new Md5ChecksumException();
 		}
 	}
 	
@@ -109,61 +122,36 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static String runRemoteCommand(Session sshSession, String command) throws IOException, JSchException {
-		final Channel channel = sshSession.openChannel("exec");
+	public static String runRemoteCommand(Session session, String command) {
 		try {
-			((ChannelExec) channel).setCommand(command);
-			channel.setInputStream(null);
-			((ChannelExec) channel).setErrStream(System.err);
-			InputStream in = channel.getInputStream();
-			channel.connect();
-			RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-			return cmdOut.getResult();
-		} finally {
-			channel.disconnect();
+			final Channel channel = session.openChannel("exec");
+			try {
+				((ChannelExec) channel).setCommand(command);
+				channel.setInputStream(null);
+				((ChannelExec) channel).setErrStream(System.err);
+				InputStream in = channel.getInputStream();
+				channel.connect();
+				RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+				return cmdOut.getResult();
+			} finally {
+				channel.disconnect();
+			}
+		} catch (JSchException | IOException e) {
+			throw new MyCommonException("run remote command: " + command, e.getMessage());
 		}
 	}
 	
-	public static List<String> runRemoteCommandAndGetList(Session sshSession, String command) throws IOException, JSchException {
-		return StringUtil.splitLines(runRemoteCommand(sshSession, command)).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-	}
-
-//	public static String getRemoteFileContent(session session, String remoteFile) throws IOException {
-//        final SFTPClient sftp = session.newSFTPClient();
-//        Set<OpenMode> om = new HashSet<>();
-//        om.add(OpenMode.READ);
-//        RemoteFile rf = sftp.open(remoteFile, om);
-//        long fl = rf.length();
-//        byte[] bytes = new byte[(int) fl];
-//        int readResult = rf.read(0, bytes, 0, (int) fl);
-//        rf.close();
-//        return new String(bytes);
-//	}
-	
-	
-	public static void deleteRemoteFile(Session sshSession, String remoteFile) throws IOException, JSchException {
-		runRemoteCommand(sshSession, String.format("rm %s", remoteFile));
+	public static List<String> runRemoteCommandAndGetList(Session session, String command) {
+		return StringUtil.splitLines(runRemoteCommand(session, command)).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 	}
 	
-	public static void deleteRemoteFile(Session sshSession, List<String> remoteFiles) throws IOException, JSchException {
-		runRemoteCommand(sshSession, String.format("rm %s", String.join(" ",remoteFiles)));
+	public static void deleteRemoteFile(Session session, String remoteFile) throws IOException, JSchException {
+		runRemoteCommand(session, String.format("rm %s", remoteFile));
 	}
 	
-//	public static void writeRemoteFile(session session, String remoteFile, String content) throws IOException {
-//        session.useCompression();
-//        Path tmp = Files.createTempFile("writeremtefile", null);
-//        Files.write(tmp, content.getBytes());
-//        session.newSCPFileTransfer().upload(new FileSystemFile(tmp.toFile()), remoteFile);
-//        try {
-//			Files.delete(tmp);
-//		} catch (Exception e) {
-//		}
-//	}
-
-	
-//	public static void touchAfile(Session sshSession, String remoteFile) throws IOException, JSchException {
-//		runRemoteCommand(sshSession, String.format("touch %s", remoteFile));
-//	}
+	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws IOException, JSchException {
+		runRemoteCommand(session, String.format("rm %s", String.join(" ",remoteFiles)));
+	}
 	
 	public static RemoteCommandResult<String> readChannelOutput(final Channel channel, InputStream in) throws IOException {
 		StringBuffer sb = new StringBuffer();

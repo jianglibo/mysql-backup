@@ -29,6 +29,5 @@ public class StartPointer {
 //		ConfigurableApplicationContext context = SpringApplication.run(StartPointer.class, fullArgs);
         ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class).logStartupInfo(false).run(fullArgs);
 	}
-	
 
 }

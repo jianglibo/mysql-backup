@@ -73,11 +73,4 @@ public class TestMysqlUtil extends SshBaseFort {
 
 	}
 
-	@Test
-	public void t() {
-		Assume.assumeTrue(Files.exists(mysqlUtil.getDescriptionFile(box)));
-		MycnfFileHolder mcf = new MycnfFileHolder(box.getMysqlInstance().getMycnfContent());
-		
-	}
-
 }

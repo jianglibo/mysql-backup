@@ -4,6 +4,13 @@ spring:
       enabled: true
     script:
       enabled: true
+#  quartz
+#    jdbc
+#      initialize-schema: embedded # Database schema initialization mode.
+#      schema: classpath:org/quartz/impl/jdbcjobstore/tables_@@platform@@.sql # Path to the SQL file to use to initialize the database schema.
+#    quartz
+#      job-store-type: memory # Quartz job store type.
+#      # properties.*= # Additional Quartz Scheduler properties.      
 myapp:
   dataDir: boxes
   downloadFolder: notingit

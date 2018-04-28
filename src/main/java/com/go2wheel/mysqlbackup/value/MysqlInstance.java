@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.value;
 
-import java.util.List;
-
 public class MysqlInstance {
 	
 	private int port = 3306;
@@ -9,9 +7,9 @@ public class MysqlInstance {
 	private String password;
 	private String mycnfFile;
 	
-	private LogBinSetting logBinSetting;
+	private boolean readyForBackup;
 	
-	private List<String> mycnfContent;
+	private LogBinSetting logBinSetting;
 	
 	public int getPort() {
 		return port;
@@ -26,14 +24,6 @@ public class MysqlInstance {
 	}
 	public void setMycnfFile(String mycnfFile) {
 		this.mycnfFile = mycnfFile;
-	}
-
-	public List<String> getMycnfContent() {
-		return mycnfContent;
-	}
-
-	public void setMycnfContent(List<String> mycnfContent) {
-		this.mycnfContent = mycnfContent;
 	}
 
 	public String getPassword() {
@@ -58,5 +48,13 @@ public class MysqlInstance {
 
 	public void setLogBinSetting(LogBinSetting logBinSetting) {
 		this.logBinSetting = logBinSetting;
+	}
+
+	public boolean isReadyForBackup() {
+		return readyForBackup;
+	}
+
+	public void setReadyForBackup(boolean readyForBackup) {
+		this.readyForBackup = readyForBackup;
 	}
 }
