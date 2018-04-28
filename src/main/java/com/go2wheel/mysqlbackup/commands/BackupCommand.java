@@ -23,10 +23,12 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlDumpResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
@@ -141,19 +143,22 @@ public class BackupCommand {
 		return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
 	}
 	
-	@ShellMethod(value = "执行Mysqldump命令")
-	public String mysqlDump() throws JSchException, IOException {
+	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			return "请先执行list-server和select-server确定使用哪台服务器。";
+			throw new MyCommonException("no selected server","请先执行list-server和select-server确定使用哪台服务器。");
 		}
+		
+	}
+	
+	@ShellMethod(value = "执行Mysqldump命令")
+	public MysqlDumpResult mysqlDump() throws JSchException, IOException {
+		sureBoxSelected();
 		return mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get());
 	}
 	
 	@ShellMethod(value = "显示当前选定服务器的描述文件。")
 	public String serverDescription() throws JSchException, IOException {
-		if (!appState.currentBox().isPresent()) {
-			return "请先执行list-server和select-server确定使用哪台服务器。";
-		}
+		sureBoxSelected();
 		return YamlInstance.INSTANCE.getYaml().dumpAsMap(appState.currentBox().get());
 	}
 	

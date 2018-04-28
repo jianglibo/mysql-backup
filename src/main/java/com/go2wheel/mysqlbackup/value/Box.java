@@ -19,7 +19,6 @@ public class Box {
 	
 	public boolean hasFingerPrint() {
 		return fingerprint != null && !fingerprint.trim().isEmpty();
-				
 	}
 	
 	public boolean canSShKeyAuth() {

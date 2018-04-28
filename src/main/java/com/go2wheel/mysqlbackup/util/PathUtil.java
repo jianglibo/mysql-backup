@@ -8,6 +8,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
@@ -17,8 +18,6 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import net.bytebuddy.description.field.FieldDescription.InGenericShape;
 
 public class PathUtil {
 	
@@ -70,6 +69,15 @@ public class PathUtil {
 			int i = Integer.valueOf(nm);
 			return dir.resolve(name + "." + prependZeros(++i, postfixNumber));
 			
+		}
+	}
+	
+	public static void archiveLocalFile(Path origin, int postfixLength) {
+		Path nextFn = getNextAvailable(origin.getParent(), origin.getFileName().toString(), postfixLength);
+		try {
+			Files.move(origin, nextFn, StandardCopyOption.ATOMIC_MOVE);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 	

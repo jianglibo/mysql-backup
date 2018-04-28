@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.util.RemotePathUtil;
+
 public class LogBinSetting {
 	
 	// host_name-bin
@@ -22,6 +24,23 @@ public class LogBinSetting {
 	
 	public LogBinSetting() {
 	}
+	
+	public String getLogBinDirWithEndingSlash() {
+		String s = getLogBinBasename();
+		return RemotePathUtil.getParentWithEndingSlash(s);
+	}
+	
+	
+	public String getLogBinBasenameOnlyName() {
+		String s = map.getOrDefault(LOG_BIN_BASENAME, "");
+		return s.substring(s.lastIndexOf('/') + 1);
+	}
+	
+	public String getLogBinIndexNameOnly() {
+		String s = map.getOrDefault(LOG_BIN_INDEX, "");
+		return s.substring(s.lastIndexOf('/') + 1);
+	}
+
 	
 	public String getLogBinBasename() {
 		return map.getOrDefault(LOG_BIN_BASENAME, "");

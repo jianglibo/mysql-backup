@@ -35,6 +35,7 @@ import com.jcraft.jsch.Session;
 public class MysqlUtil {
 
 	public static final String MYSQL_PROMPT = "mysql> ";
+	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
 
 	private MyAppSettings appSettings;
 
@@ -110,15 +111,19 @@ public class MysqlUtil {
 		return appSettings.getDataRoot().resolve(box.getHost());
 	}
 
-	private Path getLogBinDir(Box box) throws IOException {
+	public Path getLogBinDir(Box box) {
 		Path dstDir = getHostDir(box).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			Files.createDirectories(dstDir);
+			try {
+				Files.createDirectories(dstDir);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 		return dstDir;
 	}
 
-	private Path getDumpDir(Box box) {
+	public Path getDumpDir(Box box) {
 		try {
 			Path dstDir = getHostDir(box).resolve("dump");
 			if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
@@ -130,11 +135,11 @@ public class MysqlUtil {
 		}
 	}
 
-	public void writeBinLogIndex(Session session, Box box, List<String> lines) throws IOException {
-		Path dstFile = getLogBinDir(box)
-				.resolve(Paths.get(box.getMysqlInstance().getLogBinSetting().getLogBinIndex()).getFileName());
-		Files.write(dstFile, String.join("\n", lines).getBytes());
-	}
+//	public void writeBinLogIndex(Session session, Box box, List<String> lines) throws IOException {
+//		Path dstFile = getLogBinDir(box)
+//				.resolve(Paths.get(box.getMysqlInstance().getLogBinSetting().getLogBinIndex()).getFileName());
+//		Files.write(dstFile, String.join("\n", lines).getBytes());
+//	}
 
 	public Path getDescriptionFile(Box instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);

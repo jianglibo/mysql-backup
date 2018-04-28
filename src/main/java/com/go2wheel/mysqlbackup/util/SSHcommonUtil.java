@@ -2,12 +2,16 @@ package com.go2wheel.mysqlbackup.util;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -42,6 +46,17 @@ public class SSHcommonUtil {
 		}
 		if (backed.size() > 0) {
 			deleteRemoteFile(session, bfs.getBackups());
+		}
+	}
+	
+	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) {
+		Path localDir = lfile.getParent();
+		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
+		ScpUtil.from(session, rfile, localTmpFile.toString());
+		try {
+			Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
+		} catch (IOException e) {
+			throw new MyCommonException("atomicmove", e.getMessage());
 		}
 	}
 	

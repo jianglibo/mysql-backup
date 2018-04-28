@@ -16,6 +16,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.jcraft.jsch.JSchException;
@@ -28,7 +29,7 @@ public class TestMysqlDumpExpect extends SshBaseFort {
 		MysqlDumpExpect mde = new MysqlDumpExpect(session, box);
 		Optional<LinuxFileInfo> result = mde.start();
 		assertTrue(result.isPresent());
-		ScpUtil.from(session, MysqlDumpExpect.DUMP_FILE, tmpFile.toAbsolutePath().toString()); 
+		ScpUtil.from(session, MysqlUtil.DUMP_FILE_NAME, tmpFile.toAbsolutePath().toString()); 
 		
 		assertThat(Files.size(tmpFile), equalTo(result.get().getSize()));
 		
