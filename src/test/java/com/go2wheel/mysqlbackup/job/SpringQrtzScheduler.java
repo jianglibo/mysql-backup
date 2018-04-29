@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.util.Properties;
+
 import javax.annotation.PostConstruct;
 
 import org.quartz.JobDetail;
@@ -9,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.quartz.QuartzProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,7 +30,7 @@ public class SpringQrtzScheduler {
 
     @Autowired
     private ApplicationContext applicationContext;
-
+    
     @PostConstruct
     public void init() {
         logger.info("Hello world from Spring...");
@@ -41,19 +45,27 @@ public class SpringQrtzScheduler {
         return jobFactory;
     }
 
-    @Bean
-    public SchedulerFactoryBean scheduler(Trigger trigger, JobDetail job) {
+    
+//    org.springframework.boot.autoconfigure.quartz
+//	@Bean
+//	@ConditionalOnMissingBean
+//	public SchedulerFactoryBean quartzScheduler() {
+		
 
-        SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
-        schedulerFactory.setConfigLocation(new ClassPathResource("quartz.properties"));
-
-        logger.debug("Setting the Scheduler up");
-        schedulerFactory.setJobFactory(springBeanJobFactory());
-        schedulerFactory.setJobDetails(job);
-        schedulerFactory.setTriggers(trigger);
-
-        return schedulerFactory;
-    }
+//    @Bean
+//    public SchedulerFactoryBean scheduler(Trigger trigger, JobDetail job) {
+//
+//        SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
+//        schedulerFactory.setConfigLocation(new ClassPathResource("quartz.properties"));
+//        Properties p = new Properties();
+//
+//        logger.debug("Setting the Scheduler up");
+//        schedulerFactory.setJobFactory(springBeanJobFactory());
+//        schedulerFactory.setJobDetails(job);
+//        schedulerFactory.setTriggers(trigger);
+//
+//        return schedulerFactory;
+//    }
 
     @Bean
     public JobDetailFactoryBean jobDetail() {

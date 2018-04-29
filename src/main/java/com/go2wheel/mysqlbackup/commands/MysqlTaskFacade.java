@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
@@ -43,17 +43,18 @@ public class MysqlTaskFacade {
 			return MysqlDumpResult.failedResult("mysqldump文件已经存在，再次执行意味着之前的logbin文件可能失去效用。");
 		}
 		Optional<LinuxFileInfo> ll;
-		try {
-			ll = new MysqlDumpExpect(session, box).start();
-		} catch (JSchException | IOException e) {
-			return MysqlDumpResult.failedResult(e.getMessage());
-		}
+		ll = new MysqlDumpExpect(session, box).start();
 		if (ll.isPresent()) {
 			mysqlUtil.downloadDumped(session, box, ll.get());
 			return MysqlDumpResult.successResult(ll.get());
 		} else {
 			return MysqlDumpResult.failedResult("unknown");
 		}
+	}
+	
+	public void mysqlFlushLogs(Session session, Box box) {
+		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
+		boolean success = mfle.start();
 	}
 
 	public String downloadBinLog(Session session, Box box) {

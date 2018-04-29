@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.IOExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.JSchExceptionWrapper;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Channel;
@@ -29,25 +31,39 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		this.box = box;
 	}
 	
-	
-	public T start() throws JSchException, IOException {
-		Channel channel = session.openChannel("shell");
-		channel.connect();
-
-		// @formatter:off
-		expect = new ExpectBuilder()
-				.withOutput(channel.getOutputStream())
-				.withInputs(channel.getInputStream(), channel.getExtInputStream())
-				.withEchoOutput(System.out)
-				.withEchoInput(System.err)
-				.withExceptionOnFailure().build();
+	private Channel getConnectedChannel() {
+		Channel channel;
 		try {
-			tillPasswordRequired();
-			expect.expect(contains("password: "));
-			expect.sendLine(box.getMysqlInstance().getPassword());
-			return afterLogin();
+			channel = session.openChannel("shell");
+			channel.connect();
+		} catch (JSchException e) {
+			throw new JSchExceptionWrapper(e);
+		}
+		return channel;
+	}
+	
+	
+	public T start() {
+		Channel channel = getConnectedChannel();
+		// @formatter:off
+		try {
+			expect = new ExpectBuilder()
+					.withOutput(channel.getOutputStream())
+					.withInputs(channel.getInputStream(), channel.getExtInputStream())
+					.withEchoOutput(System.out)
+					.withEchoInput(System.err)
+					.withExceptionOnFailure().build();			
+				tillPasswordRequired();
+				expect.expect(contains("password: "));
+				expect.sendLine(box.getMysqlInstance().getPassword());
+				return afterLogin();
+			} catch (IOException e) {
+				throw new IOExceptionWrapper(e);
 		} finally {
-			expect.close();
+			try {
+				expect.close();
+			} catch (IOException e) {
+			}
 			channel.disconnect();
 			expect = null;
 		}

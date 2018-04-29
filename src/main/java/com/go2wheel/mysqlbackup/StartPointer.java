@@ -1,8 +1,13 @@
 package com.go2wheel.mysqlbackup;
 
+import javax.sql.DataSource;
+
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
@@ -29,5 +34,12 @@ public class StartPointer {
 //		ConfigurableApplicationContext context = SpringApplication.run(StartPointer.class, fullArgs);
         ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class).logStartupInfo(false).run(fullArgs);
 	}
+	
+//    @Bean
+//    @Primary
+//    @ConfigurationProperties(prefix="spring.datasource")
+//    public DataSource primaryDataSource() {
+//        return org.springframework.boot.jdbc.DataSourceBuilde.create().build();
+//    }
 
 }
