@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.go2wheel.mysqlbackup.exception.StringReplaceException;
+
 public class StringUtil {
 	
 	public static class LinuxFileInfo {
@@ -117,5 +119,44 @@ public class StringUtil {
 		}
 		return Optional.empty();
 	}
+	
+	public static String[] matchGroupValues(Matcher m) {
+		int c = m.groupCount();
+		String[] ss = new String[c];
+		for(int i = 0; i<c; i++) {
+			ss[i] = m.group(i + 1);
+		}
+		return ss;
+	}
+	
+	public static String[] matchGroupReplace(Matcher m, String...replaces) {
+		String[] oo = matchGroupValues(m);
+		int l = oo.length;
+		for(int i = 0; i< l; i++) {
+			if (replaces[i] == null) {
+				continue;
+			} else {
+				oo[i] = replaces[i];
+			}
+		}
+		return oo;
+	}
+	
+	private static String placeHoderPtn = "\\(.*?\\)";
+	
+	public static String replacePattern(String origin, String pattern,String fmt, String...replaces) throws StringReplaceException {
+		Pattern ptn = Pattern.compile(pattern); // 
+		Matcher m = ptn.matcher(origin);
+		if (!m.matches()) {
+			throw new StringReplaceException(origin, pattern);
+		}
+		if (m.groupCount() != replaces.length) {
+			throw new StringReplaceException(origin, pattern, replaces);
+		}
+//		String fmt = pattern.replaceAll(placeHoderPtn, "%s");
+		return String.format(fmt, matchGroupReplace(m, replaces));
+		
+	}
+
 
 }

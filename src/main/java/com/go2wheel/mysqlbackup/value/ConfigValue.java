@@ -9,9 +9,10 @@ public class ConfigValue {
 	private ConfigValueState state;
 	private String value;
 	private String key;
+	private String block;
 	private int lineIndex;
 	
-	public static ConfigValue getExistValue(String key, String value, int lineIndex) {
+	public static ConfigValue getExistValue(String blockName, String key, String value, int lineIndex) {
 		ConfigValue cv = new ConfigValue();
 		cv.state = ConfigValueState.EXIST;
 		cv.value = value;
@@ -20,7 +21,7 @@ public class ConfigValue {
 		return cv;
 	}
 	
-	public static ConfigValue getCommentOuted(String key, String value, int lineIndex) {
+	public static ConfigValue getCommentOuted(String blockName, String key, String value, int lineIndex) {
 		ConfigValue cv = new ConfigValue();
 		cv.state = ConfigValueState.COMMENT_OUTED;
 		cv.value = value;
@@ -29,7 +30,7 @@ public class ConfigValue {
 		return cv;
 	}
 	
-	public static ConfigValue getNotExistValue(String key) {
+	public static ConfigValue getNotExistValue(String blockName, String key) {
 		ConfigValue cv = new ConfigValue();
 		cv.state = ConfigValueState.NOT_EXIST;
 		cv.key = key;
@@ -74,5 +75,13 @@ public class ConfigValue {
 
 	public void setLineIndex(int lineIndex) {
 		this.lineIndex = lineIndex;
+	}
+
+	public String getBlock() {
+		return block;
+	}
+
+	public void setBlock(String block) {
+		this.block = block;
 	}
 }
