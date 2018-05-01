@@ -53,7 +53,7 @@ public class TestMysqlUtil extends SshBaseFort {
 		
 		String remoteFile = box.getMysqlInstance().getMycnfFile();
 		
-		BackupedFiles backupedFiles = SSHcommonUtil.getBackupedFiles(session, remoteFile);
+		BackupedFiles backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		int flsi = backupedFiles.getBackups().size();
 		SSHcommonUtil.backupFile(session, box.getMysqlInstance().getMycnfFile());
 		byte[] bytes = String.join("\n",mfh.getLines()).getBytes();
@@ -64,11 +64,11 @@ public class TestMysqlUtil extends SshBaseFort {
 		cv = mfh.getConfigValue(LogBinSetting.LOG_BIN);
 		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
 
-		backupedFiles = SSHcommonUtil.getBackupedFiles(session, remoteFile);
+		backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		assertThat(backupedFiles.getBackups().size(), equalTo(flsi + 1));
 		
 		SSHcommonUtil.deleteBackupedFiles(session, remoteFile);
-		backupedFiles = SSHcommonUtil.getBackupedFiles(session, remoteFile);
+		backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		assertThat(backupedFiles.getBackups().size(), equalTo(1));
 
 	}

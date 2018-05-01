@@ -33,7 +33,7 @@ public class SSHcommonUtil {
 	 */
 	public static void backupFile(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists()) {
 			runRemoteCommand(session, String.format("cp %s %s",remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
@@ -41,7 +41,7 @@ public class SSHcommonUtil {
 	
 	public static void deleteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		List<String> backed = bfs.getBackups();
 		if (backed.size() > 0) {
 			backed.remove(0);
@@ -73,7 +73,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static BackupedFiles getBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
+	public static BackupedFiles getRemoteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = new BackupedFiles(remoteFile);
 		List<String> fns = runRemoteCommandAndGetList(session, String.format("ls -p %s | grep -v /$", remoteFile + "*"));
@@ -98,7 +98,7 @@ public class SSHcommonUtil {
 	
 	public static void deketeBackupFiles(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
 			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
@@ -107,7 +107,7 @@ public class SSHcommonUtil {
 	
 	public static void revertFile(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
 			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
@@ -116,7 +116,7 @@ public class SSHcommonUtil {
 	
 	public static void revertFileToOrigin(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getBackupedFiles(session, remoteFile);
+		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
 		}

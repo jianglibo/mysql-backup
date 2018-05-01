@@ -56,5 +56,10 @@
 	<logger name="org.hibernate.SQL" additivity="false" level="debug">
 		<appender-ref ref="SQL_FILE" />
 	</logger>
+		<logger name="com.go2wheel.mysqlbackup.job" additivity="false" level="ERROR">
+		<appender-ref ref="CONSOLE" />
+	</logger>
+	
+	
 
 </configuration>

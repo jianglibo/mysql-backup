@@ -37,7 +37,7 @@ public class UtilForTe {
 	}
 	
 	public static MyAppSettings getMyAppSettings() throws IOException {
-		InputStream is =ClassLoader.class.getResourceAsStream("/application.yml");
+		InputStream is = ClassLoader.class.getResourceAsStream("/application.yml");
 		
 		MyAppSettings mas = new MyAppSettings();
 		mas.setDataRoot(Paths.get("boxes"));
@@ -86,34 +86,6 @@ public class UtilForTe {
 	public static Path getPathInThisProjectRelative(String fn) {
 		Path currentRelativePath = Paths.get("").toAbsolutePath();
 		return currentRelativePath.relativize(currentRelativePath.resolve(fn));
-	}
-	
-	public static void deleteFolder(Path folder) throws IOException {
-		if (folder == null || !Files.exists(folder)) {
-			return;
-		}
-		
-		if (Files.isRegularFile(folder)) {
-			Files.delete(folder);
-		}
-		Files.walkFileTree(folder, new SimpleFileVisitor<Path>() {
-		    @Override
-		    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-		        throws IOException
-		    {
-		    	Files.delete(file);
-		        return FileVisitResult.CONTINUE;
-		    }
-	    @Override
-	    public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-	        throws IOException
-	    {
-	    	Files.delete(dir);
-	        if (exc != null)
-	            throw exc;
-	        return FileVisitResult.CONTINUE;
-	    }
-		});
 	}
 	
 	public static Path createTmpDirectory() throws IOException {

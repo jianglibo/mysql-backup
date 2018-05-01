@@ -17,6 +17,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.scheduling.quartz.CronTriggerFactoryBean;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
@@ -27,6 +28,8 @@ import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 public class SpringQrtzScheduler {
 
     Logger logger = LoggerFactory.getLogger(getClass());
+    
+    public static final String GROUP_NAME = "FOR_TEST_GROUP";
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -36,15 +39,14 @@ public class SpringQrtzScheduler {
         logger.info("Hello world from Spring...");
     }
 
-    @Bean
-    public SpringBeanJobFactory springBeanJobFactory() {
-        AutoWiringSpringBeanJobFactory jobFactory = new AutoWiringSpringBeanJobFactory();
-        logger.debug("Configuring Job factory");
-
-        jobFactory.setApplicationContext(applicationContext);
-        return jobFactory;
-    }
-
+//    @Bean
+//    public SpringBeanJobFactory springBeanJobFactory() {
+//        AutoWiringSpringBeanJobFactory jobFactory = new AutoWiringSpringBeanJobFactory();
+//        logger.debug("Configuring Job factory");
+//
+//        jobFactory.setApplicationContext(applicationContext);
+//        return jobFactory;
+//    }
     
 //    org.springframework.boot.autoconfigure.quartz
 //	@Bean
@@ -68,8 +70,18 @@ public class SpringQrtzScheduler {
 //    }
 
     @Bean
-    public JobDetailFactoryBean jobDetail() {
-
+    public JobDetailFactoryBean sampleJobDetail() {
+        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+        jobDetailFactory.setJobClass(SampleJob.class);
+        jobDetailFactory.setName("Qrtz_Job_Detail");
+        jobDetailFactory.setGroup(GROUP_NAME);
+        jobDetailFactory.setDescription("Invoke Sample Job service...");
+        jobDetailFactory.setDurability(true);
+        return jobDetailFactory;
+    }
+    
+    @Bean
+    public JobDetailFactoryBean sampleJobDetail1() {
         JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
         jobDetailFactory.setJobClass(SampleJob.class);
         jobDetailFactory.setName("Qrtz_Job_Detail");
@@ -78,11 +90,30 @@ public class SpringQrtzScheduler {
         return jobDetailFactory;
     }
 
+    
     @Bean
-    public SimpleTriggerFactoryBean trigger(JobDetail job) {
+    public CronTriggerFactoryBean sampleJobTrigger2() {
+    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
+        trigger.setJobDetail(sampleJobDetail().getObject());
+        trigger.setCronExpression("0 0 12 * * ?");
+        trigger.setName("Qrtz_Trigger_2");
+        trigger.setGroup(GROUP_NAME);
+        return trigger;
+    }
+    
+    @Bean
+    public CronTriggerFactoryBean sampleJobTrigger3() {
+    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
+        trigger.setJobDetail(sampleJobDetail().getObject());
+        trigger.setCronExpression("0 0 12 * * ?");
+        trigger.setName("Qrtz_Trigger_2");
+        return trigger;
+    }
 
+    @Bean
+    public SimpleTriggerFactoryBean sampleJobTrigger() {
         SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-        trigger.setJobDetail(job);
+        trigger.setJobDetail(sampleJobDetail().getObject());
 
         int frequencyInSec = 10;
         logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
@@ -90,6 +121,23 @@ public class SpringQrtzScheduler {
         trigger.setRepeatInterval(frequencyInSec * 1000);
         trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
         trigger.setName("Qrtz_Trigger");
+        trigger.setGroup(GROUP_NAME);
         return trigger;
     }
+    
+    @Bean
+    public SimpleTriggerFactoryBean sampleJobTrigger1() {
+        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+        trigger.setJobDetail(sampleJobDetail().getObject());
+
+        int frequencyInSec = 10;
+        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
+
+        trigger.setRepeatInterval(frequencyInSec * 1000);
+        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+        trigger.setName("Qrtz_Trigger_1");
+        trigger.setGroup(GROUP_NAME);
+        return trigger;
+    }
+
 }

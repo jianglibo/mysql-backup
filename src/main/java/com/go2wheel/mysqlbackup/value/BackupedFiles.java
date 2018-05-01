@@ -36,7 +36,4 @@ public class BackupedFiles {
 	public void setNextInt(int nextInt) {
 		this.nextInt = nextInt;
 	}
-	
-	
-
 }

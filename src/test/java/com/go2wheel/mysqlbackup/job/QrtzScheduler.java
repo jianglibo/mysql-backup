@@ -19,14 +19,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
-@Configuration
-@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='false'")
+
+/**
+ * @see QuartzAutoConfiguration, If there is no SchedulerFactoryBean exists, it will create one for you.
+ * @author Administrator
+ *
+ */
+//@Configuration
+//@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='false'")
 public class QrtzScheduler {
 
     Logger logger = LoggerFactory.getLogger(getClass());

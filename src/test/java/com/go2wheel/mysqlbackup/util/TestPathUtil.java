@@ -27,7 +27,7 @@ public class TestPathUtil {
 	
 	@After
 	public void after() throws IOException {
-		UtilForTe.deleteFolder(dir);
+		FileUtil.deleteFolder(dir);
 	}
 
 	@Test
@@ -63,6 +63,14 @@ public class TestPathUtil {
 	public void tNextAvailable1() throws IOException {
 		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
 		Path p = PathUtil.getNextAvailable(dir, "a.b", 1);
+		String fn = p.getFileName().toString();
+		assertThat(fn, equalTo("a.b.1"));
+	}
+	
+	@Test
+	public void tNextAvailable11() throws IOException {
+		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
+		Path p = PathUtil.getNextAvailable(dir.resolve("a.b"), 1);
 		String fn = p.getFileName().toString();
 		assertThat(fn, equalTo("a.b.1"));
 	}

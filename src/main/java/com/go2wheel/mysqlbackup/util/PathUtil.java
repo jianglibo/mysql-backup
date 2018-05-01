@@ -50,11 +50,17 @@ public class PathUtil {
 		}
 	}
 	
+	public static Path getNextAvailable(Path file, int postfixNumber) {
+		Path parent = file.getParent();
+		String name = file.getFileName().toString();
+		return getNextAvailable(parent, name, postfixNumber);
+	}
+	
 	public static Path getNextAvailable(Path dir, String name, int postfixNumber) {
 		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", name, postfixNumber));
 		List<String> paths = null;
 		try {
-			paths = Files.list(dir).filter(f -> Files.isRegularFile(f)).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString()).collect(Collectors.toList());
+			paths = Files.list(dir).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString()).collect(Collectors.toList());
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -4,6 +4,10 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public class Box {
+	
+	public static enum BoxRole {
+		SOURCE, DEST
+	}
 
 	private String host;
 	private int port = 22;
@@ -16,6 +20,8 @@ public class Box {
 	private String sshKeyFile;
 	
 	private MysqlInstance mysqlInstance;
+	
+	private BoxRole role;
 	
 	public boolean hasFingerPrint() {
 		return fingerprint != null && !fingerprint.trim().isEmpty();
@@ -84,6 +90,14 @@ public class Box {
 
 	public void setSshKeyFile(String sshKeyFile) {
 		this.sshKeyFile = sshKeyFile;
+	}
+
+	public BoxRole getRole() {
+		return role;
+	}
+
+	public void setRole(BoxRole role) {
+		this.role = role;
 	}
 	
 	

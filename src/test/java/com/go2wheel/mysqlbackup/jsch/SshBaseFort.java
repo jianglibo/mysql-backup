@@ -13,6 +13,7 @@ import org.junit.Before;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -67,7 +68,7 @@ public class SshBaseFort {
 	public void after() throws IOException, JSchException {
 		if (tmpDirectory != null) {
 			try {
-				UtilForTe.deleteFolder(tmpDirectory);
+				FileUtil.deleteFolder(tmpDirectory);
 			} catch (Exception e) {
 			}
 		}
