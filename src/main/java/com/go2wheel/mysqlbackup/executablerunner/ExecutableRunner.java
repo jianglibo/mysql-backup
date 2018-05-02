@@ -12,9 +12,9 @@ import java.util.List;
 
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
-public interface ExecutableRunner<T> {
+public interface ExecutableRunner {
 	
-	RemoteCommandResult<T> execute(String...commandWords);
+	RemoteCommandResult execute(String...commandWords);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

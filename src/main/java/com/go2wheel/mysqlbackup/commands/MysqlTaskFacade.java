@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
 import com.go2wheel.mysqlbackup.exception.LocalBackupFileException;
 import com.go2wheel.mysqlbackup.exception.LocalFileMoveException;
@@ -137,7 +139,7 @@ public class MysqlTaskFacade {
 		return "success";
 	}
 
-	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws JSchException, IOException {
+	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws JSchException, IOException, CreateDirectoryException, AtomicWriteFileException {
 		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 		if (lbs != null && lbs.isEnabled()) {
 			return "本地服务器描述显示LogBin已经启用。";

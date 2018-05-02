@@ -1,12 +1,14 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.junit.After;
 import org.junit.Before;
@@ -132,6 +134,18 @@ public class TestFileUtil {
 		assertTrue(Files.exists(dir1));
 		assertFalse(Files.exists(dst1));
 
+	}
+	
+	@Test
+	public void tmoveToExists() throws IOException {
+		Path f1 = Files.createTempFile("fileutil", ".txt");
+		Path f2 = Files.createTempFile("fileutil", ".txt");
+		Files.write(f1, "abc".getBytes());
+		Files.write(f2, "abc".getBytes());
+		Files.move(f1, f2, StandardCopyOption.ATOMIC_MOVE);
+		
+		assertFalse(Files.exists(f1));
+		assertTrue(Files.exists(f2));
 	}
 
 

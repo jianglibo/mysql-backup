@@ -1,43 +1,72 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class RemoteCommandResult<T> {
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
+public class RemoteCommandResult {
 	
-	private T result;
+	private String stdOut;
+	
+	private String errOut;
 	
 	private Optional<String> reason = Optional.empty();
 	
 	private int exitValue;
 	
-	private boolean success;
-	
 	public RemoteCommandResult() {}
 	
-	public RemoteCommandResult(T result, int exitValue) {
-		this.result = result;
+	public RemoteCommandResult(String stdOut, String errOut, int exitValue) {
+		this.stdOut = stdOut;
+		this.errOut = errOut;
 		this.exitValue = exitValue;
-		this.success = true;
 	}
 	
-	public static <T1> RemoteCommandResult<T1> failedResult(String reason) {
-		RemoteCommandResult<T1> er = new RemoteCommandResult<>();
-		er.reason = Optional.of(reason);
-		er.success = false;
+	public static RemoteCommandResult partlyResult(String stdOut, int exitValue) {
+		RemoteCommandResult er = new RemoteCommandResult();
+		er.setStdOut(stdOut);
+		er.setExitValue(exitValue);
 		return er;
+	}
+	
+	public static RemoteCommandResult failedResult(String reason) {
+		RemoteCommandResult er = new RemoteCommandResult();
+		er.reason = Optional.of(reason);
+		return er;
+	}
+	
+	public List<String> getAllTrimedNotEmptyLines() {
+		return Stream.of(getStdOut(), getErrOut()).flatMap(str -> StringUtil.splitLines(str).stream()).filter(line -> StringUtil.hasAnyNonBlankWord(line)).collect(Collectors.toList());
 	}
 	
 	@Override
 	public String toString() {
-		return String.format("[exitValue: %s, isSuccess: %s, reason: %s]", getExitValue(), isSuccess(), getReason());
+		return String.format("[exitValue: %s, reason: %s]", getExitValue(), getReason());
 	}
 
-	public T getResult() {
-		return result;
+	public String getStdOut() {
+		if (stdOut == null) return "";
+		return stdOut;
 	}
 
-	public void setResult(T result) {
-		this.result = result;
+	public void setStdOut(String stdOut) {
+		this.stdOut = stdOut;
+	}
+
+	public String getErrOut() {
+		if (stdOut == null) return "";
+		return errOut;
+	}
+
+	public void setErrOut(String errOut) {
+		this.errOut = errOut;
+	}
+
+	public void setReason(Optional<String> reason) {
+		this.reason = reason;
 	}
 
 	public Optional<String> getReason() {
@@ -51,13 +80,4 @@ public class RemoteCommandResult<T> {
 	public void setExitValue(int exitValue) {
 		this.exitValue = exitValue;
 	}
-
-	public boolean isSuccess() {
-		return success;
-	}
-
-	public void setSuccess(boolean success) {
-		this.success = success;
-	}
-	
 }

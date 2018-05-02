@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -52,7 +53,7 @@ public class SSHcommonUtil {
 	}
 	
 	public static String getRemoteFileMd5(Session session, String remoteFile) {
-		Optional<String[]> md5pair =  runRemoteCommandAndGetList(session, String.format("md5sum %s", remoteFile)).stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32).findAny();
+		Optional<String[]> md5pair =  runRemoteCommand(session, String.format("md5sum %s", remoteFile)).getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32).findAny();
 		return md5pair.get()[0];
 	}
 	
@@ -76,7 +77,7 @@ public class SSHcommonUtil {
 	public static BackupedFiles getRemoteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = new BackupedFiles(remoteFile);
-		List<String> fns = runRemoteCommandAndGetList(session, String.format("ls -p %s | grep -v /$", remoteFile + "*"));
+		List<String> fns = runRemoteCommand(session, String.format("ls -p %s | grep -v /$", remoteFile + "*")).getAllTrimedNotEmptyLines();
 		if (fns == null || fns.isEmpty()) {
 			bfs.setOriginExists(false);
 		} else {
@@ -122,17 +123,21 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static String runRemoteCommand(Session session, String command) {
+	public static RemoteCommandResult runRemoteCommand(Session session, String command) {
 		try {
 			final Channel channel = session.openChannel("exec");
 			try {
 				((ChannelExec) channel).setCommand(command);
+				
 				channel.setInputStream(null);
-				((ChannelExec) channel).setErrStream(System.err);
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				((ChannelExec) channel).setErrStream(baos);
 				InputStream in = channel.getInputStream();
 				channel.connect();
-				RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-				return cmdOut.getResult();
+				RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+				String errOut = baos.toString();
+				cmdOut.setErrOut(errOut);
+				return cmdOut;
 			} finally {
 				channel.disconnect();
 			}
@@ -141,9 +146,10 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static List<String> runRemoteCommandAndGetList(Session session, String command) {
-		return StringUtil.splitLines(runRemoteCommand(session, command)).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-	}
+//	public static List<String> runRemoteCommandAndGetList(Session session, String command) {
+//		String all = runRemoteCommand(session, command);
+//		return StringUtil.splitLines(all).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
+//	}
 	
 	public static void deleteRemoteFile(Session session, String remoteFile) throws IOException, JSchException {
 		runRemoteCommand(session, String.format("rm %s", remoteFile));
@@ -153,7 +159,12 @@ public class SSHcommonUtil {
 		runRemoteCommand(session, String.format("rm %s", String.join(" ",remoteFiles)));
 	}
 	
-	public static RemoteCommandResult<String> readChannelOutput(final Channel channel, InputStream in) throws IOException {
+	public static boolean fileExists(Session session, String rfile) {
+		List<String> lines = runRemoteCommand(session, String.format("ls %s", rfile)).getAllTrimedNotEmptyLines(); 
+		return !lines.stream().anyMatch(line -> line.indexOf("No such file or directory") != -1);
+	}
+	
+	public static RemoteCommandResult readChannelOutput(final Channel channel, InputStream in) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		int exitValue = 0;
 		byte[] tmp = new byte[1024];
@@ -171,10 +182,10 @@ public class SSHcommonUtil {
 				break;
 			}
 		}
-		return new RemoteCommandResult<String>(sb.toString(), exitValue);
+		return RemoteCommandResult.partlyResult(sb.toString(), exitValue);
 	}
 	
-	public static RemoteCommandResult<String> readChannelOutputDoBest(final Channel channel, InputStream in, String ptn) throws IOException {
+	public static RemoteCommandResult readChannelOutputDoBest(final Channel channel, InputStream in, String ptn) throws IOException {
 		StringBuffer sb = new StringBuffer();
 		int exitValue = 0;
 		byte[] tmp = new byte[1024];
@@ -202,6 +213,6 @@ public class SSHcommonUtil {
 				break;
 			}
 		}
-		return new RemoteCommandResult<String>(sb.toString(), exitValue);
+		return RemoteCommandResult.partlyResult(sb.toString(), exitValue);
 	}
 }

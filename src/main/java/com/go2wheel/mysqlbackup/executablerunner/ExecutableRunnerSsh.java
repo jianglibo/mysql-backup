@@ -12,11 +12,11 @@ import java.util.List;
 
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
-public interface ExecutableRunnerSsh<T> {
+public interface ExecutableRunnerSsh {
 	
-	RemoteCommandResult<T> execute();
+	RemoteCommandResult execute();
 	
-	void setPrevResult(RemoteCommandResult<T> prevResult);
+	void setPrevResult(RemoteCommandResult prevResult);
 	
 	
 	default List<String> getWhatProcessWriteOut(InputStream outFromProcess) throws IOException {

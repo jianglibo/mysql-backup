@@ -129,6 +129,10 @@ public class StringUtil {
 		return ss;
 	}
 	
+	public static boolean hasAnyNonBlankWord(String s) {
+		return s != null && !(s.trim().isEmpty());
+	}
+	
 	public static String[] matchGroupReplace(Matcher m, String...replaces) {
 		String[] oo = matchGroupValues(m);
 		int l = oo.length;

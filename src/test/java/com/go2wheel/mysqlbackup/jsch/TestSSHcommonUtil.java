@@ -1,7 +1,9 @@
 package com.go2wheel.mysqlbackup.jsch;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -70,7 +72,15 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		SSHcommonUtil.backupFile(session, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
 		Collections.sort(fns);
-		assertThat(fns.size(), equalTo(0));
+		assertThat(fns.size(), equalTo(1)); // err output.
+	}
+	
+	@Test
+	public void testFileExists() {
+		boolean b1 = SSHcommonUtil.fileExists(session, "/usr/bin");
+		assertTrue(b1);
+		boolean b2 = SSHcommonUtil.fileExists(session, "/usr/bin11");
+		assertFalse(b2);
 	}
 
 

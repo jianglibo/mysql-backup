@@ -10,6 +10,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.LocalBackupFileException;
 import com.go2wheel.mysqlbackup.exception.LocalFileMoveException;
 
@@ -85,5 +86,16 @@ public class FileUtil {
 			pairs[i] = new Path[] {file, file1};
 		}
 		moveFilesAllOrNone(pairs);
+	}
+	
+	public static void atomicWriteFile(Path dstFile, byte[] content) throws AtomicWriteFileException {
+		try {
+			String fn = dstFile.getFileName().toString() + ".writing";
+			Path tmpFile = dstFile.getParent().resolve(fn);
+			Files.write(tmpFile, content);
+			Files.move(tmpFile, dstFile, StandardCopyOption.ATOMIC_MOVE);
+		} catch (IOException e) {
+			throw new AtomicWriteFileException(dstFile);
+		}
 	}
 }

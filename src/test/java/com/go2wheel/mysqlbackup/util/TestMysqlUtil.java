@@ -13,6 +13,8 @@ import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
@@ -44,7 +46,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testEnableLogBinOption() throws IOException, JSchException {
+	public void testEnableLogBinOption() throws IOException, JSchException, CreateDirectoryException, AtomicWriteFileException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
 		mfh.enableBinLog();
 		ConfigValue cv = mfh.getConfigValue(LogBinSetting.LOG_BIN);

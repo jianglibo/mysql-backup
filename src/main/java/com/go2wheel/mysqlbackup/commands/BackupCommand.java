@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +36,11 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpResult;
@@ -110,7 +110,11 @@ public class BackupCommand {
 		box.setHost(host);
 		box.setPort(sshPort);
 		box.setMysqlInstance(new MysqlInstance());
-		mysqlUtil.writeDescription(box);
+		try {
+			mysqlUtil.writeDescription(box);
+		} catch (CreateDirectoryException | AtomicWriteFileException e) {
+			return e.getMessage();
+		}
 		return String.format("配置文件：%s已创建在%s目录下 ，请编辑修改参数，请填写你知道的参数即可。", DESCRIPTION_FILENAME,
 				appSettings.getDataRoot().resolve(host));
 	}
@@ -158,7 +162,11 @@ public class BackupCommand {
 		if (!appState.currentBox().isPresent()) {
 			return "请先执行list-server和select-server确定使用哪台服务器。";
 		}
-		return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
+		try {
+			return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
+		} catch (CreateDirectoryException | AtomicWriteFileException e) {
+			return e.getMessage();
+		}
 	}
 
 	private void sureBoxSelected() {
