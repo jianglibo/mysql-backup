@@ -99,8 +99,8 @@ public class SshBaseFort {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
-			RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-			assertThat(cmdOut.getResult().trim(), equalTo(TMP_FILE_CONTENT));
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			assertThat(cmdOut.getStdOut().trim(), equalTo(TMP_FILE_CONTENT));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
 			channel.disconnect();
@@ -130,8 +130,8 @@ public class SshBaseFort {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
-			RemoteCommandResult<String> cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-			assertThat(cmdOut.getResult().trim(), equalTo(""));
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			assertThat(cmdOut.getStdOut().trim(), equalTo(""));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
 			channel.disconnect();

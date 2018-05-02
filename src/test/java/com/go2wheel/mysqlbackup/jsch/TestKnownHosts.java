@@ -62,7 +62,7 @@ public class TestKnownHosts extends SshBaseFort {
 		Session session=jsch.getSession(box.getUsername(), box.getHost(), box.getPort());
 		session.setPassword(box.getPassword());
 		session.connect();
-		List<String> sl = SSHcommonUtil.runRemoteCommandAndGetList(session, "ls -lh /tmp");
+		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
 		
 		assertThat(sl.size(), greaterThan(2));
 		sl.stream().forEach(System.out::println);

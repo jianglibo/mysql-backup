@@ -116,23 +116,24 @@ public class UtilForTe {
 		}
 		return tmpFolder;
 	}
+
 	
-//	public static String sshEcho(Session sshSession, String str) throws IOException, JSchException {
-//		final Channel channel = sshSession.openChannel("exec");
-//		try {
-//			((ChannelExec) channel).setCommand("echo " + str);
-//			channel.setInputStream(null);
-//			((ChannelExec) channel).setErrStream(System.err);
-//			InputStream in = channel.getInputStream();
-//			channel.connect();
-//
-//			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-//			assertThat(cmdOut.getResult().trim(), equalTo(str));
-//			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
-//			return cmdOut.getResult();
-//		} finally {
-//			channel.disconnect();
-//		}
-//	}
+	public static String sshEcho(Session sshSession, String str) throws IOException, JSchException {
+		final Channel channel = sshSession.openChannel("exec");
+		try {
+			((ChannelExec) channel).setCommand("echo " + str);
+			channel.setInputStream(null);
+			((ChannelExec) channel).setErrStream(System.err);
+			InputStream in = channel.getInputStream();
+			channel.connect();
+
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			assertThat(cmdOut.getStdOut().trim(), equalTo(str));
+			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
+			return cmdOut.getStdOut();
+		} finally {
+			channel.disconnect();
+		}
+	}
 
 }

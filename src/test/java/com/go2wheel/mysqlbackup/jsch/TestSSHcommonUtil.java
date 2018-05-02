@@ -48,7 +48,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		remoteFiles.add(rfn + ".2");
 		ScpUtil.to(session, rfn, "abc".getBytes());
 		SSHcommonUtil.backupFile(session, rfn);
-		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
+		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(2));
 		assertThat(fns.get(0), equalTo(rfn));
@@ -56,7 +56,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		
 		
 		SSHcommonUtil.revertFile(session, rfn);
-		fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
+		fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(1));
 		assertThat(fns.get(0), equalTo(rfn));
@@ -70,7 +70,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		remoteFiles.add(rfn + ".1");
 		remoteFiles.add(rfn + ".2");
 		SSHcommonUtil.backupFile(session, rfn);
-		List<String> fns = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls %s", rfn + "*"));
+		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(1)); // err output.
 	}

@@ -28,11 +28,11 @@ public class TestJschShellChannel extends SshBaseFort {
 //	      InputStream inputext = channel.getExtInputStream();
 	      //commands
 	      ps.println("cd /etc");
-	      RemoteCommandResult<String> string = SSHcommonUtil.readChannelOutputDoBest(channel, input, ".*#\\s*$");
-	      System.out.println(string.getResult());
+	      RemoteCommandResult string = SSHcommonUtil.readChannelOutputDoBest(channel, input, ".*#\\s*$");
+	      System.out.println(string.getStdOut());
 	      ps.println("ls");
 	      string = SSHcommonUtil.readChannelOutputDoBest(channel, input, ".*#\\s*$");
-	      System.out.println(string.getResult());
+	      System.out.println(string.getStdOut());
 	      ps.close();
 
 	      channel.disconnect();

@@ -1,15 +1,12 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 
-import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -73,6 +70,15 @@ public class TestMysqlUtil extends SshBaseFort {
 		backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		assertThat(backupedFiles.getBackups().size(), equalTo(1));
 
+	}
+	
+	@Test
+	public void testMycnf() throws CreateDirectoryException, AtomicWriteFileException {
+		String s = mysqlUtil.getEffectiveMyCnf(session, box);
+		assertThat(s, equalTo("/etc/my.cnf"));
+		
+		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
+		assertTrue(mfh.getLines().size() > 0);
 	}
 
 }

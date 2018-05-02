@@ -83,3 +83,6 @@ initialization performed by Boot
 		</encoder>
 	</appender>
 </included>
+
+environment override:
+java -jar .\build\libs\mysql-backup-boot.jar --spring.quartz.job-store-type=memory

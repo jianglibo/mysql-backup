@@ -25,7 +25,7 @@ public class TestScpTo extends SshBaseFort {
 
 		ScpUtil.to(session, lfile, rfile);
 		
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
+		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
 		SSHcommonUtil.deleteRemoteFile(session, rfile);
 	}
@@ -40,7 +40,7 @@ public class TestScpTo extends SshBaseFort {
 		
 		String rfullpath = "/tmp/" + tmpFile.getFileName().toString(); 
 		
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfullpath));
+		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfullpath)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
 		SSHcommonUtil.deleteRemoteFile(session, rfullpath);
 	}
@@ -49,7 +49,7 @@ public class TestScpTo extends SshBaseFort {
 	public void scpToStringToFile() throws IOException, JSchException {
 		String rfile = "/tmp/" + new Random().nextDouble();
 		ScpUtil.to(session, rfile, "abc".getBytes());
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
+		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
 		
 		assertThat(ScpUtil.from(session, rfile), equalTo("abc"));
@@ -64,7 +64,7 @@ public class TestScpTo extends SshBaseFort {
 		
 		String rfile = "/tmp/random_content.txt";
 		ScpUtil.to(session, rfile, Strings.join(ss, '\n').getBytes());
-		List<String> er = SSHcommonUtil.runRemoteCommandAndGetList(session, String.format("ls -lh %s", rfile));
+		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
 
 	}
