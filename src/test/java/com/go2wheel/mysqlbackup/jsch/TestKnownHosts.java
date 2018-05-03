@@ -18,6 +18,7 @@ import javax.crypto.Cipher;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.jcraft.jsch.HostKey;
 import com.jcraft.jsch.HostKeyRepository;
@@ -38,7 +39,7 @@ public class TestKnownHosts extends SshBaseFort {
 	// }
 
 	@Test()
-	public void testKnownHostFromFile() throws IOException, JSchException {
+	public void testKnownHostFromFile() throws IOException, JSchException, RunRemoteCommandException {
 		JSch jsch=new JSch();
 		
 		jsch.setKnownHosts(appSettings.getSsh().getKnownHosts());

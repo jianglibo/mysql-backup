@@ -17,6 +17,8 @@ import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
 import com.go2wheel.mysqlbackup.exception.LocalBackupFileException;
 import com.go2wheel.mysqlbackup.exception.LocalFileMoveException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpToException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -106,7 +108,7 @@ public class MysqlTaskFacade {
 		}
 	}
 
-	public String downloadBinLog(Session session, Box box) {
+	public String downloadBinLog(Session session, Box box) throws RunRemoteCommandException {
 		String remoteIndexFile = box.getMysqlInstance().getLogBinSetting().getLogBinIndex();
 		String basenameOnlyName = box.getMysqlInstance().getLogBinSetting().getLogBinBasenameOnlyName();
 
@@ -129,8 +131,12 @@ public class MysqlTaskFacade {
 					.filter(l -> !localBinLogFiles.contains(l)).collect(Collectors.toList());
 
 			unLocalExists.forEach(f -> {
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, RemotePathUtil.getLogBinFile(box, f),
-						localDir.resolve(f));
+				try {
+					SSHcommonUtil.downloadWithTmpDownloadingFile(session, RemotePathUtil.getLogBinFile(box, f),
+							localDir.resolve(f));
+				} catch (RunRemoteCommandException e) {
+					e.printStackTrace();
+				}
 			});
 
 		} catch (IOException e) {
@@ -139,7 +145,7 @@ public class MysqlTaskFacade {
 		return "success";
 	}
 
-	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws JSchException, IOException, CreateDirectoryException, AtomicWriteFileException {
+	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws IOException, CreateDirectoryException, AtomicWriteFileException, JSchException, RunRemoteCommandException {
 		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 		if (lbs != null && lbs.isEnabled()) {
 			return "本地服务器描述显示LogBin已经启用。";
@@ -154,7 +160,11 @@ public class MysqlTaskFacade {
 				String mycnfFile = box.getMysqlInstance().getMycnfFile();
 				mfh.enableBinLog(logBinValue); // 修改logbin的值
 				SSHcommonUtil.backupFile(session, mycnfFile); // 先备份配置文件， my.cnf -> my.cnf.1
-				ScpUtil.to(session, mycnfFile, mfh.toByteArray()); // 覆盖写入 my.cnf
+				try {
+					ScpUtil.to(session, mycnfFile, mfh.toByteArray());
+				} catch (ScpToException e) {
+					e.printStackTrace();
+				} // 覆盖写入 my.cnf
 				mysqlUtil.restartMysql(session); // 重启Mysql
 				lbs = mysqlUtil.getLogbinState(session, box); // 获取最新的logbin状态。
 				if (!lbs.isEnabled()) {

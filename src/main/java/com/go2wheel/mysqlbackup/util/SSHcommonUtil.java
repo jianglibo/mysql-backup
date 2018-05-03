@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
@@ -29,10 +30,11 @@ public class SSHcommonUtil {
 	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3
 	 * @param session
 	 * @param remoteFile
+	 * @throws RunRemoteCommandException 
 	 * @throws IOException 
 	 * @throws JSchException 
 	 */
-	public static void backupFile(Session session, String remoteFile) throws IOException, JSchException {
+	public static void backupFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists()) {
@@ -40,7 +42,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static void deleteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
+	public static void deleteBackupedFiles(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		List<String> backed = bfs.getBackups();
@@ -52,12 +54,17 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static String getRemoteFileMd5(Session session, String remoteFile) {
+	public static String getRemoteFileMd5(Session session, String remoteFile) throws RunRemoteCommandException {
 		Optional<String[]> md5pair =  runRemoteCommand(session, String.format("md5sum %s", remoteFile)).getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32).findAny();
 		return md5pair.get()[0];
 	}
 	
-	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) {
+	public static int countFiles(Session session, String rfile) throws RunRemoteCommandException {
+		RemoteCommandResult rcr = runRemoteCommand(session, String.format("find %s -type f | wc -l", rfile));
+		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
+	}
+	
+	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException {
 		Path localDir = lfile.getParent();
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		ScpUtil.from(session, rfile, localTmpFile.toString());
@@ -74,7 +81,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static BackupedFiles getRemoteBackupedFiles(Session session, String remoteFile) throws IOException, JSchException {
+	public static BackupedFiles getRemoteBackupedFiles(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = new BackupedFiles(remoteFile);
 		List<String> fns = runRemoteCommand(session, String.format("ls -p %s | grep -v /$", remoteFile + "*")).getAllTrimedNotEmptyLines();
@@ -97,7 +104,7 @@ public class SSHcommonUtil {
 		return bfs;
 	}
 	
-	public static void deketeBackupFiles(Session session, String remoteFile) throws IOException, JSchException {
+	public static void deketeBackupFiles(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
@@ -106,7 +113,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static void revertFile(Session session, String remoteFile) throws IOException, JSchException {
+	public static void revertFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
@@ -115,7 +122,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static void revertFileToOrigin(Session session, String remoteFile) throws IOException, JSchException {
+	public static void revertFileToOrigin(Session session, String remoteFile) throws IOException, JSchException, RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
@@ -123,7 +130,7 @@ public class SSHcommonUtil {
 		}
 	}
 	
-	public static RemoteCommandResult runRemoteCommand(Session session, String command) {
+	public static RemoteCommandResult runRemoteCommand(Session session, String command) throws RunRemoteCommandException {
 		try {
 			final Channel channel = session.openChannel("exec");
 			try {
@@ -142,7 +149,7 @@ public class SSHcommonUtil {
 				channel.disconnect();
 			}
 		} catch (JSchException | IOException e) {
-			throw new MyCommonException("run remote command: " + command, e.getMessage());
+			throw new RunRemoteCommandException(command, e.getMessage());
 		}
 	}
 	
@@ -151,15 +158,15 @@ public class SSHcommonUtil {
 //		return StringUtil.splitLines(all).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
 //	}
 	
-	public static void deleteRemoteFile(Session session, String remoteFile) throws IOException, JSchException {
+	public static void deleteRemoteFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		runRemoteCommand(session, String.format("rm %s", remoteFile));
 	}
 	
-	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws IOException, JSchException {
+	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws RunRemoteCommandException {
 		runRemoteCommand(session, String.format("rm %s", String.join(" ",remoteFiles)));
 	}
 	
-	public static boolean fileExists(Session session, String rfile) {
+	public static boolean fileExists(Session session, String rfile) throws RunRemoteCommandException {
 		List<String> lines = runRemoteCommand(session, String.format("ls %s", rfile)).getAllTrimedNotEmptyLines(); 
 		return !lines.stream().anyMatch(line -> line.indexOf("No such file or directory") != -1);
 	}

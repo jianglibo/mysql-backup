@@ -13,11 +13,13 @@ import com.go2wheel.mysqlbackup.exception.ScpFromException;
 import com.go2wheel.mysqlbackup.exception.ScpToException;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 public class ScpUtil {
 
-	protected static void to(Session session, String rfile, InputStream is, long contentLength, String maybeFileName) {
+	protected static void to(Session session, String rfile, InputStream is, long contentLength, String maybeFileName)
+			throws ScpToException {
 
 		// FileInputStream fis = null;
 
@@ -31,7 +33,7 @@ public class ScpUtil {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile);
+				throw new ScpToException("", rfile, "ACK error.");
 			}
 
 			// File _lfile = new File(lfile);
@@ -57,7 +59,7 @@ public class ScpUtil {
 			out.write(command.getBytes());
 			out.flush();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile);
+				throw new ScpToException("", rfile, "ACK error.");
 			}
 
 			// send a content of lfile
@@ -76,37 +78,32 @@ public class ScpUtil {
 			out.write(buf, 0, 1);
 			out.flush();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile);
+				throw new ScpToException("", rfile, "ACK error.");
 			}
 			out.close();
 			channel.disconnect();
-		} catch (Exception e) {
+		} catch (JSchException | IOException e) {
 			try {
 				if (is != null)
 					is.close();
 			} catch (Exception ee) {
 			}
-			throw new ScpToException("", rfile);
+			throw new ScpToException("", rfile, e.getMessage());
 		}
 	}
 
-	public static void to(Session session, String lfile, String rfile) {
+	public static void to(Session session, String lfile, String rfile) throws ScpToException {
 		Path lpath = Paths.get(lfile);
-
 		try {
 			to(session, rfile, Files.newInputStream(lpath), Files.size(lpath), lpath.getFileName().toString());
-		} catch (IOException e1) {
-			throw new ScpToException(lfile, rfile);
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
-	
-	public static void to(Session session, String rfile, byte[] content) {
+
+	public static void to(Session session, String rfile, byte[] content) throws ScpToException {
 		Path rpath = Paths.get(rfile);
-		try {
-			to(session, rfile, new ByteArrayInputStream(content), content.length, rpath.getFileName().toString());
-		} catch (Exception e1) {
-			throw new ScpToException("", rfile);
-		}
+		to(session, rfile, new ByteArrayInputStream(content), content.length, rpath.getFileName().toString());
 	}
 
 	public static void from(Session session, String rfile, OutputStream os) {

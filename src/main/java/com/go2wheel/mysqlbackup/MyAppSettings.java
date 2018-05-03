@@ -47,7 +47,7 @@ public class MyAppSettings {
 		if (!Files.exists(tmp)) {
 			Files.createDirectories(tmp);
 		}
-		this.dataRoot = tmp;
+		this.downloadRoot = tmp;
 
 	}
 	

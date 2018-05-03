@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.value.MysqlDumpResult;
@@ -45,7 +46,7 @@ public class TestMysqlFacade extends SshBaseFort {
 	}
 	
 	@Test
-	public void tDownloadLogbin() {
+	public void tDownloadLogbin() throws RunRemoteCommandException {
 		mysqlTaskFacade.downloadBinLog(session, box);
 		mysqlTaskFacade.downloadBinLog(session, box);
 	}

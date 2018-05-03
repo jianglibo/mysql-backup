@@ -13,6 +13,7 @@ import org.junit.Before;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -65,7 +66,7 @@ public class SshBaseFort {
 	}
 
 	@After
-	public void after() throws IOException, JSchException {
+	public void after() throws IOException, JSchException, RunRemoteCommandException {
 		if (tmpDirectory != null) {
 			try {
 				FileUtil.deleteFolder(tmpDirectory);

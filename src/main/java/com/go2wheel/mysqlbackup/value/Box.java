@@ -21,6 +21,8 @@ public class Box {
 	
 	private MysqlInstance mysqlInstance;
 	
+	private BorgBackupDescription borgBackup;
+	
 	private BoxRole role;
 	
 	public boolean hasFingerPrint() {
@@ -99,7 +101,15 @@ public class Box {
 	public void setRole(BoxRole role) {
 		this.role = role;
 	}
+
+	public BorgBackupDescription getBorgBackup() {
+		return borgBackup;
+	}
+
+	public void setBorgBackup(BorgBackupDescription borgBackup) {
+		this.borgBackup = borgBackup;
+	}
 	
 	
-	
+
 }

@@ -13,6 +13,8 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpToException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
@@ -22,7 +24,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	private List<String> remoteFiles = new ArrayList<>();
 	
 	@After
-	public void after() throws IOException, JSchException {
+	public void after() throws IOException, JSchException, RunRemoteCommandException {
 		for(String fn : remoteFiles) {
 			SSHcommonUtil.runRemoteCommand(session, String.format("rm %s", fn));
 		}
@@ -31,7 +33,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	
 	
 	@Test
-	public void tWriteRemoteFile() throws IOException {
+	public void tWriteRemoteFile() throws IOException, ScpToException {
 		String rfn = "/tmp/hello.txt";
 		ScpUtil.to(session, rfn, "abc".getBytes());
 		ScpUtil.to(session, rfn, "abc".getBytes());
@@ -41,7 +43,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void tbackupFileExist() throws IOException, JSchException {
+	public void tbackupFileExist() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
 		String rfn = "/tmp/filetobackup.txt";
 		remoteFiles.add(rfn);
 		remoteFiles.add(rfn + ".1");
@@ -64,7 +66,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	
 	
 	@Test
-	public void tbackupNotFileExist() throws IOException, JSchException {
+	public void tbackupNotFileExist() throws IOException, JSchException, RunRemoteCommandException {
 		String rfn = "/tmp/filetobackup.txt";
 		remoteFiles.add(rfn);
 		remoteFiles.add(rfn + ".1");
@@ -76,7 +78,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testFileExists() {
+	public void testFileExists() throws RunRemoteCommandException {
 		boolean b1 = SSHcommonUtil.fileExists(session, "/usr/bin");
 		assertTrue(b1);
 		boolean b2 = SSHcommonUtil.fileExists(session, "/usr/bin11");

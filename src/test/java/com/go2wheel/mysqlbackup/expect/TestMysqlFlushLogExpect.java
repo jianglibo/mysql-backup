@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.exception.MysqlWrongPasswordException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.jcraft.jsch.JSchException;
@@ -25,7 +26,7 @@ public class TestMysqlFlushLogExpect extends SshBaseFort {
 	}
 	
 	@After
-	public void after() throws IOException, JSchException {
+	public void after() throws IOException, JSchException, RunRemoteCommandException {
 		box.getMysqlInstance().setPassword(oriPwd);
 		super.after();
 	}

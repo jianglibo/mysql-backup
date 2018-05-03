@@ -35,13 +35,16 @@ import org.springframework.shell.standard.ShellOption;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
@@ -76,6 +79,9 @@ public class BackupCommand {
 
 	@Autowired
 	private Scheduler scheduler;
+	
+	@Autowired
+	private BorgTaskFacade borgInstaller;
 
 	@PostConstruct
 	public void post() {
@@ -164,7 +170,22 @@ public class BackupCommand {
 		}
 		try {
 			return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
-		} catch (CreateDirectoryException | AtomicWriteFileException e) {
+		} catch (CreateDirectoryException | AtomicWriteFileException | RunRemoteCommandException e) {
+			return e.getMessage();
+		}
+	}
+	
+	@ShellMethod(value = "安装borg。")
+	public String borgInstall() {
+		try {
+			InstallationInfo ii = borgInstaller.install(getSession());
+			if (ii.isInstalled()) {
+				return "Success";
+			} else {
+				return ii.getFailReason();
+			}
+			
+		} catch (RunRemoteCommandException e) {
 			return e.getMessage();
 		}
 	}

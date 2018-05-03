@@ -22,6 +22,7 @@ import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -41,7 +42,7 @@ public class MysqlUtil {
 
 	private MyAppSettings appSettings;
 
-	public MycnfFileHolder getMyCnfFile(Session session, Box box) throws CreateDirectoryException, AtomicWriteFileException {
+	public MycnfFileHolder getMyCnfFile(Session session, Box box) throws CreateDirectoryException, AtomicWriteFileException, RunRemoteCommandException {
 		String cnfFile = box.getMysqlInstance().getMycnfFile();
 		if (!StringUtil.hasAnyNonBlankWord(cnfFile)) {
 			box.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, box));
@@ -52,11 +53,11 @@ public class MysqlUtil {
 		return mfh;
 	}
 
-	public void restartMysql(Session session) throws IOException, JSchException {
+	public void restartMysql(Session session) throws RunRemoteCommandException {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl restart mysqld");
 	}
 
-	public String getEffectiveMyCnf(Session session, Box box) {
+	public String getEffectiveMyCnf(Session session, Box box) throws RunRemoteCommandException {
 		String matcherline = ".*Default options are read from the following.*";
 		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, "mysql --help --verbose");
 		Optional<String> possibleFiles =  new Lines(result.getAllTrimedNotEmptyLines()).findMatchAndReturnNextLine(matcherline);

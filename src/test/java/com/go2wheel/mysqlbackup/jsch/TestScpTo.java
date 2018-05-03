@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpToException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
@@ -18,7 +20,7 @@ import com.jcraft.jsch.JSchException;
 public class TestScpTo extends SshBaseFort {
 
 	@Test
-	public void scpToFileToFile() throws IOException, JSchException {
+	public void scpToFileToFile() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
 		createALocalFile("abc");
 		String rfile = "/tmp/" + tmpFile.getFileName().toString();
 		String lfile = tmpFile.toAbsolutePath().toString();
@@ -31,7 +33,7 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
-	public void scpToFileToDir() throws IOException, JSchException {
+	public void scpToFileToDir() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
 		createALocalFile("abc");
 		String rfile = "/tmp";
 		String lfile = tmpFile.toAbsolutePath().toString();
@@ -46,7 +48,7 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
-	public void scpToStringToFile() throws IOException, JSchException {
+	public void scpToStringToFile() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
 		String rfile = "/tmp/" + new Random().nextDouble();
 		ScpUtil.to(session, rfile, "abc".getBytes());
 		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
@@ -57,7 +59,7 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
-	public void scpToStringToFile1() throws IOException, JSchException {
+	public void scpToStringToFile1() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
 		List<String> ss = new Random().ints(30, 200).limit(10).mapToObj(i -> {
 			return new Random().ints(33, 126).limit(i).mapToObj(j -> (char)j + "").collect(Collectors.joining());
 		}).collect(Collectors.toList());
