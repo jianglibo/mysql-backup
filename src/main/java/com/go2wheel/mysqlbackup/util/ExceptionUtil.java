@@ -8,8 +8,9 @@ import org.slf4j.Logger;
 public class ExceptionUtil {
 	
 	public static void logErrorException(Logger logger, Exception e) {
-		PrintWriter sw = new PrintWriter(new StringWriter());
-		e.printStackTrace(sw);
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
 		logger.error(sw.toString());
 	}
 

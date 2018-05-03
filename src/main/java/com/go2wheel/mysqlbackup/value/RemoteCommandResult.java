@@ -80,4 +80,10 @@ public class RemoteCommandResult {
 	public void setExitValue(int exitValue) {
 		this.exitValue = exitValue;
 	}
+	
+	public void printOutput() {
+		for(String line : getAllTrimedNotEmptyLines()) {
+			System.out.println(line);
+		}
+	}
 }

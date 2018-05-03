@@ -13,13 +13,12 @@ mysqlInstance:
       log_bin_basename: /var/lib/mysql/hm-log-bin
       log_bin_index: /var/lib/mysql/hm-log-bin.index
 borgBackup:
-  repo: /porgrepo
+  repo: /borgrepos/myrepo
   includes: 
     - /etc
-    - /home
   excludes: 
     - /home/*/.cache/*
     - /var/cache/*
     - /var/tmp/*
-  archiveFormat: yyyy-MM-dd
+  archiveFormat: yyyy-MM-dd-HH-mm-ss
   

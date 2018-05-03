@@ -1,6 +1,8 @@
-package com.go2wheel.mysqlbackup.porg;
+package com.go2wheel.mysqlbackup.borg;
 
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -12,7 +14,9 @@ import org.junit.Test;
 import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.InstallationInfo;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
 public class TestBorgInstaller extends SshBaseFort {
@@ -30,18 +34,19 @@ public class TestBorgInstaller extends SshBaseFort {
 	
 	@After
 	public void a() throws IOException, JSchException, RunRemoteCommandException {
-		borgInstaller.unInstall(session);
+
 		super.after();
 	}
 	
 	
 	@Test
-	public void tInstall() throws RunRemoteCommandException {
-		InstallationInfo ii = borgInstaller.install(session);
-		assertTrue(ii.isInstalled());
-		ii = borgInstaller.unInstall(session);
-		assertFalse(ii.isInstalled());
-		
+	public void tArchive() throws RunRemoteCommandException {
+		borgInstaller.install(session);
+		borgInstaller.initRepo(session, box.getBorgBackup().getRepo());
+		RemoteCommandResult rcr = borgInstaller.archive(session, box.getBorgBackup(), "ARCHIVE-");
+		rcr.printOutput();
+		int c = SSHcommonUtil.countFiles(session, box.getBorgBackup().getRepo());
+		assertThat(c, greaterThan(3));
 	}
 
 }
