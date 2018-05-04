@@ -27,6 +27,10 @@ public class BackupQrtzScheduler {
         jobDetailFactory.setDurability(true);
         return jobDetailFactory;
     }
+   
+//    http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html
+    
+    // 0 30 6,12 * * ? Fire at 6:30am and 12:30pm every day. 
     
     @Bean
     public CronTriggerFactoryBean mysqlFlushLogsJobTrigger() {

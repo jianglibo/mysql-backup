@@ -3,7 +3,7 @@ package com.go2wheel.mysqlbackup.commands;
 import static org.quartz.JobKey.jobKey;
 import static org.quartz.TriggerBuilder.newTrigger;
 import static org.quartz.TriggerKey.triggerKey;
-import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
+import static org.quartz.impl.matchers.GroupMatcher.*;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,9 +1,12 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.util.Date;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
 
+import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
@@ -24,7 +27,7 @@ import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
 import org.springframework.scheduling.quartz.SpringBeanJobFactory;
 
 @Configuration
-@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='true'")
+//@ConditionalOnExpression("'${using.spring.schedulerFactory}'=='true'")
 public class SpringQrtzScheduler {
 
     Logger logger = LoggerFactory.getLogger(getClass());
@@ -77,38 +80,12 @@ public class SpringQrtzScheduler {
         jobDetailFactory.setGroup(GROUP_NAME);
         jobDetailFactory.setDescription("Invoke Sample Job service...");
         jobDetailFactory.setDurability(true);
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("date", new Date());
+        jobDetailFactory.setJobDataMap(jobDataMap);
         return jobDetailFactory;
     }
     
-    @Bean
-    public JobDetailFactoryBean sampleJobDetail1() {
-        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-        jobDetailFactory.setJobClass(SampleJob.class);
-        jobDetailFactory.setName("Qrtz_Job_Detail");
-        jobDetailFactory.setDescription("Invoke Sample Job service...");
-        jobDetailFactory.setDurability(true);
-        return jobDetailFactory;
-    }
-
-    
-    @Bean
-    public CronTriggerFactoryBean sampleJobTrigger2() {
-    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-        trigger.setJobDetail(sampleJobDetail().getObject());
-        trigger.setCronExpression("0 0 12 * * ?");
-        trigger.setName("Qrtz_Trigger_2");
-        trigger.setGroup(GROUP_NAME);
-        return trigger;
-    }
-    
-    @Bean
-    public CronTriggerFactoryBean sampleJobTrigger3() {
-    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-        trigger.setJobDetail(sampleJobDetail().getObject());
-        trigger.setCronExpression("0 0 12 * * ?");
-        trigger.setName("Qrtz_Trigger_2");
-        return trigger;
-    }
 
     @Bean
     public SimpleTriggerFactoryBean sampleJobTrigger() {
@@ -125,19 +102,50 @@ public class SpringQrtzScheduler {
         return trigger;
     }
     
-    @Bean
-    public SimpleTriggerFactoryBean sampleJobTrigger1() {
-        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-        trigger.setJobDetail(sampleJobDetail().getObject());
+    
+//    @Bean
+//    public JobDetailFactoryBean sampleJobDetail1() {
+//        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+//        jobDetailFactory.setJobClass(SampleJob.class);
+//        jobDetailFactory.setName("Qrtz_Job_Detail");
+//        jobDetailFactory.setDescription("Invoke Sample Job service...");
+//        jobDetailFactory.setDurability(true);
+//        return jobDetailFactory;
+//    }
 
-        int frequencyInSec = 10;
-        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
+//    
+//    @Bean
+//    public CronTriggerFactoryBean sampleJobTrigger2() {
+//    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
+//        trigger.setJobDetail(sampleJobDetail().getObject());
+//        trigger.setCronExpression("0 0 12 * * ?");
+//        trigger.setName("Qrtz_Trigger_2");
+//        trigger.setGroup(GROUP_NAME);
+//        return trigger;
+//    }
+//    
+//    @Bean
+//    public CronTriggerFactoryBean sampleJobTrigger3() {
+//    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
+//        trigger.setJobDetail(sampleJobDetail().getObject());
+//        trigger.setCronExpression("0 0 12 * * ?");
+//        trigger.setName("Qrtz_Trigger_2");
+//        return trigger;
+//    }
 
-        trigger.setRepeatInterval(frequencyInSec * 1000);
-        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-        trigger.setName("Qrtz_Trigger_1");
-        trigger.setGroup(GROUP_NAME);
-        return trigger;
-    }
+//    @Bean
+//    public SimpleTriggerFactoryBean sampleJobTrigger1() {
+//        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+//        trigger.setJobDetail(sampleJobDetail().getObject());
+//
+//        int frequencyInSec = 10;
+//        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
+//
+//        trigger.setRepeatInterval(frequencyInSec * 1000);
+//        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+//        trigger.setName("Qrtz_Trigger_1");
+//        trigger.setGroup(GROUP_NAME);
+//        return trigger;
+//    }
 
 }

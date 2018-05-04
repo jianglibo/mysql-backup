@@ -7,6 +7,8 @@ public class MysqlInstance {
 	private String password;
 	private String mycnfFile;
 	
+	private String cronExpression;
+	
 	private boolean readyForBackup;
 	
 	private LogBinSetting logBinSetting;
@@ -56,5 +58,13 @@ public class MysqlInstance {
 
 	public void setReadyForBackup(boolean readyForBackup) {
 		this.readyForBackup = readyForBackup;
+	}
+
+	public String getCronExpression() {
+		return cronExpression;
+	}
+
+	public void setCronExpression(String cronExpression) {
+		this.cronExpression = cronExpression;
 	}
 }

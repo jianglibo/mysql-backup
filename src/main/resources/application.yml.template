@@ -5,14 +5,14 @@ spring:
     script:
       enabled: true
   datasource:
-    url: jdbc:hsqldb:file:c:/db/go2wheel;shutdown=true
+    url: jdbc:hsqldb:file:c:/db/go2wheel/db;shutdown=true
     username: sa
     password:
     driver-class-name: org.hsqldb.jdbc.JDBCDriver
     validation-query: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
     test-on-borrow: true
   quartz:
-    job-store-type: jdbc
+    job-store-type: memory # jdbc, memory
     jdbc:
       initialize-schema: never # always, embeded.
   flyway:
