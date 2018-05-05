@@ -43,7 +43,7 @@ public class TestBorgInstaller extends SshBaseFort {
 	public void tArchive() throws RunRemoteCommandException {
 		borgInstaller.install(session);
 		borgInstaller.initRepo(session, box.getBorgBackup().getRepo());
-		RemoteCommandResult rcr = borgInstaller.archive(session, box.getBorgBackup(), "ARCHIVE-");
+		RemoteCommandResult rcr = borgInstaller.archive(session, box, "ARCHIVE-");
 		rcr.printOutput();
 		int c = SSHcommonUtil.countFiles(session, box.getBorgBackup().getRepo());
 		assertThat(c, greaterThan(3));

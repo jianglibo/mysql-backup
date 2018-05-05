@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -98,6 +99,22 @@ public class ApplicationState {
 				this.currentIndex = as.getCurrentIndex();
 			}
 		}
+	}
+	
+	public boolean addServer(Box box) {
+		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
+		if (!exists) {
+			this.servers.add(box);
+			ServerCreateEvent sce = new ServerCreateEvent(this, box);
+			applicationEventPublisher.publishEvent(sce);
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public Box getServerByHost(String host) {
+		return this.servers.stream().filter(s -> host.equals(s.getHost())).findAny().get();
 	}
 
 	public CommandStepState getStep() {

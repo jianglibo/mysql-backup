@@ -7,8 +7,12 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.http.HttpEntity;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.config.CookieSpecs;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -24,7 +28,16 @@ public class FileDownloader {
 	
 	private MyAppSettings appSettings;
 	
-	private CloseableHttpClient httpclient = HttpClients.createDefault();
+	private CloseableHttpClient httpclient;
+	
+	
+	@PostConstruct
+	public void post() {
+		httpclient = HttpClients.custom()
+		        .setDefaultRequestConfig(RequestConfig.custom()
+		                .setCookieSpec(CookieSpecs.STANDARD).build())
+		            .build();
+	}
 	
 	public Path download(String url) throws ClientProtocolException, IOException {
 		Path out = appSettings.getDownloadRoot().resolve(StringUtil.getLastPartOfUrl(url));

@@ -98,7 +98,7 @@ public class StringUtil {
 	}
 	
 	public static Optional<String> notEmptyValue(String maybeEmpty) {
-		if (maybeEmpty == null || maybeEmpty.trim().isEmpty()) {
+		if (maybeEmpty == null || maybeEmpty.trim().isEmpty() || "null".equals(maybeEmpty)) {
 			return Optional.empty();
 		} else {
 			return Optional.of(maybeEmpty);

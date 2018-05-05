@@ -1,28 +1,21 @@
 package com.go2wheel.mysqlbackup.commands;
 
-import static org.quartz.JobKey.jobKey;
-import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.TriggerKey.triggerKey;
-import static org.quartz.impl.matchers.GroupMatcher.*;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
-import org.quartz.CronTrigger;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.Trigger;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
@@ -41,8 +34,10 @@ import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -79,9 +74,12 @@ public class BackupCommand {
 
 	@Autowired
 	private Scheduler scheduler;
-	
+
 	@Autowired
-	private BorgTaskFacade borgInstaller;
+	private BorgTaskFacade borgTaskFacade;
+
+	@Autowired
+	private SchedulerTaskFacade schedulerTaskFacade;
 
 	@PostConstruct
 	public void post() {
@@ -96,18 +94,18 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "List all managed servers.")
-	public ApplicationState listServer() throws IOException {
+	public ApplicationState serverList() throws IOException {
 		return appState;
 	}
 
 	@ShellMethod(value = "Pickup a server to work on.")
-	public ApplicationState selectServer() throws IOException {
+	public ApplicationState serverSelect() throws IOException {
 		this.appState.setStep(CommandStepState.WAITING_SELECT);
 		return appState;
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
-	public String createServer(@ShellOption(help = "服务器主机名或者IP") String host,
+	public String serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
 		if (Files.exists(appSettings.getDataRoot().resolve(host))) {
 			return "该主机已经存在！";
@@ -132,11 +130,14 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "加载示例服务器。")
-	public void loadDemoServer() throws IOException {
+	public String loadDemoServer() throws IOException {
 		InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml");
 		Box box = YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
-		appState.getServers().add(box);
-		appState.setCurrentIndexAndFireEvent(appState.getServers().size() - 1);
+		if (appState.addServer(box)) {
+			appState.setCurrentIndexAndFireEvent(appState.getServers().size() - 1);
+		}
+
+		return String.format("Demo server %s loaded.", box.getHost());
 	}
 
 	private String formatKeyVal(String k, String v) {
@@ -174,33 +175,67 @@ public class BackupCommand {
 			return e.getMessage();
 		}
 	}
-	
+
 	@ShellMethod(value = "安装borg。")
 	public String borgInstall() {
 		try {
-			InstallationInfo ii = borgInstaller.install(getSession());
+			InstallationInfo ii = borgTaskFacade.install(getSession());
 			if (ii.isInstalled()) {
 				return "Success";
 			} else {
 				return ii.getFailReason();
 			}
-			
+
 		} catch (RunRemoteCommandException e) {
 			return e.getMessage();
 		}
+	}
+
+	@ShellMethod(value = "初始化borg的repo。")
+	public List<String> borgInitRepo() throws RunRemoteCommandException {
+		sureBoxSelected();
+		return borgTaskFacade.initRepo(getSession(), appState.currentBox().get().getBorgBackup().getRepo())
+				.getAllTrimedNotEmptyLines();
+	}
+
+	@ShellMethod(value = "创建一次borg备份")
+	public String borgCreateArchive() throws RunRemoteCommandException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		borgTaskFacade.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
+		return "Success";
+	}
+
+	@ShellMethod(value = "列出borg创建的卷")
+	public List<String> borgListArchives() throws RunRemoteCommandException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		return borgTaskFacade.listArchives(getSession(), box).getAllTrimedNotEmptyLines();
+	}
+
+	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
+	public List<String> borgListRepoFiles() throws RunRemoteCommandException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		return borgTaskFacade.listRepoFiles(getSession(), box).getAllTrimedNotEmptyLines();
 	}
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
 			throw new MyCommonException("no selected server", "请先执行list-server和select-server确定使用哪台服务器。");
 		}
-
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
 	public MysqlDumpResult mysqlDump() throws JSchException, IOException {
 		sureBoxSelected();
 		return mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get());
+	}
+
+	@ShellMethod(value = "手动flush Mysql的日志")
+	public String MysqlFlushLog() {
+		sureBoxSelected();
+		return mysqlTaskFacade.mysqlFlushLogs(getSession(), appState.currentBox().get());
 	}
 
 	/**
@@ -212,7 +247,8 @@ public class BackupCommand {
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public MysqlDumpResult mysqlRedump(
-			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "请输入参数值'I know what i am doing.'") String iknow) throws JSchException, IOException {
+			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "请输入参数值'I know what i am doing.'") String iknow)
+			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		return mysqlTaskFacade.mysqlDump(getSession(), box, true);
@@ -237,115 +273,139 @@ public class BackupCommand {
 		}
 	}
 
-	@ShellMethod(value = "Quartz 触发器")
-	public List<String> quartzListTriggers(
-			@Pattern(regexp = "^.+\\..+$") @ShellOption(help = "任务标识，Group.name的形式， 不知道的话可以先执行quartz-list-jobs命令。", defaultValue = "a.b") String jobkey)
-			throws SchedulerException {
-		if (jobkey == null || jobkey.trim().isEmpty() || "a.b".equals(jobkey)) {
-			return scheduler.getTriggerGroupNames().stream().flatMap(grn -> {
-				try {
-					return scheduler.getTriggerKeys(groupEquals(grn)).stream();
-				} catch (SchedulerException e) {
-					return Stream.of();
-				}
-			}).map(jk -> {
-				try {
-					return scheduler.getTrigger(jk);
-				} catch (SchedulerException e) {
-					return null;
-				}
-			}).filter(Objects::nonNull).map(BackupCommand::formatTriggerOutput).collect(Collectors.toList());
-		} else {
-			String[] ss = jobkey.split("\\.", 2);
-			return scheduler.getTriggersOfJob(jobKey(ss[1], ss[0])).stream().map(BackupCommand::formatTriggerOutput)
-					.collect(Collectors.toList());
-		}
+	// @ShellMethod(value = "Quartz 触发器")
+	// public List<String> quartzListTriggers(
+	// @Pattern(regexp = "^.+\\..+$") @ShellOption(help = "任务标识，Group.name的形式，
+	// 不知道的话可以先执行quartz-list-jobs命令。", defaultValue = "a.b") String jobkey)
+	// throws SchedulerException {
+	// if (jobkey == null || jobkey.trim().isEmpty() || "a.b".equals(jobkey)) {
+	// return scheduler.getTriggerGroupNames().stream().flatMap(grn -> {
+	// try {
+	// return scheduler.getTriggerKeys(groupEquals(grn)).stream();
+	// } catch (SchedulerException e) {
+	// return Stream.empty();
+	// }
+	// }).map(jk -> {
+	// try {
+	// return scheduler.getTrigger(jk);
+	// } catch (SchedulerException e) {
+	// return null;
+	// }
+	// }).filter(Objects::nonNull).map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
+	// } else {
+	// String[] ss = jobkey.split("\\.", 2);
+	// return scheduler.getTriggersOfJob(jobKey(ss[1],
+	// ss[0])).stream().map(ToStringFormat::formatTriggerOutput)
+	// .collect(Collectors.toList());
+	// }
+	// }
+
+	// @ShellMethod(value = "Quartz 取消出发器")
+	// public void quartzUnscheduleJob(String triggerName, String triggerGroup)
+	// throws SchedulerException {
+	// scheduler.unscheduleJob(triggerKey(triggerName, triggerGroup));
+	// }
+
+	// @ShellMethod(value = "Quartz 设置出发器")
+	// public void quartzScheduleJob(String triggerName, String triggerGroup, String
+	// jobName, String jobGroup)
+	// throws SchedulerException {
+	// Trigger trigger = newTrigger().withIdentity(triggerName,
+	// triggerGroup).startNow()
+	// .forJob(jobKey(jobName, jobGroup)).build();
+	//
+	// // Schedule the trigger
+	// scheduler.scheduleJob(trigger);
+	// }
+
+	// @ShellMethod(value = "Quartz 设置出发器")
+	// public void quartzRescheduleJob(String triggerName, String triggerGroup)
+	// throws SchedulerException {
+	// Trigger trigger = newTrigger().withIdentity(triggerName,
+	// triggerGroup).startNow().build();
+	// scheduler.rescheduleJob(triggerKey(triggerName, triggerGroup), trigger);
+	// }
+
+	@ShellMethod(value = "重新设置出发器")
+	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
+			throws SchedulerException, ParseException {
+		sureBoxSelected();
+		schedulerTaskFacade.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
 
-	@ShellMethod(value = "Quartz 取消出发器")
-	public void quartzUnscheduleJob(String triggerName, String triggerGroup) throws SchedulerException {
-		scheduler.unscheduleJob(triggerKey(triggerName, triggerGroup));
+	// @ShellMethod(value = "Quartz 删除任务")
+	// public void quartzDeleteJob(String triggerName, String triggerGroup) throws
+	// SchedulerException {
+	// scheduler.deleteJob(jobKey(triggerName, triggerGroup));
+	// }
+
+	@ShellMethod(value = "列出当前主机的计划任务")
+	public List<String> schedulerListJob() throws SchedulerException {
+		sureBoxSelected();
+		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
+				.filter(jk -> jk.getName().equals(appState.currentBox().get().getHost())).map(jk -> jk.toString())
+				.collect(Collectors.toList());
 	}
 
-	@ShellMethod(value = "Quartz 设置出发器")
-	public void quartzScheduleJob(String triggerName, String triggerGroup, String jobName, String jobGroup)
-			throws SchedulerException {
-		Trigger trigger = newTrigger().withIdentity(triggerName, triggerGroup).startNow()
-				.forJob(jobKey(jobName, jobGroup)).build();
-
-		// Schedule the trigger
-		scheduler.scheduleJob(trigger);
+	@ShellMethod(value = "列出当前主机的计划任务触发器")
+	public List<String> schedulerListTrigger() throws SchedulerException {
+		sureBoxSelected();
+		return schedulerTaskFacade.getBoxTriggers(appState.currentBox().get()).stream()
+				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
 
-	@ShellMethod(value = "Quartz 设置出发器")
-	public void quartzRescheduleJob(String triggerName, String triggerGroup) throws SchedulerException {
-		Trigger trigger = newTrigger().withIdentity(triggerName, triggerGroup).startNow().build();
-		scheduler.rescheduleJob(triggerKey(triggerName, triggerGroup), trigger);
-	}
+	// @ShellMethod(value = "Quartz 显示任务")
+	// public List<String> quartzListJobs(@ShellOption(help = "任务组的名称", defaultValue
+	// = "") String groupName)
+	// throws SchedulerException {
+	// if (groupName == null || groupName.trim().isEmpty()) {
+	// return scheduler.getJobGroupNames().stream().flatMap(grn -> {
+	// try {
+	// return scheduler.getJobKeys(groupEquals(grn)).stream();
+	// } catch (SchedulerException e) {
+	// return Stream.empty();
+	// }
+	// }).map(jk -> jk.toString()).collect(Collectors.toList());
+	// } else {
+	// return scheduler.getJobKeys(groupEquals(groupName)).stream().map(jk ->
+	// jk.toString())
+	// .collect(Collectors.toList());
+	// }
 
-	@ShellMethod(value = "Quartz 删除任务")
-	public void quartzDeleteJob(String triggerName, String triggerGroup) throws SchedulerException {
-		scheduler.deleteJob(jobKey(triggerName, triggerGroup));
-	}
+	// scheduler.standby();
+	// shutdown() does not return until executing Jobs complete execution
+	// scheduler.shutdown(true);
+	// shutdown() returns immediately, but executing Jobs continue running to
+	// completion
+	// scheduler.shutdown();
+	// or
+	// scheduler.shutdown(false);
 
-	private static String formatTriggerOutput(Trigger t) {
-		String tostr = t.toString();
-		if (CronTrigger.class.isAssignableFrom(t.getClass())) {
-			tostr = tostr + ", cron: " + ((CronTrigger) t).getCronExpression();
-		}
-		return tostr;
-	}
+	// scheduler.unscheduleJob(triggerKey("trigger1", "group1"));
 
-	@ShellMethod(value = "Quartz 显示任务")
-	public List<String> quartzListJobs(@ShellOption(help = "任务组的名称", defaultValue = "") String groupName)
-			throws SchedulerException {
-		if (groupName == null || groupName.trim().isEmpty()) {
-			return scheduler.getJobGroupNames().stream().flatMap(grn -> {
-				try {
-					return scheduler.getJobKeys(groupEquals(grn)).stream();
-				} catch (SchedulerException e) {
-					return Stream.of();
-				}
-			}).map(jk -> jk.toString()).collect(Collectors.toList());
-		} else {
-			return scheduler.getJobKeys(groupEquals(groupName)).stream().map(jk -> jk.toString())
-					.collect(Collectors.toList());
-		}
+	// scheduler.deleteJob(jobKey("job1", "group1"));
 
-		// scheduler.standby();
-		// shutdown() does not return until executing Jobs complete execution
-		// scheduler.shutdown(true);
-		// shutdown() returns immediately, but executing Jobs continue running to
-		// completion
-		// scheduler.shutdown();
-		// or
-		// scheduler.shutdown(false);
+	// // Define a durable job instance (durable jobs can exist without triggers)
+	// JobDetail job1 = newJob(MyJobClass.class)
+	// .withIdentity("job1", "group1")
+	// .storeDurably()
+	// .build();
+	//
+	// // Add the the job to the scheduler's store
+	// sched.addJob(job, false);
 
-		// scheduler.unscheduleJob(triggerKey("trigger1", "group1"));
+	// // Define a Trigger that will fire "now" and associate it with the existing
+	// job
+	// Trigger trigger = newTrigger()
+	// .withIdentity("trigger1", "group1")
+	// .startNow()
+	// .forJob(jobKey("job1", "group1"))
+	// .build();
+	//
+	// // Schedule the trigger
+	// sched.scheduleJob(trigger);
 
-		// scheduler.deleteJob(jobKey("job1", "group1"));
-
-		// // Define a durable job instance (durable jobs can exist without triggers)
-		// JobDetail job1 = newJob(MyJobClass.class)
-		// .withIdentity("job1", "group1")
-		// .storeDurably()
-		// .build();
-		//
-		// // Add the the job to the scheduler's store
-		// sched.addJob(job, false);
-
-		// // Define a Trigger that will fire "now" and associate it with the existing
-		// job
-		// Trigger trigger = newTrigger()
-		// .withIdentity("trigger1", "group1")
-		// .startNow()
-		// .forJob(jobKey("job1", "group1"))
-		// .build();
-		//
-		// // Schedule the trigger
-		// sched.scheduleJob(trigger);
-
-	}
+	// }
 
 	@Bean
 	public PromptProvider myPromptProvider() {

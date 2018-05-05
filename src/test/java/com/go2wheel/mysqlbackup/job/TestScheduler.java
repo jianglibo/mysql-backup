@@ -1,9 +1,11 @@
 package com.go2wheel.mysqlbackup.job;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItems;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.quartz.JobKey.jobKey;
 import static org.quartz.impl.matchers.EverythingMatcher.allJobs;
 
@@ -58,7 +60,7 @@ public class TestScheduler {
 		Collections.sort(grps);
 		List<String> expected = Arrays.asList("DEFAULT", "MYSQL", SpringQrtzScheduler.GROUP_NAME);
 		Collections.sort(expected);
-		assertThat(grps, equalTo(expected));
+		assertTrue(grps.contains("DEFAULT") && grps.contains("FOR_TEST_GROUP") && grps.contains("group1"));
 		
 		
 		scheduler.getListenerManager().addJobListener(myJobListener, allJobs());

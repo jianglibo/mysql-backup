@@ -38,6 +38,10 @@ public class RemoteCommandResult {
 		return er;
 	}
 	
+	public boolean isCommandNotFound() {
+		return getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found"));
+	}
+	
 	public List<String> getAllTrimedNotEmptyLines() {
 		return Stream.of(getStdOut(), getErrOut()).flatMap(str -> StringUtil.splitLines(str).stream()).filter(line -> StringUtil.hasAnyNonBlankWord(line)).collect(Collectors.toList());
 	}

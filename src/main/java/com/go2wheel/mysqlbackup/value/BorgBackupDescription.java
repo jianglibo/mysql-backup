@@ -8,6 +8,8 @@ public class BorgBackupDescription {
 	private List<String> includes;
 	private List<String> excludes;
 	private String archiveFormat;
+	private String cronExpression;
+	private String archiveNamePrefix;
 	
 	public String getRepo() {
 		return repo;
@@ -36,5 +38,21 @@ public class BorgBackupDescription {
 
 	public void setExcludes(List<String> excludes) {
 		this.excludes = excludes;
+	}
+
+	public String getCronExpression() {
+		return cronExpression;
+	}
+
+	public void setCronExpression(String cronExpression) {
+		this.cronExpression = cronExpression;
+	}
+
+	public String getArchiveNamePrefix() {
+		return archiveNamePrefix;
+	}
+
+	public void setArchiveNamePrefix(String archiveNamePrefix) {
+		this.archiveNamePrefix = archiveNamePrefix;
 	}
 }
