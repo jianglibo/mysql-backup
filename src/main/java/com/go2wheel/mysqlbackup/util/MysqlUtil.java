@@ -117,33 +117,6 @@ public class MysqlUtil {
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
 
-	private Path getHostDir(Box box) {
-		return appSettings.getDataRoot().resolve(box.getHost());
-	}
-
-	public Path getLogBinDir(Box box) {
-		Path dstDir = getHostDir(box).resolve("logbin");
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			try {
-				Files.createDirectories(dstDir);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return dstDir;
-	}
-
-	public Path getDumpDir(Box box) {
-		try {
-			Path dstDir = getHostDir(box).resolve("dump");
-			if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-				Files.createDirectories(dstDir);
-			}
-			return dstDir;
-		} catch (IOException e) {
-			throw new MysqlDumpException(box, "create dump folder failed.");
-		}
-	}
 
 	// public void writeBinLogIndex(Session session, Box box, List<String> lines)
 	// throws IOException {
@@ -170,7 +143,7 @@ public class MysqlUtil {
 	}
 
 	public void downloadDumped(Session session, Box box, LinuxFileInfo linuxFileInfo) {
-		Path hd = getDumpDir(box);
+		Path hd = appSettings.getDumpDir(box);
 		Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
 
 		Path tmpFile = hd.resolve(name.toString() + ".downloading");

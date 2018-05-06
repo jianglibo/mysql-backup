@@ -38,6 +38,7 @@ import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
+import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -205,12 +206,27 @@ public class BackupCommand {
 		borgTaskFacade.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
 		return "Success";
 	}
+	
+	@ShellMethod(value = "下载borg的仓库。")
+	public void borgDownloadRepo() throws RunRemoteCommandException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		borgTaskFacade.downloadRepo(getSession(), box);
+	}
 
 	@ShellMethod(value = "列出borg创建的卷")
 	public List<String> borgListArchives() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.listArchives(getSession(), box).getAllTrimedNotEmptyLines();
+		return borgTaskFacade.listArchives(getSession(), box).getArchives();
+	}
+	
+	@ShellMethod(value = "修剪borg创建的卷")
+	public String borgPruneArchives() throws RunRemoteCommandException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgPruneResult bpr = borgTaskFacade.pruneRepo(getSession(), box); 
+		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(), bpr.keepedArchiveNumbers());
 	}
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")

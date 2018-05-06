@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
@@ -40,11 +41,19 @@ import com.jcraft.jsch.Session;
 public class MysqlTaskFacade {
 
 	private MysqlUtil mysqlUtil;
+	
+	private MyAppSettings appSettings;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
 		this.mysqlUtil = mysqlUtil;
 	}
+
+	@Autowired
+	public void setAppSettings(MyAppSettings appSettings) {
+		this.appSettings = appSettings;
+	}
+
 	
 	public MysqlDumpResult mysqlDump(Session session, Box box) {
 		return mysqlDump(session, box, false);
@@ -54,15 +63,15 @@ public class MysqlTaskFacade {
 		Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_MYSQL);
 		if (lock.tryLock()) {
 			try {
-				Path localDumpFile = mysqlUtil.getDumpDir(box)
+				Path localDumpFile = appSettings.getDumpDir(box)
 						.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 				if (Files.exists(localDumpFile) && !force) {
 					return MysqlDumpResult.failedResult("mysqldump文件已经存在，再次执行意味着之前的logbin文件可能失去效用。");
 				}
 				
 				if (force) {
-					Path dumpDir = mysqlUtil.getDumpDir(box);
-					Path logbinDir = mysqlUtil.getLogBinDir(box);
+					Path dumpDir = appSettings.getDumpDir(box);
+					Path logbinDir = appSettings.getLogBinDir(box);
 					
 					FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
 					try {
@@ -108,13 +117,13 @@ public class MysqlTaskFacade {
 		}
 	}
 
-	public String downloadBinLog(Session session, Box box) throws RunRemoteCommandException {
+	public String downloadBinLog(Session session, Box box) throws RunRemoteCommandException, CreateDirectoryException {
 		String remoteIndexFile = box.getMysqlInstance().getLogBinSetting().getLogBinIndex();
 		String basenameOnlyName = box.getMysqlInstance().getLogBinSetting().getLogBinBasenameOnlyName();
 
 		String binLogIndexOnlyName = box.getMysqlInstance().getLogBinSetting().getLogBinIndexNameOnly();
 
-		Path localDir = mysqlUtil.getLogBinDir(box);
+		Path localDir = appSettings.getLogBinDir(box);
 		Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
 
 		if (Files.exists(localIndexFile)) {
@@ -135,6 +144,8 @@ public class MysqlTaskFacade {
 					SSHcommonUtil.downloadWithTmpDownloadingFile(session, RemotePathUtil.getLogBinFile(box, f),
 							localDir.resolve(f));
 				} catch (RunRemoteCommandException e) {
+					e.printStackTrace();
+				} catch (CreateDirectoryException e) {
 					e.printStackTrace();
 				}
 			});
@@ -176,4 +187,5 @@ public class MysqlTaskFacade {
 		}
 		return lbs.toString();
 	}
+
 }

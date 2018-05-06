@@ -3,11 +3,15 @@ package com.go2wheel.mysqlbackup.borg;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,17 +19,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpToException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
+import com.go2wheel.mysqlbackup.value.BorgListResult;
+import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
@@ -119,6 +128,60 @@ public class BorgTaskFacade {
 		}
 		return rcr;
 	}
+	
+	public BorgPruneResult pruneRepo(Session session, Box box) throws RunRemoteCommandException {
+		String cmd = String.format("borg prune --list --prefix %s --show-rc --keep-daily %s --keep-weekly %s --keep-monthly %s %s", box.getBorgBackup().getArchiveNamePrefix(), 7, 4, 6, box.getBorgBackup().getRepo());
+		return new BorgPruneResult(SSHcommonUtil.runRemoteCommand(session, cmd));
+	}
+	
+	public void downloadRepo(Session session, Box box) throws RunRemoteCommandException {
+		String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", box.getBorgBackup().getRepo());
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, findCmd);
+		FileInAdirectory fid = new FileInAdirectory(rcr);
+		
+		String md5Cmd = String.format("md5sum %s", fid.getFileNamesSeparatedBySpace());
+		rcr = SSHcommonUtil.runRemoteCommand(session, md5Cmd);
+		List<String> md5s = rcr.getAllTrimedNotEmptyLines().stream().map(line -> line.split("\\s+", 2)).filter(ss -> ss.length == 2).map(ss -> ss[0]).collect(Collectors.toList());
+		fid.setMd5s(md5s);
+		
+		final Path rRepo = Paths.get(box.getBorgBackup().getRepo());
+		final Path localRepo = appSettings.getBorgRepoDir(box);
+		
+		fid.getFiles().stream().map(f -> {
+			f.setLfileAbs(localRepo.resolve(rRepo.relativize(Paths.get(f.getRfileAbs()))));
+			return f;
+		}).forEach(f -> {
+			try {
+				if (Files.exists(f.getLfileAbs())) {
+					String m = Md5Checksum.getMD5Checksum(f.getLfileAbs());
+					if (m.equalsIgnoreCase(f.getMd5())) {
+						f.setDownloaded(true);
+						return;
+					}
+				}
+				SSHcommonUtil.downloadWithTmpDownloadingFile(session, f.getRfileAbs(), f.getLfileAbs());
+				f.setDownloaded(true);
+			} catch (RunRemoteCommandException e) {
+				e.printStackTrace();
+			} catch (CreateDirectoryException e) {
+				e.printStackTrace();
+			}
+		});
+		
+		// delete the files already deleted from remote repo.
+		try {
+			Files.walk(localRepo).filter(p -> Files.isRegularFile(p)).filter(p -> !fid.fileExists(p)).forEach(p -> {
+				try {
+					Files.delete(p);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+	}
 
 	public RemoteCommandResult archive(Session session, Box box, String archiveNamePrefix)
 			throws RunRemoteCommandException {
@@ -155,8 +218,8 @@ public class BorgTaskFacade {
 	
 	
 
-	public RemoteCommandResult listArchives(Session session, Box box) throws RunRemoteCommandException {
-		return SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo()));
+	public BorgListResult listArchives(Session session, Box box) throws RunRemoteCommandException {
+		return new BorgListResult(SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo())));
 	}
 
 	public RemoteCommandResult listRepoFiles(Session session, Box box) throws RunRemoteCommandException {

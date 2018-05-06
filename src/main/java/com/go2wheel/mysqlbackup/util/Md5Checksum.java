@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -49,6 +50,10 @@ public class Md5Checksum {
 	           result += Integer.toString( ( b[i] & 0xff ) + 0x100, 16).substring( 1 );
 	       }
 	       return result;
+	   }
+	   
+	   public static String getMD5Checksum(Path file) {
+		   return getMD5Checksum(file.toAbsolutePath().toString());
 	   }
 
 }

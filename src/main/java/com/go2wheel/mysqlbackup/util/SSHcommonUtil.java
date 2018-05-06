@@ -13,6 +13,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
@@ -64,8 +65,15 @@ public class SSHcommonUtil {
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
 	
-	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException {
+	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException, CreateDirectoryException {
 		Path localDir = lfile.getParent();
+		if (!Files.exists(localDir)) {
+			try {
+				Files.createDirectories(localDir);
+			} catch (IOException e) {
+				throw new CreateDirectoryException(e);
+			}
+		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		ScpUtil.from(session, rfile, localTmpFile.toString());
 		String remoteMd5 = getRemoteFileMd5(session, rfile);

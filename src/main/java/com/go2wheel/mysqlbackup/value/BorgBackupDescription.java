@@ -2,7 +2,11 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class BorgBackupDescription {
+
+	public static final String BORG_ARCHIVE_PREFIX_DEFAULT = "ARCHIVE-";
 	
 	private String repo;
 	private List<String> includes;
@@ -49,6 +53,9 @@ public class BorgBackupDescription {
 	}
 
 	public String getArchiveNamePrefix() {
+		if (!StringUtil.hasAnyNonBlankWord(archiveNamePrefix) || "null".equals(archiveNamePrefix)) {
+			return BORG_ARCHIVE_PREFIX_DEFAULT;
+		}
 		return archiveNamePrefix;
 	}
 

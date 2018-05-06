@@ -37,8 +37,7 @@ public class BorgJob implements Job {
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
 		try {
-			borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).get(), box,
-					StringUtil.notEmptyValue(box.getBorgBackup().getArchiveNamePrefix()).orElse("ARCHIVE-"));
+			borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).get(), box, box.getBorgBackup().getArchiveNamePrefix());
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			throw new JobExecutionException(e);

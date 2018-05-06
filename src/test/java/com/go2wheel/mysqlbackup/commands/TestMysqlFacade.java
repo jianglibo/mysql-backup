@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -34,7 +35,7 @@ public class TestMysqlFacade extends SshBaseFort {
 
 	@Test
 	public void tDump() throws JSchException, IOException {
-		Path localDumpFile = mysqlUtil.getDumpDir(box).resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
+		Path localDumpFile = appSettings.getDumpDir(box).resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 		if (Files.exists(localDumpFile)) {
 			Files.delete(localDumpFile);
 		}
@@ -46,7 +47,7 @@ public class TestMysqlFacade extends SshBaseFort {
 	}
 	
 	@Test
-	public void tDownloadLogbin() throws RunRemoteCommandException {
+	public void tDownloadLogbin() throws RunRemoteCommandException, CreateDirectoryException {
 		mysqlTaskFacade.downloadBinLog(session, box);
 		mysqlTaskFacade.downloadBinLog(session, box);
 	}
