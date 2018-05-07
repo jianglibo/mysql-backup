@@ -8,6 +8,7 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
@@ -25,6 +26,7 @@ import org.springframework.util.StringUtils;
 
 @SpringBootApplication(exclude = { SpringShellAutoConfiguration.class, JLineShellAutoConfiguration.class,
 		StandardAPIAutoConfiguration.class })
+@EnableAspectJAutoProxy
 public class StartPointer {
 
 	@SuppressWarnings("unused")

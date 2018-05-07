@@ -12,7 +12,7 @@ public class TestTaskLock {
 	
 	@Test
 	public void tDoubleAcquire() {
-		Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILESYSTEM);
+		Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_BORG);
 		int i = 0;
 		if (lock.tryLock()) {
 			i++;
@@ -30,7 +30,7 @@ public class TestTaskLock {
 	
 	@Test
 	public void tDoubleAcquire1() {
-		ReentrantLock lock = (ReentrantLock) TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILESYSTEM);
+		ReentrantLock lock = (ReentrantLock) TaskLocks.getBoxLock("abc", TaskLocks.TASK_BORG);
 		int i = 0;
 		if (lock.tryLock()) {
 			lock.lock();
@@ -47,7 +47,7 @@ public class TestTaskLock {
 			@Override
 			public void run() {
 				System.out.println("a");
-				Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILESYSTEM);
+				Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_BORG);
 				lock.lock();
 				System.out.println("b");
 				lock.unlock();

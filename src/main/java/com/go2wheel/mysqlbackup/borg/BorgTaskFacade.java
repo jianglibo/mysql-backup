@@ -6,11 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -19,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpToException;
@@ -183,12 +182,13 @@ public class BorgTaskFacade {
 		
 	}
 
+	@Exclusive(TaskLocks.TASK_BORG)
 	public RemoteCommandResult archive(Session session, Box box, String archiveNamePrefix)
 			throws RunRemoteCommandException {
-		Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_MYSQL);
+//		Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_BORG);
 		BorgBackupDescription borgDescription = box.getBorgBackup();
-		if (lock.tryLock()) {
-			try {
+//		if (lock.tryLock()) {
+//			try {
 				List<String> cmdparts = new ArrayList<>();
 				cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
 				for (String f : borgDescription.getExcludes()) {
@@ -202,12 +202,12 @@ public class BorgTaskFacade {
 				}
 				String cmd = String.join(" ", cmdparts);
 				return SSHcommonUtil.runRemoteCommand(session, cmd);
-			} finally {
-				lock.unlock();
-			}
-		} else {
-			return RemoteCommandResult.failedResult("任务进行中，请稍后再试。");
-		}
+//			} finally {
+//				lock.unlock();
+//			}
+//		} else {
+//			return RemoteCommandResult.failedResult("任务进行中，请稍后再试。");
+//		}
 		// borg create /borg/repos/trepo::Monday /etc
 	}
 
