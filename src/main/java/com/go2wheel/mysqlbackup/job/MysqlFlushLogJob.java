@@ -29,6 +29,7 @@ public class MysqlFlushLogJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
+		if (box == null) return;
 		mysqlTaskFacade.mysqlFlushLogs(sshSessionFactory.getConnectedSession(box).get(), box);
 	}
 

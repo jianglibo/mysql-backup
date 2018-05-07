@@ -114,7 +114,7 @@ public class ApplicationState {
 	}
 	
 	public Box getServerByHost(String host) {
-		return this.servers.stream().filter(s -> host.equals(s.getHost())).findAny().get();
+		return this.servers.stream().filter(s -> host.equals(s.getHost())).findAny().orElse(null);
 	}
 
 	public CommandStepState getStep() {
