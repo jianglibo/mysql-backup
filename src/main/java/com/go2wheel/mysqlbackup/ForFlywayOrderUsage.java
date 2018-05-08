@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import org.flywaydb.core.Flyway;
+import org.flywaydb.core.api.FlywayException;
 import org.quartz.Scheduler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,12 @@ public class ForFlywayOrderUsage implements  FlywayMigrationStrategy {
 
 	@Override
 	public void migrate(Flyway flyway) {
-		flyway.migrate();
+		try {
+			flyway.migrate();
+		} catch (FlywayException e) {
+			e.printStackTrace();
+			flyway.repair();
+		}
 		logger.info("fly way called.");
 	}
 

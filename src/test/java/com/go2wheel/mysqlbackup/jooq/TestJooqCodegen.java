@@ -6,6 +6,7 @@ import org.jooq.util.GenerationTool;
 import org.jooq.util.jaxb.Configuration;
 import org.junit.Test;
 
+
 public class TestJooqCodegen {
 	
 	public static final String JOOQ_CONFIG_FILE = "/jooq-config.xml";
@@ -17,5 +18,7 @@ public class TestJooqCodegen {
 		GenerationTool.generate(cfg);
 		in.close();
 	}
+	
+
 
 }

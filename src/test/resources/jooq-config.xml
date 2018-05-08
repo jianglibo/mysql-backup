@@ -3,7 +3,7 @@
   <!-- Configure the database connection here -->
   <jdbc>
     <driver>org.hsqldb.jdbc.JDBCDriver</driver>
-    <url>jdbc:hsqldb:file:c:/db/mysqlbackup</url>
+    <url>jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true</url>
     <user>sa</user>
     <password></password>
     
@@ -62,6 +62,7 @@
            You can create case-insensitive regular expressions using this syntax: (?i:expr)
            
            Whitespace is ignored and comments are possible.
+           <includes>(?i:qrtz_).*</includes>
            -->
       <includes>.*</includes>
 
@@ -69,7 +70,7 @@
            Use the pipe to separate several expressions). Excludes match before
            includes, i.e. excludes have a higher priority -->
       <excludes>
-           UNUSED_TABLE                # This table (unqualified name) should not be generated
+           (?i:flyway_.*)                # This table (unqualified name) should not be generated
          | PREFIX_.*                   # Objects with a given prefix should not be generated
          | SECRET_SCHEMA\.SECRET_TABLE # This table (qualified name) should not be generated
          | SECRET_ROUTINE              # This routine (unqualified name) ...
@@ -83,7 +84,11 @@
            manual's next section to learn how to generate several schemata -->
            <!-- 
       <inputSchema>[your database schema / owner / name]</inputSchema>
+      <inputCatalog>PUBLIC</inputCatalog>
+      
        -->
+      <inputSchema>PUBLIC</inputSchema>
+      
     </database>
 
     <generate>
