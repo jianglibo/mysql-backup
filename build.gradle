@@ -82,6 +82,18 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.flywaydb/flyway-core
 	compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.7'
 	
+	// https://mvnrepository.com/artifact/org.jooq/jooq
+	compile group: 'org.jooq', name: 'jooq', version: '3.10.7'
+	
+	// https://mvnrepository.com/artifact/org.jooq/jooq-meta
+	compile group: 'org.jooq', name: 'jooq-meta', version: '3.10.7'
+	
+	// https://mvnrepository.com/artifact/org.jooq/jooq-codegen
+	compile group: 'org.jooq', name: 'jooq-codegen', version: '3.10.7'
+	
+	
+	
+	
 	
 	
 	// https://mvnrepository.com/artifact/com.jcraft/jsch
