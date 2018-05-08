@@ -5,7 +5,7 @@ spring:
     script:
       enabled: true
   datasource:
-    url: jdbc:hsqldb:file:c:/db/go2wheel/db;shutdown=true
+    url: jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true
     username: sa
     password:
     driver-class-name: org.hsqldb.jdbc.JDBCDriver

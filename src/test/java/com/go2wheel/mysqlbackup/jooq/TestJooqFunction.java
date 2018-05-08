@@ -4,6 +4,7 @@ import org.jooq.DSLContext;
 import org.jooq.Record3;
 import org.jooq.Result;
 import org.jooq.impl.DSL;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Author;
 import com.go2wheel.mysqlbackup.jooqschema.tables.AuthorBook;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Book;
+import com.go2wheel.mysqlbackup.jooqschema.tables.records.BookRecord;
 
 
 @SpringBootTest("spring.shell.interactive.enabled=false")
@@ -22,6 +24,16 @@ public class TestJooqFunction {
 	
 //	http://www.jooq.org/doc/3.10/manual/getting-started/tutorials/jooq-with-spring/
 	
+	@Before
+	public void before() {
+		Result<BookRecord> book = create.selectFrom(Book.BOOK).fetch();
+		book.forEach(br -> {
+			create.delete(Book.BOOK)
+		      .where(Book.BOOK.ID.eq(br.getId()))
+		      .execute();
+		});
+
+	}
 	
 	@Autowired
 	private DSLContext create;
