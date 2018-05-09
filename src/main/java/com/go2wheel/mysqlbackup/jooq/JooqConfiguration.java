@@ -20,7 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.TransactionAwareDataSourceProxy;
 
-@Configuration
+//@Configuration
 //@AutoConfigureAfter({ DataSourceAutoConfiguration.class,
 //	HibernateJpaAutoConfiguration.class })
 public class JooqConfiguration {

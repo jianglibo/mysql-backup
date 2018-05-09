@@ -11,6 +11,8 @@ spring:
     driver-class-name: org.hsqldb.jdbc.JDBCDriver
     validation-query: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
     test-on-borrow: true
+  jooq:
+    sql-dialect: HSQLDB
   quartz:
     job-store-type: memory # jdbc, memory
     jdbc:
@@ -37,4 +39,5 @@ spring:
 logging:
   level:
     org.springframework: INFO
+    org.jooq.tools.LoggerListener: DEBUG
     

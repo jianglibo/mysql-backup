@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.0.RELEASE'
+        springBootVersion = '2.0.1.RELEASE'
     }
     repositories {
         jcenter()
@@ -64,6 +64,7 @@ dependencies {
     compile('org.springframework.boot:spring-boot-starter-jdbc')
     compile('org.springframework.boot:spring-boot-starter-quartz')
     compile('org.springframework.boot:spring-boot-starter-aop')
+    compile("org.springframework.boot:spring-boot-starter-web")
     
     
 	compile('org.springframework.shell:spring-shell-starter:2.0.0.RELEASE')
