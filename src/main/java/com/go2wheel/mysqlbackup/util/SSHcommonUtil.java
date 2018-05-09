@@ -26,23 +26,24 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 public class SSHcommonUtil {
-	
+
 	/**
 	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3
+	 * 
 	 * @param session
 	 * @param remoteFile
-	 * @throws RunRemoteCommandException 
-	 * @throws IOException 
-	 * @throws JSchException 
+	 * @throws RunRemoteCommandException
+	 * @throws IOException
+	 * @throws JSchException
 	 */
 	public static void backupFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists()) {
-			runRemoteCommand(session, String.format("cp %s %s",remoteFile, remoteFile + "." + bfs.getNextInt()));
+			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
 	}
-	
+
 	public static void deleteBackupedFiles(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
@@ -54,9 +55,17 @@ public class SSHcommonUtil {
 			deleteRemoteFile(session, bfs.getBackups());
 		}
 	}
+
+	//@formatter:off
 	
 	public static String getRemoteFileMd5(Session session, String remoteFile) throws RunRemoteCommandException {
-		Optional<String[]> md5pair =  runRemoteCommand(session, String.format("md5sum %s", remoteFile)).getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+")).filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32).findAny();
+		Optional<String[]> md5pair =  runRemoteCommand(session, String.format("md5sum %s", remoteFile))
+				.getAllTrimedNotEmptyLines().stream()
+				.map(l -> l.trim())
+				.map(l -> l.split("\\s+"))
+				.filter(pair -> pair.length == 2)
+				.filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
+				.findAny();
 		return md5pair.get()[0];
 	}
 	
@@ -152,6 +161,7 @@ public class SSHcommonUtil {
 				RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
 				String errOut = baos.toString();
 				cmdOut.setErrOut(errOut);
+				cmdOut.setCommand(command);
 				return cmdOut;
 			} finally {
 				channel.disconnect();
@@ -161,10 +171,6 @@ public class SSHcommonUtil {
 		}
 	}
 	
-//	public static List<String> runRemoteCommandAndGetList(Session session, String command) {
-//		String all = runRemoteCommand(session, command);
-//		return StringUtil.splitLines(all).stream().filter(line -> !line.trim().isEmpty()).collect(Collectors.toList());
-//	}
 	
 	public static void deleteRemoteFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		runRemoteCommand(session, String.format("rm %s", remoteFile));

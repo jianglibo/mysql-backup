@@ -17,6 +17,8 @@ public class RemoteCommandResult {
 	
 	private int exitValue;
 	
+	private String command;
+	
 	public RemoteCommandResult() {}
 	
 	public RemoteCommandResult(String stdOut, String errOut, int exitValue) {
@@ -89,5 +91,13 @@ public class RemoteCommandResult {
 		for(String line : getAllTrimedNotEmptyLines()) {
 			System.out.println(line);
 		}
+	}
+
+	public String getCommand() {
+		return command;
+	}
+
+	public void setCommand(String command) {
+		this.command = command;
 	}
 }

@@ -104,11 +104,14 @@ public class MysqlTaskFacade {
 		}
 	}
 
+	// @formatter:off
 	public String downloadBinLog(Session session, Box box) throws RunRemoteCommandException, CreateDirectoryException {
-		String remoteIndexFile = box.getMysqlInstance().getLogBinSetting().getLogBinIndex();
-		String basenameOnlyName = box.getMysqlInstance().getLogBinSetting().getLogBinBasenameOnlyName();
+		
+		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
+		String remoteIndexFile = lbs.getLogBinIndex();
+		String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
 
-		String binLogIndexOnlyName = box.getMysqlInstance().getLogBinSetting().getLogBinIndexNameOnly();
+		String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
 
 		Path localDir = appSettings.getLogBinDir(box);
 		Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
@@ -119,12 +122,16 @@ public class MysqlTaskFacade {
 		SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
 
 		try {
-			List<String> localBinLogFiles = Files.list(localDir).map(p -> p.getFileName().toString())
+			List<String> localBinLogFiles = Files.list(localDir)
+					.map(p -> p.getFileName().toString())
 					.collect(Collectors.toList());
-
-			List<String> unLocalExists = Files.lines(localIndexFile).filter(l -> l.indexOf(basenameOnlyName) != -1)
-					.map(l -> l.trim()).map(l -> Paths.get(l).getFileName().toString())
-					.filter(l -> !localBinLogFiles.contains(l)).collect(Collectors.toList());
+			// index file contains all logbin file names.
+			List<String> unLocalExists = Files.lines(localIndexFile)
+					.filter(l -> l.indexOf(basenameOnlyName) != -1)
+					.map(l -> l.trim())
+					.map(l -> Paths.get(l).getFileName().toString())
+					.filter(l -> !localBinLogFiles.contains(l))
+					.collect(Collectors.toList());
 
 			unLocalExists.forEach(f -> {
 				try {

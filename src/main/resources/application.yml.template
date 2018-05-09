@@ -18,7 +18,11 @@ spring:
     jdbc:
       initialize-schema: never # always, embeded.
   flyway:
-    baseline-version: 1_1    
+    baseline-version: 1_1
+logging:
+  file: log/spring.log
+  file.max-size: 5MB
+  file.max-history: 100
 #  quartz
 #    jdbc
 #      initialize-schema: embedded # Database schema initialization mode.
