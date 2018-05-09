@@ -142,25 +142,25 @@ public class MysqlUtil {
 		}
 	}
 
-	public void downloadDumped(Session session, Box box, LinuxFileInfo linuxFileInfo) {
-		Path hd = appSettings.getDumpDir(box);
-		Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
-
-		Path tmpFile = hd.resolve(name.toString() + ".downloading");
-		Path dst = hd.resolve(name.toString());
-
-		ScpUtil.from(session, linuxFileInfo.getFilename(), tmpFile.toString());
-
-		if (!Md5Checksum.getMD5Checksum(tmpFile.toString()).equalsIgnoreCase(linuxFileInfo.getMd5())) {
-			MysqlDumpException mde = new MysqlDumpException(box, "unmatched md5");
-			throw mde;
-		} else {
-			try {
-				Files.move(tmpFile, dst, StandardCopyOption.ATOMIC_MOVE);
-			} catch (IOException e) {
-				throw new MyCommonException("automicmove", e.getMessage());
-			}
-		}
-	}
+//	public void downloadDumped(Session session, Box box, LinuxFileInfo linuxFileInfo) {
+//		Path hd = appSettings.getDumpDir(box);
+//		Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
+//
+//		Path tmpFile = hd.resolve(name.toString() + ".downloading");
+//		Path dst = hd.resolve(name.toString());
+//
+//		ScpUtil.from(session, linuxFileInfo.getFilename(), tmpFile.toString());
+//
+//		if (!Md5Checksum.getMD5Checksum(tmpFile.toString()).equalsIgnoreCase(linuxFileInfo.getMd5())) {
+//			MysqlDumpException mde = new MysqlDumpException(box, "unmatched md5");
+//			throw mde;
+//		} else {
+//			try {
+//				Files.move(tmpFile, dst, StandardCopyOption.ATOMIC_MOVE);
+//			} catch (IOException e) {
+//				throw new MyCommonException("automicmove", e.getMessage());
+//			}
+//		}
+//	}
 
 }

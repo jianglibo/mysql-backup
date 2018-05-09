@@ -6,13 +6,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
 import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
@@ -41,7 +41,7 @@ import com.jcraft.jsch.Session;
 public class MysqlTaskFacade {
 
 	private MysqlUtil mysqlUtil;
-	
+
 	private MyAppSettings appSettings;
 
 	@Autowired
@@ -54,66 +54,53 @@ public class MysqlTaskFacade {
 		this.appSettings = appSettings;
 	}
 
-	
 	public MysqlDumpResult mysqlDump(Session session, Box box) {
 		return mysqlDump(session, box, false);
 	}
 
+	private Path getDumpFile(Path dumpDir) {
+		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
+	}
+
+	@Exclusive(TaskLocks.TASK_MYSQL)
 	public MysqlDumpResult mysqlDump(Session session, Box box, boolean force) {
-		Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_MYSQL);
-		if (lock.tryLock()) {
-			try {
-				Path localDumpFile = appSettings.getDumpDir(box)
-						.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
-				if (Files.exists(localDumpFile) && !force) {
-					return MysqlDumpResult.failedResult("mysqldump文件已经存在，再次执行意味着之前的logbin文件可能失去效用。");
-				}
-				
-				if (force) {
-					Path dumpDir = appSettings.getDumpDir(box);
-					Path logbinDir = appSettings.getLogBinDir(box);
-					
-					FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
-					try {
-						Files.createDirectories(dumpDir);
-						Files.createDirectories(logbinDir);
-					} catch (IOException e) {
-						return MysqlDumpResult.failedResult("重建dump和logbin目录失败。");
-					}
-				}
-				Optional<LinuxFileInfo> ll;
-				ll = new MysqlDumpExpect(session, box).start();
-				if (ll.isPresent()) {
-					mysqlUtil.downloadDumped(session, box, ll.get());
-					return MysqlDumpResult.successResult(ll.get());
-				} else {
-					return MysqlDumpResult.failedResult("unknown");
-				}
-			} catch (LocalBackupFileException | LocalFileMoveException e) {
-				return MysqlDumpResult.failedResult("备份目录失败。");
-			} finally {
-				lock.unlock();
+		Path dumpDir = appSettings.getDumpDir(box);
+		Path logbinDir = appSettings.getLogBinDir(box);
+		try {
+			Path localDumpFile = getDumpFile(dumpDir);
+			if (Files.exists(localDumpFile) && !force) {
+				return MysqlDumpResult.failedResult("mysqldump文件已经存在，再次执行意味着之前的logbin文件可能失去效用。");
 			}
-		} else {
-			return MysqlDumpResult.failedResult("任务进行中，请稍后再试。");
+
+			if (force) {
+				FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
+				try {
+					Files.createDirectories(dumpDir);
+					Files.createDirectories(logbinDir);
+				} catch (IOException e) {
+					return MysqlDumpResult.failedResult("重建dump和logbin目录失败。");
+				}
+			}
+			Optional<LinuxFileInfo> ll;
+			ll = new MysqlDumpExpect(session, box).start();
+			if (ll.isPresent()) {
+				SSHcommonUtil.downloadWithTmpDownloadingFile(session, ll.get().getFilename(), getDumpFile(dumpDir));
+				return MysqlDumpResult.successResult(ll.get());
+			} else {
+				return MysqlDumpResult.failedResult("unknown");
+			}
+		} catch (LocalBackupFileException | LocalFileMoveException | RunRemoteCommandException | CreateDirectoryException e) {
+			return MysqlDumpResult.failedResult("备份目录失败。");
 		}
 	}
 
+	@Exclusive(TaskLocks.TASK_MYSQL)
 	public String mysqlFlushLogs(Session session, Box box) {
-		Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_MYSQL);
-		if (lock.tryLock()) {
-			try {
-				MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
-				if (mfle.start()) {
-					return "flush成功";
-				} else {
-					return "flush失败";
-				}
-			} finally {
-				lock.unlock();
-			}
+		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
+		if (mfle.start()) {
+			return "flush成功";
 		} else {
-			return "任务进行中，请稍后再试。";
+			return "flush失败";
 		}
 	}
 
@@ -156,7 +143,8 @@ public class MysqlTaskFacade {
 		return "success";
 	}
 
-	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws IOException, CreateDirectoryException, AtomicWriteFileException, JSchException, RunRemoteCommandException {
+	public String mysqlEnableLogbin(Session session, Box box, String logBinValue) throws IOException,
+			CreateDirectoryException, AtomicWriteFileException, JSchException, RunRemoteCommandException {
 		LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 		if (lbs != null && lbs.isEnabled()) {
 			return "本地服务器描述显示LogBin已经启用。";
