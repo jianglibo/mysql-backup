@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
-import com.go2wheel.mysqlbackup.exception.EnableLogBinFailedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
@@ -56,7 +55,7 @@ public class MysqlTaskFacade {
 		this.appSettings = appSettings;
 	}
 
-	public FacadeResult mysqlDump(Session session, Box box) {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Box box) {
 		return mysqlDump(session, box, false);
 	}
 
@@ -64,20 +63,25 @@ public class MysqlTaskFacade {
 		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 	}
 
-	public FacadeResult serverCreate(String host, int sshPort) throws IOException {
-		if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-			return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+	public FacadeResult<?> serverCreate(String host, int sshPort) {
+		try {
+			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
+				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+			}
+			Box box = new Box();
+			box.setHost(host);
+			box.setPort(sshPort);
+			box.setMysqlInstance(new MysqlInstance());
+			mysqlUtil.writeDescription(box);
+			return FacadeResult.doneResult();
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
 		}
-		Box box = new Box();
-		box.setHost(host);
-		box.setPort(sshPort);
-		box.setMysqlInstance(new MysqlInstance());
-		mysqlUtil.writeDescription(box);
-		return FacadeResult.doneResult();
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
-	public FacadeResult mysqlDump(Session session, Box box, boolean force) {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Box box, boolean force) {
 		try {
 			Path dumpDir = appSettings.getDumpDir(box);
 			Path logbinDir = appSettings.getLogBinDir(box);
@@ -94,7 +98,7 @@ public class MysqlTaskFacade {
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
-				return FacadeResult.doneResult();
+				return FacadeResult.doneResult(llsl);
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
 			}
@@ -156,7 +160,7 @@ public class MysqlTaskFacade {
 
 	}
 
-	public FacadeResult mysqlEnableLogbin(Session session, Box box, String logBinValue) {
+	public FacadeResult<?> mysqlEnableLogbin(Session session, Box box, String logBinValue) {
 		try {
 			LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 			if (lbs != null && lbs.isEnabled()) {
@@ -177,7 +181,7 @@ public class MysqlTaskFacade {
 					mysqlUtil.restartMysql(session); // 重启Mysql
 					lbs = mysqlUtil.getLogbinState(session, box); // 获取最新的logbin状态。
 					if (!lbs.isEnabled()) {
-						throw new EnableLogBinFailedException(box.getHost());
+						return FacadeResult.unexpectedResult("enable logbin failed.");
 					}
 					box.getMysqlInstance().setLogBinSetting(lbs);
 					mysqlUtil.writeDescription(box); // 保存

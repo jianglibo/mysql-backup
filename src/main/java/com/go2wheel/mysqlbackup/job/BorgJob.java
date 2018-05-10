@@ -11,10 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
-import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
@@ -36,12 +33,8 @@ public class BorgJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		try {
-			borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).get(), box, box.getBorgBackup().getArchiveNamePrefix());
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			throw new JobExecutionException(e);
-		}
+		borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).get(), box, box.getBorgBackup().getArchiveNamePrefix());
+
 	}
 
 }

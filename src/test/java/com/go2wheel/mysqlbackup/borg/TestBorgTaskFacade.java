@@ -7,15 +7,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.UtilForTe;
-import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
@@ -39,7 +35,7 @@ public class TestBorgTaskFacade extends SshBaseFort {
 		fd.setAppSettings(appSettings);
 		fd.post();
 		borgTaskFacade.setFileDownloader(fd);
-		InstallationInfo ii = borgTaskFacade.unInstall(session);
+		InstallationInfo ii = borgTaskFacade.unInstall(session).getResult();
 		assertFalse("borg should not installed now.", ii.isInstalled());
 	}
 	
@@ -53,9 +49,9 @@ public class TestBorgTaskFacade extends SshBaseFort {
 	public void tArchive() throws RunRemoteCommandException, InterruptedException {
 		borgTaskFacade.install(session);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", box.getBorgBackup().getRepo()));
-		RemoteCommandResult rcr = borgTaskFacade.initRepo(session, box.getBorgBackup().getRepo());
+		RemoteCommandResult rcr = borgTaskFacade.initRepo(session, box.getBorgBackup().getRepo()).getResult();
 		assertThat(rcr.getExitValue(), equalTo(0));
-		rcr = borgTaskFacade.archive(session, box, box.getBorgBackup().getArchiveNamePrefix());
+		rcr = borgTaskFacade.archive(session, box, box.getBorgBackup().getArchiveNamePrefix()).getResult();
 		assertThat(rcr.getExitValue(), equalTo(0));
 
 		borgTaskFacade.downloadRepo(session, box);
@@ -65,15 +61,15 @@ public class TestBorgTaskFacade extends SshBaseFort {
 			archive();
 		}
 		
-		BorgListResult blr = borgTaskFacade.listArchives(session, box);
+		BorgListResult blr = borgTaskFacade.listArchives(session, box).getResult();
 		assertThat(blr.getArchives().size(), equalTo(10));
 		
-		BorgPruneResult bpr = borgTaskFacade.pruneRepo(session, box);
+		BorgPruneResult bpr = borgTaskFacade.pruneRepo(session, box).getResult();
 		assertTrue(bpr.isSuccess());
 		assertThat(bpr.prunedArchiveNumbers(), equalTo(9L));
 		assertThat(bpr.keepedArchiveNumbers(), equalTo(1L));
 		
-		blr = borgTaskFacade.listArchives(session, box);
+		blr = borgTaskFacade.listArchives(session, box).getResult();
 		assertThat(blr.getArchives().size(), equalTo(1));
 		
 		

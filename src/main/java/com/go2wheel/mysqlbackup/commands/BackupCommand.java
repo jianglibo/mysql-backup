@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.commands;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +32,6 @@ import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -51,9 +49,6 @@ public class BackupCommand {
 
 	@Autowired
 	private MyAppSettings appSettings;
-
-	@Autowired
-	private MysqlUtil mysqlUtil;
 
 	@Autowired
 	private Environment environment;
@@ -162,7 +157,7 @@ public class BackupCommand {
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
 		sureBoxSelected();
-		return borgTaskFacade.initRepo(getSession(), appState.currentBox().get().getBorgBackup().getRepo())
+		return borgTaskFacade.initRepo(getSession(), appState.currentBox().get().getBorgBackup().getRepo()).getResult()
 				.getAllTrimedNotEmptyLines();
 	}
 
@@ -182,17 +177,17 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
-	public List<String> borgListArchives() throws RunRemoteCommandException {
+	public List<String> borgListArchives() {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.listArchives(getSession(), box).getArchives();
+		return borgTaskFacade.listArchives(getSession(), box).getResult().getArchives();
 	}
 	
 	@ShellMethod(value = "修剪borg创建的卷")
 	public String borgPruneArchives() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		BorgPruneResult bpr = borgTaskFacade.pruneRepo(getSession(), box); 
+		BorgPruneResult bpr = borgTaskFacade.pruneRepo(getSession(), box).getResult(); 
 		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(), bpr.keepedArchiveNumbers());
 	}
 
@@ -200,7 +195,7 @@ public class BackupCommand {
 	public List<String> borgListRepoFiles() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.listRepoFiles(getSession(), box).getAllTrimedNotEmptyLines();
+		return borgTaskFacade.listRepoFiles(getSession(), box).getResult().getAllTrimedNotEmptyLines();
 	}
 
 	private void sureBoxSelected() {

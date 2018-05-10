@@ -16,29 +16,29 @@ public class FacadeResult<T> {
 		PREVIOUSLY_DONE, DONE
 	}
 	
-	public static FacadeResult<?> unexpectedResult(Exception e) {
-		FacadeResult<?> r = new FacadeResult<>();
+	public static <T> FacadeResult<T> unexpectedResult(Exception e) {
+		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = false;
 		r.setException(e);
 		return r;
 	}
 	
-	public static FacadeResult<?> unexpectedResult(String message) {
-		FacadeResult<?> r = new FacadeResult<>();
+	public static <T> FacadeResult<T> unexpectedResult(String message) {
+		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = false;
 		r.setMessage(message);
 		return r;
 	}
 	
-	public static FacadeResult<?> doneResult() {
-		FacadeResult<?> r = new FacadeResult<>();
+	public static <T> FacadeResult<T> doneResult() {
+		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = true;
 		r.setCommonActionResult(CommonActionResult.DONE);
 		return r;
 	}
 	
-	public static FacadeResult<?> doneCommonResult(CommonActionResult commonActionResult) {
-		FacadeResult<?> r = new FacadeResult<>();
+	public static <T> FacadeResult<T> doneCommonResult(CommonActionResult commonActionResult) {
+		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = true;
 		r.setCommonActionResult(commonActionResult);
 		return r;

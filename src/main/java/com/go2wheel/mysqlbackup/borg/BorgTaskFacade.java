@@ -70,17 +70,22 @@ public class BorgTaskFacade {
 		return ii;
 	}
 
-	public InstallationInfo unInstall(Session session) throws RunRemoteCommandException {
-		InstallationInfo ii = getInstallationInfo(session);
-		if (ii.isInstalled()) {
-			SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
-			return getInstallationInfo(session);
-		} else {
-			return ii;
+	public FacadeResult<InstallationInfo> unInstall(Session session) {
+		try {
+			InstallationInfo ii = getInstallationInfo(session);
+			if (ii.isInstalled()) {
+				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
+				return FacadeResult.doneResult(getInstallationInfo(session));
+			} else {
+				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+			}
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
 		}
 	}
 
-	public FacadeResult install(Session session) {
+	public FacadeResult<InstallationInfo> install(Session session) {
 		InstallationInfo ii;
 		try {
 			ii = getInstallationInfo(session);
@@ -91,11 +96,11 @@ public class BorgTaskFacade {
 				ii = getInstallationInfo(session);
 				return FacadeResult.doneResult();
 			} else {
-				return FacadeResult.doneResult();
+				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.doneResult();
+			return FacadeResult.unexpectedResult(e);
 		}
 	}
 
@@ -108,35 +113,45 @@ public class BorgTaskFacade {
 		}
 	}
 
-	public RemoteCommandResult initRepo(Session session, String repoPath) throws RunRemoteCommandException {
-		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session,
-				String.format("borg init --encryption=none %s", repoPath));
-		if (rcr.isCommandNotFound()) {
-			return rcr;
-		}
-		if (rcr.getExitValue() != 0) {
-			boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
-					.anyMatch(line -> line.contains("FileNotFoundError"));
-			if (isFileNotFound) {
-				String parentPath = RemotePathUtil.getParentWithEndingSlash(repoPath);
-				rcr = SSHcommonUtil.runRemoteCommand(session, String.format("mkdir -p %s", parentPath));
-				rcr = SSHcommonUtil.runRemoteCommand(session,
-						String.format("borg init --encryption=none %s", repoPath));
+	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
+		try {
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session,
+					String.format("borg init --encryption=none %s", repoPath));
+			if (rcr.isCommandNotFound()) {
+				return FacadeResult.unexpectedResult("command not found.");
 			}
+			if (rcr.getExitValue() != 0) {
+				boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
+						.anyMatch(line -> line.contains("FileNotFoundError"));
+				if (isFileNotFound) {
+					String parentPath = RemotePathUtil.getParentWithEndingSlash(repoPath);
+					rcr = SSHcommonUtil.runRemoteCommand(session, String.format("mkdir -p %s", parentPath));
+					rcr = SSHcommonUtil.runRemoteCommand(session,
+							String.format("borg init --encryption=none %s", repoPath));
+				}
+			}
+			return FacadeResult.doneResult(rcr);
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
 		}
-		return rcr;
 	}
 
 	//@formatter:off
-	public BorgPruneResult pruneRepo(Session session, Box box) throws RunRemoteCommandException {
-		String cmd = String.format("borg prune --list --verbose --prefix %s --show-rc --keep-daily %s --keep-weekly %s --keep-monthly %s %s",
-				box.getBorgBackup().getArchiveNamePrefix(), 7, 4, 6,
-				box.getBorgBackup().getRepo());
-		return new BorgPruneResult(SSHcommonUtil.runRemoteCommand(session, cmd));
+	public FacadeResult<BorgPruneResult> pruneRepo(Session session, Box box) {
+		try {
+			String cmd = String.format("borg prune --list --verbose --prefix %s --show-rc --keep-daily %s --keep-weekly %s --keep-monthly %s %s",
+					box.getBorgBackup().getArchiveNamePrefix(), 7, 4, 6,
+					box.getBorgBackup().getRepo());
+			return FacadeResult.doneResult(new BorgPruneResult(SSHcommonUtil.runRemoteCommand(session, cmd)));
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
 	}
 	
 	//@formatter:off
-	public FacadeResult downloadRepo(Session session, Box box) {
+	public FacadeResult<?> downloadRepo(Session session, Box box) {
 		try {
 			String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", box.getBorgBackup().getRepo());
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, findCmd);
@@ -170,7 +185,10 @@ public class BorgTaskFacade {
 			}
 
 			// delete the files already deleted from remote repo.
-			List<Path> pathes = Files.walk(localRepo).filter(p -> Files.isRegularFile(p)).filter(p -> !fid.fileExists(p)).collect(Collectors.toList());
+			List<Path> pathes = Files.walk(localRepo)
+					.filter(p -> Files.isRegularFile(p))
+					.filter(p -> !fid.fileExists(p))
+					.collect(Collectors.toList());
 			
 			for(Path p : pathes) {
 				Files.delete(p);
@@ -184,32 +202,26 @@ public class BorgTaskFacade {
 	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
-	public RemoteCommandResult archive(Session session, Box box, String archiveNamePrefix)
-			throws RunRemoteCommandException {
-		// Lock lock = TaskLocks.getBoxLock(box.getHost(), TaskLocks.TASK_BORG);
-		BorgBackupDescription borgDescription = box.getBorgBackup();
-		// if (lock.tryLock()) {
-		// try {
-		List<String> cmdparts = new ArrayList<>();
-		cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
-		for (String f : borgDescription.getExcludes()) {
-			cmdparts.add("--exclude");
-			cmdparts.add("'" + f + "'");
+	public FacadeResult<RemoteCommandResult> archive(Session session, Box box, String archiveNamePrefix) {
+		try {
+			BorgBackupDescription borgDescription = box.getBorgBackup();
+			List<String> cmdparts = new ArrayList<>();
+			cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
+			for (String f : borgDescription.getExcludes()) {
+				cmdparts.add("--exclude");
+				cmdparts.add("'" + f + "'");
+			}
+			cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
+					+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
+			for (String f : borgDescription.getIncludes()) {
+				cmdparts.add(f);
+			}
+			String cmd = String.join(" ", cmdparts);
+			return FacadeResult.doneResult(SSHcommonUtil.runRemoteCommand(session, cmd));
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
 		}
-		cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
-				+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
-		for (String f : borgDescription.getIncludes()) {
-			cmdparts.add(f);
-		}
-		String cmd = String.join(" ", cmdparts);
-		return SSHcommonUtil.runRemoteCommand(session, cmd);
-		// } finally {
-		// lock.unlock();
-		// }
-		// } else {
-		// return RemoteCommandResult.failedResult("任务进行中，请稍后再试。");
-		// }
-		// borg create /borg/repos/trepo::Monday /etc
 	}
 
 	@Autowired
@@ -217,13 +229,24 @@ public class BorgTaskFacade {
 		this.appSettings = appSettings;
 	}
 
-	public BorgListResult listArchives(Session session, Box box) throws RunRemoteCommandException {
-		return new BorgListResult(
-				SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo())));
+	public FacadeResult<BorgListResult> listArchives(Session session, Box box) {
+		try {
+			return FacadeResult.doneResult( new BorgListResult(
+					SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo()))));
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
 	}
 
-	public RemoteCommandResult listRepoFiles(Session session, Box box) throws RunRemoteCommandException {
-		return SSHcommonUtil.runRemoteCommand(session, String.format("ls -lR %s", box.getBorgBackup().getRepo()));
+	public FacadeResult<RemoteCommandResult> listRepoFiles(Session session, Box box) {
+		try {
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lR %s", box.getBorgBackup().getRepo()));
+			return FacadeResult.doneResult(rcr);
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
 	}
 
 	@Autowired
