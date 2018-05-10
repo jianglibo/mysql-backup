@@ -77,9 +77,9 @@ public class MysqlUtil {
 				try {
 					expect.sendLine("show variables like '%log_bin%';");
 					List<String> result = expectMysqlPromptAndReturnList();
-					result.stream().filter(line -> line.indexOf(LogBinSetting.LOG_BIN) != -1)
+					result.stream().filter(line -> line.indexOf(LogBinSetting.LOG_BIN_VARIABLE) != -1)
 							.forEach(System.out::println);
-					binmap.put(LogBinSetting.LOG_BIN, getColumnValue(result, LogBinSetting.LOG_BIN, 0, 1));
+					binmap.put(LogBinSetting.LOG_BIN_VARIABLE, getColumnValue(result, LogBinSetting.LOG_BIN_VARIABLE, 0, 1));
 					binmap.put(LogBinSetting.LOG_BIN_BASENAME,
 							getColumnValue(result, LogBinSetting.LOG_BIN_BASENAME, 0, 1));
 					binmap.put(LogBinSetting.LOG_BIN_INDEX, getColumnValue(result, LogBinSetting.LOG_BIN_INDEX, 0, 1));

@@ -8,7 +8,7 @@ public class BlockedPropertiesFileHolder {
 	
 	private List<String> lines;
 	
-	private Pattern blockNamePtn = Pattern.compile(String.format("\\s*\\[%s\\]\\s*", "[^\\[\\]]+"));
+	private Pattern blockNamePtn = Pattern.compile(String.format("\\s*\\[%s\\]\\s*", "([^\\[\\]]+)"));
 
 	public BlockedPropertiesFileHolder(List<String> lines) {
 		super();
@@ -43,33 +43,27 @@ public class BlockedPropertiesFileHolder {
 	public int findBlockPosition(String blockName) {
 		for(int i = 0; i < lines.size(); i++) {
 			String line = lines.get(i);
-			if (line.indexOf(String.format("[%s]", blockName)) != -1) {
+			Matcher m = blockNamePtn.matcher(line);
+			if (m.matches() && blockName.equals(m.group(1))) {
 				return i;
 			}
 		}
 		return -1;
 	}
 	
+	public int findNextBlockPosition(int startPoint) {
+		for(int i = startPoint + 1; i < getLines().size(); i++) {
+			String line = getLines().get(i);
+			if (blockNamePtn.matcher(line).matches()) {
+				return i;
+			}
+		}
+		return getLines().size() - 1;
+	}
+	
 	public ConfigValue getConfigValue(String blockName, String cnfName) {
-		int blkStart = -1, blkEnd = -1;
-		for(int i = 0; i < lines.size(); i++) {
-			String line = lines.get(i);
-			if (line.indexOf(String.format("[%s]", blockName)) != -1) {
-				blkStart = i+1;
-			}
-			
-			if (blkStart != -1) {
-				if (blockNamePtn.matcher(line).matches()) {
-					blkEnd = i;
-				}
-			}
-		}
-		if (blkEnd == -1) {
-			blkEnd = lines.size();
-		}
-		if (blkStart == -1) {
-			return  ConfigValue.getNotExistValue(blockName, cnfName);
-		}
+		int blkStart = findBlockPosition(blockName);
+		int blkEnd = findNextBlockPosition(blkStart);
 		return getConfigValue(blockName, cnfName, blkStart, blkEnd);
 	}
 	

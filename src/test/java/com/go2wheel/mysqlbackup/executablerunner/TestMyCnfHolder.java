@@ -29,9 +29,9 @@ public class TestMyCnfHolder {
 		List<String> lines = Files.readAllLines(fixture);
 		MycnfFileHolder mcf = new MycnfFileHolder(lines);
 
-		ConfigValue cv = mcf.getConfigValue("log-bin");
-		assertThat(cv.getState(), equalTo(ConfigValueState.COMMENT_OUTED));
-		assertThat(cv.getValue(), equalTo("mysql-bin"));
+		ConfigValue cv = mcf.getConfigValue(MycnfFileHolder.MYSQLD_BLOCK, "log-bin");
+		assertThat(cv.getState(), equalTo(ConfigValueState.NOT_EXIST));
+//		assertThat(cv.getValue(), equalTo("mysql-bin"));
 		
 		cv = mcf.getConfigValue("server-id");
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
@@ -41,11 +41,15 @@ public class TestMyCnfHolder {
 		assertThat(cv.getState(), equalTo(ConfigValueState.NOT_EXIST));
 		assertNull(cv.getValue());
 		
+		int linenum = mcf.getLines().size();
+		
 		boolean changed = mcf.enableBinLog();
+		
+		assertThat("should add a new line.", mcf.getLines().size(), equalTo(linenum + 1));
 		
 		assertTrue("should changed", changed);
 		
-		cv = mcf.getConfigValue("log-bin");
+		cv = mcf.getConfigValue(MycnfFileHolder.MYSQLD_BLOCK, "log-bin");
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
 	}
 	
@@ -54,16 +58,16 @@ public class TestMyCnfHolder {
 		List<String> lines = Files.readAllLines(fixtureNoLogBin);
 		MycnfFileHolder mcf = new MycnfFileHolder(lines);
 
-		ConfigValue cv = mcf.getConfigValue("log-bin");
+		ConfigValue cv = mcf.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
 		assertThat(cv.getState(), equalTo(ConfigValueState.NOT_EXIST));
 		
 		boolean changed = mcf.enableBinLog();
 		
 		assertTrue("should changed", changed);
 		
-		cv = mcf.getConfigValue("log-bin");
+		cv = mcf.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
 		assertThat(cv.getState(), equalTo(ConfigValueState.EXIST));
-		assertThat(cv.getValue(), equalTo("mysql-bin"));
+		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
 	}
 
 	

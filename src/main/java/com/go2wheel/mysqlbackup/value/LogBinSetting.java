@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 public class LogBinSetting {
 	
 	// host_name-bin
-	public static final String LOG_BIN = "log_bin";
+	public static final String LOG_BIN_VARIABLE = "log_bin";
 	//	Holds the base name and path for the binary log files, which can be set with the --log-bin server option. In MySQL 5.7, the default base name is the name of the host machine with the suffix -bin. The default location is the data directory.
 	public static final String LOG_BIN_BASENAME = "log_bin_basename";
 	public static final String LOG_BIN_INDEX = "log_bin_index";
@@ -64,7 +64,7 @@ public class LogBinSetting {
 	}
 
 	public boolean isEnabled() {
-		return map.containsKey(LOG_BIN) && "ON".equals(map.get(LOG_BIN));
+		return map.containsKey(LOG_BIN_VARIABLE) && "ON".equals(map.get(LOG_BIN_VARIABLE));
 	}
 	
 }

@@ -46,7 +46,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
 		mfh.enableBinLog();
-		ConfigValue cv = mfh.getConfigValue(LogBinSetting.LOG_BIN);
+		ConfigValue cv = mfh.getConfigValue(LogBinSetting.LOG_BIN_VARIABLE);
 		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
 		assertTrue("mycnf field should be set.", box.getMysqlInstance().getMycnfFile() != null && box.getMysqlInstance().getMycnfFile().length() > 3);
 		
@@ -60,7 +60,7 @@ public class TestMysqlUtil extends SshBaseFort {
 		
 		String s = ScpUtil.from(session, box.getMysqlInstance().getMycnfFile()).toString();
 		mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(s)));
-		cv = mfh.getConfigValue(LogBinSetting.LOG_BIN);
+		cv = mfh.getConfigValue(LogBinSetting.LOG_BIN_VARIABLE);
 		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
 
 		backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
