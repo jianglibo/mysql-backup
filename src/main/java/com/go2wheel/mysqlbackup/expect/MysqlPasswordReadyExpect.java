@@ -18,7 +18,7 @@ import com.jcraft.jsch.Session;
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
 
-public abstract class MysqlPasswordReadyExpect<T> {
+public abstract class MysqlPasswordReadyExpect {
 	
 	public static final String BASH_PROMPT = "]#";
 
@@ -43,7 +43,7 @@ public abstract class MysqlPasswordReadyExpect<T> {
 	}
 	
 	
-	public T start() {
+	public List<String> start() {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {
@@ -79,5 +79,10 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
 	}
 	
-	protected abstract T afterLogin() throws IOException;
+	/**
+	 * May hold multiple command output.  
+	 * @return
+	 * @throws IOException
+	 */
+	protected abstract List<String> afterLogin() throws IOException;
 }

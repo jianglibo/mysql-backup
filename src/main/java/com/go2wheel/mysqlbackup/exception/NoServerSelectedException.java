@@ -1,13 +1,13 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public class DstFolderAlreadyExistException extends RuntimeException {
+public class NoServerSelectedException extends RuntimeException {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public DstFolderAlreadyExistException(String fn) {
+	public NoServerSelectedException(String fn) {
 		super("Copy target " + fn + " already exists!");
 	}
 

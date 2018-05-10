@@ -16,6 +16,7 @@ import javax.script.ScriptException;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 
 public class TestStringUtil {
 	
@@ -29,7 +30,7 @@ public class TestStringUtil {
 	public void tLinuxLsl() {
 		String s = "-rw-r--r--. 1 root root 659238 Apr 27 13:48 /tmp/mysqldump.sql";
 		String k = "-rw-r--r--. 1 root root 659238 Apr 27 14:16 /tmp/mysqldump.sql";
-		Matcher m = StringUtil.LinuxFileInfo.LINUX_LSL_PATTERN.matcher(s);
+		Matcher m = LinuxLsl.LINUX_LSL_PATTERN.matcher(s);
 		s = s.trim();
 		assertTrue(m.matches());
 		assertThat(m.group(1), equalTo("-rw-r--r--."));

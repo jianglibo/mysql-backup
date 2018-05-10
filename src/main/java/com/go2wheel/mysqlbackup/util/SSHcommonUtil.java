@@ -13,11 +13,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
-import com.go2wheel.mysqlbackup.exception.MyCommonException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
@@ -74,25 +73,17 @@ public class SSHcommonUtil {
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
 	
-	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException, CreateDirectoryException {
+	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException, IOException, ScpException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
-			try {
 				Files.createDirectories(localDir);
-			} catch (IOException e) {
-				throw new CreateDirectoryException(e);
-			}
 		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		ScpUtil.from(session, rfile, localTmpFile.toString());
 		String remoteMd5 = getRemoteFileMd5(session, rfile);
 		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
 		if (remoteMd5.equalsIgnoreCase(localMd5)) {
-			try {
-				Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
-			} catch (IOException e) {
-				throw new MyCommonException("atomicmove", e.getMessage());
-			}
+			Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
 		} else {
 			throw new Md5ChecksumException();
 		}

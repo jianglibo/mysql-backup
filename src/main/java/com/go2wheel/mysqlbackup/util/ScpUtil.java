@@ -9,8 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.go2wheel.mysqlbackup.exception.ScpFromException;
-import com.go2wheel.mysqlbackup.exception.ScpToException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
@@ -19,7 +18,7 @@ import com.jcraft.jsch.Session;
 public class ScpUtil {
 
 	protected static void to(Session session, String rfile, InputStream is, long contentLength, String maybeFileName)
-			throws ScpToException {
+			throws ScpException {
 
 		// FileInputStream fis = null;
 
@@ -33,7 +32,7 @@ public class ScpUtil {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile, "ACK error.");
+				throw new ScpException("", rfile, "ACK error.");
 			}
 
 			// File _lfile = new File(lfile);
@@ -59,7 +58,7 @@ public class ScpUtil {
 			out.write(command.getBytes());
 			out.flush();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile, "ACK error.");
+				throw new ScpException("", rfile, "ACK error.");
 			}
 
 			// send a content of lfile
@@ -78,7 +77,7 @@ public class ScpUtil {
 			out.write(buf, 0, 1);
 			out.flush();
 			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpToException("", rfile, "ACK error.");
+				throw new ScpException("", rfile, "ACK error.");
 			}
 			out.close();
 			channel.disconnect();
@@ -88,113 +87,106 @@ public class ScpUtil {
 					is.close();
 			} catch (Exception ee) {
 			}
-			throw new ScpToException("", rfile, e.getMessage());
+			throw new ScpException("", rfile, e.getMessage());
 		}
 	}
 
-	public static void to(Session session, String lfile, String rfile) throws ScpToException {
+	public static void to(Session session, String lfile, String rfile) throws ScpException, IOException {
 		Path lpath = Paths.get(lfile);
-		try {
-			to(session, rfile, Files.newInputStream(lpath), Files.size(lpath), lpath.getFileName().toString());
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		to(session, rfile, Files.newInputStream(lpath), Files.size(lpath), lpath.getFileName().toString());
 	}
 
-	public static void to(Session session, String rfile, byte[] content) throws ScpToException {
+	public static void to(Session session, String rfile, byte[] content) throws ScpException {
 		Path rpath = Paths.get(rfile);
 		to(session, rfile, new ByteArrayInputStream(content), content.length, rpath.getFileName().toString());
 	}
 
-	public static void from(Session session, String rfile, OutputStream os) {
-		try {
-			// exec 'scp -f rfile' remotely
-			String command = "scp -f " + rfile;
-			Channel channel = session.openChannel("exec");
-			((ChannelExec) channel).setCommand(command);
+	public static void from(Session session, String rfile, OutputStream os)
+			throws JSchException, IOException, ScpException {
+		// exec 'scp -f rfile' remotely
+		String command = "scp -f " + rfile;
+		Channel channel = session.openChannel("exec");
+		((ChannelExec) channel).setCommand(command);
 
-			// get I/O streams for remote scp
-			OutputStream out = channel.getOutputStream();
-			InputStream in = channel.getInputStream();
+		// get I/O streams for remote scp
+		OutputStream out = channel.getOutputStream();
+		InputStream in = channel.getInputStream();
 
-			channel.connect();
+		channel.connect();
 
-			byte[] buf = new byte[1024];
+		byte[] buf = new byte[1024];
 
+		// send '\0'
+		buf[0] = 0;
+		out.write(buf, 0, 1);
+		out.flush();
+
+		while (true) {
+			int c = ScpUtil.checkAck(in);
+			if (c != 'C') {
+				break;
+			}
+
+			// read '0644 '
+			in.read(buf, 0, 5);
+
+			long filesize = 0L;
+			while (true) {
+				if (in.read(buf, 0, 1) < 0) {
+					// error
+					break;
+				}
+				if (buf[0] == ' ')
+					break;
+				filesize = filesize * 10L + (long) (buf[0] - '0');
+			}
+
+			@SuppressWarnings("unused")
+			String file = null;
+			for (int i = 0;; i++) {
+				in.read(buf, i, 1);
+				if (buf[i] == (byte) 0x0a) {
+					file = new String(buf, 0, i);
+					break;
+				}
+			}
+			// System.out.println("filesize="+filesize+", file="+file);
 			// send '\0'
 			buf[0] = 0;
 			out.write(buf, 0, 1);
 			out.flush();
 
+			// read a content of lfile
+			// fos = new FileOutputStream(prefix == null ? lfile : prefix + file);
+
+			int foo;
 			while (true) {
-				int c = ScpUtil.checkAck(in);
-				if (c != 'C') {
+				if (buf.length < filesize)
+					foo = buf.length;
+				else
+					foo = (int) filesize;
+				foo = in.read(buf, 0, foo);
+				if (foo < 0) {
+					// error
 					break;
 				}
-
-				// read '0644 '
-				in.read(buf, 0, 5);
-
-				long filesize = 0L;
-				while (true) {
-					if (in.read(buf, 0, 1) < 0) {
-						// error
-						break;
-					}
-					if (buf[0] == ' ')
-						break;
-					filesize = filesize * 10L + (long) (buf[0] - '0');
-				}
-
-				@SuppressWarnings("unused")
-				String file = null;
-				for (int i = 0;; i++) {
-					in.read(buf, i, 1);
-					if (buf[i] == (byte) 0x0a) {
-						file = new String(buf, 0, i);
-						break;
-					}
-				}
-				// System.out.println("filesize="+filesize+", file="+file);
-				// send '\0'
-				buf[0] = 0;
-				out.write(buf, 0, 1);
-				out.flush();
-
-				// read a content of lfile
-				// fos = new FileOutputStream(prefix == null ? lfile : prefix + file);
-
-				int foo;
-				while (true) {
-					if (buf.length < filesize)
-						foo = buf.length;
-					else
-						foo = (int) filesize;
-					foo = in.read(buf, 0, foo);
-					if (foo < 0) {
-						// error
-						break;
-					}
-					os.write(buf, 0, foo);
-					filesize -= foo;
-					if (filesize == 0L)
-						break;
-				}
-				if (ScpUtil.checkAck(in) != 0) {
-					throw new ScpFromException(rfile, "");
-				}
-
-				// send '\0'
-				buf[0] = 0;
-				out.write(buf, 0, 1);
-				out.flush();
+				os.write(buf, 0, foo);
+				filesize -= foo;
+				if (filesize == 0L)
+					break;
 			}
-		} catch (Exception e) {
-			throw new ScpFromException(rfile, "");
+			if (ScpUtil.checkAck(in) != 0) {
+				throw new ScpException(rfile, "", "");
+			}
+
+			// send '\0'
+			buf[0] = 0;
+			out.write(buf, 0, 1);
+			out.flush();
 		}
 	}
 
-	public static Path from(Session session, String rfile, String lfile) {
+	public static Path from(Session session, String rfile, String lfile) throws ScpException {
 		OutputStream os = null;
 		try {
 			Path lpath = Paths.get(lfile);
@@ -212,24 +204,15 @@ public class ScpUtil {
 					os.close();
 			} catch (Exception ee) {
 			}
-			throw new ScpFromException(rfile, lfile);
+			throw new ScpException(rfile, lfile, "");
 		}
 	}
 
-	public static ByteArrayOutputStream from(Session session, String rfile) {
-		ByteArrayOutputStream os = null;
-		try {
-			os = new ByteArrayOutputStream();
-			from(session, rfile, os);
-			return os;
-		} catch (Exception e) {
-			try {
-				if (os != null)
-					os.close();
-			} catch (Exception ee) {
-			}
-			throw new ScpFromException(rfile, "");
-		}
+	public static ByteArrayOutputStream from(Session session, String rfile)
+			throws JSchException, IOException, ScpException {
+		ByteArrayOutputStream os = new ByteArrayOutputStream();
+		from(session, rfile, os);
+		return os;
 	}
 
 	// public static void from(Session session, String rfile, String lfile) {

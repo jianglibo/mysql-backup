@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.expect;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,7 +19,7 @@ import com.jcraft.jsch.Session;
  * @author admin
  *
  */
-public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect<Boolean> {
+public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	
 	private List<String> bf;
 
@@ -33,12 +35,16 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect<Boolean> {
 	}
 
 	@Override
-	protected Boolean afterLogin() throws IOException {
+	protected List<String> afterLogin() throws IOException {
 		String s = expectBashPromptAndReturnRaw(1);
 		if (s.indexOf("Access denied") != -1) {
 			throw new MysqlWrongPasswordException(box.getHost());
 		}
-		return catIndex().size() == bf.size() + 1;
+		List<String> r = new ArrayList<>(Arrays.asList(s));
+		if(catIndex().size() == bf.size() + 1) {
+			r.add("success");
+		}
+		return r;
 	}
 	
 	private List<String> catIndex() throws IOException {

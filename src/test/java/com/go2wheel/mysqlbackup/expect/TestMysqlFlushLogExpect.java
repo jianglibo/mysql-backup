@@ -36,7 +36,7 @@ public class TestMysqlFlushLogExpect extends SshBaseFort {
 		MysqlUtil mysqlUtil = new MysqlUtil();
 		mysqlUtil.setAppSettings(appSettings);
 		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, box);
-		assertTrue(mfe.start());
+		assertTrue(mfe.start().size() == 2);
 	}
 	
 	@Test(expected = MysqlWrongPasswordException.class)
@@ -47,7 +47,7 @@ public class TestMysqlFlushLogExpect extends SshBaseFort {
 		createALocalFile(" ");
 		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, box);
 		
-		assertFalse(mfe.start());
+		assertFalse(mfe.start().size() == 1);
 		
 	}
 

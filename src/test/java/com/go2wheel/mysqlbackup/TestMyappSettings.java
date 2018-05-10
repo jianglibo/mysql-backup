@@ -27,7 +27,7 @@ public class TestMyappSettings {
 		assertNotNull(myAppSettings.getSsh().getKnownHosts());
 		
 		assertThat(env.getProperty("logging.file"), equalTo("log/spring.log"));
-		assertThat(env.getProperty("logging.file.max-size"), equalTo("10KB"));
+		assertThat(env.getProperty("logging.file.max-size"), equalTo("5MB"));
 		assertThat(env.getProperty("logging.file.max-history"), equalTo("100"));
 	}
 

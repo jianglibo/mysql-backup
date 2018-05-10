@@ -12,7 +12,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ScpToException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
@@ -20,7 +20,7 @@ import com.jcraft.jsch.JSchException;
 public class TestScpTo extends SshBaseFort {
 
 	@Test
-	public void scpToFileToFile() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
+	public void scpToFileToFile() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		createALocalFile("abc");
 		String rfile = "/tmp/" + tmpFile.getFileName().toString();
 		String lfile = tmpFile.toAbsolutePath().toString();
@@ -33,7 +33,7 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
-	public void scpToFileToDir() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
+	public void scpToFileToDir() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		createALocalFile("abc");
 		String rfile = "/tmp";
 		String lfile = tmpFile.toAbsolutePath().toString();
@@ -48,18 +48,18 @@ public class TestScpTo extends SshBaseFort {
 	}
 	
 	@Test
-	public void scpToStringToFile() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
+	public void scpToStringToFile() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		String rfile = "/tmp/" + new Random().nextDouble();
 		ScpUtil.to(session, rfile, "abc".getBytes());
 		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
 		
-		assertThat(ScpUtil.from(session, rfile), equalTo("abc"));
+		assertThat(new String(ScpUtil.from(session, rfile).toByteArray()), equalTo("abc"));
 		SSHcommonUtil.deleteRemoteFile(session, rfile);
 	}
 	
 	@Test
-	public void scpToStringToFile1() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
+	public void scpToStringToFile1() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		List<String> ss = new Random().ints(30, 200).limit(10).mapToObj(i -> {
 			return new Random().ints(33, 126).limit(i).mapToObj(j -> (char)j + "").collect(Collectors.joining());
 		}).collect(Collectors.toList());

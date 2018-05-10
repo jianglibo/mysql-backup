@@ -90,12 +90,6 @@ public class TestScheduler {
 		Collections.sort(trknames);
 		expected = Arrays.asList(SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Trigger", SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Trigger_1", SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Trigger_2");
 		assertThat(trknames, equalTo(expected));
-		
-
-//		List<? extends Trigger> jobTriggers = scheduler.getTriggersOfJob(jobKey("Qrtz_Job_Detail"));
-//		
-//		assertThat(jobTriggers.stream().map(s -> s.toString()).collect(Collectors.toList()), hasItems("DEFAULT.Qrtz_Trigger", "DEFAULT.Qrtz_Trigger_1", "DEFAULT.Qrtz_Trigger_2"));
-
 		Thread.sleep(10000);
 		
 		verify(myJobListener, atLeastOnce()).jobToBeExecuted(any());

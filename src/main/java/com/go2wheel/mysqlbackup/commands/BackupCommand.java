@@ -30,9 +30,7 @@ import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
-import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
-import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
-import com.go2wheel.mysqlbackup.exception.MyCommonException;
+import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -40,10 +38,8 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.InstallationInfo;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlDumpResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -108,20 +104,7 @@ public class BackupCommand {
 	@ShellMethod(value = "新建一个服务器.")
 	public String serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
-		if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-			return "该主机已经存在！";
-		}
-		Box box = new Box();
-		box.setHost(host);
-		box.setPort(sshPort);
-		box.setMysqlInstance(new MysqlInstance());
-		try {
-			mysqlUtil.writeDescription(box);
-		} catch (CreateDirectoryException | AtomicWriteFileException e) {
-			return e.getMessage();
-		}
-		return String.format("配置文件：%s已创建在%s目录下 ，请编辑修改参数，请填写你知道的参数即可。", DESCRIPTION_FILENAME,
-				appSettings.getDataRoot().resolve(host));
+		return actionResultToString(mysqlTaskFacade.serverCreate(host, sshPort));
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -167,29 +150,13 @@ public class BackupCommand {
 	public String mysqlEnableLogbin(
 			@ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
 			throws JSchException, IOException {
-		if (!appState.currentBox().isPresent()) {
-			return "请先执行list-server和select-server确定使用哪台服务器。";
-		}
-		try {
-			return mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
-		} catch (CreateDirectoryException | AtomicWriteFileException | RunRemoteCommandException e) {
-			return e.getMessage();
-		}
+		sureBoxSelected();
+		return actionResultToString(mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue));
 	}
 
 	@ShellMethod(value = "安装borg。")
 	public String borgInstall() {
-		try {
-			InstallationInfo ii = borgTaskFacade.install(getSession());
-			if (ii.isInstalled()) {
-				return "Success";
-			} else {
-				return ii.getFailReason();
-			}
-
-		} catch (RunRemoteCommandException e) {
-			return e.getMessage();
-		}
+		return actionResultToString(borgTaskFacade.install(getSession()));
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
@@ -238,20 +205,24 @@ public class BackupCommand {
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			throw new MyCommonException("no selected server", "请先执行list-server和select-server确定使用哪台服务器。");
+			throw new NoServerSelectedException("no selected server");
 		}
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
-	public MysqlDumpResult mysqlDump() throws JSchException, IOException {
+	public String mysqlDump() throws JSchException, IOException {
 		sureBoxSelected();
-		return mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get());
+		return actionResultToString(mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get()));
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public String MysqlFlushLog() {
 		sureBoxSelected();
-		return mysqlTaskFacade.mysqlFlushLogs(getSession(), appState.currentBox().get());
+		return actionResultToString(mysqlTaskFacade.mysqlFlushLogs(getSession(), appState.currentBox().get()));
+	}
+	
+	private String actionResultToString(FacadeResult fr) {
+		return "yes";
 	}
 
 	/**
@@ -262,12 +233,12 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public MysqlDumpResult mysqlRedump(
+	public String mysqlRedump(
 			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "请输入参数值'I know what i am doing.'") String iknow)
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return mysqlTaskFacade.mysqlDump(getSession(), box, true);
+		return actionResultToString(mysqlTaskFacade.mysqlDump(getSession(), box, true));
 	}
 
 	@ShellMethod(value = "显示当前选定服务器的描述文件。")

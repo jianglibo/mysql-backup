@@ -1,18 +1,16 @@
 package com.go2wheel.mysqlbackup.value;
 
-import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
-
 public class MysqlDumpResult {
 	
 	private boolean success;
 	
-	private LinuxFileInfo fi;
+	private LinuxLsl fi;
 	
 	private String reason;
 	
 	private MysqlDumpResult() {}
 	
-	public static MysqlDumpResult successResult(LinuxFileInfo fi) {
+	public static MysqlDumpResult successResult(LinuxLsl fi) {
 		MysqlDumpResult mdr = new MysqlDumpResult();
 		mdr.setSuccess(true);
 		mdr.setFi(fi);
@@ -44,11 +42,11 @@ public class MysqlDumpResult {
 		this.success = success;
 	}
 
-	public LinuxFileInfo getFi() {
+	public LinuxLsl getFi() {
 		return fi;
 	}
 
-	public void setFi(LinuxFileInfo fi) {
+	public void setFi(LinuxLsl fi) {
 		this.fi = fi;
 	}
 

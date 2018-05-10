@@ -12,10 +12,14 @@ public class FileInAdirectory {
 	private List<FileInfo> files = new ArrayList<>();
 	
 	
-	
+	//@formatter:off
 	public FileInAdirectory(RemoteCommandResult rcr) {
 		if (rcr.getExitValue() == 0) {
-			files = rcr.getAllTrimedNotEmptyLines().stream().map(line -> line.split("->", 2)).filter(ss -> ss.length == 2).map(FileInfo::new).collect(Collectors.toList());
+			files = rcr.getAllTrimedNotEmptyLines().stream()
+					.map(line -> line.split("->", 2))
+					.filter(ss -> ss.length == 2)
+					.map(FileInfo::new)
+					.collect(Collectors.toList());
 		}
 	}
 	

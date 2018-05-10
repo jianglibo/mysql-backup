@@ -10,10 +10,8 @@ import java.util.ArrayList;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
-import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ScpToException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
@@ -45,7 +43,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testEnableLogBinOption() throws IOException, JSchException, CreateDirectoryException, AtomicWriteFileException, ScpToException, RunRemoteCommandException {
+	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
 		mfh.enableBinLog();
 		ConfigValue cv = mfh.getConfigValue(LogBinSetting.LOG_BIN);
@@ -75,7 +73,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testMycnf() throws CreateDirectoryException, AtomicWriteFileException, RunRemoteCommandException {
+	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException {
 		String s = mysqlUtil.getEffectiveMyCnf(session, box);
 		assertThat(s, equalTo("/etc/my.cnf"));
 		

@@ -14,7 +14,7 @@ import org.junit.After;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ScpToException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
@@ -33,7 +33,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	
 	
 	@Test
-	public void tWriteRemoteFile() throws IOException, ScpToException {
+	public void tWriteRemoteFile() throws IOException, ScpException, JSchException {
 		String rfn = "/tmp/hello.txt";
 		ScpUtil.to(session, rfn, "abc".getBytes());
 		ScpUtil.to(session, rfn, "abc".getBytes());
@@ -43,7 +43,7 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void tbackupFileExist() throws IOException, JSchException, ScpToException, RunRemoteCommandException {
+	public void tbackupFileExist() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		String rfn = "/tmp/filetobackup.txt";
 		remoteFiles.add(rfn);
 		remoteFiles.add(rfn + ".1");

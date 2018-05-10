@@ -10,13 +10,14 @@ import java.nio.file.Path;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
 
 public class TestScpFrom extends SshBaseFort {
 
 	@Test
-	public void tFromFileToFile() throws IOException, JSchException {
+	public void tFromFileToFile() throws IOException, JSchException, ScpException {
 		String rfile = "/tmp/xx.txt";
 		createAfileOnServer(rfile, "abc");
 		createALocalDir();
@@ -27,7 +28,7 @@ public class TestScpFrom extends SshBaseFort {
 	}
 	
 	@Test
-	public void tFromFileToString() throws IOException, JSchException {
+	public void tFromFileToString() throws IOException, JSchException, ScpException {
 		String rfile = "/tmp/xx.txt";
 		createAfileOnServer(rfile, "abc");
 		String content = ScpUtil.from(session, rfile).toString();

@@ -3,8 +3,6 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -18,18 +16,14 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
-import com.go2wheel.mysqlbackup.exception.CreateDirectoryException;
-import com.go2wheel.mysqlbackup.exception.MyCommonException;
-import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
-import com.go2wheel.mysqlbackup.util.StringUtil.LinuxFileInfo;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -42,7 +36,8 @@ public class MysqlUtil {
 
 	private MyAppSettings appSettings;
 
-	public MycnfFileHolder getMyCnfFile(Session session, Box box) throws CreateDirectoryException, AtomicWriteFileException, RunRemoteCommandException {
+	public MycnfFileHolder getMyCnfFile(Session session, Box box)
+			throws RunRemoteCommandException, IOException, JSchException, ScpException {
 		String cnfFile = box.getMysqlInstance().getMycnfFile();
 		if (!StringUtil.hasAnyNonBlankWord(cnfFile)) {
 			box.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, box));
@@ -60,14 +55,18 @@ public class MysqlUtil {
 	public String getEffectiveMyCnf(Session session, Box box) throws RunRemoteCommandException {
 		String matcherline = ".*Default options are read from the following.*";
 		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, "mysql --help --verbose");
-		Optional<String> possibleFiles =  new Lines(result.getAllTrimedNotEmptyLines()).findMatchAndReturnNextLine(matcherline);
-		List<String> filenames = Stream.of(possibleFiles.get().split("\\s+")).filter(l -> !l.trim().isEmpty()).collect(Collectors.toList());
-		
-		String command =  "ls " + String.join(" ", filenames);
-		return SSHcommonUtil.runRemoteCommand(session, command).getAllTrimedNotEmptyLines().stream().filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
-//		RemoteCommandResult er = ExecutorUtil.runListOfCommands(
-//				Arrays.asList(new MysqlCnfFileLister(session, box), new MyCnfFirstExist(session, box)));
-//		return er.getResult().get(0);
+		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
+				.findMatchAndReturnNextLine(matcherline);
+		List<String> filenames = Stream.of(possibleFiles.get().split("\\s+")).filter(l -> !l.trim().isEmpty())
+				.collect(Collectors.toList());
+
+		String command = "ls " + String.join(" ", filenames);
+		return SSHcommonUtil.runRemoteCommand(session, command).getAllTrimedNotEmptyLines().stream()
+				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
+		// RemoteCommandResult er = ExecutorUtil.runListOfCommands(
+		// Arrays.asList(new MysqlCnfFileLister(session, box), new
+		// MyCnfFirstExist(session, box)));
+		// return er.getResult().get(0);
 	}
 
 	public LogBinSetting getLogbinState(Session session, Box box) throws JSchException, IOException {
@@ -92,23 +91,19 @@ public class MysqlUtil {
 		}.start();
 	}
 
-	public void writeDescription(Box box) throws CreateDirectoryException, AtomicWriteFileException {
+	public void writeDescription(Box box) throws IOException {
 		Path dstFile = null;
 		String ds = YamlInstance.INSTANCE.getYaml().dumpAsMap(box);
 		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			try {
-				Files.createDirectories(dstDir);
-			} catch (IOException e) {
-				throw new CreateDirectoryException(e);
-			}
+			Files.createDirectories(dstDir);
 		}
 		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
 		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
 
 	}
 
-	public void writeBinLog(Session session, Box box, String rfile) throws IOException {
+	public void writeBinLog(Session session, Box box, String rfile) throws IOException, ScpException {
 		Path dstDir = appSettings.getDataRoot().resolve(box.getHost()).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
@@ -116,7 +111,6 @@ public class MysqlUtil {
 		Path dstFile = dstDir.resolve(rfile);
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
-
 
 	// public void writeBinLogIndex(Session session, Box box, List<String> lines)
 	// throws IOException {
@@ -134,33 +128,32 @@ public class MysqlUtil {
 		this.appSettings = appSettings;
 	}
 
-	private Path createTmpFile(String prefix, String postfix) {
-		try {
-			return Files.createTempFile(prefix, postfix);
-		} catch (IOException e) {
-			throw new MyCommonException("tmpfile", e.getMessage());
-		}
-	}
-
-//	public void downloadDumped(Session session, Box box, LinuxFileInfo linuxFileInfo) {
-//		Path hd = appSettings.getDumpDir(box);
-//		Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
-//
-//		Path tmpFile = hd.resolve(name.toString() + ".downloading");
-//		Path dst = hd.resolve(name.toString());
-//
-//		ScpUtil.from(session, linuxFileInfo.getFilename(), tmpFile.toString());
-//
-//		if (!Md5Checksum.getMD5Checksum(tmpFile.toString()).equalsIgnoreCase(linuxFileInfo.getMd5())) {
-//			MysqlDumpException mde = new MysqlDumpException(box, "unmatched md5");
-//			throw mde;
-//		} else {
-//			try {
-//				Files.move(tmpFile, dst, StandardCopyOption.ATOMIC_MOVE);
-//			} catch (IOException e) {
-//				throw new MyCommonException("automicmove", e.getMessage());
-//			}
-//		}
+//	private Path createTmpFile(String prefix, String postfix) {
+//		return Files.createTempFile(prefix, postfix);
 //	}
+
+	// public void downloadDumped(Session session, Box box, LinuxFileInfo
+	// linuxFileInfo) {
+	// Path hd = appSettings.getDumpDir(box);
+	// Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
+	//
+	// Path tmpFile = hd.resolve(name.toString() + ".downloading");
+	// Path dst = hd.resolve(name.toString());
+	//
+	// ScpUtil.from(session, linuxFileInfo.getFilename(), tmpFile.toString());
+	//
+	// if
+	// (!Md5Checksum.getMD5Checksum(tmpFile.toString()).equalsIgnoreCase(linuxFileInfo.getMd5()))
+	// {
+	// MysqlDumpException mde = new MysqlDumpException(box, "unmatched md5");
+	// throw mde;
+	// } else {
+	// try {
+	// Files.move(tmpFile, dst, StandardCopyOption.ATOMIC_MOVE);
+	// } catch (IOException e) {
+	// throw new MyCommonException("automicmove", e.getMessage());
+	// }
+	// }
+	// }
 
 }

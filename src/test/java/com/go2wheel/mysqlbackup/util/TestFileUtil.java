@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -13,9 +12,6 @@ import java.nio.file.StandardCopyOption;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.go2wheel.mysqlbackup.exception.LocalBackupFileException;
-import com.go2wheel.mysqlbackup.exception.LocalFileMoveException;
 
 public class TestFileUtil {
 	
@@ -36,7 +32,7 @@ public class TestFileUtil {
 	}
 	
 	@Test
-	public void tSuccess() throws IOException, LocalFileMoveException {
+	public void tSuccess() throws IOException {
 		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
 		Path dst = dir.getParent().resolve(dir.getFileName().toString() + ".1");
 		
@@ -53,7 +49,7 @@ public class TestFileUtil {
 	}
 	
 	@Test
-	public void tmove() throws IOException, LocalFileMoveException, LocalBackupFileException {
+	public void tmove() throws IOException {
 		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
 		Path dst000 = dir.getParent().resolve(dir.getFileName().toString() + ".000");
 		Path dst001 = dir.getParent().resolve(dir.getFileName().toString() + ".001");
@@ -100,7 +96,7 @@ public class TestFileUtil {
 	}
 	
 	@Test
-	public void tFailed() throws IOException, LocalFileMoveException {
+	public void tFailed() throws IOException {
 		Path f = dir.resolve("a.b.0");
 		Files.write(f, "abc".getBytes());
 		Path dst = dir.getParent().resolve(dir.getFileName().toString() + ".1");

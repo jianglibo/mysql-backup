@@ -7,39 +7,37 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
 
-import com.go2wheel.mysqlbackup.exception.AtomicWriteFileException;
-import com.go2wheel.mysqlbackup.exception.LocalBackupFileException;
-import com.go2wheel.mysqlbackup.exception.LocalFileMoveException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class FileUtil {
+	
+	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
-	public static void moveFilesAllOrNone(Path[]... pairs) throws LocalFileMoveException {
+	public static void moveFilesAllOrNone(Path[]... pairs) throws IOException  {
+		IOException savedEx = null;
 		try {
 			for (Path[] pair : pairs) {
 				Files.move(pair[0], pair[1], StandardCopyOption.ATOMIC_MOVE);
 			}
 		} catch (IOException e) {
-			List<Path> unrecoverFiles = new ArrayList<>();
 			for (Path[] pair : pairs) {
 				if (Files.exists(pair[1])) {
 					if (!Files.exists(pair[0])) {
 						try {
 							Files.move(pair[1], pair[0], StandardCopyOption.ATOMIC_MOVE);
 						} catch (IOException e1) {
-							unrecoverFiles.add(pair[0]);
+							savedEx = e1;
 						}
 					} else {
 						// will not happen.
 					}
 				}
 			}
-			if (unrecoverFiles.size() > 0) {
-				throw new LocalFileMoveException(unrecoverFiles);
+			if (savedEx != null) {
+				throw savedEx;
 			}
-			
 		}
 	}
 
@@ -70,32 +68,32 @@ public class FileUtil {
 		}
 	}
 
-	public static void createNewBackupAndRemoveOrigin(int postfixNumber, Path... files) throws LocalBackupFileException, LocalFileMoveException {
+	public static void createNewBackupAndRemoveOrigin(int postfixNumber, Path... files) throws IOException {
 		int len = files.length;
 		Path[][] pairs = new Path[len][];
+		int idx = 0;
 
 		for (int i = 0; i < len; i++) {
 			Path file = files[i];
 			if (!Files.exists(file)) {
-				throw new LocalBackupFileException(String.format("Source file: '%s' does't exists.", file.toString()));
+				logger.error("Source file: '{}' does't exists.", file.toAbsolutePath().toString());
+				continue;
 			}
 			Path file1 = PathUtil.getNextAvailable(file, postfixNumber);
 			if (Files.exists(file1)) {
-				throw new LocalBackupFileException(String.format("Destnation file: '%s' exists.", file1.toString()));
+				logger.error("Destnation file: '{}' does't exists.", file1.toAbsolutePath().toString());
+				continue;
 			}
-			pairs[i] = new Path[] {file, file1};
+			pairs[idx] = new Path[] {file, file1};
+			idx++;
 		}
 		moveFilesAllOrNone(pairs);
 	}
 	
-	public static void atomicWriteFile(Path dstFile, byte[] content) throws AtomicWriteFileException {
-		try {
+	public static void atomicWriteFile(Path dstFile, byte[] content) throws IOException {
 			String fn = dstFile.getFileName().toString() + ".writing";
 			Path tmpFile = dstFile.getParent().resolve(fn);
 			Files.write(tmpFile, content);
 			Files.move(tmpFile, dstFile, StandardCopyOption.ATOMIC_MOVE);
-		} catch (IOException e) {
-			throw new AtomicWriteFileException(dstFile);
-		}
 	}
 }
