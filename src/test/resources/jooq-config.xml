@@ -93,6 +93,7 @@
 
     <generate>
       <!-- Generation flags: See advanced configuration properties -->
+<!--       <daos>true</daos>  -->
     </generate>
 
     <target>

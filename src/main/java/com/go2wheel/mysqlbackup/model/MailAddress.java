@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.model;
 
 public class MailAddress {
 	
+	private int id;
+	
 	private String email;
 	private String description;
 	
@@ -17,6 +19,12 @@ public class MailAddress {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public int getId() {
+		return id;
+	}
+	public void setId(int id) {
+		this.id = id;
 	}
 	
 	
