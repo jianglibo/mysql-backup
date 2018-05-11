@@ -1,19 +1,23 @@
 package com.go2wheel.mysqlbackup.model;
 
-public class MailAddress extends BaseModel {
+public class ReusableCron extends BaseModel {
+
+	private String expression;
 	
-	private String email;
 	private String description;
-	
-	public String getEmail() {
-		return email;
+
+	public String getExpression() {
+		return expression;
 	}
-	public void setEmail(String email) {
-		this.email = email;
+
+	public void setExpression(String expression) {
+		this.expression = expression;
 	}
+
 	public String getDescription() {
 		return description;
 	}
+
 	public void setDescription(String description) {
 		this.description = description;
 	}

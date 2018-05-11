@@ -1,33 +1,21 @@
 package com.go2wheel.mysqlbackup.repository;
 
 import org.jooq.Configuration;
-import org.jooq.DAO;
-import org.jooq.SQLDialect;
-import org.jooq.TableRecord;
-import org.jooq.conf.Settings;
+import org.jooq.Table;
+import org.jooq.UpdatableRecord;
+import org.jooq.impl.DAOImpl;
 
-public abstract class RepositoryBaseImpl<R extends TableRecord<R>, P, T> implements DAO<R, P, T> {
+import com.go2wheel.mysqlbackup.model.BaseModel;
 
-	@Override
-	public Configuration configuration() {
-		return null;
+public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends BaseModel> extends DAOImpl<R, P, Integer>{
+
+	protected RepositoryBaseImpl(Table<R> table, Class<P> type, Configuration configuration) {
+		super(table, type, configuration);
 	}
-
+	
 	@Override
-	public Settings settings() {
-		return null;
-	}
-
-	@Override
-	public SQLDialect dialect() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public SQLDialect family() {
-		// TODO Auto-generated method stub
-		return null;
+	protected Integer getId(P object) {
+		return object.getId();
 	}
 
 }

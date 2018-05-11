@@ -12,6 +12,7 @@ import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.quartz.CronExpression;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -72,7 +73,7 @@ public class BackupCommand {
 
 	@Autowired
 	private SchedulerTaskFacade schedulerTaskFacade;
-
+	
 	@PostConstruct
 	public void post() {
 
@@ -216,8 +217,20 @@ public class BackupCommand {
 		return actionResultToString(mysqlTaskFacade.mysqlFlushLogs(getSession(), appState.currentBox().get()));
 	}
 	
-	private String actionResultToString(FacadeResult fr) {
+	private String actionResultToString(FacadeResult<?> fr) {
 		return "yes";
+	}
+	
+	
+	@ShellMethod(value = "手动flush Mysql的日志")
+	public String cronExpressionAdd(
+			@ShellOption(help = "") String expression) {
+		try {
+			CronExpression ce = new CronExpression(expression);
+		} catch (ParseException e) {
+			return String.format("Unvalid expression: %s", expression);
+		}
+		return "Added.";
 	}
 
 	/**
@@ -229,7 +242,7 @@ public class BackupCommand {
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public String mysqlRedump(
-			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "请输入参数值'I know what i am doing.'") String iknow)
+			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "@see 'http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html'") String iknow)
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
