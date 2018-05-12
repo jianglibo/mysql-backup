@@ -6,5 +6,7 @@ import com.go2wheel.mysqlbackup.jooqschema.tables.records.MailAddressRecord;
 import com.go2wheel.mysqlbackup.model.MailAddress;
 
 public interface MailAddressRepository extends DAO<MailAddressRecord, MailAddress, Integer>{
+	
+	MailAddress insertAndReturn(MailAddress mailAddress);
 
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import static com.go2wheel.mysqlbackup.jooqschema.tables.MailAddress.*;
+
 import com.go2wheel.mysqlbackup.jooqschema.tables.records.MailAddressRecord;
 import com.go2wheel.mysqlbackup.model.MailAddress;
 
@@ -14,7 +15,14 @@ public class JOOQMailAddressRepository extends RepositoryBaseImpl<MailAddressRec
 
 	@Autowired
 	protected JOOQMailAddressRepository(DSLContext jooq) {
-		super(MAIL_ADDRESS, MailAddress.class, jooq.configuration());
+		super(MAIL_ADDRESS, MailAddress.class, jooq);
+	}
+
+	@Override
+	public MailAddress insertAndReturn(MailAddress mailAddress) {
+		MailAddressRecord mar = jooq.newRecord(MAIL_ADDRESS, mailAddress);
+		mar.store();
+		return mar.into(MailAddress.class);
 	}
 
 }

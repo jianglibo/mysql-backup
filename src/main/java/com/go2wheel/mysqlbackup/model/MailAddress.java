@@ -1,8 +1,14 @@
 package com.go2wheel.mysqlbackup.model;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotNull;
+
 public class MailAddress extends BaseModel {
 	
+	@NotNull
+	@Email
 	private String email;
+	
 	private String description;
 	
 	public String getEmail() {

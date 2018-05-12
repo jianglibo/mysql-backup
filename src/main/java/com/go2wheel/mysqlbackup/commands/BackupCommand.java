@@ -12,7 +12,6 @@ import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
-import org.quartz.CronExpression;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
@@ -33,6 +32,7 @@ import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
+import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -73,6 +73,9 @@ public class BackupCommand {
 
 	@Autowired
 	private SchedulerTaskFacade schedulerTaskFacade;
+	
+	@Autowired
+	private ReusableCronRepository reusableCronRepository;
 	
 	@PostConstruct
 	public void post() {
@@ -224,12 +227,13 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public String cronExpressionAdd(
-			@ShellOption(help = "") String expression) {
-		try {
-			CronExpression ce = new CronExpression(expression);
-		} catch (ParseException e) {
-			return String.format("Unvalid expression: %s", expression);
-		}
+			@ShellOption(help = "cron表达式") String expression,
+			@ShellOption(help = "描述", defaultValue = "") String description) {
+//		try {
+//			reusableCronRepository.insertAfterValidate(new ReusableCron(expression, description));
+//		} catch (ParseException e) {
+//			return String.format("Unvalid expression: %s", expression);
+//		}
 		return "Added.";
 	}
 
