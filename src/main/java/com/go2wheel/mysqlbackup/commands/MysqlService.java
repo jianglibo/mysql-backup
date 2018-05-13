@@ -14,6 +14,8 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
@@ -166,7 +168,12 @@ public class MysqlService {
 			if (lbs != null && lbs.isEnabled()) {
 				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
 			} else {
-				lbs = mysqlUtil.getLogbinState(session, box);
+				try {
+					lbs = mysqlUtil.getLogbinState(session, box);
+				} catch (MysqlNotStartedException e) {
+					mysqlUtil.restartMysql(session);
+					lbs = mysqlUtil.getLogbinState(session, box);
+				}
 				if (lbs.isEnabled()) {
 					box.getMysqlInstance().setLogBinSetting(lbs);
 					mysqlUtil.writeDescription(box);
@@ -187,7 +194,7 @@ public class MysqlService {
 					mysqlUtil.writeDescription(box); // 保存
 				}
 			}
-		} catch (JSchException | IOException | RunRemoteCommandException | ScpException e) {
+		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}

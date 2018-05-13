@@ -12,6 +12,8 @@ import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
@@ -36,7 +38,7 @@ public class TestMysqlUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testMysqlVariable() throws JSchException, IOException {
+	public void testMysqlVariable() throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		LogBinSetting lbs = mysqlUtil.getLogbinState(session, box);
 		assertThat(lbs.getMap().size(), equalTo(3));
 	}
@@ -87,13 +89,13 @@ public class TestMysqlUtil extends SshBaseFort {
 	}
 	
 	@Test
-	public void testVariables() throws JSchException, IOException {
-		Map<String, String> map = mysqlUtil.getVariables(session, box, "datadir");
+	public void testVariables() throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		Map<String, String> map = mysqlUtil.getVariables(session,box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword(), "datadir");
 		assertTrue("contains datadir", map.containsKey("datadir"));
 	}
 	
 	@Test
-	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException {
+	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException {
 		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
 		System.out.println(info);
 	}

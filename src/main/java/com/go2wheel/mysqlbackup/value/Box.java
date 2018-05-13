@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.value;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class Box {
 	
 	public static enum BoxRole {
@@ -65,8 +67,16 @@ public class Box {
 	public String getUsername() {
 		return username;
 	}
+	
+	public String getUsername(String inCaseNotExists) {
+		if (StringUtil.hasAnyNonBlankWord(getUsername())) {
+			return getUsername();
+		} else {
+			return inCaseNotExists;
+		}
+	}
 
-	public void setUsername(String username) {
+	public void setUsername(String username) {;
 		this.username = username;
 	}
 

@@ -11,6 +11,17 @@ public class MailAddress extends BaseModel {
 	
 	private String description;
 	
+	@Override
+	public String toString() {
+		return String.format("[%s, %s]", email, description);
+	}
+	
+	public MailAddress() {}
+	
+	public MailAddress(String email, String description) {
+		this.email = email;
+		this.description = description;
+	}
 	public String getEmail() {
 		return email;
 	}

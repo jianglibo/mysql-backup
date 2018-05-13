@@ -16,6 +16,8 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
@@ -69,9 +71,9 @@ public class MysqlUtil {
 		return SSHcommonUtil.runRemoteCommand(session, command).getAllTrimedNotEmptyLines().stream()
 				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
 	}
-
-	public LogBinSetting getLogbinState(Session session, Box box) throws JSchException, IOException {
-		return new MysqlInteractiveExpect<LogBinSetting>(session, box) {
+	
+	public LogBinSetting getLogbinState(Session session, String username, String password) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return new MysqlInteractiveExpect<LogBinSetting>(session) {
 			@Override
 			protected LogBinSetting afterLogin() {
 				Map<String, String> binmap = new HashMap<>();
@@ -86,11 +88,15 @@ public class MysqlUtil {
 				}
 				return new LogBinSetting(binmap);
 			}
-		}.start();
+		}.start(username, password);
+	}
+
+	public LogBinSetting getLogbinState(Session session, Box box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return getLogbinState(session, box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword());
 	}
 	
-	public Map<String, String> getVariables(Session session, Box box, String...vnames) throws JSchException, IOException {
-		return new MysqlInteractiveExpect<Map<String, String>>(session, box) {
+	public Map<String, String> getVariables(Session session, String username, String password, String...vnames) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return new MysqlInteractiveExpect<Map<String, String>>(session) {
 			@Override
 			protected Map<String, String> afterLogin() {
 				Map<String, String> binmap = new HashMap<>();
@@ -109,7 +115,11 @@ public class MysqlUtil {
 				}
 				return binmap;
 			}
-		}.start();
+		}.start(username, password);
+	}
+	
+	public Map<String, String> getVariables(Session session, Box box, String...vnames) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return getVariables(session, box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword(), vnames);
 	}
 	
 
@@ -143,6 +153,10 @@ public class MysqlUtil {
 		this.appSettings = appSettings;
 	}
 	
+	public boolean tryPassword(Session session, String user, String password) {
+		return false;
+	}
+	
 	public MysqlInstallInfo getInstallInfo(Session session, Box box) throws RunRemoteCommandException, JSchException, IOException {
 		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
 		String cmd = "rpm -qa | grep mysql";
@@ -162,8 +176,7 @@ public class MysqlUtil {
 			mysqlInstallInfo.setMysqlv(rcr.getAllTrimedNotEmptyLines().get(0));
 			rcr = SSHcommonUtil.runRemoteCommand(session, "which mysqld");
 			mysqlInstallInfo.setExecutable(rcr.getAllTrimedNotEmptyLines().get(0));
-			Map<String, String> variables = getVariables(session, box, "datadir");
-			mysqlInstallInfo.setVariables(variables);
+			
 			cmd = String.format("rpm -qf %s", mysqlInstallInfo.getExecutable());
 			rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 			String line = rcr.getAllTrimedNotEmptyLines().get(0);
@@ -172,6 +185,15 @@ public class MysqlUtil {
 			cmd = String.format("rpm -ql %s", mysqlInstallInfo.getPackageName());
 			rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 			mysqlInstallInfo.setRfiles(rcr.getAllTrimedNotEmptyLines());
+			
+			// this command need mysqld to be started, and know the password of the root.
+			Map<String, String> variables = new HashMap<>();
+			try {
+				variables = getVariables(session, box, "datadir");
+				mysqlInstallInfo.setVariables(variables);
+			} catch (MysqlAccessDeniedException | MysqlNotStartedException e) {
+				e.printStackTrace();
+			}
 			
 		}
 		return mysqlInstallInfo;

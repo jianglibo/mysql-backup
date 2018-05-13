@@ -5,6 +5,7 @@ import static net.sf.expectit.matcher.Matchers.contains;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import com.jcraft.jsch.Session;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
+import net.sf.expectit.ExpectIOException;
 
 @Service
 public class MySqlInstaller {
@@ -105,6 +107,13 @@ public class MySqlInstaller {
 					expect.sendLine(command);
 					expect.expect(contains("(enter for none):"));
 					expect.sendLine();
+					
+					try {
+						expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("Access denied"));
+						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在。");
+					} catch (ExpectIOException e) {
+					}
+					
 					expect.expect(contains("[Y/n] "));
 					expect.sendLine("Y");
 					

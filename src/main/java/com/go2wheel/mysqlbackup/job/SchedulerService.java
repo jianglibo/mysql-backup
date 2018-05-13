@@ -17,12 +17,12 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.value.Box;
 
-@Component
-public class SchedulerTaskFacade {
+@Service
+public class SchedulerService {
 	
 	@Autowired
 	private Scheduler scheduler;

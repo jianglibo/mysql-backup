@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class MysqlInstance {
 	
 	private int port = 3306;
@@ -38,6 +40,14 @@ public class MysqlInstance {
 
 	public String getUsername() {
 		return username;
+	}
+	
+	public String getUsername(String inCaseNotExists) {
+		if (StringUtil.hasAnyNonBlankWord(getUsername())) {
+			return getUsername();
+		} else {
+			return inCaseNotExists;
+		}
 	}
 
 	public void setUsername(String username) {

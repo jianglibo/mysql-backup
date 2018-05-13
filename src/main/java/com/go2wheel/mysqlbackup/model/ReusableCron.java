@@ -9,6 +9,11 @@ public class ReusableCron extends BaseModel {
 	
 	private String description;
 	
+	@Override
+	public String toString() {
+		return String.format("[%s, %s]", expression, description);
+	}
+	
 	public ReusableCron() {
 	}
 	

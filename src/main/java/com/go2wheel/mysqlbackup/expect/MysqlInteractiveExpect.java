@@ -4,9 +4,12 @@ import static net.sf.expectit.matcher.Matchers.contains;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -16,20 +19,23 @@ import com.jcraft.jsch.Session;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
+import net.sf.expectit.ExpectIOException;
 
 public abstract class MysqlInteractiveExpect<T> {
 
 	private Session session;
-	private Box box;
 	protected Expect expect;
 	
-	public MysqlInteractiveExpect(Session session, Box box) {
+	public MysqlInteractiveExpect(Session session) {
 		this.session = session;
-		this.box = box;
+	}
+	
+	public T start(Box box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return start(box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword());
 	}
 	
 	
-	public T start() throws JSchException, IOException {
+	public T start(String user, String password) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		Channel channel = session.openChannel("shell");
 		channel.connect();
 
@@ -41,10 +47,24 @@ public abstract class MysqlInteractiveExpect<T> {
 				.withEchoInput(System.err)
 				.withExceptionOnFailure().build();
 		try {
-			String cmd = String.format("mysql -u%s -p", StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"));
+			String cmd = String.format("mysql -u%s -p", user);
 			expect.sendLine(cmd);
 			expect.expect(contains("password: "));
-			expect.sendLine(box.getMysqlInstance().getPassword());
+			expect.sendLine(password);
+			
+			try {
+				expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("Access denied"));
+				throw new MysqlAccessDeniedException();
+			} catch (ExpectIOException e) {
+			}
+			
+			try {
+				expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("ERROR 2002"));
+				throw new MysqlNotStartedException();
+			} catch (ExpectIOException e) {
+				
+			}
+			
 			expect.expect(contains(MysqlUtil.MYSQL_PROMPT));
 			
 			return afterLogin();

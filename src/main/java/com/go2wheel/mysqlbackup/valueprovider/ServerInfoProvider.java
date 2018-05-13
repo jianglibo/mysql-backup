@@ -15,7 +15,7 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
+import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.value.Box;
 
 public class ServerInfoProvider implements ValueProvider {
@@ -24,7 +24,7 @@ public class ServerInfoProvider implements ValueProvider {
 	private ApplicationState applicationState;
 
 	@Autowired
-	private SchedulerTaskFacade schedulerTaskFacade;
+	private SchedulerService schedulerTaskFacade;
 
 	private static final Set<String> paramterNames = new HashSet<>();
 

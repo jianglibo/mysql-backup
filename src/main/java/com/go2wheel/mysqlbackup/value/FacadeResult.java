@@ -30,6 +30,14 @@ public class FacadeResult<T> {
 		return r;
 	}
 	
+	public static <T> FacadeResult<T> unexpectedResult(Exception e, String message) {
+		FacadeResult<T> r = new FacadeResult<>();
+		r.expected = false;
+		r.setMessage(message);
+		r.setException(e);
+		return r;
+	}
+	
 	public static <T> FacadeResult<T> doneResult() {
 		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = true;

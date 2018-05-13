@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -15,6 +16,8 @@ import org.jline.utils.AttributedStyle;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
@@ -31,9 +34,15 @@ import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.job.SchedulerTaskFacade;
-import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
+import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.model.MailAddress;
+import com.go2wheel.mysqlbackup.model.ReusableCron;
+import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
+import com.go2wheel.mysqlbackup.service.MailAddressService;
+import com.go2wheel.mysqlbackup.service.ReusableCronService;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -47,6 +56,8 @@ import com.jcraft.jsch.Session;
 public class BackupCommand {
 
 	public static final String DESCRIPTION_FILENAME = "description.yml";
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private MyAppSettings appSettings;
@@ -72,10 +83,16 @@ public class BackupCommand {
 	private BorgService borgTaskFacade;
 
 	@Autowired
-	private SchedulerTaskFacade schedulerTaskFacade;
+	private SchedulerService schedulerTaskFacade;
 	
 	@Autowired
-	private ReusableCronRepository reusableCronRepository;
+	private ReusableCronService reusableCronService;
+	
+	@Autowired
+	private MailAddressService mailAddressService;
+	
+	@Autowired
+	private MySqlInstaller mySqlInstaller;
 	
 	@PostConstruct
 	public void post() {
@@ -157,11 +174,35 @@ public class BackupCommand {
 	public String borgInstall() {
 		return actionResultToString(borgTaskFacade.install(getSession()));
 	}
+	
+	
+	@ShellMethod(value = "安装MYSQL到目标机器")
+	public String mysqlInstall(
+			@ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion, 
+			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		FacadeResult<?> fr = mySqlInstaller.install(getSession(), box, twoDigitVersion, initPassword);
+		if (!fr.isExpected()) {
+			if (StringUtil.hasAnyNonBlankWord(fr.getMessage())) {
+				return fr.getMessage();
+			} else if (fr.getException() != null) {
+				ExceptionUtil.logErrorException(logger, fr.getException());
+				return fr.getException().getMessage();
+			} else {
+				return "安装失败";
+			}
+		}
+		return "安装成功。";
+	}
+
+	
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
 		sureBoxSelected();
-		return borgTaskFacade.initRepo(getSession(), appState.currentBox().get().getBorgBackup().getRepo()).getResult()
+		Box box = appState.currentBox().get();
+		return borgTaskFacade.initRepo(getSession(),box.getBorgBackup().getRepo()).getResult()
 				.getAllTrimedNotEmptyLines();
 	}
 
@@ -204,7 +245,7 @@ public class BackupCommand {
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			throw new NoServerSelectedException("no selected server");
+			throw new NoServerSelectedException("选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
 
@@ -225,18 +266,33 @@ public class BackupCommand {
 	}
 	
 	
-	@ShellMethod(value = "手动flush Mysql的日志")
+	@ShellMethod(value = "添加常用的CRON表达式")
 	public String cronExpressionAdd(
 			@ShellOption(help = "cron表达式") String expression,
 			@ShellOption(help = "描述", defaultValue = "") String description) {
-//		try {
-//			reusableCronRepository.insertAfterValidate(new ReusableCron(expression, description));
-//		} catch (ParseException e) {
-//			return String.format("Unvalid expression: %s", expression);
-//		}
+		reusableCronService.save(new ReusableCron(expression, description));
 		return "Added.";
 	}
 
+	@ShellMethod(value = "列出常用的CRON表达式")
+	public List<String> cronExpressionList() {
+		return reusableCronService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
+		
+	}
+
+	@ShellMethod(value = "添加通知邮件地址。")
+	public String emailAdd(
+			@ShellOption(help = "email地址") String email,
+			@ShellOption(help = "描述", defaultValue = "") String description) {
+		mailAddressService.save(new MailAddress(email, description));
+		return "Added.";
+	}
+	
+	@ShellMethod(value = "列出通知邮件地址。")
+	public List<String> emailList() {
+		return mailAddressService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
+	}
+	
 	/**
 	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
 	 * 

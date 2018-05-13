@@ -13,6 +13,10 @@ buildscript {
     }
 }
 
+plugins {
+    id "org.flywaydb.flyway" version "5.0.7"
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse-wtp'
 apply plugin: 'org.springframework.boot'
@@ -31,6 +35,13 @@ springBoot {
 
 bootJar {
 	classifier = 'boot'
+}
+
+flyway {
+    url = 'jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true'
+    user = project.ext['flyway.user']
+    password = project.ext['flyway.password']
+    baselineVersion = '1_1'
 }
 
 sourceSets {
