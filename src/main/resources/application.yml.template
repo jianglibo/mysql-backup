@@ -19,6 +19,12 @@ spring:
       initialize-schema: never # always, embeded.
   flyway:
     baseline-version: 1_1
+  mail:
+    host: smtp.qq.com
+    port: 587 #465
+    username: 
+    password: 
+    protocol: smtp
 logging:
   file: log/spring.log
   file.max-size: 5MB
