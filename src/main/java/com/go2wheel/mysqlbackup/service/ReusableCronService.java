@@ -1,25 +1,18 @@
 package com.go2wheel.mysqlbackup.service;
 
-import javax.validation.Valid;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
+import com.go2wheel.mysqlbackup.jooqschema.tables.records.ReuseableCronRecord;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
 
 @Service
 @Validated
-public class ReusableCronService {
+public class ReusableCronService extends ServiceBase<ReuseableCronRecord, ReusableCron> {
 
-	@Autowired
-	private ReusableCronRepository reusableCronRepository;
-	
-	
-	public ReusableCron save(@Valid ReusableCron reusableCron) {
-		return reusableCronRepository.insertAndReturn(reusableCron);
+	public ReusableCronService(ReusableCronRepository reusableCronRepository) {
+		super(reusableCronRepository);
 	}
-	
 	
 }

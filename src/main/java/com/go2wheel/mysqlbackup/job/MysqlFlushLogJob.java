@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.commands.MysqlTaskFacade;
+import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -19,7 +19,7 @@ public class MysqlFlushLogJob implements Job {
 	private ApplicationState applicationState;
 	
 	@Autowired
-	private MysqlTaskFacade mysqlTaskFacade;
+	private MysqlService mysqlTaskFacade;
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;

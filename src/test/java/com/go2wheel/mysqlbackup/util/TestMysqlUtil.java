@@ -1,11 +1,13 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -13,8 +15,11 @@ import org.junit.Test;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
+import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
@@ -80,5 +85,16 @@ public class TestMysqlUtil extends SshBaseFort {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
 		assertTrue(mfh.getLines().size() > 0);
 	}
-
+	
+	@Test
+	public void testVariables() throws JSchException, IOException {
+		Map<String, String> map = mysqlUtil.getVariables(session, box, "datadir");
+		assertTrue("contains datadir", map.containsKey("datadir"));
+	}
+	
+	@Test
+	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException {
+		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
+		System.out.println(info);
+	}
 }

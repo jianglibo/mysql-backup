@@ -12,24 +12,24 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.borg.BorgService.InstallationInfo;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
-import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
 public class TestBorgTaskFacade extends SshBaseFort {
 	
-	private BorgTaskFacade borgTaskFacade;
+	private BorgService borgTaskFacade;
 	
 	@Before
 	public void b() throws IOException, RunRemoteCommandException {
 		super.before();
-		borgTaskFacade = new BorgTaskFacade();
+		borgTaskFacade = new BorgService();
 		borgTaskFacade.setAppSettings(appSettings);
 		FileDownloader fd = new FileDownloader();
 		fd.setAppSettings(appSettings);

@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.jsch;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -17,6 +18,7 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
 public class TestSSHcommonUtil extends SshBaseFort {
@@ -30,7 +32,6 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		}
 		super.after();
 	}
-	
 	
 	@Test
 	public void tWriteRemoteFile() throws IOException, ScpException, JSchException {
@@ -84,6 +85,11 @@ public class TestSSHcommonUtil extends SshBaseFort {
 		boolean b2 = SSHcommonUtil.fileExists(session, "/usr/bin11");
 		assertFalse(b2);
 	}
-
+	
+	@Test
+	public void isExecutable() throws RunRemoteCommandException {
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "kkzx");
+		assertThat(rcr.getExitValue(), greaterThan(0));
+	}
 
 }

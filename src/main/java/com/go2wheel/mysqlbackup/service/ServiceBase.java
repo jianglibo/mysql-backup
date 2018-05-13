@@ -1,0 +1,22 @@
+package com.go2wheel.mysqlbackup.service;
+
+import javax.validation.Valid;
+
+import org.jooq.UpdatableRecord;
+
+import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.repository.RepositoryBase;
+
+public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> {
+	
+	protected RepositoryBase<R, P, Integer> repo;
+	
+	public ServiceBase(RepositoryBase<R, P, Integer> repo) {
+		this.repo = repo;
+	}
+	
+	public P save(@Valid P pojo) {
+		return repo.insertAndReturn(pojo);
+	}
+
+}

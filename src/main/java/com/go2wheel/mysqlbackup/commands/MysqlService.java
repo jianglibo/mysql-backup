@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
@@ -36,8 +36,8 @@ import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-@Component
-public class MysqlTaskFacade {
+@Service
+public class MysqlService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -109,7 +109,7 @@ public class MysqlTaskFacade {
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
-	public FacadeResult mysqlFlushLogs(Session session, Box box) {
+	public FacadeResult<?> mysqlFlushLogs(Session session, Box box) {
 		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
 		List<String> r = mfle.start();
 		if (r.size() == 2) {
@@ -120,7 +120,7 @@ public class MysqlTaskFacade {
 	}
 
 	// @formatter:off
-	public FacadeResult downloadBinLog(Session session, Box box) {
+	public FacadeResult<?> downloadBinLog(Session session, Box box) {
 		try {
 			LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 			String remoteIndexFile = lbs.getLogBinIndex();

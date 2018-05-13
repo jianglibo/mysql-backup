@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
@@ -35,12 +35,11 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileInfo;
-import com.go2wheel.mysqlbackup.value.InstallationInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
-@Component
-public class BorgTaskFacade {
+@Service
+public class BorgService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -252,5 +251,40 @@ public class BorgTaskFacade {
 	@Autowired
 	public void setFileDownloader(FileDownloader fileDownloader) {
 		this.fileDownloader = fileDownloader;
+	}
+	
+	
+	public static class InstallationInfo {
+		
+		private boolean installed;
+		private String executable;
+		private String version;
+		
+		
+		public static InstallationInfo notInstalled() {
+			InstallationInfo ii = new InstallationInfo();
+			ii.setInstalled(false);
+			return ii;
+		}
+		
+		public boolean isInstalled() {
+			return installed;
+		}
+		public void setInstalled(boolean installed) {
+			this.installed = installed;
+		}
+		public String getExecutable() {
+			return executable;
+		}
+		public void setExecutable(String executable) {
+			this.executable = executable;
+		}
+		public String getVersion() {
+			return version;
+		}
+		public void setVersion(String version) {
+			this.version = version;
+		}
+
 	}
 }

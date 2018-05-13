@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
+import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -23,7 +23,7 @@ public class BorgJob implements Job {
 	private ApplicationState applicationState;
 
 	@Autowired
-	private BorgTaskFacade borgTaskFacade;
+	private BorgService borgTaskFacade;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;

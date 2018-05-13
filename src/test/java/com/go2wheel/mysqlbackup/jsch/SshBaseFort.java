@@ -14,6 +14,7 @@ import org.junit.Before;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -44,6 +45,8 @@ public class SshBaseFort {
 	protected Path tmpFile;
 	
 	protected String remoteDemoFile;
+	
+	protected FileDownloader fileDownloader;
 
 	private long startTime;
 
@@ -63,6 +66,9 @@ public class SshBaseFort {
 		}
 		box = UtilForTe.loadDemoBox();
 		session = sshClientFactory.getConnectedSession(box).orElse(null);
+		fileDownloader = new FileDownloader();
+		fileDownloader.setAppSettings(appSettings);
+		fileDownloader.post();
 	}
 
 	@After

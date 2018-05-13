@@ -17,14 +17,4 @@ public class JOOQReusableCronRepository extends RepositoryBaseImpl<ReuseableCron
 	protected JOOQReusableCronRepository(DSLContext jooq) {
 		super(REUSEABLE_CRON, ReusableCron.class, jooq);
 	}
-
-	@Override
-	public ReusableCron insertAndReturn(ReusableCron reusableCron) {
-		ReuseableCronRecord rcr = jooq.newRecord(REUSEABLE_CRON, reusableCron);
-		rcr.store();
-		
-		
-		return reusableCron;
-	}
-
 }

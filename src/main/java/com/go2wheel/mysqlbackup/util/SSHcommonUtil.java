@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
@@ -52,6 +53,22 @@ public class SSHcommonUtil {
 		}
 		if (backed.size() > 0) {
 			deleteRemoteFile(session, bfs.getBackups());
+		}
+	}
+	
+	public static void killProcess(Session session, String psGrep) throws RunRemoteCommandException {
+		String command = String.format("ps -A | grep %s", psGrep);
+		RemoteCommandResult rcr = runRemoteCommand(session, command);
+		if (rcr.getExitValue() == 0) {
+			if (rcr.getAllTrimedNotEmptyLines().size() == 1) {
+				String line = rcr.getAllTrimedNotEmptyLines().get(0);
+				String[] ss = line.split("\\s+");
+				String seg = Stream.of(ss).map(s -> s.trim()).filter(s -> !s.isEmpty()).findFirst().get();
+				if (seg.matches("\\d+")) {
+					command = String.format("kill -n 9 %s", seg);
+					SSHcommonUtil.runRemoteCommand(session, command);
+				}
+			}
 		}
 	}
 

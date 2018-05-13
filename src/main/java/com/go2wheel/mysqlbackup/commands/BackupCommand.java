@@ -27,7 +27,7 @@ import org.springframework.shell.standard.ShellOption;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.borg.BorgTaskFacade;
+import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -61,7 +61,7 @@ public class BackupCommand {
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
-	private MysqlTaskFacade mysqlTaskFacade;
+	private MysqlService mysqlTaskFacade;
 
 	private Session _session;
 
@@ -69,7 +69,7 @@ public class BackupCommand {
 	private Scheduler scheduler;
 
 	@Autowired
-	private BorgTaskFacade borgTaskFacade;
+	private BorgService borgTaskFacade;
 
 	@Autowired
 	private SchedulerTaskFacade schedulerTaskFacade;

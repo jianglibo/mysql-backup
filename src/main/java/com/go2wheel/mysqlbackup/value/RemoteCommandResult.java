@@ -40,6 +40,10 @@ public class RemoteCommandResult {
 		return er;
 	}
 	
+	public boolean isExitValueNotEqZero() {
+		return getExitValue() != 0;
+	}
+	
 	public boolean isCommandNotFound() {
 		return getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found"));
 	}

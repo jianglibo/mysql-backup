@@ -20,7 +20,7 @@ import com.jcraft.jsch.Session;
 public class TestBorgTaskFacadeSpring {
 	
 	@Autowired
-	private BorgTaskFacade borgTaskFacade;
+	private BorgService borgTaskFacade;
 	
 	@Autowired
 	private ApplicationState appState;

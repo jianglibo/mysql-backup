@@ -51,6 +51,11 @@ public class MysqlUtil {
 	public void restartMysql(Session session) throws RunRemoteCommandException {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl restart mysqld");
 	}
+	
+	public void stopMysql(Session session) throws RunRemoteCommandException {
+		SSHcommonUtil.runRemoteCommand(session, "systemctl stop mysqld");
+	}
+
 
 	public String getEffectiveMyCnf(Session session, Box box) throws RunRemoteCommandException {
 		String matcherline = ".*Default options are read from the following.*";
@@ -63,10 +68,6 @@ public class MysqlUtil {
 		String command = "ls " + String.join(" ", filenames);
 		return SSHcommonUtil.runRemoteCommand(session, command).getAllTrimedNotEmptyLines().stream()
 				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
-		// RemoteCommandResult er = ExecutorUtil.runListOfCommands(
-		// Arrays.asList(new MysqlCnfFileLister(session, box), new
-		// MyCnfFirstExist(session, box)));
-		// return er.getResult().get(0);
 	}
 
 	public LogBinSetting getLogbinState(Session session, Box box) throws JSchException, IOException {
@@ -77,8 +78,6 @@ public class MysqlUtil {
 				try {
 					expect.sendLine("show variables like '%log_bin%';");
 					List<String> result = expectMysqlPromptAndReturnList();
-					result.stream().filter(line -> line.indexOf(LogBinSetting.LOG_BIN_VARIABLE) != -1)
-							.forEach(System.out::println);
 					binmap.put(LogBinSetting.LOG_BIN_VARIABLE, getColumnValue(result, LogBinSetting.LOG_BIN_VARIABLE, 0, 1));
 					binmap.put(LogBinSetting.LOG_BIN_BASENAME,
 							getColumnValue(result, LogBinSetting.LOG_BIN_BASENAME, 0, 1));
@@ -86,10 +85,33 @@ public class MysqlUtil {
 				} catch (IOException e) {
 				}
 				return new LogBinSetting(binmap);
-
 			}
 		}.start();
 	}
+	
+	public Map<String, String> getVariables(Session session, Box box, String...vnames) throws JSchException, IOException {
+		return new MysqlInteractiveExpect<Map<String, String>>(session, box) {
+			@Override
+			protected Map<String, String> afterLogin() {
+				Map<String, String> binmap = new HashMap<>();
+				try {
+					expect.sendLine("show variables;");
+					List<String> result = expectMysqlPromptAndReturnList();
+					
+					for(String vname: vnames) {
+						String v = getColumnValue(result, vname, 0, 1);
+						if (!v.isEmpty()) {
+							binmap.put(vname, v);
+						}
+					}
+
+				} catch (IOException e) {
+				}
+				return binmap;
+			}
+		}.start();
+	}
+	
 
 	public void writeDescription(Box box) throws IOException {
 		Path dstFile = null;
@@ -112,13 +134,6 @@ public class MysqlUtil {
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
 
-	// public void writeBinLogIndex(Session session, Box box, List<String> lines)
-	// throws IOException {
-	// Path dstFile = getLogBinDir(box)
-	// .resolve(Paths.get(box.getMysqlInstance().getLogBinSetting().getLogBinIndex()).getFileName());
-	// Files.write(dstFile, String.join("\n", lines).getBytes());
-	// }
-
 	public Path getDescriptionFile(Box instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
 	}
@@ -127,33 +142,96 @@ public class MysqlUtil {
 	public void setAppSettings(MyAppSettings appSettings) {
 		this.appSettings = appSettings;
 	}
+	
+	public MysqlInstallInfo getInstallInfo(Session session, Box box) throws RunRemoteCommandException, JSchException, IOException {
+		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
+		String cmd = "rpm -qa | grep mysql";
+		
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+		Optional<String> resultOp = rcr.getAllTrimedNotEmptyLines().stream().filter(li -> li.contains("community-release")).findAny();
+		if (resultOp.isPresent()) {
+			mysqlInstallInfo.setCommunityRelease(resultOp.get());
+		}
+		
+		rcr = SSHcommonUtil.runRemoteCommand(session, "mysqld -V");
 
-//	private Path createTmpFile(String prefix, String postfix) {
-//		return Files.createTempFile(prefix, postfix);
-//	}
-
-	// public void downloadDumped(Session session, Box box, LinuxFileInfo
-	// linuxFileInfo) {
-	// Path hd = appSettings.getDumpDir(box);
-	// Path name = Paths.get(linuxFileInfo.getFilename()).getFileName();
-	//
-	// Path tmpFile = hd.resolve(name.toString() + ".downloading");
-	// Path dst = hd.resolve(name.toString());
-	//
-	// ScpUtil.from(session, linuxFileInfo.getFilename(), tmpFile.toString());
-	//
-	// if
-	// (!Md5Checksum.getMD5Checksum(tmpFile.toString()).equalsIgnoreCase(linuxFileInfo.getMd5()))
-	// {
-	// MysqlDumpException mde = new MysqlDumpException(box, "unmatched md5");
-	// throw mde;
-	// } else {
-	// try {
-	// Files.move(tmpFile, dst, StandardCopyOption.ATOMIC_MOVE);
-	// } catch (IOException e) {
-	// throw new MyCommonException("automicmove", e.getMessage());
-	// }
-	// }
-	// }
+		if (rcr.isExitValueNotEqZero()) {
+			mysqlInstallInfo.setInstalled(false);
+		} else {
+			mysqlInstallInfo.setInstalled(true);
+			mysqlInstallInfo.setMysqlv(rcr.getAllTrimedNotEmptyLines().get(0));
+			rcr = SSHcommonUtil.runRemoteCommand(session, "which mysqld");
+			mysqlInstallInfo.setExecutable(rcr.getAllTrimedNotEmptyLines().get(0));
+			Map<String, String> variables = getVariables(session, box, "datadir");
+			mysqlInstallInfo.setVariables(variables);
+			cmd = String.format("rpm -qf %s", mysqlInstallInfo.getExecutable());
+			rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+			String line = rcr.getAllTrimedNotEmptyLines().get(0);
+			mysqlInstallInfo.setPackageName(line);
+			
+			cmd = String.format("rpm -ql %s", mysqlInstallInfo.getPackageName());
+			rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+			mysqlInstallInfo.setRfiles(rcr.getAllTrimedNotEmptyLines());
+			
+		}
+		return mysqlInstallInfo;
+	}
+	
+	public static class MysqlInstallInfo {
+		private boolean installed;
+		
+		private String executable;
+		
+		private String packageName;
+		
+		private String communityRelease;
+		
+		private List<String> rfiles;
+		private String mysqlv;
+		private Map<String, String> variables;
+		
+		public List<String> getRfiles() {
+			return rfiles;
+		}
+		public void setRfiles(List<String> rfiles) {
+			this.rfiles = rfiles;
+		}
+		public String getMysqlv() {
+			return mysqlv;
+		}
+		public void setMysqlv(String mysqlv) {
+			this.mysqlv = mysqlv;
+		}
+		public Map<String, String> getVariables() {
+			return variables;
+		}
+		public void setVariables(Map<String, String> variables) {
+			this.variables = variables;
+		}
+		public boolean isInstalled() {
+			return installed;
+		}
+		public void setInstalled(boolean installed) {
+			this.installed = installed;
+		}
+		public String getExecutable() {
+			return executable;
+		}
+		public void setExecutable(String executable) {
+			this.executable = executable;
+		}
+		public String getPackageName() {
+			return packageName;
+		}
+		public void setPackageName(String packageName) {
+			this.packageName = packageName;
+		}
+		public String getCommunityRelease() {
+			return communityRelease;
+		}
+		public void setCommunityRelease(String communityRelease) {
+			this.communityRelease = communityRelease;
+		}
+	}
 
 }
