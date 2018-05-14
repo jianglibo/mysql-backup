@@ -4,6 +4,8 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class MysqlInstance {
 	
+	public static final String VAR_DATADIR = "datadir";
+	
 	private int port = 3306;
 	private String username;
 	private String password;

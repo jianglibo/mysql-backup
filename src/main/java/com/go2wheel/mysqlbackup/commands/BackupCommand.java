@@ -196,7 +196,14 @@ public class BackupCommand {
 		return "安装成功。";
 	}
 
-	
+	@ShellMethod(value = "卸载目标机器的MYSQL")
+	public String mysqlUninstall(
+			@Pattern(regexp = "I know what i am doing\\.") String iknow,
+			boolean removeDataDir) {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		return mySqlInstaller.unInstall(getSession(), box, removeDataDir).getMixedMessage();
+	}
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
@@ -302,7 +309,7 @@ public class BackupCommand {
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public String mysqlRedump(
-			@Pattern(regexp = "I know what i am doing\\.") @ShellOption(help = "@see 'http://www.quartz-scheduler.org/documentation/quartz-2.x/tutorials/crontrigger.html'") String iknow)
+			@Pattern(regexp = "I know what i am doing\\.") String iknow)
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();

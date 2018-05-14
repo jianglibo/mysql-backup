@@ -25,6 +25,7 @@ import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
@@ -189,7 +190,7 @@ public class MysqlUtil {
 			// this command need mysqld to be started, and know the password of the root.
 			Map<String, String> variables = new HashMap<>();
 			try {
-				variables = getVariables(session, box, "datadir");
+				variables = getVariables(session, box, MysqlInstance.VAR_DATADIR);
 				mysqlInstallInfo.setVariables(variables);
 			} catch (MysqlAccessDeniedException | MysqlNotStartedException e) {
 				e.printStackTrace();

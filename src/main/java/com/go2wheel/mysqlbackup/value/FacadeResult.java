@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class FacadeResult<T> {
 	
 	private boolean expected;
@@ -14,6 +16,36 @@ public class FacadeResult<T> {
 	
 	public static enum CommonActionResult {
 		PREVIOUSLY_DONE, DONE
+	}
+	
+	public String getMixedMessage() {
+		StringBuffer sb = new StringBuffer();
+		if (isExpected()) {
+			if (result != null) {
+				sb.append(result.toString());
+			}
+			
+			if (commonActionResult != null) {
+				switch (commonActionResult) {
+				case PREVIOUSLY_DONE:
+					sb.append("发现任务已经完成， 什么都没做。");
+					break;
+				case DONE:
+					sb.append("任务完成。");
+				default:
+					break;
+				}
+			}
+			
+		} else {
+			if (exception != null) {
+				sb.append(exception.getMessage()).append(", ");
+			}
+			if(StringUtil.hasAnyNonBlankWord(message)) {
+				sb.append(message).append(", ");
+			}
+		}
+		return sb.toString();
 	}
 	
 	public static <T> FacadeResult<T> unexpectedResult(Exception e) {
