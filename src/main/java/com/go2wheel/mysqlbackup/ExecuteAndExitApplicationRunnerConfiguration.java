@@ -25,10 +25,10 @@ public class ExecuteAndExitApplicationRunnerConfiguration {
 	@Autowired
 	private Shell shell;
 
-	@Bean
-	public CommandLineRunner exampleCommandLineRunner(ConfigurableEnvironment environment) {
-		return new CopyProjectCommandLineRunner(shell, environment);
-	}
+//	@Bean
+//	public CommandLineRunner exampleCommandLineRunner(ConfigurableEnvironment environment) {
+//		return new CopyProjectCommandLineRunner(shell, environment);
+//	}
 
 	@Bean
 	public ExitCodeExceptionMapper exitCodeExceptionMapper() {
@@ -47,29 +47,29 @@ public class ExecuteAndExitApplicationRunnerConfiguration {
  * this particular example, any program (process) arguments are assumed to be shell
  * commands that need to be executed (and the shell then quits).
  */
-@Order(InteractiveShellApplicationRunnerMine.PRECEDENCE - 2)
-class CopyProjectCommandLineRunner implements CommandLineRunner {
-
-	private Shell shell;
-
-	private final ConfigurableEnvironment environment;
-
-	public CopyProjectCommandLineRunner(Shell shell, ConfigurableEnvironment environment) {
-		this.shell = shell;
-		this.environment = environment;
-	}
-
-	@Override
-	public void run(String... args) throws Exception {
-		List<String> commandsToRun = Arrays.stream(args)
-				.filter(w -> !w.startsWith("@"))
-				.collect(Collectors.toList());
-		if (!commandsToRun.isEmpty()) {
-			InteractiveShellApplicationRunnerMine.disable(environment);
-			shell.run(new StringInputProvider(commandsToRun));
-		}
-	}
-}
+//@Order(InteractiveShellApplicationRunnerMine.PRECEDENCE - 2)
+//class CopyProjectCommandLineRunner implements CommandLineRunner {
+//
+//	private Shell shell;
+//
+//	private final ConfigurableEnvironment environment;
+//
+//	public CopyProjectCommandLineRunner(Shell shell, ConfigurableEnvironment environment) {
+//		this.shell = shell;
+//		this.environment = environment;
+//	}
+//
+//	@Override
+//	public void run(String... args) throws Exception {
+//		List<String> commandsToRun = Arrays.stream(args)
+//				.filter(w -> !w.startsWith("@"))
+//				.collect(Collectors.toList());
+//		if (!commandsToRun.isEmpty()) {
+//			InteractiveShellApplicationRunnerMine.disable(environment);
+//			shell.run(new StringInputProvider(commandsToRun));
+//		}
+//	}
+//}
 
 class StringInputProvider implements InputProvider {
 

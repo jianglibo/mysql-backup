@@ -42,7 +42,6 @@ public class ApplicationState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
 	}
 	
-	@PostConstruct
 	public void post() throws IOException {
 		servers = Files.list(appSettings.getDataRoot()).filter(Files::isDirectory).map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME)).map(p -> {
 			try {
@@ -53,7 +52,14 @@ public class ApplicationState {
 		}).filter(Objects::nonNull).collect(Collectors.toList());
 	}
 	
-	public List<Box> getServers() {
+	public synchronized List<Box> getServers() {
+		if (servers.isEmpty()) {
+			try {
+				post();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return servers;
 	}
 

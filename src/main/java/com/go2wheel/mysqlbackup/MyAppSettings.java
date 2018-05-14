@@ -7,16 +7,21 @@ import java.nio.file.Paths;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
 import com.go2wheel.mysqlbackup.util.PathUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @ConfigurationProperties(prefix = "myapp")
 @Component
 public class MyAppSettings {
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private SshConfig ssh;
 	
@@ -30,7 +35,7 @@ public class MyAppSettings {
 	
 	@PostConstruct
 	public void post() throws IOException {
-		if (this.dataDir == null) {
+		if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
 			this.dataDir = "boxes";
 		}
 		Path tmp = Paths.get(this.dataDir);
@@ -42,6 +47,8 @@ public class MyAppSettings {
 		}
 		this.dataRoot = tmp;
 		
+		logger.info("dataRoot: {}", this.dataRoot);
+		
 		tmp = Paths.get(this.downloadFolder);
 		if (!tmp.isAbsolute()) {
 			tmp = PathUtil.getJarLocation().get().resolve(this.downloadFolder);
@@ -50,6 +57,8 @@ public class MyAppSettings {
 			Files.createDirectories(tmp);
 		}
 		this.downloadRoot = tmp;
+		
+		logger.info("downloadRoot: {}", this.downloadRoot);
 
 	}
 	
