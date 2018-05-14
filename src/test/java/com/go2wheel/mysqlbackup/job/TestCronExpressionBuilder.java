@@ -16,12 +16,12 @@ public class TestCronExpressionBuilder {
 		
 		
 		ceb = new CronExpressionBuilder();
-		s = ceb.dayOfMonth(1).build();
+		s = ceb.dayOfMonths(1).build();
 		assertThat(s, equalTo("0 0 0 1 * ?"));
 		
 		
 		ceb = new CronExpressionBuilder();
-		s = ceb.dayOfWeek(1).build();
+		s = ceb.dayOfWeeks(1).build();
 		assertThat(s, equalTo("0 0 0 ? * 1"));
 		
 	}

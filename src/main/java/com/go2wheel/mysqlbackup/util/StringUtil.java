@@ -12,6 +12,8 @@ public class StringUtil {
 	
 	public static String NEWLINE_PTN = "[\\r\\n]+";
 	
+	public static Pattern ALL_DIGITS_PTN = Pattern.compile("^\\d+$");
+	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
 	}

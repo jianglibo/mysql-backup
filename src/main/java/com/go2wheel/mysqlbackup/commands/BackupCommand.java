@@ -32,8 +32,11 @@ import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
+import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.MailAddress;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
@@ -280,6 +283,46 @@ public class BackupCommand {
 		reusableCronService.save(new ReusableCron(expression, description));
 		return "Added.";
 	}
+
+	@ShellMethod(value = "构建CRON表达式")
+	public String cronExpressionBuild(
+			@ShellOption(help = "支持的格式示例：1 或者 1,8,10 或者 5-25 或者 5/15(从5开始以15递增。)", defaultValue="0") String second,
+			@ShellOption(help = "格式同second参数，范围0-59", defaultValue = "0") String minute,
+			@ShellOption(help = "格式同second参数，范围0-23", defaultValue = "0") String hour,
+			@ShellOption(help = "格式同second参数，范围1-31", defaultValue = "?") String dayOfMonth,
+			@ShellOption(help = "格式同second参数，范围1-12", defaultValue = "*") String month,
+			@ShellOption(help = "格式同second参数，范围1-7，其中1是周六。", defaultValue="*") String dayOfWeek,
+			@ShellOption(help = "空白或者1970-2099", defaultValue = "") String year) {
+		
+		CronExpressionBuilder ceb = new CronExpressionBuilder();
+		try {
+			
+			CronExpressionBuilder.validCronField(CronExpressionField.SECOND, second);
+			ceb.second(second);
+			
+			CronExpressionBuilder.validCronField(CronExpressionField.MINUTE, minute);
+			ceb.minute(minute);
+
+			CronExpressionBuilder.validCronField(CronExpressionField.HOUR, hour);
+			ceb.hour(hour);
+
+			CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_MONTH, dayOfMonth);
+			ceb.dayOfMonth(dayOfMonth);
+
+			CronExpressionBuilder.validCronField(CronExpressionField.MONTH, month);
+			ceb.month(month);
+
+			CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_WEEK, dayOfWeek);
+			ceb.dayOfWeek(dayOfWeek);
+			CronExpressionBuilder.validCronField(CronExpressionField.YEAR, year);
+			ceb.year(year);
+
+			return ceb.build();
+		} catch (InvalidCronExpressionFieldException e) {
+			return e.getMessage();
+		}
+	}
+
 
 	@ShellMethod(value = "列出常用的CRON表达式")
 	public List<String> cronExpressionList() {

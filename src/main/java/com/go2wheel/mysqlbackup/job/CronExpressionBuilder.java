@@ -1,11 +1,18 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class CronExpressionBuilder {
+	
+	public static enum CronExpressionField {
+		SECOND, MINUTE, HOUR, DAY_OF_MONTH, MONTH, DAY_OF_WEEK, YEAR
+	}
 
 	private String second;
 
@@ -53,78 +60,73 @@ public class CronExpressionBuilder {
 		if (!StringUtil.hasAnyNonBlankWord(year)) {
 			year = "";
 		}
-
 		
 		return String.format("%s %s %s %s %s %s %s", second, minute, hour, dayOfMonth, month, dayOfWeek, year).trim();
 	}
 	
-	CronExpressionBuilder second(int second) { //0-59
-		this.second = second + "";
+	public CronExpressionBuilder second(String second) {
+		this.second = second;
 		return this;
 	}
 	
-	CronExpressionBuilder seconds(int...seconds) { //0-59
+	public CronExpressionBuilder seconds(int...seconds) { //0-59
 		this.second = String.join(",", IntStream.of(seconds).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder secondRange(int start, int end) { //0-59
+	public CronExpressionBuilder secondRange(int start, int end) { //0-59
 		this.second = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder secondIncreament(int start, int increament) { //0-59
+	public CronExpressionBuilder secondIncreament(int start, int increament) { //0-59
 		this.second = start + "/" + increament;
 		return this;
 	}
 	
-	CronExpressionBuilder minute(int minute) { //0-59
-		this.minute = minute + "";
+	public CronExpressionBuilder minute(String minute) {
+		this.minute = minute;
 		return this;
 	}
+
 	
-	CronExpressionBuilder minutes(int...minutes) { //0-59
+	public CronExpressionBuilder minutes(int...minutes) { //0-59
 		this.minute = String.join(",", IntStream.of(minutes).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder minuteRange(int start, int end) { //0-59
+	public CronExpressionBuilder minuteRange(int start, int end) { //0-59
 		this.minute = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder minuteIncreament(int start, int increament) { //0-59
+	public CronExpressionBuilder minuteIncreament(int start, int increament) { //0-59
 		this.minute = start + "/" + increament;
 		return this;
 	}
-	
-	CronExpressionBuilder hour(int hour) { //0-23
-		this.hour = hour + "";
+
+	public CronExpressionBuilder hour(String hour) { 
+		this.hour = hour;
 		return this;
 	}
 	
-	CronExpressionBuilder hours(int...hours) { 
+	public CronExpressionBuilder hours(int...hours) { 
 		this.hour = String.join(",", IntStream.of(hours).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder hourRange(int start, int end) {
+	public CronExpressionBuilder hourRange(int start, int end) {
 		this.hour = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder hourIncreament(int start, int increament) {
+	public CronExpressionBuilder hourIncreament(int start, int increament) {
 		this.hour = start + "/" + increament;
 		return this;
 	}
 	
 	
-	CronExpressionBuilder dayOfMonth(int dayOfMonth) { // 1- 31
-		this.dayOfMonth = dayOfMonth + "";
-		return this;
-	}
-	
-	CronExpressionBuilder lastNdayOfMonth(int offsetToLast) { // 1- 31
+	public CronExpressionBuilder lastNdayOfMonth(int offsetToLast) { // 1- 31
 		if (offsetToLast == 0) {
 			this.dayOfMonth = "L";
 		} else {
@@ -132,80 +134,167 @@ public class CronExpressionBuilder {
 		}
 		return this;
 	}
-
 	
+	public CronExpressionBuilder dayOfMonth(String dayOfMonth) { 
+		this.dayOfMonth = dayOfMonth;
+		return this;
+	}
 	
-	CronExpressionBuilder dayOfMonths(int...dayOfMonths) { 
+	public CronExpressionBuilder dayOfMonths(int...dayOfMonths) { 
 		this.dayOfMonth = String.join(",", IntStream.of(dayOfMonths).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder dayOfMonthRange(int start, int end) {
+	public CronExpressionBuilder dayOfMonthRange(int start, int end) {
 		this.dayOfMonth = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder dayOfMonthIncreament(int start, int increament) {
+	public CronExpressionBuilder dayOfMonthIncreament(int start, int increament) {
 		this.dayOfMonth = start + "/" + increament;
 		return this;
 	}
 	
-	
-	CronExpressionBuilder month(int month) { // 1-12 or JAN-DEC
-		this.month = month + "";
+	public CronExpressionBuilder month(String month) { 
+		this.month = month;
 		return this;
 	}
 	
-	CronExpressionBuilder months(int...months) { 
+	public CronExpressionBuilder months(int...months) { 
 		this.month = String.join(",", IntStream.of(months).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder monthRange(int start, int end) {
+	public CronExpressionBuilder monthRange(int start, int end) {
 		this.month = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder monthIncreament(int start, int increament) {
+	public CronExpressionBuilder monthIncreament(int start, int increament) {
 		this.month = start + "/" + increament;
 		return this;
 	}
 	
-	
-	
-	CronExpressionBuilder dayOfWeek(int dayOfWeek) { //1-7 or SUN-SAT
-		this.dayOfWeek = dayOfWeek + "";
+	public CronExpressionBuilder dayOfWeek(String dayOfWeek) { 
+		this.dayOfWeek = dayOfWeek;
 		return this;
 	}
+
 	
-	CronExpressionBuilder dayOfWeeks(int...dayOfWeeks) { 
+	public CronExpressionBuilder dayOfWeeks(int...dayOfWeeks) { 
 		this.dayOfWeek = String.join(",", IntStream.of(dayOfWeeks).mapToObj(i -> i + "").collect(Collectors.toList()));
 		return this;
 	}
 	
-	CronExpressionBuilder dayOfWeekRange(int start, int end) {
+	public CronExpressionBuilder dayOfWeekRange(int start, int end) {
 		this.dayOfWeek = start + "-" + end;
 		return this;
 	}
 	
-	CronExpressionBuilder dayOfWeekIncreament(int start, int increament) {
+	public CronExpressionBuilder dayOfWeekIncreament(int start, int increament) {
 		this.dayOfWeek = start + "/" + increament;
 		return this;
 	}
 	
-	CronExpressionBuilder lastDayOfWeekInMonth(int dayOfWeek) {
+	public CronExpressionBuilder lastDayOfWeekInMonth(int dayOfWeek) {
 		this.dayOfWeek =  dayOfWeek + "L";
 		return this;
 	}
 	
-	CronExpressionBuilder dayOfWeekInMonth(int dayOfWeek, int whichWeekInMonth) {
+	public CronExpressionBuilder dayOfWeekInMonth(int dayOfWeek, int whichWeekInMonth) {
 		this.dayOfWeek =  dayOfWeek + "#" + whichWeekInMonth;
 		return this;
 	}
 	
-	CronExpressionBuilder year(String year) { //empty, 1970-2099
+	public CronExpressionBuilder year(String year) { //empty, 1970-2099
 		this.year = year;
 		return this;
+	}
+	
+	
+	public static void validCronField(CronExpressionField cef, String fieldValue) throws InvalidCronExpressionFieldException {
+		int startLimit = 0, endLimit = 0;
+		InvalidCronExpressionFieldException e = new InvalidCronExpressionFieldException(cef, fieldValue);
+		switch (cef) {
+		case SECOND:
+			startLimit = 0;
+			endLimit = 59;
+			if ("*".equals(fieldValue)) return;
+			break;
+		case MINUTE:
+			startLimit = 0;
+			endLimit = 59;
+			if ("*".equals(fieldValue)) return;
+			break;
+		case HOUR:
+			startLimit = 0;
+			endLimit = 23;
+			if ("*".equals(fieldValue)) return;
+			break;
+		case DAY_OF_MONTH:
+			startLimit = 1;
+			endLimit = 31;
+			if ("*".equals(fieldValue) || "?".equals(fieldValue)) return;
+			break;
+		case MONTH:
+			startLimit = 1;
+			endLimit = 12;
+			if ("*".equals(fieldValue)) return;
+			break;
+		case DAY_OF_WEEK:
+			startLimit = 1;
+			endLimit = 7;
+			if ("*".equals(fieldValue)  || "?".equals(fieldValue)) return;
+			break;
+		case YEAR:
+			startLimit = 1970;
+			endLimit = 2099;
+			if ("*".equals(fieldValue)) return;
+			break;
+		default:
+			break;
+		}
+		final int startFinal = startLimit;
+		final int endFinal = endLimit;
+		
+		Matcher m = StringUtil.ALL_DIGITS_PTN.matcher(fieldValue);
+		if (m.matches()) {
+			int v = Integer.valueOf(fieldValue);
+			if (v < startFinal && v > endFinal) {
+				throw e;
+			}
+		} else if (fieldValue.indexOf(',') != -1) {
+			try {
+				boolean b = Stream.of(fieldValue.split(",")).map(Integer::valueOf).anyMatch(i -> i < startFinal || i > endFinal);
+				if (b) {
+					throw e;
+				}
+			} catch (Exception e1) {
+				throw e;
+			}
+		} else if (fieldValue.indexOf('-') != -1) {
+			String[] ss = fieldValue.split("-");
+			if (ss.length != 2) {
+				throw e;
+			} else {
+				int start = Integer.valueOf(ss[0]);
+				int end = Integer.valueOf(ss[1]);
+				if (start < startFinal || end > endFinal || end <= start) {
+					throw e;
+				}
+			}
+		} else if (fieldValue.indexOf('/') != -1) {
+			String[] ss = fieldValue.split("/");
+			if (ss.length != 2) {
+				throw e;
+			} else {
+				int start = Integer.valueOf(ss[0]);
+				int increament = Integer.valueOf(ss[1]);
+				if (start < startFinal || increament > endFinal || increament < 2) {
+					throw e;
+				}
+			}
+		}
 	}
 
 }
