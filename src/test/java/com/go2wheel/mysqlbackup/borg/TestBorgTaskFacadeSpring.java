@@ -1,11 +1,14 @@
 package com.go2wheel.mysqlbackup.borg;
 
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
@@ -26,6 +29,9 @@ public class TestBorgTaskFacadeSpring {
 	private ApplicationState appState;
 	
 	@Autowired
+	private Environment environment;
+	
+	@Autowired
 	private SshSessionFactory sshSessionFactory;
 	
 	@Test
@@ -33,6 +39,12 @@ public class TestBorgTaskFacadeSpring {
 		Box box = UtilForTe.loadDemoBox();
 		Session session = sshSessionFactory.getConnectedSession(box).get();
 		borgTaskFacade.archive(session, box, "");
+	}
+	
+	@Test
+	public void tProfile() {
+		String[] ss = environment.getActiveProfiles();
+		assertTrue(ss.length > 0);
 	}
 
 }

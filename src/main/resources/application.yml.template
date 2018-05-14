@@ -1,3 +1,5 @@
+spring.profiles: prod
+spring.profiles.active: dev
 spring:
   shell:
     interactive:
@@ -25,6 +27,9 @@ spring:
     username: 
     password: 
     protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      #mail.smtp.starttls.enable: true
 logging:
   file: log/spring.log
   file.max-size: 5MB
@@ -40,14 +45,56 @@ myapp:
   dataDir: boxes
   downloadFolder: notingit
   ssh:
-    sshIdrsa: D:/cygwin64/home/admin/.ssh/id_rsa
-    knownHosts: D:/cygwin64/home/admin/.ssh/known_hosts
+    sshIdrsa: C:/cygwin64/home/AIR/.ssh/id_rsa
+    knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
 using.spring.schedulerFactory: true
 ---
+spring.profiles: dev
 spring:
-    profiles: dev
+  shell:
+    interactive:
+      enabled: true
+    script:
+      enabled: true
+  datasource:
+    url: jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true
+    username: sa
+    password:
+    driver-class-name: org.hsqldb.jdbc.JDBCDriver
+    validation-query: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+    test-on-borrow: true
+  jooq:
+    sql-dialect: HSQLDB
+  quartz:
+    job-store-type: memory # jdbc, memory
+    jdbc:
+      initialize-schema: never # always, embeded.
+  flyway:
+    baseline-version: 1_1
+  mail:
+    host: smtp.qq.com
+    port: 587 #465
+    username: jlbfine@qq.com
+    password: emnbsygyqacibgjh
+    protocol: smtp
+    properties:
+      mail.smtp.auth: true
+      #mail.smtp.starttls.enable: true
 logging:
-  level:
-    org.springframework: INFO
-    org.jooq.tools.LoggerListener: DEBUG
-    
+  file: log/spring.log
+  file.max-size: 5MB
+  file.max-history: 100
+#  quartz
+#    jdbc
+#      initialize-schema: embedded # Database schema initialization mode.
+#      schema: classpath:org/quartz/impl/jdbcjobstore/tables_@@platform@@.sql # Path to the SQL file to use to initialize the database schema.
+#    quartz
+#      job-store-type: memory # Quartz job store type.
+#      # properties.*= # Additional Quartz Scheduler properties.      
+myapp:
+  dataDir: boxes
+  downloadFolder: notingit
+  ssh:
+    sshIdrsa: C:/cygwin64/home/AIR/.ssh/id_rsa
+    knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
+using.spring.schedulerFactory: true
