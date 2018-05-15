@@ -129,6 +129,7 @@ public class BackupCommand {
 	@ShellMethod(value = "显示配置相关信息。")
 	public List<String> SystemInfo() throws IOException {
 		return Arrays.asList(formatKeyVal("数据文件路径", appSettings.getDataRoot().toAbsolutePath().toString()),
+				formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
 				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
 	}
 

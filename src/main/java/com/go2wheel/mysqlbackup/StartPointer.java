@@ -5,6 +5,7 @@ import javax.sql.DataSource;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -38,7 +39,7 @@ public class StartPointer {
 
 		// ConfigurableApplicationContext context =
 		// SpringApplication.run(StartPointer.class, fullArgs);
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class).logStartupInfo(false)
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class).listeners(new ApplicationPidFileWriter("./bin/app.pid")).logStartupInfo(false)
 				.run(fullArgs);
 	}
 
