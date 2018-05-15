@@ -1,5 +1,5 @@
-spring.profiles: prod
 spring.profiles.active: dev
+spring.profiles: prod
 spring:
   shell:
     interactive:

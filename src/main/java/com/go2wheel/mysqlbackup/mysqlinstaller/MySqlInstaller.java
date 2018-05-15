@@ -148,7 +148,7 @@ public class MySqlInstaller {
 		}
 	}
 
-	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Box box, boolean removeDataDir) {
+	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Box box) {
 		try {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
 			if (!info.isInstalled()) {
@@ -159,13 +159,12 @@ public class MySqlInstaller {
 			SSHcommonUtil.runRemoteCommand(session, cmd);
 			cmd = String.format("yum -y remove %s", info.getPackageName());
 			SSHcommonUtil.runRemoteCommand(session, cmd);
-			
-			if (removeDataDir) {
-				String datadir = info.getVariables().get(MysqlInstance.VAR_DATADIR);
-				if (datadir != null) {
-					cmd = String.format("rm -rf %s", datadir);
-					SSHcommonUtil.runRemoteCommand(session, cmd);
-				}
+
+			String datadir = info.getVariables().get(MysqlInstance.VAR_DATADIR);
+			SSHcommonUtil.backupFileByMove(session, datadir);
+			if (datadir != null) {
+				cmd = String.format("rm -rf %s", datadir);
+				SSHcommonUtil.runRemoteCommand(session, cmd);
 			}
 			
 			return FacadeResult.doneResult(mysqlUtil.getInstallInfo(session, box));

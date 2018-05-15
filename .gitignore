@@ -46,3 +46,4 @@ boxes/
 demobox.yml
 notingit/
 **/jooqschema/
+db/

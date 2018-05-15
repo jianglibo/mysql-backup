@@ -201,11 +201,10 @@ public class BackupCommand {
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
 	public String mysqlUninstall(
-			@Pattern(regexp = "I know what i am doing\\.") String iknow,
-			boolean removeDataDir) {
+			@Pattern(regexp = "I know what i am doing\\.") String iknow) {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return mySqlInstaller.unInstall(getSession(), box, removeDataDir).getMixedMessage();
+		return mySqlInstaller.unInstall(getSession(), box).getMixedMessage();
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")

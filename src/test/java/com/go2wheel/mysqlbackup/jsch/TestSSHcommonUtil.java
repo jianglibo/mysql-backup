@@ -44,6 +44,16 @@ public class TestSSHcommonUtil extends SshBaseFort {
 	}
 	
 	@Test
+	public void tBackupByMove() throws IOException, ScpException, JSchException, RunRemoteCommandException {
+		createADirOnServer(3);
+		SSHcommonUtil.runRemoteCommand(session, "rm -rf " + TMP_SERVER_DIR_NAME + ".1");
+		SSHcommonUtil.runRemoteCommand(session, "rm -rf " + TMP_SERVER_DIR_NAME + ".2");
+		SSHcommonUtil.backupFileByMove(session, TMP_SERVER_DIR_NAME);
+		assertFalse(SSHcommonUtil.fileExists(session, TMP_SERVER_DIR_NAME));
+		assertTrue(SSHcommonUtil.fileExists(session, TMP_SERVER_DIR_NAME + ".1"));
+	}
+	
+	@Test
 	public void tbackupFileExist() throws IOException, JSchException, ScpException, RunRemoteCommandException {
 		String rfn = "/tmp/filetobackup.txt";
 		remoteFiles.add(rfn);
