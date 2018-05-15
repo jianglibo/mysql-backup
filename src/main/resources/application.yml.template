@@ -30,6 +30,8 @@ spring:
     properties:
       mail.smtp.auth: true
       #mail.smtp.starttls.enable: true
+  messages:
+    use-code-as-default-message: false
 logging:
   file: log/spring.log
   file.max-size: 5MB
@@ -80,6 +82,8 @@ spring:
     properties:
       mail.smtp.auth: true
       #mail.smtp.starttls.enable: true
+    messages:
+      use-code-as-default-message: false
 logging:
   file: log/spring.log
   file.max-size: 5MB

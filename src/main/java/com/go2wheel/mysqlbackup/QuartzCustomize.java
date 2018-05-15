@@ -10,7 +10,7 @@ public class QuartzCustomize implements SchedulerFactoryBeanCustomizer {
 	@Override
 	public void customize(SchedulerFactoryBean schedulerFactoryBean) {
 		
-		System.out.println(schedulerFactoryBean);
+//		System.out.println(schedulerFactoryBean);
 		
 	}
 

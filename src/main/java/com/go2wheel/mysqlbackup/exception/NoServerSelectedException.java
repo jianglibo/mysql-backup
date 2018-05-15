@@ -7,8 +7,15 @@ public class NoServerSelectedException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public NoServerSelectedException(String fn) {
-		super("Copy target " + fn + " already exists!");
+	private final String messageKey;
+	
+	public NoServerSelectedException(String messageKey, String message) {
+		super(message);
+		this.messageKey = messageKey;
+	}
+
+	public String getMessageKey() {
+		return messageKey;
 	}
 
 }

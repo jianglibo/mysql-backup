@@ -255,7 +255,7 @@ public class BackupCommand {
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			throw new NoServerSelectedException("选择一个目标服务器先。 server-list, server-select.");
+			throw new NoServerSelectedException("missing.server", "选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
 

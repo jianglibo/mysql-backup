@@ -1,5 +1,6 @@
 echo off
 SET wdir=%~dp0
+CD /D %wdir% 
 SET wdirslash=%wdir:\=/%
 SET pidfile=%wdir%bin\app.pid
 
