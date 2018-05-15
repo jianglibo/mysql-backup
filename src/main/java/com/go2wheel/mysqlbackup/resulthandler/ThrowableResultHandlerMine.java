@@ -10,14 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.MessageSource;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.shell.CommandRegistry;
 import org.springframework.shell.result.ThrowableResultHandler;
 import org.springframework.util.StringUtils;
 
+import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
-import com.sun.mail.handlers.message_rfc822;
 
 public class ThrowableResultHandlerMine extends ThrowableResultHandler implements ApplicationContextAware {
 
@@ -36,7 +37,7 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 	private ApplicationContext applicationContext;
 	
 	@Autowired
-	private MessageSource messageSource;
+	private LocaledMessageService messageService;
 
 	@Autowired
 	@Lazy
@@ -45,15 +46,20 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 	@Override
 	protected void doHandleResult(Throwable result) {
 		lastError = result;
-		String toPrint = StringUtils.hasLength(result.getMessage()) ? result.getMessage() : result.toString();
-		terminal.writer().println(
-				new AttributedString(toPrint, AttributedStyle.DEFAULT.foreground(AttributedStyle.RED)).toAnsi());
 		if (result instanceof NoServerSelectedException) {
-			String s = applicationContext.getMessage(((NoServerSelectedException) result).getMessageKey(), null,
-					Locale.CHINESE);
+			String s;
+			try {
+				s = messageService.getMessage(((NoServerSelectedException) result).getMessageKey());
+			} catch (NoSuchMessageException e) {
+				s = result.getMessage();
+			}
 			terminal.writer().println(new AttributedStringBuilder()
 					.append(s, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
 			return;
+		} else {
+			String toPrint = StringUtils.hasLength(result.getMessage()) ? result.getMessage() : result.toString();
+			terminal.writer().println(
+					new AttributedString(toPrint, AttributedStyle.DEFAULT.foreground(AttributedStyle.RED)).toAnsi());
 		}
 
 		if (interactiveRunner.isEnabled() && commandRegistry.listCommands().containsKey(DETAILS_COMMAND_NAME)) {

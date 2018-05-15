@@ -3,8 +3,10 @@ package com.go2wheel.mysqlbackup.commands;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -255,7 +257,7 @@ public class BackupCommand {
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			throw new NoServerSelectedException("missing.server", "选择一个目标服务器先。 server-list, server-select.");
+			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING, "选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
 
@@ -437,7 +439,26 @@ public class BackupCommand {
 		sureBoxSelected();
 		schedulerTaskFacade.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
-
+	
+	@ShellMethod(value = "支持的语言")
+	public List<String> languageList() {
+		List<String> las = new ArrayList<>();
+		las.add(Locale.TRADITIONAL_CHINESE.getLanguage());
+		las.add(Locale.ENGLISH.getLanguage());
+		las.add(Locale.JAPANESE.getLanguage());
+		return las;
+	}
+	
+	@ShellMethod(value = "支持的语言")
+	public String languageSet(String language) {
+		if (!languageList().contains(language)) {
+			return String.format("Supported languages are: %s", String.join(", ", languageList()));
+		}
+		Locale l = Locale.forLanguageTag(language);
+		appState.setLocal(l);
+		return "switch to language: " + language;
+	}
+ 
 	// @ShellMethod(value = "Quartz 删除任务")
 	// public void quartzDeleteJob(String triggerName, String triggerGroup) throws
 	// SchedulerException {

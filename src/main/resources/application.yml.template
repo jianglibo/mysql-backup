@@ -32,6 +32,7 @@ spring:
       #mail.smtp.starttls.enable: true
   messages:
     use-code-as-default-message: false
+    basename: messages.command_msg
 logging:
   file: log/spring.log
   file.max-size: 5MB
@@ -84,6 +85,7 @@ spring:
       #mail.smtp.starttls.enable: true
     messages:
       use-code-as-default-message: false
+      basename: messages.command_msg
 logging:
   file: log/spring.log
   file.max-size: 5MB

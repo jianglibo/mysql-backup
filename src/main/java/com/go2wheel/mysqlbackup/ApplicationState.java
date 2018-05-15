@@ -5,11 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -33,6 +32,8 @@ public class ApplicationState {
     private ApplicationEventPublisher applicationEventPublisher;
 	
 	private List<Box> servers = new ArrayList<>();
+	
+	private Locale local = Locale.getDefault();
 	
 	private int currentIndex;
 	
@@ -129,6 +130,14 @@ public class ApplicationState {
 
 	public void setStep(CommandStepState step) {
 		this.step = step;
+	}
+
+	public Locale getLocal() {
+		return local;
+	}
+
+	public void setLocal(Locale local) {
+		this.local = local;
 	}
 
 }

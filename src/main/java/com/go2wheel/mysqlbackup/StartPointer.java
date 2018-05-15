@@ -1,16 +1,21 @@
 package com.go2wheel.mysqlbackup;
 
+import java.time.Duration;
+
 import javax.sql.DataSource;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
 import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
@@ -43,11 +48,31 @@ public class StartPointer {
 				.run(fullArgs);
 	}
 
-	// @Bean
-	// @Primary
-	// @ConfigurationProperties(prefix="spring.datasource")
-	// public DataSource primaryDataSource() {
-	// return org.springframework.boot.jdbc.DataSourceBuilde.create().build();
-	// }
+	
+	@Bean
+	@ConfigurationProperties(prefix = "spring.messages")
+	public MessageSourceProperties messageSourceProperties() {
+		return new MessageSourceProperties();
+	}
 
+	@Bean
+	public MessageSource messageSource() {
+		MessageSourceProperties properties = messageSourceProperties();
+		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+		if (StringUtils.hasText(properties.getBasename())) {
+			messageSource.setBasenames(StringUtils.commaDelimitedListToStringArray(
+					StringUtils.trimAllWhitespace(properties.getBasename())));
+		}
+		if (properties.getEncoding() != null) {
+			messageSource.setDefaultEncoding(properties.getEncoding().name());
+		}
+		messageSource.setFallbackToSystemLocale(properties.isFallbackToSystemLocale());
+		Duration cacheDuration = properties.getCacheDuration();
+		if (cacheDuration != null) {
+			messageSource.setCacheMillis(cacheDuration.toMillis());
+		}
+		messageSource.setAlwaysUseMessageFormat(properties.isAlwaysUseMessageFormat());
+		messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
+		return messageSource;
+	}
 }
