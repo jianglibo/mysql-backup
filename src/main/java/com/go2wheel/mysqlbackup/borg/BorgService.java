@@ -22,6 +22,7 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
@@ -55,6 +56,9 @@ public class BorgService {
 	private MyAppSettings appSettings;
 
 	private FileDownloader fileDownloader;
+	
+	@Autowired
+	private MysqlUtil mysqlUtil;
 
 	private InstallationInfo getInstallationInfo(Session session) throws RunRemoteCommandException {
 		InstallationInfo ii = new InstallationInfo();
@@ -74,9 +78,9 @@ public class BorgService {
 			InstallationInfo ii = getInstallationInfo(session);
 			if (ii.isInstalled()) {
 				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
-				return FacadeResult.doneResult(getInstallationInfo(session));
+				return FacadeResult.doneExpectedResult(getInstallationInfo(session), CommonActionResult.DONE);
 			} else {
-				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -93,9 +97,9 @@ public class BorgService {
 				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getInstallationInfo(session);
-				return FacadeResult.doneResult();
+				return FacadeResult.doneExpectedResult();
 			} else {
-				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -129,7 +133,7 @@ public class BorgService {
 							String.format("borg init --encryption=none %s", repoPath));
 				}
 			}
-			return FacadeResult.doneResult(rcr);
+			return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -142,7 +146,7 @@ public class BorgService {
 			String cmd = String.format("borg prune --list --verbose --prefix %s --show-rc --keep-daily %s --keep-weekly %s --keep-monthly %s %s",
 					box.getBorgBackup().getArchiveNamePrefix(), 7, 4, 6,
 					box.getBorgBackup().getRepo());
-			return FacadeResult.doneResult(new BorgPruneResult(SSHcommonUtil.runRemoteCommand(session, cmd)));
+			return FacadeResult.doneExpectedResult(new BorgPruneResult(SSHcommonUtil.runRemoteCommand(session, cmd)), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -192,7 +196,7 @@ public class BorgService {
 			for(Path p : pathes) {
 				Files.delete(p);
 			}
-			return FacadeResult.doneResult();
+			return FacadeResult.doneExpectedResult();
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -216,7 +220,7 @@ public class BorgService {
 				cmdparts.add(f);
 			}
 			String cmd = String.join(" ", cmdparts);
-			return FacadeResult.doneResult(SSHcommonUtil.runRemoteCommand(session, cmd));
+			return FacadeResult.doneExpectedResult(SSHcommonUtil.runRemoteCommand(session, cmd), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -230,8 +234,8 @@ public class BorgService {
 
 	public FacadeResult<BorgListResult> listArchives(Session session, Box box) {
 		try {
-			return FacadeResult.doneResult( new BorgListResult(
-					SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo()))));
+			return FacadeResult.doneExpectedResult( new BorgListResult(
+					SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo()))), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -241,7 +245,7 @@ public class BorgService {
 	public FacadeResult<RemoteCommandResult> listRepoFiles(Session session, Box box) {
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lR %s", box.getBorgBackup().getRepo()));
-			return FacadeResult.doneResult(rcr);
+			return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -286,5 +290,15 @@ public class BorgService {
 			this.version = version;
 		}
 
+	}
+
+	public FacadeResult<?> updateBorgDescription(Session session, Box box) {
+		try {
+			mysqlUtil.writeDescription(box);
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			FacadeResult.unexpectedResult(e);
+		}
+		return FacadeResult.doneExpectedResult();
 	}
 }

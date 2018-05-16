@@ -45,7 +45,7 @@ public class MysqlBackupSchedule {
 	public void post() throws SchedulerException, ParseException {
 		List<Box> mysqlBoxes = applicationState.getServers().stream()
 				.filter(box -> box.getMysqlInstance() != null
-						&& StringUtil.hasAnyNonBlankWord(box.getMysqlInstance().getCronExpression()))
+						&& StringUtil.hasAnyNonBlankWord(box.getMysqlInstance().getFlushLogCron()))
 				.collect(Collectors.toList());
 
 		for (Box box : mysqlBoxes) {
@@ -63,7 +63,7 @@ public class MysqlBackupSchedule {
 					.build();
 			scheduler.addJob(job, false);
 
-			CronExpression ce = new CronExpression(box.getMysqlInstance().getCronExpression());
+			CronExpression ce = new CronExpression(box.getMysqlInstance().getFlushLogCron());
 			Trigger trigger = newTrigger().withIdentity(box.getHost(), MYSQL_GROUP)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);

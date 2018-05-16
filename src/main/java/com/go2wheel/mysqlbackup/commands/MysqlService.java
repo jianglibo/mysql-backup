@@ -68,14 +68,14 @@ public class MysqlService {
 	public FacadeResult<?> serverCreate(String host, int sshPort) {
 		try {
 			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 			Box box = new Box();
 			box.setHost(host);
 			box.setPort(sshPort);
 			box.setMysqlInstance(new MysqlInstance());
 			mysqlUtil.writeDescription(box);
-			return FacadeResult.doneResult();
+			return FacadeResult.doneExpectedResult();
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -89,7 +89,7 @@ public class MysqlService {
 			Path logbinDir = appSettings.getLogBinDir(box);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
-				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 			if (force) {
 				FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
@@ -100,7 +100,7 @@ public class MysqlService {
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
-				return FacadeResult.doneResult(llsl);
+				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
 			}
@@ -115,7 +115,7 @@ public class MysqlService {
 		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
 		List<String> r = mfle.start();
 		if (r.size() == 2) {
-			return FacadeResult.doneResult();
+			return FacadeResult.doneExpectedResult();
 		} else {
 			return FacadeResult.unexpectedResult(r.get(0));
 		}
@@ -154,7 +154,7 @@ public class MysqlService {
 						localDir.resolve(fn));
 
 			}
-			return FacadeResult.doneResult();
+			return FacadeResult.doneExpectedResult();
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -166,7 +166,7 @@ public class MysqlService {
 		try {
 			LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 			if (lbs != null && lbs.isEnabled()) {
-				return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			} else {
 				try {
 					lbs = mysqlUtil.getLogbinState(session, box);
@@ -177,7 +177,7 @@ public class MysqlService {
 				if (lbs.isEnabled()) {
 					box.getMysqlInstance().setLogBinSetting(lbs);
 					mysqlUtil.writeDescription(box);
-					return FacadeResult.doneCommonResult(CommonActionResult.PREVIOUSLY_DONE);
+					return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 				} else {
 					MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box); // 找到起作用的my.cnf配置文件。
 					String mycnfFile = box.getMysqlInstance().getMycnfFile();
@@ -198,7 +198,17 @@ public class MysqlService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
-		return FacadeResult.doneResult();
+		return FacadeResult.doneExpectedResult();
+	}
+
+	public FacadeResult<?> updateMysqlDescription(Session session, Box box) {
+		try {
+			mysqlUtil.writeDescription(box);
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			FacadeResult.unexpectedResult(e);
+		}
+		return FacadeResult.doneExpectedResult();
 	}
 
 }

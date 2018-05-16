@@ -25,6 +25,7 @@ import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
@@ -141,7 +142,7 @@ public class MySqlInstaller {
 
 				info = mysqlUtil.getInstallInfo(session, box);
 			}
-			return FacadeResult.doneResult(info);
+			return FacadeResult.doneExpectedResult(info, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | JSchException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -152,7 +153,7 @@ public class MySqlInstaller {
 		try {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
 			if (!info.isInstalled()) {
-				return FacadeResult.doneResult(info);
+				return FacadeResult.doneExpectedResult(info, CommonActionResult.DONE);
 			}
 			mysqlUtil.stopMysql(session);
 			String cmd = String.format("yum -y remove %s", info.getCommunityRelease());
@@ -167,7 +168,7 @@ public class MySqlInstaller {
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 			}
 			
-			return FacadeResult.doneResult(mysqlUtil.getInstallInfo(session, box));
+			return FacadeResult.doneExpectedResult(mysqlUtil.getInstallInfo(session, box), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | JSchException | IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);

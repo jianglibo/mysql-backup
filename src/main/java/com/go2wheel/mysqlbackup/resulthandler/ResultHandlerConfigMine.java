@@ -78,5 +78,10 @@ public class ResultHandlerConfigMine {
 	public ThrowableResultHandlerMine throwableResultHandler() {
 		return new ThrowableResultHandlerMine();
 	}
+	
+	@Bean
+	public FacadeResultHandler<?> facadeResultHandler() {
+		return new FacadeResultHandler<>();
+	}
 
 }

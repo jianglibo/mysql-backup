@@ -31,6 +31,7 @@ import org.springframework.shell.standard.ShellOption;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
+import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
@@ -49,10 +50,12 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
+import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -77,7 +80,7 @@ public class BackupCommand {
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
-	private MysqlService mysqlTaskFacade;
+	private MysqlService mysqlService;
 
 	private Session _session;
 
@@ -85,7 +88,7 @@ public class BackupCommand {
 	private Scheduler scheduler;
 
 	@Autowired
-	private BorgService borgTaskFacade;
+	private BorgService borgService;
 
 	@Autowired
 	private SchedulerService schedulerTaskFacade;
@@ -98,6 +101,9 @@ public class BackupCommand {
 	
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
+	
+	@Autowired
+	private LocaledMessageService localedMessageService;
 	
 	@PostConstruct
 	public void post() {
@@ -125,7 +131,7 @@ public class BackupCommand {
 	@ShellMethod(value = "新建一个服务器.")
 	public String serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
-		return actionResultToString(mysqlTaskFacade.serverCreate(host, sshPort));
+		return actionResultToString(mysqlService.serverCreate(host, sshPort));
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -173,14 +179,96 @@ public class BackupCommand {
 			@ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
 			throws JSchException, IOException {
 		sureBoxSelected();
-		return actionResultToString(mysqlTaskFacade.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue));
+		return actionResultToString(mysqlService.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue));
 	}
 
 	@ShellMethod(value = "安装borg。")
 	public String borgInstall() {
-		return actionResultToString(borgTaskFacade.install(getSession()));
+		return actionResultToString(borgService.install(getSession()));
 	}
 	
+	@ShellMethod(value = "添加或更改Borg的描述")
+	public String borgDescription(
+			@ShellOption(help = "borg repo.", defaultValue="") String repo,
+			@ShellOption(help = "borg archive format.", defaultValue="")	String archiveFormat,
+			@ShellOption(help = "borg archive prefix.", defaultValue="") String archiveNamePrefix,
+			@ShellOption(help = "borg archive cron expression.", defaultValue="") String archiveCron,
+			@ShellOption(help = "borg prune cron expression.", defaultValue="") String pruneCron) throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null) bbdi = new BorgBackupDescription();
+		
+		if (!repo.isEmpty()) bbdi.setRepo(repo);
+		if (!archiveFormat.isEmpty()) bbdi.setArchiveFormat(archiveFormat);
+		if (!archiveNamePrefix.isEmpty()) bbdi.setArchiveNamePrefix(archiveNamePrefix);
+		if (!archiveCron.isEmpty()) bbdi.setArchiveCron(archiveCron);
+		if (!pruneCron.isEmpty()) bbdi.setPruneCron(pruneCron);
+		
+		box.setBorgBackup(bbdi);
+		return actionResultToString(borgService.updateBorgDescription(getSession(), box));
+	}
+	
+	@ShellMethod(value = "列出Borg备份包含的目录")
+	public List<String> borgIncludesList() throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null) {
+			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		}
+		return bbdi.getIncludes();
+	}
+	
+	@ShellMethod(value = "列出Borg备份排除的目录")
+	public List<String> borgExcludesList() throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null) {
+			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		}
+		return bbdi.getExcludes();
+	}
+	
+	@ShellMethod(value = "添加Borg备份或排除的目录")
+	public List<String> borgIncludesExcludesAdd(
+			@ShellOption(help = "Absolute directory to add to 'includes'.", defaultValue="") String include,
+			@ShellOption(help = "Absolute directory to add to 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null) {
+			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		}
+		if(!include.isEmpty())bbdi.getIncludes().add(include);
+		if(!exclude.isEmpty())bbdi.getExcludes().add(exclude);
+		
+		borgService.updateBorgDescription(getSession(), box);
+		return bbdi.getExcludes();
+	}
+	
+	@ShellMethod(value = "删除Borg备份或排除的目录")
+	public List<String> borgIncludesExcludesRemove(
+			@ShellOption(help = "Absolute directory to remove from 'includes'.", defaultValue="") String include,
+			@ShellOption(help = "Absolute directory to remove from 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null) {
+			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		}
+		if(!include.isEmpty()) {
+			bbdi.getIncludes().remove(include);
+		}
+		if(!exclude.isEmpty()) {
+			bbdi.getExcludes().remove(exclude);
+		}
+		borgService.updateBorgDescription(getSession(), box);
+		return bbdi.getExcludes();
+	}
+
+
 	
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(
@@ -203,18 +291,18 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
-	public String mysqlUninstall(
+	public FacadeResult<?> mysqlUninstall(
 			@Pattern(regexp = "I know what i am doing\\.") String iknow) {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return mySqlInstaller.unInstall(getSession(), box).getMixedMessage();
+		return mySqlInstaller.unInstall(getSession(), box); 
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.initRepo(getSession(),box.getBorgBackup().getRepo()).getResult()
+		return borgService.initRepo(getSession(),box.getBorgBackup().getRepo()).getResult()
 				.getAllTrimedNotEmptyLines();
 	}
 
@@ -222,7 +310,7 @@ public class BackupCommand {
 	public String borgCreateArchive() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		borgTaskFacade.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
+		borgService.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
 		return "Success";
 	}
 	
@@ -230,21 +318,21 @@ public class BackupCommand {
 	public void borgDownloadRepo() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		borgTaskFacade.downloadRepo(getSession(), box);
+		borgService.downloadRepo(getSession(), box);
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
 	public List<String> borgListArchives() {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.listArchives(getSession(), box).getResult().getArchives();
+		return borgService.listArchives(getSession(), box).getResult().getArchives();
 	}
 	
 	@ShellMethod(value = "修剪borg创建的卷")
 	public String borgPruneArchives() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		BorgPruneResult bpr = borgTaskFacade.pruneRepo(getSession(), box).getResult(); 
+		BorgPruneResult bpr = borgService.pruneRepo(getSession(), box).getResult(); 
 		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(), bpr.keepedArchiveNumbers());
 	}
 
@@ -252,7 +340,7 @@ public class BackupCommand {
 	public List<String> borgListRepoFiles() throws RunRemoteCommandException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return borgTaskFacade.listRepoFiles(getSession(), box).getResult().getAllTrimedNotEmptyLines();
+		return borgService.listRepoFiles(getSession(), box).getResult().getAllTrimedNotEmptyLines();
 	}
 
 	private void sureBoxSelected() {
@@ -264,13 +352,31 @@ public class BackupCommand {
 	@ShellMethod(value = "执行Mysqldump命令")
 	public String mysqlDump() throws JSchException, IOException {
 		sureBoxSelected();
-		return actionResultToString(mysqlTaskFacade.mysqlDump(getSession(), appState.currentBox().get()));
+		return actionResultToString(mysqlService.mysqlDump(getSession(), appState.currentBox().get()));
+	}
+
+	@ShellMethod(value = "添加或更改Mysql的描述")
+	public String mysqlDescription(
+			@ShellOption(help = "mysql username.", defaultValue="root") String username,
+			@ShellOption(help = "mysql password.", defaultValue="")	String password,
+			@ShellOption(help = "mysql port.", defaultValue="3306") int port,
+			@ShellOption(help = "mysql flush log cron expresion.", defaultValue="") String flushLogCron) throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		MysqlInstance mi = box.getMysqlInstance();
+		if (mi == null) mi = new MysqlInstance();
+		if (!username.isEmpty()) mi.setUsername(username);
+		if (!password.isEmpty()) mi.setPassword(password);
+		mi.setPort(port);
+		if (!flushLogCron.isEmpty())mi.setFlushLogCron(flushLogCron);
+		box.setMysqlInstance(mi);
+		return actionResultToString(mysqlService.updateMysqlDescription(getSession(), box));
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public String MysqlFlushLog() {
 		sureBoxSelected();
-		return actionResultToString(mysqlTaskFacade.mysqlFlushLogs(getSession(), appState.currentBox().get()));
+		return actionResultToString(mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get()));
 	}
 	
 	private String actionResultToString(FacadeResult<?> fr) {
@@ -358,7 +464,7 @@ public class BackupCommand {
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return actionResultToString(mysqlTaskFacade.mysqlDump(getSession(), box, true));
+		return actionResultToString(mysqlService.mysqlDump(getSession(), box, true));
 	}
 
 	@ShellMethod(value = "显示当前选定服务器的描述文件。")
@@ -459,11 +565,6 @@ public class BackupCommand {
 		return "switch to language: " + language;
 	}
  
-	// @ShellMethod(value = "Quartz 删除任务")
-	// public void quartzDeleteJob(String triggerName, String triggerGroup) throws
-	// SchedulerException {
-	// scheduler.deleteJob(jobKey(triggerName, triggerGroup));
-	// }
 
 	@ShellMethod(value = "列出当前主机的计划任务")
 	public List<String> schedulerListJob() throws SchedulerException {
@@ -478,6 +579,24 @@ public class BackupCommand {
 		sureBoxSelected();
 		return schedulerTaskFacade.getBoxTriggers(appState.currentBox().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
+	}
+	
+	@ShellMethod(value = "查看最后一个命令的详细执行结果")
+	public String facadeResultLast() {
+		FacadeResult<?> fr = appState.getFacadeResult();
+		if (fr == null) {
+			return "";
+		} else {
+			if (fr.getException() != null) {
+				return ExceptionUtil.stackTraceToString(fr.getException());
+			} else if(fr.getResult() != null) {
+				return fr.getResult().toString();
+			} else if (fr.getMessage() != null && !fr.getMessage().isEmpty()) {
+				return localedMessageService.getMessage(fr.getMessage());
+			} else {
+				return "";
+			}
+		}
 	}
 
 	// @ShellMethod(value = "Quartz 显示任务")
@@ -531,6 +650,11 @@ public class BackupCommand {
 	// // Schedule the trigger
 	// sched.scheduleJob(trigger);
 
+	// }
+	// @ShellMethod(value = "Quartz 删除任务")
+	// public void quartzDeleteJob(String triggerName, String triggerGroup) throws
+	// SchedulerException {
+	// scheduler.deleteJob(jobKey(triggerName, triggerGroup));
 	// }
 
 	@Bean

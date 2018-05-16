@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.resulthandler;
 
-import java.util.Locale;
-
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -9,7 +7,6 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.shell.CommandRegistry;

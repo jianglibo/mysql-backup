@@ -46,7 +46,7 @@ public class borgBackupSchedule {
 
 		List<Box> borgBoxes = applicationState.getServers().stream()
 				.filter(box -> box.getBorgBackup() != null
-						&& StringUtil.hasAnyNonBlankWord(box.getBorgBackup().getCronExpression()))
+						&& StringUtil.hasAnyNonBlankWord(box.getBorgBackup().getArchiveCron()))
 				.collect(Collectors.toList());
 
 		for (Box box : borgBoxes) {
@@ -62,7 +62,7 @@ public class borgBackupSchedule {
 			job = newJob(MysqlFlushLogJob.class).withIdentity(jk).usingJobData("host", box.getHost()).storeDurably()
 					.build();
 			scheduler.addJob(job, false);
-			CronExpression ce = new CronExpression(box.getMysqlInstance().getCronExpression());
+			CronExpression ce = new CronExpression(box.getMysqlInstance().getFlushLogCron());
 			Trigger trigger = newTrigger().withIdentity(box.getHost(), BORG_GROUP)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);

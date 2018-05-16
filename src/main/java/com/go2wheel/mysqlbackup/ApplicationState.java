@@ -18,6 +18,7 @@ import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Component
@@ -36,6 +37,8 @@ public class ApplicationState {
 	private Locale local = Locale.getDefault();
 	
 	private int currentIndex;
+	
+	private FacadeResult<?> facadeResult;
 	
 	private CommandStepState step = CommandStepState.INIT_START;
 	
@@ -138,6 +141,14 @@ public class ApplicationState {
 
 	public void setLocal(Locale local) {
 		this.local = local;
+	}
+
+	public FacadeResult<?> getFacadeResult() {
+		return facadeResult;
+	}
+
+	public void setFacadeResult(FacadeResult<?> facadeResult) {
+		this.facadeResult = facadeResult;
 	}
 
 }

@@ -11,7 +11,7 @@ public class MysqlInstance {
 	private String password;
 	private String mycnfFile;
 	
-	private String cronExpression;
+	private String flushLogCron;
 	
 	private boolean readyForBackup;
 	
@@ -72,11 +72,12 @@ public class MysqlInstance {
 		this.readyForBackup = readyForBackup;
 	}
 
-	public String getCronExpression() {
-		return cronExpression;
+	public String getFlushLogCron() {
+		return flushLogCron;
 	}
 
-	public void setCronExpression(String cronExpression) {
-		this.cronExpression = cronExpression;
+	public void setFlushLogCron(String flushLogCron) {
+		this.flushLogCron = flushLogCron;
 	}
+
 }

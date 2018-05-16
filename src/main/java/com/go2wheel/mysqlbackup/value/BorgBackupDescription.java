@@ -1,19 +1,21 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.ArrayList;
 import java.util.List;
-
-import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class BorgBackupDescription {
 
 	public static final String BORG_ARCHIVE_PREFIX_DEFAULT = "ARCHIVE-";
+	public static final String BORG_REPO_DEFAULT = "/opt/borgrepos/repo";
+	public static final String BORG_ARCHIVE_FORMAT_DEFAULT = "yyyy-MM-dd-HH-mm-ss";
 	
-	private String repo;
-	private List<String> includes;
-	private List<String> excludes;
-	private String archiveFormat;
-	private String cronExpression;
-	private String archiveNamePrefix;
+	private String repo = BORG_REPO_DEFAULT;
+	private List<String> includes = new ArrayList<>();
+	private List<String> excludes = new ArrayList<>();
+	private String archiveFormat = BORG_ARCHIVE_FORMAT_DEFAULT;
+	private String archiveCron;
+	private String pruneCron;
+	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 	
 	public String getRepo() {
 		return repo;
@@ -44,22 +46,27 @@ public class BorgBackupDescription {
 		this.excludes = excludes;
 	}
 
-	public String getCronExpression() {
-		return cronExpression;
-	}
-
-	public void setCronExpression(String cronExpression) {
-		this.cronExpression = cronExpression;
-	}
-
 	public String getArchiveNamePrefix() {
-		if (!StringUtil.hasAnyNonBlankWord(archiveNamePrefix) || "null".equals(archiveNamePrefix)) {
-			return BORG_ARCHIVE_PREFIX_DEFAULT;
-		}
 		return archiveNamePrefix;
 	}
 
 	public void setArchiveNamePrefix(String archiveNamePrefix) {
 		this.archiveNamePrefix = archiveNamePrefix;
+	}
+
+	public String getPruneCron() {
+		return pruneCron;
+	}
+
+	public void setPruneCron(String pruneCron) {
+		this.pruneCron = pruneCron;
+	}
+
+	public String getArchiveCron() {
+		return archiveCron;
+	}
+
+	public void setArchiveCron(String archiveCron) {
+		this.archiveCron = archiveCron;
 	}
 }
