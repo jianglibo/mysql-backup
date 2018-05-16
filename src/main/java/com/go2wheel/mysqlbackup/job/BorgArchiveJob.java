@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
-public class BorgJob implements Job {
+public class BorgArchiveJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 

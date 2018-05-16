@@ -17,8 +17,10 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
+import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @Service
@@ -49,6 +51,14 @@ public class SchedulerService {
 						return Stream.empty();
 					}
 				}).collect(Collectors.toList());
+	}
+	
+	@EventListener
+	public void onCronExpressionChange(CronExpressionChangeEvent cece) throws ParseException, SchedulerException {
+		CronExpression ce = new CronExpression(cece.getCron());
+		Trigger trigger = newTrigger().withIdentity(cece.getTriggerkey())
+				.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(cece.getJobkey()).build();
+		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
 	}
 
 }

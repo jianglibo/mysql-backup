@@ -13,13 +13,16 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -46,6 +49,7 @@ public class BorgService {
 
 	// https://borgbackup.readthedocs.io/en/stable/quickstart.html
 	// sudo cp borg-linux64 /usr/local/bin/borg
+
 	// sudo chown root:root /usr/local/bin/borg
 	// sudo chmod 755 /usr/local/bin/borg
 	// ln -s /usr/local/bin/borg /usr/local/bin/borgfs
@@ -56,7 +60,10 @@ public class BorgService {
 	private MyAppSettings appSettings;
 
 	private FileDownloader fileDownloader;
-	
+
+	@Autowired
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	@Autowired
 	private MysqlUtil mysqlUtil;
 
@@ -291,8 +298,60 @@ public class BorgService {
 		}
 
 	}
+	//@formatter:on
+	public FacadeResult<?> updateBorgDescription(Session session, Box box, String repo, String archiveFormat,
+			String archiveNamePrefix, String archiveCron, String pruneCron) {
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (bbdi == null)
+			bbdi = new BorgBackupDescription();
 
-	public FacadeResult<?> updateBorgDescription(Session session, Box box) {
+		if (!repo.isEmpty())
+			bbdi.setRepo(repo);
+		if (!archiveFormat.isEmpty())
+			bbdi.setArchiveFormat(archiveFormat);
+		if (!archiveNamePrefix.isEmpty())
+			bbdi.setArchiveNamePrefix(archiveNamePrefix);
+		if (!archiveCron.isEmpty()) {
+			if (!archiveCron.equals(bbdi.getArchiveCron())) {
+				bbdi.setArchiveCron(archiveCron);
+				CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgArchiveJobKey(box),
+						BoxUtil.getBorgArchiveTriggerKey(box), archiveCron);
+				applicationEventPublisher.publishEvent(cece);
+			}
+		}
+		if (!pruneCron.isEmpty()) {
+			if (!pruneCron.equals(bbdi.getPruneCron())) {
+				bbdi.setPruneCron(pruneCron);
+				CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(box),
+						BoxUtil.getBorgPruneTriggerKey(box), pruneCron);
+				applicationEventPublisher.publishEvent(cece);
+			}
+
+		}
+		box.setBorgBackup(bbdi);
+		return saveBox(box);
+	}
+
+	public FacadeResult<?> updateBorgDescription(Session session, Box box, String include, String exclude,
+			boolean isadd) {
+		BorgBackupDescription bbdi = box.getBorgBackup();
+		if (isadd) {
+			if (!include.isEmpty())
+				bbdi.getIncludes().add(include);
+			if (!exclude.isEmpty())
+				bbdi.getExcludes().add(exclude);
+		} else {
+			if (!include.isEmpty()) {
+				bbdi.getIncludes().remove(include);
+			}
+			if (!exclude.isEmpty()) {
+				bbdi.getExcludes().remove(exclude);
+			}
+		}
+		return saveBox(box);
+	}
+
+	private FacadeResult<?> saveBox(Box box) {
 		try {
 			mysqlUtil.writeDescription(box);
 		} catch (IOException e) {

@@ -7,3 +7,21 @@ mysqlInstance:
   port: 3306
   username: root
   password: 123456
+  flushLogCron: '0 30 6,12 * * ?'
+  logBinSetting:
+    map:
+      log_bin: ON
+      log_bin_basename: /var/lib/mysql/hm-log-bin
+      log_bin_index: /var/lib/mysql/hm-log-bin.index
+borgBackup:
+  repo: /borgrepos/myrepo
+  archiveCron: '0 30 6,12 * * ?'
+  pruneCron: '0 30 6,12 * * ?'
+  includes: 
+    - /etc
+  excludes: 
+    - /home/*/.cache/*
+    - /var/cache/*
+    - /var/tmp/*
+  archiveFormat: yyyy-MM-dd-HH-mm-ss
+  

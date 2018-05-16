@@ -129,9 +129,9 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
-	public String serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
+	public FacadeResult<?> serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
-		return actionResultToString(mysqlService.serverCreate(host, sshPort));
+		return mysqlService.serverCreate(host, sshPort);
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -175,20 +175,20 @@ public class BackupCommand {
 	 * @throws JSchException
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
-	public String mysqlEnableLogbin(
+	public FacadeResult<?> mysqlEnableLogbin(
 			@ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
 			throws JSchException, IOException {
 		sureBoxSelected();
-		return actionResultToString(mysqlService.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue));
+		return mysqlService.mysqlEnableLogbin(getSession(), appState.currentBox().get(), logBinValue);
 	}
 
 	@ShellMethod(value = "安装borg。")
-	public String borgInstall() {
-		return actionResultToString(borgService.install(getSession()));
+	public FacadeResult<?> borgInstall() {
+		return borgService.install(getSession());
 	}
 	
 	@ShellMethod(value = "添加或更改Borg的描述")
-	public String borgDescription(
+	public FacadeResult<?> borgDescription(
 			@ShellOption(help = "borg repo.", defaultValue="") String repo,
 			@ShellOption(help = "borg archive format.", defaultValue="")	String archiveFormat,
 			@ShellOption(help = "borg archive prefix.", defaultValue="") String archiveNamePrefix,
@@ -196,17 +196,10 @@ public class BackupCommand {
 			@ShellOption(help = "borg prune cron expression.", defaultValue="") String pruneCron) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null) bbdi = new BorgBackupDescription();
-		
-		if (!repo.isEmpty()) bbdi.setRepo(repo);
-		if (!archiveFormat.isEmpty()) bbdi.setArchiveFormat(archiveFormat);
-		if (!archiveNamePrefix.isEmpty()) bbdi.setArchiveNamePrefix(archiveNamePrefix);
-		if (!archiveCron.isEmpty()) bbdi.setArchiveCron(archiveCron);
-		if (!pruneCron.isEmpty()) bbdi.setPruneCron(pruneCron);
-		
-		box.setBorgBackup(bbdi);
-		return actionResultToString(borgService.updateBorgDescription(getSession(), box));
+
+		return borgService.updateBorgDescription(getSession(), box, repo, archiveFormat, archiveNamePrefix,
+				archiveCron,
+				pruneCron);
 	}
 	
 	@ShellMethod(value = "列出Borg备份包含的目录")
@@ -241,10 +234,7 @@ public class BackupCommand {
 		if (bbdi == null) {
 			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
 		}
-		if(!include.isEmpty())bbdi.getIncludes().add(include);
-		if(!exclude.isEmpty())bbdi.getExcludes().add(exclude);
-		
-		borgService.updateBorgDescription(getSession(), box);
+		borgService.updateBorgDescription(getSession(), box, include, exclude, true);
 		return bbdi.getExcludes();
 	}
 	
@@ -258,13 +248,7 @@ public class BackupCommand {
 		if (bbdi == null) {
 			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
 		}
-		if(!include.isEmpty()) {
-			bbdi.getIncludes().remove(include);
-		}
-		if(!exclude.isEmpty()) {
-			bbdi.getExcludes().remove(exclude);
-		}
-		borgService.updateBorgDescription(getSession(), box);
+		borgService.updateBorgDescription(getSession(), box, include, exclude, false);
 		return bbdi.getExcludes();
 	}
 
@@ -350,13 +334,13 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
-	public String mysqlDump() throws JSchException, IOException {
+	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
 		sureBoxSelected();
-		return actionResultToString(mysqlService.mysqlDump(getSession(), appState.currentBox().get()));
+		return mysqlService.mysqlDump(getSession(), appState.currentBox().get());
 	}
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
-	public String mysqlDescription(
+	public FacadeResult<?> mysqlDescription(
 			@ShellOption(help = "mysql username.", defaultValue="root") String username,
 			@ShellOption(help = "mysql password.", defaultValue="")	String password,
 			@ShellOption(help = "mysql port.", defaultValue="3306") int port,
@@ -370,18 +354,16 @@ public class BackupCommand {
 		mi.setPort(port);
 		if (!flushLogCron.isEmpty())mi.setFlushLogCron(flushLogCron);
 		box.setMysqlInstance(mi);
-		return actionResultToString(mysqlService.updateMysqlDescription(getSession(), box));
+		return mysqlService.updateMysqlDescription(getSession(), box);
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public String MysqlFlushLog() {
+	public FacadeResult<?> MysqlFlushLog() {
 		sureBoxSelected();
-		return actionResultToString(mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get()));
+		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get());
 	}
 	
-	private String actionResultToString(FacadeResult<?> fr) {
-		return "yes";
-	}
+
 	
 	
 	@ShellMethod(value = "添加常用的CRON表达式")
@@ -459,12 +441,12 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public String mysqlRedump(
+	public FacadeResult<?> mysqlRedump(
 			@Pattern(regexp = "I know what i am doing\\.") String iknow)
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return actionResultToString(mysqlService.mysqlDump(getSession(), box, true));
+		return mysqlService.mysqlDump(getSession(), box, true);
 	}
 
 	@ShellMethod(value = "显示当前选定服务器的描述文件。")
