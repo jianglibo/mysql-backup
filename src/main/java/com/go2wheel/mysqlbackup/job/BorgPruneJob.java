@@ -33,7 +33,7 @@ public class BorgPruneJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		borgTaskFacade.pruneRepo(sshSessionFactory.getConnectedSession(box).get(), box);
+		borgTaskFacade.pruneRepo(sshSessionFactory.getConnectedSession(box).getResult(), box);
 
 	}
 

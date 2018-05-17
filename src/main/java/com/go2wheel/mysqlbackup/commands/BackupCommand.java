@@ -38,6 +38,7 @@ import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ServerConnectionException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
@@ -53,7 +54,9 @@ import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.Box.BoxRole;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -105,6 +108,9 @@ public class BackupCommand {
 	@Autowired
 	private LocaledMessageService localedMessageService;
 	
+	@Autowired
+	private BoxService boxService;
+	
 	@PostConstruct
 	public void post() {
 
@@ -112,7 +118,12 @@ public class BackupCommand {
 
 	private Session getSession() {
 		if (_session == null || !_session.isConnected()) {
-			_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
+			FacadeResult<Session> sessionOp = sshSessionFactory.getConnectedSession(appState.currentBox().get());
+			if (sessionOp.isExpected()) {
+				_session = sessionOp.getResult();
+			} else {
+				throw new ServerConnectionException("jsch.connect.failed", "无法链接服务器，请查看日志确定故障原因。");
+			}
 		}
 		return _session;
 	}
@@ -129,9 +140,17 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
-	public FacadeResult<?> serverCreate(@ShellOption(help = "服务器主机名或者IP") String host,
+	public FacadeResult<?> serverCreate(
+			@ShellOption(help = "服务器主机名或者IP") String host,
+			@ShellOption(help = "用户名", defaultValue = "root") String username,
+			@ShellOption(help = "密码", defaultValue = "") String password,
+			@ShellOption(help = "服务器角色", defaultValue = "SOURCE") BoxRole boxRole,
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
-		return mysqlService.serverCreate(host, sshPort);
+		FacadeResult<Box> fr = boxService.serverCreate(host, sshPort, username, password, boxRole);
+		if (fr.isExpected()) {
+			appState.getServers().add(fr.getResult());
+		}
+		return fr;
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -144,7 +163,7 @@ public class BackupCommand {
 	@ShellMethod(value = "加载示例服务器。")
 	public String loadDemoServer() throws IOException {
 		InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml");
-		Box box = YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
+		Box box = YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
 		if (appState.addServer(box)) {
 			appState.setCurrentIndexAndFireEvent(appState.getServers().size() - 1);
 		}
@@ -164,7 +183,7 @@ public class BackupCommand {
 			} catch (Exception e) {
 			}
 		}
-		_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).get();
+		_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).getResult();
 	}
 
 	/**
@@ -196,7 +215,6 @@ public class BackupCommand {
 			@ShellOption(help = "borg prune cron expression.", defaultValue="") String pruneCron) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-
 		return borgService.updateBorgDescription(getSession(), box, repo, archiveFormat, archiveNamePrefix,
 				archiveCron,
 				pruneCron);
@@ -449,10 +467,32 @@ public class BackupCommand {
 		return mysqlService.mysqlDump(getSession(), box, true);
 	}
 
-	@ShellMethod(value = "显示当前选定服务器的描述文件。")
-	public String serverDescription() throws JSchException, IOException {
+	@ShellMethod(value = "显示和修改服务器")
+	public FacadeResult<?> serverDescription(
+			@ShellOption(help = "用户名", defaultValue = "") String username,
+			@ShellOption(help = "密码", defaultValue = "") String password,
+			@ShellOption(help = "服务器角色", defaultValue = "") BoxRole boxRole,
+			@ShellOption(help = "SSH端口", defaultValue = "-1") int sshPort) throws JSchException, IOException {
 		sureBoxSelected();
-		return YamlInstance.INSTANCE.getYaml().dumpAsMap(appState.currentBox().get());
+		Box box = appState.currentBox().get();
+		
+		if (!username.isEmpty()) {
+			box.setUsername(username);
+		}
+		
+		if (!password.isEmpty()) {
+			box.setPassword(password);
+		}
+		
+		if (boxRole != null) {
+			box.setRole(boxRole);
+		}
+		
+		if (sshPort != -1) {
+			box.setPort(sshPort);
+		}
+		boxService.writeDescription(box);
+		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 	}
 
 	private String getPromptString() {

@@ -37,7 +37,7 @@ public class TestBorgTaskFacadeSpring {
 	@Test
 	public void tArchive() throws RunRemoteCommandException, InterruptedException, IOException {
 		Box box = UtilForTe.loadDemoBox();
-		Session session = sshSessionFactory.getConnectedSession(box).get();
+		Session session = sshSessionFactory.getConnectedSession(box).getResult();
 		borgTaskFacade.archive(session, box, "");
 	}
 	

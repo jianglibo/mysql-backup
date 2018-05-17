@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
@@ -25,7 +26,6 @@ import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
@@ -63,9 +63,9 @@ public class BorgService {
 
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
-
+	
 	@Autowired
-	private MysqlUtil mysqlUtil;
+	private BoxService boxService;
 
 	private InstallationInfo getInstallationInfo(Session session) throws RunRemoteCommandException {
 		InstallationInfo ii = new InstallationInfo();
@@ -348,16 +348,21 @@ public class BorgService {
 				bbdi.getExcludes().remove(exclude);
 			}
 		}
-		return saveBox(box);
+		FacadeResult<?> frb = saveBox(box);
+		if (frb.getResult() != null) {
+			return FacadeResult.doneExpectedResult(box.getBorgBackup(), CommonActionResult.DONE);
+		} else {
+			return frb;
+		}
 	}
 
-	private FacadeResult<?> saveBox(Box box) {
+	private FacadeResult<Box> saveBox(Box box) {
 		try {
-			mysqlUtil.writeDescription(box);
+			boxService.writeDescription(box);
+			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
-			FacadeResult.unexpectedResult(e);
+			return FacadeResult.unexpectedResult(e);
 		}
-		return FacadeResult.doneExpectedResult();
 	}
 }

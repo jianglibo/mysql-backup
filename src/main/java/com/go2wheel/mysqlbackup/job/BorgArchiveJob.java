@@ -33,7 +33,8 @@ public class BorgArchiveJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).get(), box, box.getBorgBackup().getArchiveNamePrefix());
+		borgTaskFacade.archive(sshSessionFactory.getConnectedSession(box).getResult(), box,
+				box.getBorgBackup().getArchiveNamePrefix());
 
 	}
 

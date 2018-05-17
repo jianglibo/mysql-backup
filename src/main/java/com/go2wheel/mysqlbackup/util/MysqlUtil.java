@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -27,7 +28,6 @@ import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -38,13 +38,16 @@ public class MysqlUtil {
 	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
 
 	private MyAppSettings appSettings;
+	
+	@Autowired
+	private BoxService boxService;
 
 	public MycnfFileHolder getMyCnfFile(Session session, Box box)
 			throws RunRemoteCommandException, IOException, JSchException, ScpException {
 		String cnfFile = box.getMysqlInstance().getMycnfFile();
 		if (!StringUtil.hasAnyNonBlankWord(cnfFile)) {
 			box.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, box));
-			writeDescription(box);
+			boxService.writeDescription(box);
 		}
 		String content = ScpUtil.from(session, box.getMysqlInstance().getMycnfFile()).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
@@ -124,17 +127,17 @@ public class MysqlUtil {
 	}
 	
 
-	public void writeDescription(Box box) throws IOException {
-		Path dstFile = null;
-		String ds = YamlInstance.INSTANCE.getYaml().dumpAsMap(box);
-		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			Files.createDirectories(dstDir);
-		}
-		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
-		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
-
-	}
+//	public void writeDescription(Box box) throws IOException {
+//		Path dstFile = null;
+//		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(box);
+//		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			Files.createDirectories(dstDir);
+//		}
+//		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
+//		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
+//
+//	}
 
 	public void writeBinLog(Session session, Box box, String rfile) throws IOException, ScpException {
 		Path dstDir = appSettings.getDataRoot().resolve(box.getHost()).resolve("logbin");

@@ -5,11 +5,11 @@ import org.yaml.snakeyaml.Yaml;
 public enum YamlInstance {
 	INSTANCE;
 	
-	private final Yaml yaml;
+	public final Yaml yaml;
 	private YamlInstance() {
 		this.yaml = new Yaml();
 	}
-	public Yaml getYaml() {
-		return yaml;
-	}
+//	public Yaml getYaml() {
+//		return yaml;
+//	}
 }

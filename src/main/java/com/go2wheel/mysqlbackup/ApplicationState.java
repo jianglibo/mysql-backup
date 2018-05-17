@@ -23,39 +23,40 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Component
 public class ApplicationState {
-	
+
 	public static final String APPLICATION_STATE_PERSIST_FILE = "application-state.yml";
-	
+
 	@Autowired
 	private MyAppSettings appSettings;
-	
-    @Autowired
-    private ApplicationEventPublisher applicationEventPublisher;
-	
+
+	@Autowired
+	private ApplicationEventPublisher applicationEventPublisher;
+
 	private List<Box> servers = new ArrayList<>();
-	
+
 	private Locale local = Locale.getDefault();
-	
+
 	private int currentIndex;
-	
+
 	private FacadeResult<?> facadeResult;
-	
+
 	private CommandStepState step = CommandStepState.INIT_START;
-	
+
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
 	}
-	
+
 	public void post() throws IOException {
-		servers = Files.list(appSettings.getDataRoot()).filter(Files::isDirectory).map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME)).map(p -> {
-			try {
-				return YamlInstance.INSTANCE.getYaml().loadAs(Files.newInputStream(p), Box.class);
-			} catch (IOException e) {
-				return null;
-			}
-		}).filter(Objects::nonNull).collect(Collectors.toList());
+		servers = Files.list(appSettings.getDataRoot()).filter(Files::isDirectory)
+				.map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME)).map(p -> {
+					try {
+						return YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p), Box.class);
+					} catch (IOException e) {
+						return null;
+					}
+				}).filter(Objects::nonNull).collect(Collectors.toList());
 	}
-	
+
 	public synchronized List<Box> getServers() {
 		if (servers.isEmpty()) {
 			try {
@@ -86,7 +87,6 @@ public class ApplicationState {
 			applicationEventPublisher.publishEvent(sce);
 		}
 	}
-	
 
 	public Optional<Box> currentBox() {
 		if (servers != null && servers.size() > currentIndex) {
@@ -95,22 +95,23 @@ public class ApplicationState {
 			return Optional.empty();
 		}
 	}
-	
+
 	public void persistState() throws IOException {
-		String s = YamlInstance.INSTANCE.getYaml().dumpAsMap(this);
+		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(this);
 		Files.write(appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE), s.getBytes());
 	}
-	
+
 	public void loadState() throws IOException {
 		Path p = appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE);
 		if (Files.exists(p)) {
-			ApplicationState as = YamlInstance.INSTANCE.getYaml().loadAs(Files.newInputStream(p), ApplicationState.class);
+			ApplicationState as = YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p),
+					ApplicationState.class);
 			if (as.getCurrentIndex() < getServers().size()) {
 				this.currentIndex = as.getCurrentIndex();
 			}
 		}
 	}
-	
+
 	public boolean addServer(Box box) {
 		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
 		if (!exists) {
@@ -122,7 +123,7 @@ public class ApplicationState {
 			return false;
 		}
 	}
-	
+
 	public Box getServerByHost(String host) {
 		return this.servers.stream().filter(s -> host.equals(s.getHost())).findAny().orElse(null);
 	}

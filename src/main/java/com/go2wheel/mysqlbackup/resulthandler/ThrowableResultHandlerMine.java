@@ -15,7 +15,7 @@ import org.springframework.util.StringUtils;
 
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
-import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
+import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 
 public class ThrowableResultHandlerMine extends ThrowableResultHandler implements ApplicationContextAware {
 
@@ -31,6 +31,7 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 	@Lazy
 	private CommandRegistry commandRegistry;
 
+	@SuppressWarnings("unused")
 	private ApplicationContext applicationContext;
 	
 	@Autowired
@@ -43,10 +44,10 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 	@Override
 	protected void doHandleResult(Throwable result) {
 		lastError = result;
-		if (result instanceof NoServerSelectedException) {
+		if ( ShowToUserException.class.isAssignableFrom(result.getClass())) {
 			String s;
 			try {
-				s = messageService.getMessage(((NoServerSelectedException) result).getMessageKey());
+				s = messageService.getMessage(((ShowToUserException) result).getMessageKey());
 			} catch (NoSuchMessageException e) {
 				s = result.getMessage();
 			}

@@ -66,7 +66,7 @@ public class UtilForTe {
 	
 	public static Box loadDemoBox() throws IOException {
 		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
-		return YamlInstance.INSTANCE.getYaml().loadAs(is, Box.class);
+		return YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
 	}
 	
 //	public static BackupCommand backupCommandInstance() throws IOException {

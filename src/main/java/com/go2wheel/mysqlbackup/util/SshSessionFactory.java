@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.util;
 
-import java.util.Optional;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,8 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -20,7 +20,7 @@ public class SshSessionFactory {
 
 	private Logger logger = LoggerFactory.getLogger(SshSessionFactory.class);
 
-	public Optional<Session> getConnectedSession(Box box) {
+	public FacadeResult<Session> getConnectedSession(Box box) {
 		
 		JSch jsch=new JSch();
 		Session session = null;
@@ -41,17 +41,17 @@ public class SshSessionFactory {
 				logger.error("no authentication method found.");
 			}
 		} catch (JSchException e) {
-			logger.error("instance: {}, message: {}", box, e.getMessage());
+			ExceptionUtil.logErrorException(logger, e);
 			try {
 				if (session != null) {
 					session.disconnect();	
 				}
 			} catch (Exception e1) {
 			}
-			return Optional.empty();
+			return FacadeResult.unexpectedResult(e);
 		}
 
-		return Optional.of(session);
+		return FacadeResult.doneExpectedResult(session, CommonActionResult.DONE);
 	}
 
 	@Autowired

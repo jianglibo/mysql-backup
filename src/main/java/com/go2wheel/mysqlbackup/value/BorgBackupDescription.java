@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.value;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
+
 public class BorgBackupDescription {
 
 	public static final String BORG_ARCHIVE_PREFIX_DEFAULT = "ARCHIVE-";
@@ -16,6 +18,12 @@ public class BorgBackupDescription {
 	private String archiveCron;
 	private String pruneCron;
 	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
+	
+	
+	@Override
+	public String toString() {
+		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
+	}
 	
 	public String getRepo() {
 		return repo;

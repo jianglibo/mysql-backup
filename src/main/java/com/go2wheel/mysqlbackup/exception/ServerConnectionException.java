@@ -1,13 +1,14 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public class NoServerSelectedException extends ShowToUserException {
+public class ServerConnectionException extends ShowToUserException {
 
+	
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	
-	public NoServerSelectedException(String messageKey, String message) {
+
+	public ServerConnectionException(String messageKey, String message) {
 		super(messageKey, message);
 	}
 }

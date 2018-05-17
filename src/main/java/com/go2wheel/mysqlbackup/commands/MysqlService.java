@@ -34,7 +34,6 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -46,6 +45,8 @@ public class MysqlService {
 	private MysqlUtil mysqlUtil;
 
 	private MyAppSettings appSettings;
+	
+	private BoxService boxService;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
@@ -65,22 +66,22 @@ public class MysqlService {
 		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 	}
 
-	public FacadeResult<?> serverCreate(String host, int sshPort) {
-		try {
-			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
-			}
-			Box box = new Box();
-			box.setHost(host);
-			box.setPort(sshPort);
-			box.setMysqlInstance(new MysqlInstance());
-			mysqlUtil.writeDescription(box);
-			return FacadeResult.doneExpectedResult();
-		} catch (IOException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
+//	public FacadeResult<?> serverCreate(String host, int sshPort) {
+//		try {
+//			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
+//				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
+//			}
+//			Box box = new Box();
+//			box.setHost(host);
+//			box.setPort(sshPort);
+//			box.setMysqlInstance(new MysqlInstance());
+//			boxService.writeDescription(box);
+//			return FacadeResult.doneExpectedResult();
+//		} catch (IOException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			return FacadeResult.unexpectedResult(e);
+//		}
+//	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Box box, boolean force) {
@@ -176,7 +177,7 @@ public class MysqlService {
 				}
 				if (lbs.isEnabled()) {
 					box.getMysqlInstance().setLogBinSetting(lbs);
-					mysqlUtil.writeDescription(box);
+					boxService.writeDescription(box);
 					return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 				} else {
 					MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box); // 找到起作用的my.cnf配置文件。
@@ -191,7 +192,7 @@ public class MysqlService {
 						return FacadeResult.unexpectedResult("enable logbin failed.");
 					}
 					box.getMysqlInstance().setLogBinSetting(lbs);
-					mysqlUtil.writeDescription(box); // 保存
+					boxService.writeDescription(box); // 保存
 				}
 			}
 		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
@@ -203,7 +204,7 @@ public class MysqlService {
 
 	public FacadeResult<?> updateMysqlDescription(Session session, Box box) {
 		try {
-			mysqlUtil.writeDescription(box);
+			boxService.writeDescription(box);
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			FacadeResult.unexpectedResult(e);

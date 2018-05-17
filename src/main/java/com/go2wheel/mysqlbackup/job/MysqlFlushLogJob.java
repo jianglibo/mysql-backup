@@ -30,7 +30,7 @@ public class MysqlFlushLogJob implements Job {
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
 		if (box == null) return;
-		mysqlTaskFacade.mysqlFlushLogs(sshSessionFactory.getConnectedSession(box).get(), box);
+		mysqlTaskFacade.mysqlFlushLogs(sshSessionFactory.getConnectedSession(box).getResult(), box);
 	}
 
 }

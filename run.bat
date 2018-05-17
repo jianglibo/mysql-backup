@@ -1,4 +1,19 @@
 echo off
+
+REM https://ss64.com/nt/for_cmd.html
+SET _lport=8080
+
+REM FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "%_lport%"') DO taskkill /PID %%G /F /T
+REM FOR /f "tokens=4 delims=(=" %%G IN ('%_ping_cmd% ^|find "Ping"') DO echo Result is [%%G]
+::echo on
+:: FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "8080"') DO SET _listening=%%G
+
+::IF [%_listening%]!=[] ECHO "hello"
+::echo %_listening%
+
+::GOTO :eof
+
+
 SET wdir=%~dp0
 CD /D %wdir% 
 SET wdirslash=%wdir:\=/%
@@ -17,10 +32,12 @@ GOTO tryToFindJar
 
 :stop
 IF EXIST %pidfile% SET /p apppid=<%pidfile%
+IF DEFINED apppid ECHO About to kill process with pid %apppid%
 IF DEFINED apppid taskkill /PID %apppid% /F /T
 GOTO :eof
 
 :tryToFindJar
+FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "%_lport%"') DO taskkill /PID %%G /F /T
 SET jarfile="%wdir%mysql-backup-boot.jar"
 echo try to find jar in %jarfile%  ......
 IF EXIST %jarfile% (

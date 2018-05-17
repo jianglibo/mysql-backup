@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class Box {
 	
@@ -16,7 +17,7 @@ public class Box {
 	
 	private String fingerprint;
 	
-	private String username;
+	private String username = "root";
 	private String password;
 	
 	private String sshKeyFile;
@@ -25,7 +26,12 @@ public class Box {
 	
 	private BorgBackupDescription borgBackup;
 	
-	private BoxRole role;
+	private BoxRole role = BoxRole.SOURCE;
+	
+	@Override
+	public String toString() {
+		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
+	}
 	
 	public boolean hasFingerPrint() {
 		return fingerprint != null && !fingerprint.trim().isEmpty();

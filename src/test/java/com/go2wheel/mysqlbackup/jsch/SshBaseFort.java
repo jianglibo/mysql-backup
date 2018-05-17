@@ -65,7 +65,7 @@ public class SshBaseFort {
 			Files.createDirectories(appSettings.getDataRoot().resolve("demobox"));
 		}
 		box = UtilForTe.loadDemoBox();
-		session = sshClientFactory.getConnectedSession(box).orElse(null);
+		session = sshClientFactory.getConnectedSession(box).getResult();
 		fileDownloader = new FileDownloader();
 		fileDownloader.setAppSettings(appSettings);
 		fileDownloader.post();
