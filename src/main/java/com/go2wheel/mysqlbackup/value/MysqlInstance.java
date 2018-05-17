@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class MysqlInstance {
 	
@@ -16,6 +17,11 @@ public class MysqlInstance {
 	private boolean readyForBackup;
 	
 	private LogBinSetting logBinSetting;
+	
+	@Override
+	public String toString() {
+		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
+	}
 	
 	public int getPort() {
 		return port;

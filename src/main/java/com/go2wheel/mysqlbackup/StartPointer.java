@@ -59,7 +59,8 @@ public class StartPointer {
 	public MessageSource messageSource() {
 		MessageSourceProperties properties = messageSourceProperties();
 		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-		if (StringUtils.hasText(properties.getBasename())) {
+		String bn = properties.getBasename();
+		if (StringUtils.hasText(bn)) {
 			messageSource.setBasenames(StringUtils.commaDelimitedListToStringArray(
 					StringUtils.trimAllWhitespace(properties.getBasename())));
 		}

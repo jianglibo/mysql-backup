@@ -34,8 +34,8 @@ public class ResultHandlerConfigMine {
 	}
 	
 	@Bean
-	public MyThrowableResultHandler myThrowableResultHandler() {
-		return new MyThrowableResultHandler();
+	public CommandNotFoundResultHandler myThrowableResultHandler() {
+		return new CommandNotFoundResultHandler();
 	}
 	
 	@Bean

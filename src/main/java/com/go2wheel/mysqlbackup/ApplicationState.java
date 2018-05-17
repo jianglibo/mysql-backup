@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -9,7 +10,12 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import javax.annotation.PostConstruct;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -17,6 +23,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -25,6 +32,8 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 public class ApplicationState {
 
 	public static final String APPLICATION_STATE_PERSIST_FILE = "application-state.yml";
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private MyAppSettings appSettings;
@@ -34,7 +43,7 @@ public class ApplicationState {
 
 	private List<Box> servers = new ArrayList<>();
 
-	private Locale local = Locale.getDefault();
+	private Locale local = Locale.CHINESE;
 
 	private int currentIndex;
 
@@ -46,15 +55,43 @@ public class ApplicationState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
 	}
 
+	@PostConstruct
 	public void post() throws IOException {
-		servers = Files.list(appSettings.getDataRoot()).filter(Files::isDirectory)
-				.map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME)).map(p -> {
-					try {
-						return YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p), Box.class);
-					} catch (IOException e) {
-						return null;
-					}
-				}).filter(Objects::nonNull).collect(Collectors.toList());
+		Path dr = appSettings.getDataRoot();
+		try (Stream<Path> vs = Files.list(dr)){
+			servers = vs.filter(Files::isDirectory)
+					.map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME))
+					.filter(f -> {
+						if (Files.exists(f)) {
+							return true;
+						} else {
+							Path wf = f.getParent().resolve(BackupCommand.DESCRIPTION_FILENAME + ".writing");
+							if (Files.exists(wf)) {
+								try {
+									Files.move(wf, f);
+								} catch (IOException e) {
+									ExceptionUtil.logErrorException(logger, e);
+									return false;
+								}
+								return true;
+							} else {
+								return false;
+							}
+							
+						}
+					})
+					.map(p -> {
+						
+						try (InputStream is = Files.newInputStream(p)) {
+							return YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
+						} catch (IOException e) {
+							ExceptionUtil.logErrorException(logger, e);
+							return null;
+						}
+					}).filter(Objects::nonNull).collect(Collectors.toList());
+		} catch (Exception e) {
+			ExceptionUtil.logErrorException(logger, e);
+		}
 	}
 
 	public synchronized List<Box> getServers() {
@@ -113,6 +150,9 @@ public class ApplicationState {
 	}
 
 	public boolean addServer(Box box) {
+		if (box == null) {
+			return false;
+		}
 		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
 		if (!exists) {
 			this.servers.add(box);

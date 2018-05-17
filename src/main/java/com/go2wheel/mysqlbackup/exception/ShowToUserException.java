@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public abstract class ShowToUserException extends RuntimeException {
+public class ShowToUserException extends RuntimeException {
 	
 	/**
 	 * 

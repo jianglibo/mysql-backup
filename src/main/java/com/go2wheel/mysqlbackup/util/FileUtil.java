@@ -91,9 +91,16 @@ public class FileUtil {
 	}
 	
 	public static void atomicWriteFile(Path dstFile, byte[] content) throws IOException {
-			String fn = dstFile.getFileName().toString() + ".writing";
-			Path tmpFile = dstFile.getParent().resolve(fn);
-			Files.write(tmpFile, content);
+		String fn = dstFile.getFileName().toString() + ".writing";
+		Path tmpFile = dstFile.getParent().resolve(fn);
+		Files.write(tmpFile, content);
+//		if (Files.exists(dstFile)) {
+//			Files.delete(dstFile);
+//		}
+		try {
 			Files.move(tmpFile, dstFile, StandardCopyOption.ATOMIC_MOVE);
+		} catch (Exception e) {
+			Files.write(dstFile, content);
+		}
 	}
 }

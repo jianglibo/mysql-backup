@@ -39,6 +39,7 @@ import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ServerConnectionException;
+import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
@@ -118,10 +119,17 @@ public class BackupCommand {
 
 	private Session getSession() {
 		if (_session == null || !_session.isConnected()) {
-			FacadeResult<Session> sessionOp = sshSessionFactory.getConnectedSession(appState.currentBox().get());
-			if (sessionOp.isExpected()) {
-				_session = sessionOp.getResult();
+			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(appState.currentBox().get());
+			if (frSession.isExpected()) {
+				_session = frSession.getResult();
 			} else {
+				if (frSession.getException() != null) {
+					if (frSession.getException().getMessage().contains("Auth fail")) {
+						throw new ServerConnectionException("jsch.connect.authfailed", "認證失敗，請檢查sshKey的配置。");
+					} else if (frSession.getException().getMessage().contains("Connection timed out")) {
+						throw new ServerConnectionException("jsch.connect.failed", "認證失敗，請檢查sshKey的配置。");
+					}
+				}
 				throw new ServerConnectionException("jsch.connect.failed", "无法链接服务器，请查看日志确定故障原因。");
 			}
 		}
@@ -148,7 +156,7 @@ public class BackupCommand {
 			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
 		FacadeResult<Box> fr = boxService.serverCreate(host, sshPort, username, password, boxRole);
 		if (fr.isExpected()) {
-			appState.getServers().add(fr.getResult());
+			appState.addServer(fr.getResult());
 		}
 		return fr;
 	}
@@ -203,11 +211,18 @@ public class BackupCommand {
 
 	@ShellMethod(value = "安装borg。")
 	public FacadeResult<?> borgInstall() {
+		sureBorgConfigurated();
 		return borgService.install(getSession());
 	}
 	
-	@ShellMethod(value = "添加或更改Borg的描述")
-	public FacadeResult<?> borgDescription(
+	@ShellMethod(value = "查看Borg的描述")
+	public FacadeResult<?> borgDescriptionGet() throws JSchException, IOException {
+		sureBorgConfigurated();
+		return FacadeResult.doneExpectedResult(appState.currentBox().get().getBorgBackup(), CommonActionResult.DONE);
+	}
+	
+	@ShellMethod(value = "創建或更新Borg的描述")
+	public FacadeResult<?> borgDescriptionCreateOrUpdate(
 			@ShellOption(help = "borg repo.", defaultValue="") String repo,
 			@ShellOption(help = "borg archive format.", defaultValue="")	String archiveFormat,
 			@ShellOption(help = "borg archive prefix.", defaultValue="") String archiveNamePrefix,
@@ -215,6 +230,9 @@ public class BackupCommand {
 			@ShellOption(help = "borg prune cron expression.", defaultValue="") String pruneCron) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
+		if (box.getBorgBackup() == null) {
+			box.setBorgBackup(new BorgBackupDescription());
+		}
 		return borgService.updateBorgDescription(getSession(), box, repo, archiveFormat, archiveNamePrefix,
 				archiveCron,
 				pruneCron);
@@ -222,7 +240,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "列出Borg备份包含的目录")
 	public List<String> borgIncludesList() throws JSchException, IOException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
 		if (bbdi == null) {
@@ -233,7 +251,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "列出Borg备份排除的目录")
 	public List<String> borgExcludesList() throws JSchException, IOException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
 		if (bbdi == null) {
@@ -246,7 +264,7 @@ public class BackupCommand {
 	public List<String> borgIncludesExcludesAdd(
 			@ShellOption(help = "Absolute directory to add to 'includes'.", defaultValue="") String include,
 			@ShellOption(help = "Absolute directory to add to 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
 		if (bbdi == null) {
@@ -260,7 +278,7 @@ public class BackupCommand {
 	public List<String> borgIncludesExcludesRemove(
 			@ShellOption(help = "Absolute directory to remove from 'includes'.", defaultValue="") String include,
 			@ShellOption(help = "Absolute directory to remove from 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
 		if (bbdi == null) {
@@ -302,37 +320,36 @@ public class BackupCommand {
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		return borgService.initRepo(getSession(),box.getBorgBackup().getRepo()).getResult()
 				.getAllTrimedNotEmptyLines();
 	}
 
 	@ShellMethod(value = "创建一次borg备份")
-	public String borgCreateArchive() throws RunRemoteCommandException {
-		sureBoxSelected();
+	public FacadeResult<?> borgCreateArchive() throws RunRemoteCommandException {
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
-		borgService.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
-		return "Success";
+		return borgService.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
 	}
 	
 	@ShellMethod(value = "下载borg的仓库。")
 	public void borgDownloadRepo() throws RunRemoteCommandException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		borgService.downloadRepo(getSession(), box);
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
 	public List<String> borgListArchives() {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		return borgService.listArchives(getSession(), box).getResult().getArchives();
 	}
 	
 	@ShellMethod(value = "修剪borg创建的卷")
 	public String borgPruneArchives() throws RunRemoteCommandException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgPruneResult bpr = borgService.pruneRepo(getSession(), box).getResult(); 
 		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(), bpr.keepedArchiveNumbers());
@@ -340,7 +357,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
 	public List<String> borgListRepoFiles() throws RunRemoteCommandException {
-		sureBoxSelected();
+		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		return borgService.listRepoFiles(getSession(), box).getResult().getAllTrimedNotEmptyLines();
 	}
@@ -350,6 +367,22 @@ public class BackupCommand {
 			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING, "选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
+	
+	private void sureBorgConfigurated() {
+		sureBoxSelected();
+		if (appState.currentBox().get().getBorgBackup() == null) {
+			throw new ShowToUserException("borg.unconfigurated", "");
+		}
+	}
+	
+	private void sureMysqlConfigurated() {
+		sureBoxSelected();
+		if (appState.currentBox().get().getBorgBackup() == null) {
+			throw new ShowToUserException("mysql.unconfigurated", "");
+		}
+	}
+
+
 
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
@@ -358,7 +391,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
-	public FacadeResult<?> mysqlDescription(
+	public FacadeResult<?> mysqlDescriptionCreateOrUpdate(
 			@ShellOption(help = "mysql username.", defaultValue="root") String username,
 			@ShellOption(help = "mysql password.", defaultValue="")	String password,
 			@ShellOption(help = "mysql port.", defaultValue="3306") int port,
@@ -367,6 +400,7 @@ public class BackupCommand {
 		Box box = appState.currentBox().get();
 		MysqlInstance mi = box.getMysqlInstance();
 		if (mi == null) mi = new MysqlInstance();
+
 		if (!username.isEmpty()) mi.setUsername(username);
 		if (!password.isEmpty()) mi.setPassword(password);
 		mi.setPort(port);
@@ -374,15 +408,18 @@ public class BackupCommand {
 		box.setMysqlInstance(mi);
 		return mysqlService.updateMysqlDescription(getSession(), box);
 	}
+	
+	@ShellMethod(value = "查看Mysql的描述")
+	public FacadeResult<?> mysqlDescriptionGet(String flushLogCron) throws JSchException, IOException {
+		sureMysqlConfigurated();
+		return FacadeResult.doneExpectedResult(appState.currentBox().get().getMysqlInstance(), CommonActionResult.DONE);
+	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
 		sureBoxSelected();
 		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get());
 	}
-	
-
-	
 	
 	@ShellMethod(value = "添加常用的CRON表达式")
 	public String cronExpressionAdd(
@@ -470,28 +507,36 @@ public class BackupCommand {
 	@ShellMethod(value = "显示和修改服务器")
 	public FacadeResult<?> serverDescription(
 			@ShellOption(help = "用户名", defaultValue = "") String username,
-			@ShellOption(help = "密码", defaultValue = "") String password,
+			@ShellOption(help = "密码", defaultValue = Box.YOU_CANNOT_GUESS_PASSWORD) String password,
 			@ShellOption(help = "服务器角色", defaultValue = "") BoxRole boxRole,
 			@ShellOption(help = "SSH端口", defaultValue = "-1") int sshPort) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		
+		boolean changed = false;
+		
 		if (!username.isEmpty()) {
 			box.setUsername(username);
+			changed = true;
 		}
 		
-		if (!password.isEmpty()) {
-			box.setPassword(password);
+		if (!Box.YOU_CANNOT_GUESS_PASSWORD.equals(password)) {
+			if (password.trim().isEmpty()) {
+				box.setPassword(Box.YOU_CANNOT_GUESS_PASSWORD);
+			}
+			changed = true;
 		}
 		
 		if (boxRole != null) {
 			box.setRole(boxRole);
+			changed = true;
 		}
 		
 		if (sshPort != -1) {
 			box.setPort(sshPort);
+			changed = true;
 		}
-		boxService.writeDescription(box);
+		if (changed) boxService.writeDescription(box);
 		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 	}
 

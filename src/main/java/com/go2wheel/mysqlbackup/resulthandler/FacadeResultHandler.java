@@ -23,27 +23,31 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 	
 	@Override
 	protected void doHandleResult(FacadeResult<T> result) {
-		applicationState.setFacadeResult(result);
-		String msg;
 		try {
-			if (result.getException() != null) {
-				msg = ExceptionUtil.stackTraceToString(result.getException());
-			} else if(result.getResult() != null) {
-				msg = result.getResult().toString();
-			} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
-				msg = messageService.getMessage(result.getMessage());
-			} else {
-				msg = "";
+			applicationState.setFacadeResult(result);
+			String msg;
+			try {
+				if (result.getException() != null) {
+					msg = ExceptionUtil.stackTraceToString(result.getException());
+				} else if(result.getResult() != null) {
+					msg = result.getResult().toString();
+				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
+					msg = messageService.getMessage(result.getMessage());
+				} else {
+					msg = "";
+				}
+			} catch (Exception e) {
+				if (e instanceof NoSuchMessageException) {
+					msg = String.format("Message key : %s doesn't exists.", result.getMessage());
+				} else {
+					msg = "An error occured. " + e.getMessage();
+				}
 			}
+			terminal.writer().println(new AttributedStringBuilder()
+					.append(msg, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
 		} catch (Exception e) {
-			if (e instanceof NoSuchMessageException) {
-				msg = String.format("Message key : %s doesn't exists.", result.getMessage());
-			} else {
-				msg = "An error occured. " + e.getMessage();
-			}
+			e.printStackTrace();
 		}
-		terminal.writer().println(new AttributedStringBuilder()
-				.append(msg, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
 	}
 
 

@@ -11,7 +11,7 @@ import org.springframework.shell.result.TerminalAwareResultHandler;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 
-public class MyThrowableResultHandler  extends TerminalAwareResultHandler<CommandNotFound> {
+public class CommandNotFoundResultHandler  extends TerminalAwareResultHandler<CommandNotFound> {
 	
 	private Pattern ptn = Pattern.compile("No command found for\\s+'(\\d+)'\\s*");
 	

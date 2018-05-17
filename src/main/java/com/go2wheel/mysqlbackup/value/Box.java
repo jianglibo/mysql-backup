@@ -8,6 +8,8 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class Box {
 	
+	public static final String YOU_CANNOT_GUESS_PASSWORD = "U219s&020lk,dl";
+	
 	public static enum BoxRole {
 		SOURCE, DEST
 	}
@@ -18,7 +20,7 @@ public class Box {
 	private String fingerprint;
 	
 	private String username = "root";
-	private String password;
+	private String password = YOU_CANNOT_GUESS_PASSWORD;
 	
 	private String sshKeyFile;
 	
@@ -43,7 +45,7 @@ public class Box {
 	}
 	
 	public boolean canPasswordAuth() {
-		return password != null && !password.trim().isEmpty();
+		return getPassword() != null && !YOU_CANNOT_GUESS_PASSWORD.equals(getPassword());
 	}
 
 	public String getHost() {
