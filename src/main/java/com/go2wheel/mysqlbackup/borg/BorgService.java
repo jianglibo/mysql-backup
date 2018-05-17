@@ -299,35 +299,27 @@ public class BorgService {
 
 	}
 	//@formatter:on
-	public FacadeResult<?> updateBorgDescription(Session session, Box box, String repo, String archiveFormat,
+	public FacadeResult<?> updateBorgDescription(Box box, String repo, String archiveFormat,
 			String archiveNamePrefix, String archiveCron, String pruneCron) {
 		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null)
-			bbdi = new BorgBackupDescription();
 
-		if (!repo.isEmpty())
-			bbdi.setRepo(repo);
-		if (!archiveFormat.isEmpty())
-			bbdi.setArchiveFormat(archiveFormat);
-		if (!archiveNamePrefix.isEmpty())
-			bbdi.setArchiveNamePrefix(archiveNamePrefix);
-		if (!archiveCron.isEmpty()) {
-			if (!archiveCron.equals(bbdi.getArchiveCron())) {
-				bbdi.setArchiveCron(archiveCron);
-				CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgArchiveJobKey(box),
-						BoxUtil.getBorgArchiveTriggerKey(box), archiveCron);
-				applicationEventPublisher.publishEvent(cece);
-			}
+		bbdi.setRepo(repo);
+		bbdi.setArchiveFormat(archiveFormat);
+		bbdi.setArchiveNamePrefix(archiveNamePrefix);
+		if (!archiveCron.equals(bbdi.getArchiveCron())) {
+			bbdi.setArchiveCron(archiveCron);
+			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgArchiveJobKey(box),
+					BoxUtil.getBorgArchiveTriggerKey(box), archiveCron);
+			applicationEventPublisher.publishEvent(cece);
 		}
-		if (!pruneCron.isEmpty()) {
-			if (!pruneCron.equals(bbdi.getPruneCron())) {
-				bbdi.setPruneCron(pruneCron);
-				CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(box),
-						BoxUtil.getBorgPruneTriggerKey(box), pruneCron);
-				applicationEventPublisher.publishEvent(cece);
-			}
+			
+		if (!pruneCron.equals(bbdi.getPruneCron())) {
+			bbdi.setPruneCron(pruneCron);
+			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(box),
+					BoxUtil.getBorgPruneTriggerKey(box), pruneCron);
+			applicationEventPublisher.publishEvent(cece);
+		}
 
-		}
 		box.setBorgBackup(bbdi);
 		return saveBox(box);
 	}
@@ -356,7 +348,7 @@ public class BorgService {
 		}
 	}
 
-	private FacadeResult<Box> saveBox(Box box) {
+	public FacadeResult<Box> saveBox(Box box) {
 		try {
 			boxService.writeDescription(box);
 			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);

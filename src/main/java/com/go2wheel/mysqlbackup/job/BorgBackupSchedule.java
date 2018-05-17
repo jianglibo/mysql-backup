@@ -29,6 +29,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
@@ -79,8 +80,10 @@ public class BorgBackupSchedule {
 	@EventListener
 	public void whenServerCreated(ServerCreateEvent sce) throws SchedulerException, ParseException {
 		Box box = sce.getBox();
-		schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(), BORG_ARCHIVE_GROUP);
-		schudelerArchiveTrigger(box, BorgPruneJob.class, box.getBorgBackup().getPruneCron(), BORG_PRUNE_GROUP);
+//		BorgBackupDescription bbd = box.getBorgBackup();
+//		if (bbd != null && box.getBorgBackup().getArchiveCron() != null)
+//		schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(), BORG_ARCHIVE_GROUP);
+//		schudelerArchiveTrigger(box, BorgPruneJob.class, box.getBorgBackup().getPruneCron(), BORG_PRUNE_GROUP);
 	}
 
 }

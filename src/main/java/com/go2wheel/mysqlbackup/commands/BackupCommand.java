@@ -55,7 +55,6 @@ import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.Box.BoxRole;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -68,7 +67,7 @@ import com.jcraft.jsch.Session;
 public class BackupCommand {
 
 	public static final String DESCRIPTION_FILENAME = "description.yml";
-	
+
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -96,22 +95,22 @@ public class BackupCommand {
 
 	@Autowired
 	private SchedulerService schedulerTaskFacade;
-	
+
 	@Autowired
 	private ReusableCronService reusableCronService;
-	
+
 	@Autowired
 	private MailAddressService mailAddressService;
-	
+
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
-	
+
 	@Autowired
 	private LocaledMessageService localedMessageService;
-	
+
 	@Autowired
 	private BoxService boxService;
-	
+
 	@PostConstruct
 	public void post() {
 
@@ -148,17 +147,34 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
-	public FacadeResult<?> serverCreate(
-			@ShellOption(help = "服务器主机名或者IP") String host,
-			@ShellOption(help = "用户名", defaultValue = "root") String username,
-			@ShellOption(help = "密码", defaultValue = "") String password,
-			@ShellOption(help = "服务器角色", defaultValue = "SOURCE") BoxRole boxRole,
-			@ShellOption(help = "SSH端口", defaultValue = "22") int sshPort) throws IOException {
-		FacadeResult<Box> fr = boxService.serverCreate(host, sshPort, username, password, boxRole);
+	public FacadeResult<?> serverCreate(@ShellOption(help = "服务器主机名或者IP") String host) throws IOException {
+		FacadeResult<Box> fr = boxService.serverCreate(host);
 		if (fr.isExpected()) {
 			appState.addServer(fr.getResult());
 		}
 		return fr;
+	}
+	
+	@ShellMethod(value = "显示服务器描述")
+	public FacadeResult<?> serverDetail() throws JSchException, IOException {
+		sureBoxSelected();
+		return FacadeResult.doneExpectedResult(appState.currentBox().get(), CommonActionResult.DONE);
+	}
+
+	@ShellMethod(value = "和修改服务器描述")
+	public FacadeResult<?> serverUpdate(
+			@ShellOption(help = "用户名") String username,
+			@ShellOption(help = "密码") String password,
+			@ShellOption(help = "服务器角色") String boxRole,
+			@ShellOption(help = "SSH端口") int port) throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		box.setUsername(username);
+		box.setPassword(password);
+		box.setRole(boxRole);
+		box.setPort(port);
+		boxService.writeDescription(box);
+		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -214,30 +230,42 @@ public class BackupCommand {
 		sureBorgConfigurated();
 		return borgService.install(getSession());
 	}
-	
+
 	@ShellMethod(value = "查看Borg的描述")
-	public FacadeResult<?> borgDescriptionGet() throws JSchException, IOException {
+	public FacadeResult<?> borgDescription() throws JSchException, IOException {
 		sureBorgConfigurated();
 		return FacadeResult.doneExpectedResult(appState.currentBox().get().getBorgBackup(), CommonActionResult.DONE);
 	}
 	
-	@ShellMethod(value = "創建或更新Borg的描述")
-	public FacadeResult<?> borgDescriptionCreateOrUpdate(
-			@ShellOption(help = "borg repo.", defaultValue="") String repo,
-			@ShellOption(help = "borg archive format.", defaultValue="")	String archiveFormat,
-			@ShellOption(help = "borg archive prefix.", defaultValue="") String archiveNamePrefix,
-			@ShellOption(help = "borg archive cron expression.", defaultValue="") String archiveCron,
-			@ShellOption(help = "borg prune cron expression.", defaultValue="") String pruneCron) throws JSchException, IOException {
+	@ShellMethod(value = "創建Borg的描述")
+	public FacadeResult<?> borgDescriptionCreate()
+			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		if (box.getBorgBackup() == null) {
-			box.setBorgBackup(new BorgBackupDescription());
+		BorgBackupDescription bbd = box.getBorgBackup();
+		if (bbd != null) {
+			FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		}
-		return borgService.updateBorgDescription(getSession(), box, repo, archiveFormat, archiveNamePrefix,
-				archiveCron,
+		bbd = new BorgBackupDescription();
+		box.setBorgBackup(bbd);
+		return borgService.saveBox(box);
+	}
+
+
+	@ShellMethod(value = "更新Borg的描述")
+	public FacadeResult<?> borgDescriptionUpdate(
+			@ShellOption(help = "borg repo.") String repo,
+			@ShellOption(help = "borg archive format.") String archiveFormat,
+			@ShellOption(help = "borg archive prefix.") String archiveNamePrefix,
+			@ShellOption(help = "borg archive cron expression.") String archiveCron,
+			@ShellOption(help = "borg prune cron expression.") String pruneCron)
+			throws JSchException, IOException {
+		sureBorgConfigurated();
+		Box box = appState.currentBox().get();
+		return borgService.updateBorgDescription(box, repo, archiveFormat, archiveNamePrefix, archiveCron,
 				pruneCron);
 	}
-	
+
 	@ShellMethod(value = "列出Borg备份包含的目录")
 	public List<String> borgIncludesList() throws JSchException, IOException {
 		sureBorgConfigurated();
@@ -248,7 +276,7 @@ public class BackupCommand {
 		}
 		return bbdi.getIncludes();
 	}
-	
+
 	@ShellMethod(value = "列出Borg备份排除的目录")
 	public List<String> borgExcludesList() throws JSchException, IOException {
 		sureBorgConfigurated();
@@ -259,11 +287,12 @@ public class BackupCommand {
 		}
 		return bbdi.getExcludes();
 	}
-	
+
 	@ShellMethod(value = "添加Borg备份或排除的目录")
 	public List<String> borgIncludesExcludesAdd(
-			@ShellOption(help = "Absolute directory to add to 'includes'.", defaultValue="") String include,
-			@ShellOption(help = "Absolute directory to add to 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
+			@ShellOption(help = "Absolute directory to add to 'includes'.", defaultValue = "") String include,
+			@ShellOption(help = "Absolute directory to add to 'excludes'.", defaultValue = "") String exclude)
+			throws JSchException, IOException {
 		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
@@ -273,11 +302,12 @@ public class BackupCommand {
 		borgService.updateBorgDescription(getSession(), box, include, exclude, true);
 		return bbdi.getExcludes();
 	}
-	
+
 	@ShellMethod(value = "删除Borg备份或排除的目录")
 	public List<String> borgIncludesExcludesRemove(
-			@ShellOption(help = "Absolute directory to remove from 'includes'.", defaultValue="") String include,
-			@ShellOption(help = "Absolute directory to remove from 'excludes'.", defaultValue="") String exclude) throws JSchException, IOException {
+			@ShellOption(help = "Absolute directory to remove from 'includes'.", defaultValue = "") String include,
+			@ShellOption(help = "Absolute directory to remove from 'excludes'.", defaultValue = "") String exclude)
+			throws JSchException, IOException {
 		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
@@ -288,11 +318,9 @@ public class BackupCommand {
 		return bbdi.getExcludes();
 	}
 
-
-	
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(
-			@ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion, 
+			@ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
@@ -311,18 +339,17 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
-	public FacadeResult<?> mysqlUninstall(
-			@Pattern(regexp = "I know what i am doing\\.") String iknow) {
+	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
-		return mySqlInstaller.unInstall(getSession(), box); 
+		return mySqlInstaller.unInstall(getSession(), box);
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public List<String> borgInitRepo() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
-		return borgService.initRepo(getSession(),box.getBorgBackup().getRepo()).getResult()
+		return borgService.initRepo(getSession(), box.getBorgBackup().getRepo()).getResult()
 				.getAllTrimedNotEmptyLines();
 	}
 
@@ -332,7 +359,7 @@ public class BackupCommand {
 		Box box = appState.currentBox().get();
 		return borgService.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
 	}
-	
+
 	@ShellMethod(value = "下载borg的仓库。")
 	public void borgDownloadRepo() throws RunRemoteCommandException {
 		sureBorgConfigurated();
@@ -346,13 +373,14 @@ public class BackupCommand {
 		Box box = appState.currentBox().get();
 		return borgService.listArchives(getSession(), box).getResult().getArchives();
 	}
-	
+
 	@ShellMethod(value = "修剪borg创建的卷")
 	public String borgPruneArchives() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
-		BorgPruneResult bpr = borgService.pruneRepo(getSession(), box).getResult(); 
-		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(), bpr.keepedArchiveNumbers());
+		BorgPruneResult bpr = borgService.pruneRepo(getSession(), box).getResult();
+		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(),
+				bpr.keepedArchiveNumbers());
 	}
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
@@ -364,25 +392,24 @@ public class BackupCommand {
 
 	private void sureBoxSelected() {
 		if (!appState.currentBox().isPresent()) {
-			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING, "选择一个目标服务器先。 server-list, server-select.");
+			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING,
+					"选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
-	
+
 	private void sureBorgConfigurated() {
 		sureBoxSelected();
 		if (appState.currentBox().get().getBorgBackup() == null) {
 			throw new ShowToUserException("borg.unconfigurated", "");
 		}
 	}
-	
+
 	private void sureMysqlConfigurated() {
 		sureBoxSelected();
-		if (appState.currentBox().get().getBorgBackup() == null) {
+		if (appState.currentBox().get().getMysqlInstance() == null) {
 			throw new ShowToUserException("mysql.unconfigurated", "");
 		}
 	}
-
-
 
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
@@ -391,29 +418,44 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
-	public FacadeResult<?> mysqlDescriptionCreateOrUpdate(
+	public FacadeResult<?> mysqlDescriptionUpdate(
 			@ShellOption(help = "mysql username.") String username,
-			@ShellOption(help = "mysql password.")	String password,
+			@ShellOption(help = "mysql password.") String password,
 			@ShellOption(help = "mysql port.") int port,
-			@ShellOption(help = "mysql flush log cron expresion.") String flushLogCron) throws JSchException, IOException {
-		sureBoxSelected();
+			@ShellOption(help = "mysql flush log cron expresion.") String flushLogCron)
+			throws JSchException, IOException {
+		sureMysqlConfigurated();
 		Box box = appState.currentBox().get();
 		MysqlInstance mi = box.getMysqlInstance();
-		if (mi == null) {
-			if (password.isEmpty()) throw new ShowToUserException("mysql.password.required", "");
-			mi = new MysqlInstance();
-		}
 
-		if (!username.isEmpty()) mi.setUsername(username);
-		if (!password.isEmpty()) mi.setPassword(password);
+		mi.setUsername(username);
+		mi.setPassword(password);
 		mi.setPort(port);
-		if (!flushLogCron.isEmpty())mi.setFlushLogCron(flushLogCron);
+		mi.setFlushLogCron(flushLogCron);
 		box.setMysqlInstance(mi);
 		return mysqlService.updateMysqlDescription(box);
 	}
 	
+	@ShellMethod(value = "创建Mysql的描述")
+	public FacadeResult<?> mysqlDescriptionCreate(
+			@ShellOption(help = "mysql username.") String username,
+			@ShellOption(help = "mysql password.") String password)
+			throws JSchException, IOException {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		MysqlInstance mi = box.getMysqlInstance();
+		if (mi != null) {
+			return FacadeResult.doneExpectedResult(mi, CommonActionResult.DONE);
+		}
+		mi = new MysqlInstance();
+		mi.setUsername(username);
+		mi.setPassword(password);
+		box.setMysqlInstance(mi);
+		return mysqlService.updateMysqlDescription(box);
+	}
+
 	@ShellMethod(value = "查看Mysql的描述")
-	public FacadeResult<?> mysqlDescriptionGet(String flushLogCron) throws JSchException, IOException {
+	public FacadeResult<?> mysqlDescription() throws JSchException, IOException {
 		sureMysqlConfigurated();
 		return FacadeResult.doneExpectedResult(appState.currentBox().get().getMysqlInstance(), CommonActionResult.DONE);
 	}
@@ -423,10 +465,9 @@ public class BackupCommand {
 		sureBoxSelected();
 		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get());
 	}
-	
+
 	@ShellMethod(value = "添加常用的CRON表达式")
-	public String cronExpressionAdd(
-			@ShellOption(help = "cron表达式") String expression,
+	public String cronExpressionAdd(@ShellOption(help = "cron表达式") String expression,
 			@ShellOption(help = "描述", defaultValue = "") String description) {
 		reusableCronService.save(new ReusableCron(expression, description));
 		return "Added.";
@@ -434,20 +475,20 @@ public class BackupCommand {
 
 	@ShellMethod(value = "构建CRON表达式")
 	public String cronExpressionBuild(
-			@ShellOption(help = "支持的格式示例：1 或者 1,8,10 或者 5-25 或者 5/15(从5开始以15递增。)", defaultValue="0") String second,
+			@ShellOption(help = "支持的格式示例：1 或者 1,8,10 或者 5-25 或者 5/15(从5开始以15递增。)", defaultValue = "0") String second,
 			@ShellOption(help = "格式同second参数，范围0-59", defaultValue = "0") String minute,
 			@ShellOption(help = "格式同second参数，范围0-23", defaultValue = "0") String hour,
 			@ShellOption(help = "格式同second参数，范围1-31", defaultValue = "?") String dayOfMonth,
 			@ShellOption(help = "格式同second参数，范围1-12", defaultValue = "*") String month,
-			@ShellOption(help = "格式同second参数，范围1-7，其中1是周六。", defaultValue="*") String dayOfWeek,
+			@ShellOption(help = "格式同second参数，范围1-7，其中1是周六。", defaultValue = "*") String dayOfWeek,
 			@ShellOption(help = "空白或者1970-2099", defaultValue = "") String year) {
-		
+
 		CronExpressionBuilder ceb = new CronExpressionBuilder();
 		try {
-			
+
 			CronExpressionBuilder.validCronField(CronExpressionField.SECOND, second);
 			ceb.second(second);
-			
+
 			CronExpressionBuilder.validCronField(CronExpressionField.MINUTE, minute);
 			ceb.minute(minute);
 
@@ -471,26 +512,24 @@ public class BackupCommand {
 		}
 	}
 
-
 	@ShellMethod(value = "列出常用的CRON表达式")
 	public List<String> cronExpressionList() {
 		return reusableCronService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
-		
+
 	}
 
 	@ShellMethod(value = "添加通知邮件地址。")
-	public String emailAdd(
-			@ShellOption(help = "email地址") String email,
+	public String emailAdd(@ShellOption(help = "email地址") String email,
 			@ShellOption(help = "描述", defaultValue = "") String description) {
 		mailAddressService.save(new MailAddress(email, description));
 		return "Added.";
 	}
-	
+
 	@ShellMethod(value = "列出通知邮件地址。")
 	public List<String> emailList() {
 		return mailAddressService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
 	}
-	
+
 	/**
 	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
 	 * 
@@ -499,55 +538,14 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlRedump(
-			@Pattern(regexp = "I know what i am doing\\.") String iknow)
+	public FacadeResult<?> mysqlRedump(@Pattern(regexp = "I know what i am doing\\.") String iknow)
 			throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		return mysqlService.mysqlDump(getSession(), box, true);
 	}
 
-	@ShellMethod(value = "显示服务器描述")
-	public FacadeResult<?> serverDescriptionGet() throws JSchException, IOException {
-		sureBoxSelected();
-		return FacadeResult.doneExpectedResult(appState.currentBox().get(), CommonActionResult.DONE);
-	}
 
-	@ShellMethod(value = "和修改服务器描述")
-	public FacadeResult<?> serverDescriptionUpdate(
-			@ShellOption(help = "用户名", defaultValue = "") String username,
-			@ShellOption(help = "密码", defaultValue = Box.YOU_CANNOT_GUESS_PASSWORD) String password,
-			@ShellOption(help = "服务器角色", defaultValue = "") BoxRole boxRole,
-			@ShellOption(help = "SSH端口", defaultValue = "-1") int sshPort) throws JSchException, IOException {
-		sureBoxSelected();
-		Box box = appState.currentBox().get();
-		
-		boolean changed = false;
-		
-		if (!username.isEmpty()) {
-			box.setUsername(username);
-			changed = true;
-		}
-		
-		if (!Box.YOU_CANNOT_GUESS_PASSWORD.equals(password)) {
-			if (password.trim().isEmpty()) {
-				box.setPassword(Box.YOU_CANNOT_GUESS_PASSWORD);
-			}
-			changed = true;
-		}
-		
-		if (boxRole != null) {
-			box.setRole(boxRole);
-			changed = true;
-		}
-		
-		if (sshPort != -1) {
-			box.setPort(sshPort);
-			changed = true;
-		}
-		if (changed) boxService.writeDescription(box);
-		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
-	}
 
 	private String getPromptString() {
 		switch (appState.getStep()) {
@@ -621,7 +619,7 @@ public class BackupCommand {
 		sureBoxSelected();
 		schedulerTaskFacade.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
-	
+
 	@ShellMethod(value = "支持的语言")
 	public List<String> languageList() {
 		List<String> las = new ArrayList<>();
@@ -630,7 +628,7 @@ public class BackupCommand {
 		las.add(Locale.JAPANESE.getLanguage());
 		return las;
 	}
-	
+
 	@ShellMethod(value = "支持的语言")
 	public String languageSet(String language) {
 		if (!languageList().contains(language)) {
@@ -640,7 +638,6 @@ public class BackupCommand {
 		appState.setLocal(l);
 		return "switch to language: " + language;
 	}
- 
 
 	@ShellMethod(value = "列出当前主机的计划任务")
 	public List<String> schedulerListJob() throws SchedulerException {
@@ -656,7 +653,7 @@ public class BackupCommand {
 		return schedulerTaskFacade.getBoxTriggers(appState.currentBox().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
-	
+
 	@ShellMethod(value = "查看最后一个命令的详细执行结果")
 	public String facadeResultLast() {
 		FacadeResult<?> fr = appState.getFacadeResult();
@@ -665,7 +662,7 @@ public class BackupCommand {
 		} else {
 			if (fr.getException() != null) {
 				return ExceptionUtil.stackTraceToString(fr.getException());
-			} else if(fr.getResult() != null) {
+			} else if (fr.getResult() != null) {
 				return fr.getResult().toString();
 			} else if (fr.getMessage() != null && !fr.getMessage().isEmpty()) {
 				return localedMessageService.getMessage(fr.getMessage());

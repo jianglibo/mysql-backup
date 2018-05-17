@@ -12,9 +12,9 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 
-public class MysqlDescriptionProvider implements ValueProvider {
+public class BorgDescriptionProvider implements ValueProvider {
 
 	@Autowired
 	private ApplicationState applicationState;
@@ -26,7 +26,7 @@ public class MysqlDescriptionProvider implements ValueProvider {
 	@Override
 	public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
 		String s = parameter.getMethod().getName();
-		return s.equals("mysqlDescriptionUpdate");
+		return s.equals("borgDescriptionUpdate");
 	}
 
 	@Override
@@ -38,16 +38,18 @@ public class MysqlDescriptionProvider implements ValueProvider {
 		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
 			return new ArrayList<>();
 		}
-		MysqlInstance mysqlq = applicationState.currentBox().get().getMysqlInstance();
+		BorgBackupDescription bbd = applicationState.currentBox().get().getBorgBackup();
 		switch (parameter.getParameterName()) {
-		case "username":
-			return Arrays.asList(new CompletionProposal(mysqlq.getUsername()));
-		case "password":
-			return Arrays.asList(new CompletionProposal(mysqlq.getPassword()));
-		case "port":
-			return Arrays.asList(new CompletionProposal(mysqlq.getPort() + ""));
-		case "flushLogCron":
-			return Arrays.asList(new CompletionProposal(mysqlq.getFlushLogCron()));
+		case "repo":
+			return Arrays.asList(new CompletionProposal(bbd.getRepo()));
+		case "archiveFormat":
+			return Arrays.asList(new CompletionProposal(bbd.getArchiveFormat()));
+		case "archiveNamePrefix":
+			return Arrays.asList(new CompletionProposal(bbd.getArchiveNamePrefix()));
+		case "archiveCron":
+			return Arrays.asList(new CompletionProposal(bbd.getArchiveCron()));
+		case "pruneCron":
+			return Arrays.asList(new CompletionProposal(bbd.getPruneCron()));
 		default:
 			break;
 		}

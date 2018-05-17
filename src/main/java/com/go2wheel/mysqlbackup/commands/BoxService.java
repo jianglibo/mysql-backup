@@ -13,7 +13,6 @@ import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.Box.BoxRole;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -43,17 +42,13 @@ public class BoxService {
 	}
 
 
-	public FacadeResult<Box> serverCreate(String host, int sshPort, String username, String password, BoxRole boxRole) {
+	public FacadeResult<Box> serverCreate(String host) {
 		try {
 			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
 				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
 			}
 			Box box = new Box();
 			box.setHost(host);
-			box.setPort(sshPort);
-			box.setUsername(username);
-			box.setPassword(password);
-			box.setRole(boxRole);
 			writeDescription(box);
 			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		} catch (IOException e) {

@@ -8,19 +8,19 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class Box {
 	
-	public static final String YOU_CANNOT_GUESS_PASSWORD = "U219s&020lk,dl";
+	public static final String NO_PASSWORD="i_have_no_password";
 	
-	public static enum BoxRole {
-		SOURCE, DEST
-	}
-
+	public static final String ROLE_SOURCE="SOURCE";
+	
+	public static final String ROLE_DEST="DEST";
+	
 	private String host;
 	private int port = 22;
 	
 	private String fingerprint;
 	
 	private String username = "root";
-	private String password = YOU_CANNOT_GUESS_PASSWORD;
+	private String password = NO_PASSWORD;
 	
 	private String sshKeyFile;
 	
@@ -28,7 +28,7 @@ public class Box {
 	
 	private BorgBackupDescription borgBackup;
 	
-	private BoxRole role = BoxRole.SOURCE;
+	private String role = ROLE_SOURCE;
 	
 	@Override
 	public String toString() {
@@ -45,7 +45,7 @@ public class Box {
 	}
 	
 	public boolean canPasswordAuth() {
-		return StringUtil.hasAnyNonBlankWord(getPassword()) && !YOU_CANNOT_GUESS_PASSWORD.equals(getPassword());
+		return StringUtil.hasAnyNonBlankWord(getPassword()) && !NO_PASSWORD.equals(getPassword());
 	}
 
 	public String getHost() {
@@ -112,11 +112,12 @@ public class Box {
 		this.sshKeyFile = sshKeyFile;
 	}
 
-	public BoxRole getRole() {
+
+	public String getRole() {
 		return role;
 	}
 
-	public void setRole(BoxRole role) {
+	public void setRole(String role) {
 		this.role = role;
 	}
 

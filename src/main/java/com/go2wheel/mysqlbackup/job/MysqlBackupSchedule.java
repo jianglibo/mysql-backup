@@ -73,7 +73,7 @@ public class MysqlBackupSchedule {
 
 	@EventListener
 	public void whenServerCreated(ServerCreateEvent sce) throws SchedulerException, ParseException {
-		scheduleTrigger(sce.getBox());
+//		scheduleTrigger(sce.getBox());
 	}
 
 }

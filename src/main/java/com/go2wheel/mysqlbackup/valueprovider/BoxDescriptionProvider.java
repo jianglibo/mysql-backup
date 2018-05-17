@@ -12,9 +12,10 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.Box;
 
-public class MysqlDescriptionProvider implements ValueProvider {
+public class BoxDescriptionProvider implements ValueProvider {
 
 	@Autowired
 	private ApplicationState applicationState;
@@ -26,7 +27,7 @@ public class MysqlDescriptionProvider implements ValueProvider {
 	@Override
 	public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
 		String s = parameter.getMethod().getName();
-		return s.equals("mysqlDescriptionUpdate");
+		return s.equals("serverUpdate");
 	}
 
 	@Override
@@ -38,16 +39,22 @@ public class MysqlDescriptionProvider implements ValueProvider {
 		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
 			return new ArrayList<>();
 		}
-		MysqlInstance mysqlq = applicationState.currentBox().get().getMysqlInstance();
+		Box box = applicationState.currentBox().get();
+		String tip;
 		switch (parameter.getParameterName()) {
 		case "username":
-			return Arrays.asList(new CompletionProposal(mysqlq.getUsername()));
+			return Arrays.asList(new CompletionProposal(box.getUsername()));
 		case "password":
-			return Arrays.asList(new CompletionProposal(mysqlq.getPassword()));
+			if (!StringUtil.hasAnyNonBlankWord(box.getPassword())) {
+				tip = Box.NO_PASSWORD;
+			} else {
+				tip = box.getPassword();
+			}
+			return Arrays.asList(new CompletionProposal(tip));
 		case "port":
-			return Arrays.asList(new CompletionProposal(mysqlq.getPort() + ""));
-		case "flushLogCron":
-			return Arrays.asList(new CompletionProposal(mysqlq.getFlushLogCron()));
+			return Arrays.asList(new CompletionProposal(box.getPort() + ""));
+		case "boxRole":
+			return Arrays.asList(new CompletionProposal(box.getRole()));
 		default:
 			break;
 		}
