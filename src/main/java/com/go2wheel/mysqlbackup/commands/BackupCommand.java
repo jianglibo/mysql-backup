@@ -392,21 +392,24 @@ public class BackupCommand {
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionCreateOrUpdate(
-			@ShellOption(help = "mysql username.", defaultValue="root") String username,
-			@ShellOption(help = "mysql password.", defaultValue="")	String password,
-			@ShellOption(help = "mysql port.", defaultValue="3306") int port,
-			@ShellOption(help = "mysql flush log cron expresion.", defaultValue="") String flushLogCron) throws JSchException, IOException {
+			@ShellOption(help = "mysql username.") String username,
+			@ShellOption(help = "mysql password.")	String password,
+			@ShellOption(help = "mysql port.") int port,
+			@ShellOption(help = "mysql flush log cron expresion.") String flushLogCron) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		MysqlInstance mi = box.getMysqlInstance();
-		if (mi == null) mi = new MysqlInstance();
+		if (mi == null) {
+			if (password.isEmpty()) throw new ShowToUserException("mysql.password.required", "");
+			mi = new MysqlInstance();
+		}
 
 		if (!username.isEmpty()) mi.setUsername(username);
 		if (!password.isEmpty()) mi.setPassword(password);
 		mi.setPort(port);
 		if (!flushLogCron.isEmpty())mi.setFlushLogCron(flushLogCron);
 		box.setMysqlInstance(mi);
-		return mysqlService.updateMysqlDescription(getSession(), box);
+		return mysqlService.updateMysqlDescription(box);
 	}
 	
 	@ShellMethod(value = "查看Mysql的描述")
@@ -504,8 +507,14 @@ public class BackupCommand {
 		return mysqlService.mysqlDump(getSession(), box, true);
 	}
 
-	@ShellMethod(value = "显示和修改服务器")
-	public FacadeResult<?> serverDescription(
+	@ShellMethod(value = "显示服务器描述")
+	public FacadeResult<?> serverDescriptionGet() throws JSchException, IOException {
+		sureBoxSelected();
+		return FacadeResult.doneExpectedResult(appState.currentBox().get(), CommonActionResult.DONE);
+	}
+
+	@ShellMethod(value = "和修改服务器描述")
+	public FacadeResult<?> serverDescriptionUpdate(
 			@ShellOption(help = "用户名", defaultValue = "") String username,
 			@ShellOption(help = "密码", defaultValue = Box.YOU_CANNOT_GUESS_PASSWORD) String password,
 			@ShellOption(help = "服务器角色", defaultValue = "") BoxRole boxRole,

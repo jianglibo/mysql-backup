@@ -16,6 +16,7 @@ import org.springframework.shell.standard.StandardParameterResolver;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
+import com.go2wheel.mysqlbackup.valueprovider.MysqlDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
 
 /**
@@ -44,6 +45,11 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider fileValueProvider() {
 		return new FileValueProviderMine();
+	}
+
+	@Bean
+	public ValueProvider mysqlDescriptionProvider() {
+		return new MysqlDescriptionProvider();
 	}
 	
 

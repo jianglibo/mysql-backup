@@ -46,6 +46,7 @@ public class MysqlService {
 
 	private MyAppSettings appSettings;
 	
+	@Autowired
 	private BoxService boxService;
 
 	@Autowired
@@ -202,14 +203,14 @@ public class MysqlService {
 		return FacadeResult.doneExpectedResult();
 	}
 
-	public FacadeResult<?> updateMysqlDescription(Session session, Box box) {
+	public FacadeResult<?> updateMysqlDescription(Box box) {
 		try {
 			boxService.writeDescription(box);
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			FacadeResult.unexpectedResult(e);
 		}
-		return FacadeResult.doneExpectedResult();
+		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 	}
 
 }

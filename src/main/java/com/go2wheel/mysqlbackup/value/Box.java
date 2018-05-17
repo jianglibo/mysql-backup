@@ -45,7 +45,7 @@ public class Box {
 	}
 	
 	public boolean canPasswordAuth() {
-		return getPassword() != null && !YOU_CANNOT_GUESS_PASSWORD.equals(getPassword());
+		return StringUtil.hasAnyNonBlankWord(getPassword()) && !YOU_CANNOT_GUESS_PASSWORD.equals(getPassword());
 	}
 
 	public String getHost() {
