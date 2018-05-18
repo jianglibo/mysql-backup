@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -23,6 +24,8 @@ public class BoxService {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	private MyAppSettings appSettings;
+	
+	private ApplicationState applicationState;
 
 	@Autowired
 	public void setAppSettings(MyAppSettings appSettings) {
@@ -43,11 +46,15 @@ public class BoxService {
 
 
 	public FacadeResult<Box> serverCreate(String host) {
+		Box box = null;
 		try {
 			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
+				box = applicationState.getServerByHost(host);
+				if (box != null) {
+					return FacadeResult.doneExpectedResult(box, CommonActionResult.PREVIOUSLY_DONE);
+				}
 			}
-			Box box = new Box();
+			box = new Box();
 			box.setHost(host);
 			writeDescription(box);
 			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
@@ -55,5 +62,10 @@ public class BoxService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
+	}
+
+	@Autowired
+	public void setApplicationState(ApplicationState applicationState) {
+		this.applicationState = applicationState;
 	}
 }

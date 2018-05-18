@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.job;
 
 import static org.quartz.JobBuilder.newJob;
-import static org.quartz.JobKey.jobKey;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.text.ParseException;
@@ -17,6 +16,7 @@ import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
+import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
+import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -33,7 +34,7 @@ public class MysqlBackupSchedule {
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String MYSQL_GROUP = "MYSQL";
+	public static final String MYSQL_FLUSH_LOG_GROUP = "MYSQL_FLUSH_LOG";
 
 	@Autowired
 	private Scheduler scheduler;
@@ -55,7 +56,8 @@ public class MysqlBackupSchedule {
 	}
 
 	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
-		JobKey jk = jobKey(box.getHost(), MYSQL_GROUP);
+		JobKey jk = BoxUtil.getMysqlFlushLogJobKey(box);
+		TriggerKey tk = BoxUtil.getMysqlFlushLogTriggerKey(box);
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
@@ -64,10 +66,9 @@ public class MysqlBackupSchedule {
 			scheduler.addJob(job, false);
 
 			CronExpression ce = new CronExpression(box.getMysqlInstance().getFlushLogCron());
-			Trigger trigger = newTrigger().withIdentity(box.getHost(), MYSQL_GROUP)
+			Trigger trigger = newTrigger().withIdentity(tk)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);
-
 		}
 	}
 

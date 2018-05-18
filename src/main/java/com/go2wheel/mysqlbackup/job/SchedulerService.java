@@ -16,18 +16,25 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
+import com.go2wheel.mysqlbackup.exception.ShowToUserException;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 @Service
 public class SchedulerService {
 	
 	@Autowired
 	private Scheduler scheduler;
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	public void schedulerRescheduleJob(String triggerKey, String cronExpression) throws SchedulerException, ParseException {
 		String[] ss = triggerKey.split("\\.", 2);
@@ -59,6 +66,22 @@ public class SchedulerService {
 		Trigger trigger = newTrigger().withIdentity(cece.getTriggerkey())
 				.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(cece.getJobkey()).build();
 		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
+	}
+
+	public FacadeResult<?> delteBoxTriggers(Box box, String triggerKey) {
+		String[] ss = triggerKey.split("\\.", 2);
+		if (ss.length != 2) {
+			throw new ShowToUserException("scheduler.key.malformed", "");
+		}
+		TriggerKey tk = triggerKey(ss[1], ss[0]);
+		try {
+			scheduler.unscheduleJob(tk);
+		} catch (SchedulerException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+			
+		}
+		return FacadeResult.doneExpectedResult();
 	}
 
 }

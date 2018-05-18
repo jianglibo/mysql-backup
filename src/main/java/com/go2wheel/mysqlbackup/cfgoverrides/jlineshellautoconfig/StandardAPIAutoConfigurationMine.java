@@ -17,6 +17,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.valueprovider.BorgDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BoxDescriptionProvider;
+import com.go2wheel.mysqlbackup.valueprovider.BoxTriggerProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.MysqlDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
@@ -62,6 +63,11 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider borgDescriptionProvider() {
 		return new BorgDescriptionProvider();
+	}
+
+	@Bean
+	public ValueProvider boxTriggerProvider() {
+		return new BoxTriggerProvider();
 	}
 	
 

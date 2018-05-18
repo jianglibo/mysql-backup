@@ -1,9 +1,9 @@
 package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,9 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
+@SpringBootTest({"spring.shell.interactive.enabled=false", "expectit.echo=true"})
 @RunWith(SpringRunner.class)
-public class TestMyappSettings {
+public class TestMyappSettingsExpectitEchoTrue {
 	
 	@Autowired
 	private MyAppSettings myAppSettings;
@@ -34,7 +34,7 @@ public class TestMyappSettings {
 	
 	@Test
 	public void tappstate() {
-		assertFalse(ApplicationState.IS_PROD_MODE);
+		assertTrue(ApplicationState.IS_PROD_MODE);
 	}
 
 }

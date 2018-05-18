@@ -51,6 +51,7 @@ myapp:
     sshIdrsa: C:/cygwin64/home/AIR/.ssh/id_rsa
     knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
 using.spring.schedulerFactory: true
+expectit.echo: false
 ---
 spring.profiles: dev
 spring:
@@ -83,9 +84,9 @@ spring:
     properties:
       mail.smtp.auth: true
       #mail.smtp.starttls.enable: true
-    messages:
-      use-code-as-default-message: false
-      basename: messages.command_msg
+  messages:
+    basename: messages.command_msg
+    use-code-as-default-message: true
 logging:
   file: log/spring.log
   file.max-size: 5MB
@@ -104,3 +105,4 @@ myapp:
     sshIdrsa: C:/cygwin64/home/AIR/.ssh/id_rsa
     knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
 using.spring.schedulerFactory: true
+expectit.echo: true

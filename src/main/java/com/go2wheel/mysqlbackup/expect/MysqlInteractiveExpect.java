@@ -8,8 +8,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -40,12 +42,8 @@ public abstract class MysqlInteractiveExpect<T> {
 		channel.connect();
 
 		// @formatter:off
-		expect = new ExpectBuilder()
-				.withOutput(channel.getOutputStream())
-				.withInputs(channel.getInputStream(), channel.getExtInputStream())
-				.withEchoOutput(System.out)
-				.withEchoInput(System.err)
-				.withExceptionOnFailure().build();
+		ExpectBuilder eb = ExpectitUtil.getExpectBuilder(channel, !ApplicationState.IS_PROD_MODE);
+		expect = eb.build();
 		try {
 			String cmd = String.format("mysql -u%s -p", user);
 			expect.sendLine(cmd);
@@ -64,9 +62,7 @@ public abstract class MysqlInteractiveExpect<T> {
 			} catch (ExpectIOException e) {
 				
 			}
-			
 			expect.expect(contains(MysqlUtil.MYSQL_PROMPT));
-			
 			return afterLogin();
 		} finally {
 			expect.close();

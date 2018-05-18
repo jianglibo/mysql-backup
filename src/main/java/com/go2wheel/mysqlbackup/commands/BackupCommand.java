@@ -34,7 +34,7 @@ import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.borg.BorgService;
-import com.go2wheel.mysqlbackup.event.ServerChangeEvent;
+import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -200,14 +200,15 @@ public class BackupCommand {
 	}
 
 	@EventListener
-	public void whenServerChanged(ServerChangeEvent sce) {
+	public void whenServerChanged(ServerSwitchEvent sce) {
 		if (_session != null) {
 			try {
 				_session.disconnect();
+				_session = null;
 			} catch (Exception e) {
+				_session = null;
 			}
 		}
-		_session = sshSessionFactory.getConnectedSession(appState.currentBox().get()).getResult();
 	}
 
 	/**
@@ -426,14 +427,7 @@ public class BackupCommand {
 			throws JSchException, IOException {
 		sureMysqlConfigurated();
 		Box box = appState.currentBox().get();
-		MysqlInstance mi = box.getMysqlInstance();
-
-		mi.setUsername(username);
-		mi.setPassword(password);
-		mi.setPort(port);
-		mi.setFlushLogCron(flushLogCron);
-		box.setMysqlInstance(mi);
-		return mysqlService.updateMysqlDescription(box);
+		return mysqlService.updateMysqlDescription(box, username, password, port, flushLogCron);
 	}
 	
 	@ShellMethod(value = "创建Mysql的描述")
@@ -640,7 +634,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出当前主机的计划任务")
-	public List<String> schedulerListJob() throws SchedulerException {
+	public List<String> schedulerJobList() throws SchedulerException {
 		sureBoxSelected();
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
 				.filter(jk -> jk.getName().equals(appState.currentBox().get().getHost())).map(jk -> jk.toString())
@@ -648,11 +642,19 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
-	public List<String> schedulerListTrigger() throws SchedulerException {
+	public List<String> schedulerTriggerList() throws SchedulerException {
 		sureBoxSelected();
 		return schedulerTaskFacade.getBoxTriggers(appState.currentBox().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
+	
+	@ShellMethod(value = "删除计划任务触发器")
+	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
+		sureBoxSelected();
+		Box box = appState.currentBox().get();
+		return schedulerTaskFacade.delteBoxTriggers(box, triggerKey);
+	}
+
 
 	@ShellMethod(value = "查看最后一个命令的详细执行结果")
 	public String facadeResultLast() {

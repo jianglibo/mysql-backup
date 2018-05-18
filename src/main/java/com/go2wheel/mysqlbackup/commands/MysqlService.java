@@ -10,16 +10,19 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
+import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -34,6 +37,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -45,6 +49,9 @@ public class MysqlService {
 	private MysqlUtil mysqlUtil;
 
 	private MyAppSettings appSettings;
+	
+	@Autowired
+	private ApplicationEventPublisher applicationEventPublisher;
 	
 	@Autowired
 	private BoxService boxService;
@@ -211,6 +218,24 @@ public class MysqlService {
 			FacadeResult.unexpectedResult(e);
 		}
 		return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
+	}
+
+	public FacadeResult<?> updateMysqlDescription(Box box, String username, String password, int port,
+			String flushLogCron) {
+		MysqlInstance mi = box.getMysqlInstance();
+
+		mi.setUsername(username);
+		mi.setPassword(password);
+		mi.setPort(port);
+		if (!flushLogCron.equals(mi.getFlushLogCron())) {
+			mi.setFlushLogCron(flushLogCron);
+			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(box),
+					BoxUtil.getBorgPruneTriggerKey(box), flushLogCron);
+			applicationEventPublisher.publishEvent(cece);
+		}
+		
+		box.setMysqlInstance(mi);
+		return updateMysqlDescription(box);
 	}
 
 }
