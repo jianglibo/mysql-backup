@@ -17,10 +17,9 @@ import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
-@ConfigurationProperties(prefix = "myapp")
+@ConfigurationProperties(prefix="myapp")
 @Component
 public class MyAppSettings {
-	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private SshConfig ssh;

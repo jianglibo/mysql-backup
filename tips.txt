@@ -5,7 +5,7 @@ command list:
 
 how to debug:
 
-java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar .\build\libs\mysql-backup-boot.jar
+java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar .\build\libs\mysql-backup-boot.jar --spring.profiles.active=dev
 
 netstat -ano | Where-Object {$_ -match '8000'}
 netstat -ano | Where-Object {$_ -match '8000'} | ForEach-Object {$_ -split '\s+'} | Select-Object -Last 1 | Stop-Process -Id {$_}

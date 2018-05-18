@@ -25,6 +25,7 @@ import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -47,8 +48,16 @@ public class ApplicationState {
 	private List<Box> servers = new ArrayList<>();
 
 	private Locale local = Locale.CHINESE;
+	
+	private Box currentBox;
 
-	private int currentIndex;
+	public Box getCurrentBox() {
+		return currentBox;
+	}
+
+	public void setCurrentBox(Box currentBox) {
+		this.currentBox = currentBox;
+	}
 
 	private FacadeResult<?> facadeResult;
 
@@ -100,6 +109,7 @@ public class ApplicationState {
 		}
 		
 		ApplicationState.IS_PROD_MODE = expectitEcho;
+		loadState();
 	}
 
 	public synchronized List<Box> getServers() {
@@ -117,43 +127,72 @@ public class ApplicationState {
 		this.servers = servers;
 	}
 
-	public int getCurrentIndex() {
-		return currentIndex;
+	
+	public void fireSwitchEvent() {
+		ServerSwitchEvent sce = new ServerSwitchEvent(this);
+		applicationEventPublisher.publishEvent(sce);
 	}
 
-	public void setCurrentIndex(int currentIndex) {
-		this.currentIndex = currentIndex;
-	}
-
-	public void setCurrentIndexAndFireEvent(int newCurrentIndex) {
-		if (newCurrentIndex != currentIndex || step == CommandStepState.INIT_START) {
-			this.currentIndex = newCurrentIndex;
-			ServerSwitchEvent sce = new ServerSwitchEvent(this);
-			applicationEventPublisher.publishEvent(sce);
+	public Optional<Box> currentBoxOptional() {
+		if (currentBox == null) {
+			if (getServers().size() > 0) {
+				currentBox = getServers().get(0);
+			} else {
+				return Optional.empty();
+			}
 		}
+		
+		return Optional.of(currentBox);
 	}
 
-	public Optional<Box> currentBox() {
-		if (servers != null && servers.size() > currentIndex) {
-			return Optional.of(servers.get(currentIndex));
-		} else {
-			return Optional.empty();
+	public void persistState() {
+		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(new PersistState(this));
+		try {
+			Files.write(appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE), s.getBytes());
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		}
-	}
-
-	public void persistState() throws IOException {
-		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(this);
-		Files.write(appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE), s.getBytes());
 	}
 
 	public void loadState() throws IOException {
-		Path p = appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE);
-		if (Files.exists(p)) {
-			ApplicationState as = YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p),
-					ApplicationState.class);
-			if (as.getCurrentIndex() < getServers().size()) {
-				this.currentIndex = as.getCurrentIndex();
+		try {
+			Path p = appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE);
+			if (Files.exists(p)) {
+				PersistState as = YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p),
+						PersistState.class);
+				if (StringUtil.hasAnyNonBlankWord(as.getHost())) {
+					Box box = getServerByHost(as.getHost());
+					if (box != null) {
+						setCurrentBox(box);
+						fireSwitchEvent();
+					}
+								
+				}
+
 			}
+		} catch (Exception e) {
+			ExceptionUtil.logErrorException(logger, e);
+		}
+	}
+	
+	public static class PersistState {
+		private String host;
+		
+		public PersistState() {
+		}
+		
+		public PersistState(ApplicationState appState) {
+			if (appState.currentBoxOptional().isPresent()) {
+				this.host = appState.currentBoxOptional().get().getHost();
+			}
+		}
+
+		public String getHost() {
+			return host;
+		}
+
+		public void setHost(String host) {
+			this.host = host;
 		}
 	}
 

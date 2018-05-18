@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.shell.result.TerminalAwareResultHandler;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.value.Box;
 
 public class AppStateResultHandler extends TerminalAwareResultHandler<ApplicationState> {
 	
@@ -17,8 +18,9 @@ public class AppStateResultHandler extends TerminalAwareResultHandler<Applicatio
 			List<String> ss = new ArrayList<>();
 			
 			for(int i = 0; i < appState.getServers().size(); i++) {
+				Box box = appState.getServers().get(i);
 				String fs = "%s  %s";
-				if (i == appState.getCurrentIndex()) {
+				if (box.equals(appState.currentBoxOptional().orElse(null))) {
 					fs = "*%s %s";
 				}
 				ss.add(String.format(fs, i, appState.getServers().get(i).getHost()));

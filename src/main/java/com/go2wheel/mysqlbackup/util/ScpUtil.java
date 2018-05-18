@@ -20,80 +20,58 @@ public class ScpUtil {
 	protected static void to(Session session, String rfile, InputStream is, long contentLength, String maybeFileName)
 			throws ScpException {
 
-		// FileInputStream fis = null;
-
-		try {
+		try { 
 			boolean ptimestamp = false;
 			String command = "scp " + (ptimestamp ? "-p" : "") + " -t " + rfile;
 			Channel channel = session.openChannel("exec");
 			((ChannelExec) channel).setCommand(command);
 			// get I/O streams for remote scp
-			OutputStream out = channel.getOutputStream();
-			InputStream in = channel.getInputStream();
-			channel.connect();
-			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpException("", rfile, "ACK error.");
-			}
+			try(OutputStream out = channel.getOutputStream();
+					InputStream in = channel.getInputStream();) {
+				channel.connect();
+				if (ScpUtil.checkAck(in) != 0) {
+					throw new ScpException("", rfile, "ACK error.");
+				}
 
-			// File _lfile = new File(lfile);
+				long filesize = contentLength;
+				if (maybeFileName == null || maybeFileName.trim().isEmpty()) {
+					maybeFileName = "afilename";
+				}
+				command = "C0644 " + filesize + " " + maybeFileName + "\n";
+				out.write(command.getBytes());
+				out.flush();
+				if (ScpUtil.checkAck(in) != 0) {
+					throw new ScpException("", rfile, "ACK error.");
+				}
 
-			// if (ptimestamp) {
-			// command = "T " + (_lfile.lastModified() / 1000) + " 0";
-			// // The access time should be sent here,
-			// // but it is not accessible with JavaAPI ;-<
-			// command += (" " + (_lfile.lastModified() / 1000) + " 0\n");
-			// out.write(command.getBytes());
-			// out.flush();
-			// if (ScpUtil.checkAck(in) != 0) {
-			// throw new ScpToException("", rfile);
-			// }
-			// }
-			// send "C0644 filesize filename", where filename should not include '/'
-
-			long filesize = contentLength;
-			if (maybeFileName == null || maybeFileName.trim().isEmpty()) {
-				maybeFileName = "afilename";
+				// send a content of lfile
+				// fis = new FileInputStream(lfile);
+				byte[] buf = new byte[1024];
+				while (true) {
+					int len = is.read(buf, 0, buf.length);
+					if (len <= 0)
+						break;
+					out.write(buf, 0, len); // out.flush();
+				}
+				// send '\0'
+				buf[0] = 0;
+				out.write(buf, 0, 1);
+				out.flush();
+				if (ScpUtil.checkAck(in) != 0) {
+					throw new ScpException("", rfile, "ACK error.");
+				}
+				channel.disconnect();
 			}
-			command = "C0644 " + filesize + " " + maybeFileName + "\n";
-			out.write(command.getBytes());
-			out.flush();
-			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpException("", rfile, "ACK error.");
-			}
-
-			// send a content of lfile
-			// fis = new FileInputStream(lfile);
-			byte[] buf = new byte[1024];
-			while (true) {
-				int len = is.read(buf, 0, buf.length);
-				if (len <= 0)
-					break;
-				out.write(buf, 0, len); // out.flush();
-			}
-			is.close();
-			is = null;
-			// send '\0'
-			buf[0] = 0;
-			out.write(buf, 0, 1);
-			out.flush();
-			if (ScpUtil.checkAck(in) != 0) {
-				throw new ScpException("", rfile, "ACK error.");
-			}
-			out.close();
-			channel.disconnect();
 		} catch (JSchException | IOException e) {
-			try {
-				if (is != null)
-					is.close();
-			} catch (Exception ee) {
-			}
 			throw new ScpException("", rfile, e.getMessage());
 		}
 	}
 
 	public static void to(Session session, String lfile, String rfile) throws ScpException, IOException {
 		Path lpath = Paths.get(lfile);
-		to(session, rfile, Files.newInputStream(lpath), Files.size(lpath), lpath.getFileName().toString());
+		try (InputStream is = Files.newInputStream(lpath)) {
+			to(session, rfile, is, Files.size(lpath), lpath.getFileName().toString());
+		}
 	}
 
 	public static void to(Session session, String rfile, byte[] content) throws ScpException {
@@ -187,7 +165,6 @@ public class ScpUtil {
 	}
 
 	public static Path from(Session session, String rfile, String lfile) throws ScpException {
-		OutputStream os = null;
 		try {
 			Path lpath = Paths.get(lfile);
 			Path rpath = Paths.get(rfile);
@@ -195,15 +172,11 @@ public class ScpUtil {
 			if (Files.isDirectory(lpath)) {
 				lpath = lpath.resolve(rpath.getFileName());
 			}
-			os = Files.newOutputStream(lpath);
-			from(session, rfile, os);
+			try (OutputStream os = Files.newOutputStream(lpath)) {
+				from(session, rfile, os);
+			}
 			return lpath;
 		} catch (Exception e) {
-			try {
-				if (os != null)
-					os.close();
-			} catch (Exception ee) {
-			}
 			throw new ScpException(rfile, lfile, "");
 		}
 	}

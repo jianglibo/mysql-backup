@@ -35,10 +35,10 @@ public class BorgDescriptionProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		BorgBackupDescription bbd = applicationState.currentBox().get().getBorgBackup();
+		BorgBackupDescription bbd = applicationState.currentBoxOptional().get().getBorgBackup();
 		switch (parameter.getParameterName()) {
 		case "repo":
 			return Arrays.asList(new CompletionProposal(bbd.getRepo()));

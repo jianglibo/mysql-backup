@@ -41,10 +41,10 @@ public class BoxTriggerProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		Box box = applicationState.currentBox().get();
+		Box box = applicationState.currentBoxOptional().get();
 		
 		switch (parameter.getParameterName()) {
 		case "triggerKey":

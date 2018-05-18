@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.shell.result.TerminalAwareResultHandler;
@@ -21,6 +23,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeResult<T>> {
 
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private LocaledMessageService messageService;
@@ -33,16 +36,17 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 		try {
 			applicationState.setFacadeResult(result);
 			String msg = "";
+			T resultValue = result.getResult();
 			try {
 				if (result.getException() != null) {
 					msg = ExceptionUtil.stackTraceToString(result.getException());
 				} else if(result.getResult() != null) {
-					if (result instanceof Collection) {
-						msg = handleCollection((Collection<?>) result);
-					} else if (result instanceof Map) {
-						msg = handleMap((Map<?, ?>) result);
+					if (resultValue instanceof Collection) {
+						msg = handleCollection((Collection<?>) resultValue);
+					} else if (resultValue instanceof Map) {
+						msg = handleMap((Map<?, ?>) resultValue);
 					} else {
-						msg = result.getResult().toString();
+						msg = resultValue.toString();
 					}
 				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
 					msg = messageService.getMessage(result.getMessage());
@@ -59,7 +63,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 			terminal.writer().println(new AttributedStringBuilder()
 					.append(msg, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
 		} catch (Exception e) {
-			e.printStackTrace();
+			ExceptionUtil.logErrorException(logger, e);
 		}
 	}
 
@@ -71,7 +75,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 			for(Entry<?, ?> entry: result.entrySet()) {
 				ls.add(String.format("%s: %s", entry.getKey().toString(), entry.getValue().toString()));
 			}
-			String.join("\n", ls);
+			msg = String.join("\n", ls);
 		}
 		return msg;
 	}
@@ -80,7 +84,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 		String msg = "";
 		if (result.size() > 0) {
 			List<String> ls = (List<String>) result.stream().map(o -> o.toString()).collect(Collectors.toList());
-			String.join("\n", ls);
+			msg = String.join("\n", ls);
 		}
 		return msg;
 	}

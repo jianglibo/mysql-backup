@@ -10,6 +10,7 @@ import org.springframework.shell.result.TerminalAwareResultHandler;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
+import com.go2wheel.mysqlbackup.value.Box;
 
 public class CommandNotFoundResultHandler  extends TerminalAwareResultHandler<CommandNotFound> {
 	
@@ -25,10 +26,17 @@ public class CommandNotFoundResultHandler  extends TerminalAwareResultHandler<Co
 			Matcher m = ptn.matcher(msg);
 			if (m.matches()) {
 				int i = Integer.valueOf(m.group(1));
-				if (i != appState.getCurrentIndex() && i < appState.getServers().size()) {
-					appState.setCurrentIndexAndFireEvent(i);
-					appState.setStep(CommandStepState.BOX_SELECTED);
-					msg = String.format("切换到新的服务器： %s", appState.currentBox().get().getHost());
+				if (i >= appState.getServers().size()) {
+					msg = "No server at index: " + i;
+				} else {
+					Box box = appState.getServers().get(i);
+					if (!box.equals(appState.currentBoxOptional().orElse(null))) {
+						appState.setCurrentBox(box);
+						appState.setStep(CommandStepState.BOX_SELECTED);
+						appState.persistState();
+						appState.fireSwitchEvent();
+						msg = String.format("切换到新的服务器： %s", box.getHost());
+					}
 				}
 			}
 		}

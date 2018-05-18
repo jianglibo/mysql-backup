@@ -47,7 +47,7 @@ public class ServerInfoProvider implements ValueProvider {
 		if (input.startsWith("-")) {
 			return new ArrayList<>();
 		}
-		Optional<Box> cb = applicationState.currentBox();
+		Optional<Box> cb = applicationState.currentBoxOptional();
 		switch (parameter.getParameterName()) {
 		case "host":
 			return applicationState.getServers().stream().map(box -> box.getHost()).filter(h -> h.contains(input))

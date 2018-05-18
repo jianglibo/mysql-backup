@@ -35,10 +35,10 @@ public class MysqlDescriptionProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		MysqlInstance mysqlq = applicationState.currentBox().get().getMysqlInstance();
+		MysqlInstance mysqlq = applicationState.currentBoxOptional().get().getMysqlInstance();
 		switch (parameter.getParameterName()) {
 		case "username":
 			return Arrays.asList(new CompletionProposal(mysqlq.getUsername()));

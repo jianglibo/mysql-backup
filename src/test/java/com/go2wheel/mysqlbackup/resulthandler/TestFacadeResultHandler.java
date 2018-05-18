@@ -33,5 +33,9 @@ public class TestFacadeResultHandler {
 		
 		assertTrue("map is a map", map instanceof Map);
 	}
+	
+	public void tListOfString() {
+		
+	}
 
 }

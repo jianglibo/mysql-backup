@@ -21,6 +21,7 @@ import com.go2wheel.mysqlbackup.valueprovider.BoxTriggerProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.MysqlDescriptionProvider;
+import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
 
 /**
@@ -65,6 +66,13 @@ public class StandardAPIAutoConfigurationMine {
 	public ValueProvider defaultValueProvider() {
 		return new DefaultValueProvider();
 	}
+	
+	@Bean
+	public ValueProvider possibleValueProvider() {
+		return new PossibleValueProvider();
+	}
+	
+
 	
 	@Bean
 	public ValueProvider borgDescriptionProvider() {

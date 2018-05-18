@@ -36,10 +36,10 @@ public class BoxDescriptionProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBox().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		Box box = applicationState.currentBox().get();
+		Box box = applicationState.currentBoxOptional().get();
 		String tip;
 		switch (parameter.getParameterName()) {
 		case "username":
