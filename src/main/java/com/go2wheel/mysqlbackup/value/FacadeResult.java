@@ -45,6 +45,14 @@ public class FacadeResult<T> {
 		r.setMessage("common.mission.accomplished");
 		return r;
 	}
+
+	public static <T> FacadeResult<T> doneExpectedResultPreviousDone(String message) {
+		FacadeResult<T> r = new FacadeResult<>();
+		r.expected = true;
+		r.setCommonActionResult(CommonActionResult.PREVIOUSLY_DONE);
+		r.setMessage(message);
+		return r;
+	}
 	
 	public static <T> FacadeResult<T> doneExpectedResult(CommonActionResult commonActionResult) {
 		FacadeResult<T> r = new FacadeResult<>();

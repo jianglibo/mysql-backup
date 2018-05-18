@@ -94,9 +94,6 @@ public class FileUtil {
 		String fn = dstFile.getFileName().toString() + ".writing";
 		Path tmpFile = dstFile.getParent().resolve(fn);
 		Files.write(tmpFile, content);
-//		if (Files.exists(dstFile)) {
-//			Files.delete(dstFile);
-//		}
 		try {
 			Files.move(tmpFile, dstFile, StandardCopyOption.ATOMIC_MOVE);
 		} catch (Exception e) {

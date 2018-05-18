@@ -50,8 +50,12 @@ public class LinuxLsl {
 			return Optional.empty();
 		}
 	}
-
 	
+	@Override
+	public String toString() {
+		return String.format("%s: %s\n%s: %s\n%s: %s", "filename", filename, "size", size, "md5", md5);
+	}
+
 	private String pm;
 	private int numberOfLinks;
 	private String owner;

@@ -86,3 +86,6 @@ initialization performed by Boot
 
 environment override:
 java -jar .\build\libs\mysql-backup-boot.jar --spring.quartz.job-store-type=memory
+
+netstat -aon | find /i "8000"
+taskkill /PID 24548 /F

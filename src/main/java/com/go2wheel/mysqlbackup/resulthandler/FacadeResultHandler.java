@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.resulthandler;
 
 
+import java.util.Collection;
+
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 				if (result.getException() != null) {
 					msg = ExceptionUtil.stackTraceToString(result.getException());
 				} else if(result.getResult() != null) {
+					if (result instanceof Collection) {
+						
+					}
 					msg = result.getResult().toString();
 				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
 					msg = messageService.getMessage(result.getMessage());

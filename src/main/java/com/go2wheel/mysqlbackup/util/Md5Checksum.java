@@ -15,11 +15,8 @@ import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
  *
  */
 public class Md5Checksum {
-
 	   public static byte[] createChecksum(String filename) {
-	       try {
-			InputStream fis =  new FileInputStream(filename);
-
+	       try (InputStream fis =  new FileInputStream(filename)) {
 			   byte[] buffer = new byte[1024];
 			   MessageDigest complete = MessageDigest.getInstance("MD5");
 			   int numRead;

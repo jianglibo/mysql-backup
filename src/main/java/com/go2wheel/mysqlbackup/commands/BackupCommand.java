@@ -33,6 +33,7 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
@@ -67,6 +68,8 @@ import com.jcraft.jsch.Session;
 public class BackupCommand {
 
 	public static final String DESCRIPTION_FILENAME = "description.yml";
+	
+	public static final String DANGEROUS_ALTER = "I know what i am doing.";
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -154,7 +157,7 @@ public class BackupCommand {
 		}
 		return fr;
 	}
-	
+
 	@ShellMethod(value = "显示服务器描述")
 	public FacadeResult<?> serverDetail() throws JSchException, IOException {
 		sureBoxSelected();
@@ -162,10 +165,8 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "和修改服务器描述")
-	public FacadeResult<?> serverUpdate(
-			@ShellOption(help = "用户名") String username,
-			@ShellOption(help = "密码") String password,
-			@ShellOption(help = "服务器角色") String boxRole,
+	public FacadeResult<?> serverUpdate(@ShellOption(help = "用户名") String username,
+			@ShellOption(help = "密码") String password, @ShellOption(help = "服务器角色") String boxRole,
 			@ShellOption(help = "SSH端口") int port) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
@@ -220,6 +221,7 @@ public class BackupCommand {
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public FacadeResult<?> mysqlEnableLogbin(
+			@ShowDefaultValue
 			@ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
 			throws JSchException, IOException {
 		sureBoxSelected();
@@ -237,10 +239,9 @@ public class BackupCommand {
 		sureBorgConfigurated();
 		return FacadeResult.doneExpectedResult(appState.currentBox().get().getBorgBackup(), CommonActionResult.DONE);
 	}
-	
+
 	@ShellMethod(value = "創建Borg的描述")
-	public FacadeResult<?> borgDescriptionCreate()
-			throws JSchException, IOException {
+	public FacadeResult<?> borgDescriptionCreate() throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		BorgBackupDescription bbd = box.getBorgBackup();
@@ -252,19 +253,15 @@ public class BackupCommand {
 		return borgService.saveBox(box);
 	}
 
-
 	@ShellMethod(value = "更新Borg的描述")
-	public FacadeResult<?> borgDescriptionUpdate(
-			@ShellOption(help = "borg repo.") String repo,
+	public FacadeResult<?> borgDescriptionUpdate(@ShellOption(help = "borg repo.") String repo,
 			@ShellOption(help = "borg archive format.") String archiveFormat,
 			@ShellOption(help = "borg archive prefix.") String archiveNamePrefix,
 			@ShellOption(help = "borg archive cron expression.") String archiveCron,
-			@ShellOption(help = "borg prune cron expression.") String pruneCron)
-			throws JSchException, IOException {
+			@ShellOption(help = "borg prune cron expression.") String pruneCron) throws JSchException, IOException {
 		sureBorgConfigurated();
 		Box box = appState.currentBox().get();
-		return borgService.updateBorgDescription(box, repo, archiveFormat, archiveNamePrefix, archiveCron,
-				pruneCron);
+		return borgService.updateBorgDescription(box, repo, archiveFormat, archiveNamePrefix, archiveCron, pruneCron);
 	}
 
 	@ShellMethod(value = "列出Borg备份包含的目录")
@@ -414,27 +411,23 @@ public class BackupCommand {
 
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
-		sureBoxSelected();
+		sureMysqlConfigurated();
 		return mysqlService.mysqlDump(getSession(), appState.currentBox().get());
 	}
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
-	public FacadeResult<?> mysqlDescriptionUpdate(
-			@ShellOption(help = "mysql username.") String username,
-			@ShellOption(help = "mysql password.") String password,
-			@ShellOption(help = "mysql port.") int port,
+	public FacadeResult<?> mysqlDescriptionUpdate(@ShellOption(help = "mysql username.") String username,
+			@ShellOption(help = "mysql password.") String password, @ShellOption(help = "mysql port.") int port,
 			@ShellOption(help = "mysql flush log cron expresion.") String flushLogCron)
 			throws JSchException, IOException {
 		sureMysqlConfigurated();
 		Box box = appState.currentBox().get();
 		return mysqlService.updateMysqlDescription(box, username, password, port, flushLogCron);
 	}
-	
+
 	@ShellMethod(value = "创建Mysql的描述")
-	public FacadeResult<?> mysqlDescriptionCreate(
-			@ShellOption(help = "mysql username.") String username,
-			@ShellOption(help = "mysql password.") String password)
-			throws JSchException, IOException {
+	public FacadeResult<?> mysqlDescriptionCreate(@ShellOption(help = "mysql username.") String username,
+			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		MysqlInstance mi = box.getMysqlInstance();
@@ -456,7 +449,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
-		sureBoxSelected();
+		sureMysqlConfigurated();
 		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBox().get());
 	}
 
@@ -532,14 +525,15 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlRedump(@Pattern(regexp = "I know what i am doing\\.") String iknow)
+	public FacadeResult<?> mysqlDumpAgain(String iknow)
 			throws JSchException, IOException {
-		sureBoxSelected();
+		sureMysqlConfigurated();
 		Box box = appState.currentBox().get();
+		if (!DANGEROUS_ALTER.equals(iknow)) {
+			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
+		}
 		return mysqlService.mysqlDump(getSession(), box, true);
 	}
-
-
 
 	private String getPromptString() {
 		switch (appState.getStep()) {
@@ -647,14 +641,13 @@ public class BackupCommand {
 		return schedulerTaskFacade.getBoxTriggers(appState.currentBox().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
-	
+
 	@ShellMethod(value = "删除计划任务触发器")
 	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
 		sureBoxSelected();
 		Box box = appState.currentBox().get();
 		return schedulerTaskFacade.delteBoxTriggers(box, triggerKey);
 	}
-
 
 	@ShellMethod(value = "查看最后一个命令的详细执行结果")
 	public String facadeResultLast() {
