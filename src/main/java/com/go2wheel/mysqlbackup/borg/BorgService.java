@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -26,12 +27,14 @@ import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
+import com.go2wheel.mysqlbackup.value.BorgDownloadRepoStatus;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -87,7 +90,7 @@ public class BorgService {
 				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
 				return FacadeResult.doneExpectedResult(getInstallationInfo(session), CommonActionResult.DONE);
 			} else {
-				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -104,9 +107,9 @@ public class BorgService {
 				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getInstallationInfo(session);
-				return FacadeResult.doneExpectedResult();
+				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
 			} else {
-				return FacadeResult.doneExpectedResult(CommonActionResult.PREVIOUSLY_DONE);
+				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -125,8 +128,8 @@ public class BorgService {
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session,
-					String.format("borg init --encryption=none %s", repoPath));
+			String command = String.format("borg init --encryption=none %s", repoPath);
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 			if (rcr.isCommandNotFound()) {
 				return FacadeResult.unexpectedResult("command not found.");
 			}
@@ -139,6 +142,21 @@ public class BorgService {
 					rcr = SSHcommonUtil.runRemoteCommand(session,
 							String.format("borg init --encryption=none %s", repoPath));
 				}
+				
+				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
+				if (iserrorPath) {
+					return FacadeResult.showMessage("borg.repo.wrongpath", repoPath);
+				}
+				
+				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("A repository already exists at "));
+				
+				if (alreadyExists) {
+					return FacadeResult.showMessage("common.file.exists", repoPath);
+				}
+				
+				logger.error(command);
+				logger.error(String.join("\n", rcr.getAllTrimedNotEmptyLines()));
+				return FacadeResult.showMessage("ssh.command.failed", command);
 			}
 			return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
@@ -161,6 +179,7 @@ public class BorgService {
 	}
 	
 	//@formatter:off
+	@MeasureTimeCost
 	public FacadeResult<?> downloadRepo(Session session, Box box) {
 		try {
 			String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", box.getBorgBackup().getRepo());
@@ -181,18 +200,32 @@ public class BorgService {
 				fi.setLfileAbs(localRepo.resolve(rRepo.relativize(Paths.get(fi.getRfileAbs()))));
 				return fi;
 			}).collect(Collectors.toList());
-
+			
+			BorgDownloadRepoStatus bdrs = new BorgDownloadRepoStatus();
+			bdrs.setTotalFiles(fis.size());
+			long totalBytes = 0;
+			long downloadBytes = 0;
+			int downloadFiles = 0;
 			for (FileInfo fi : fis) {
 				if (Files.exists(fi.getLfileAbs())) {
 					String m = Md5Checksum.getMD5Checksum(fi.getLfileAbs());
 					if (m.equalsIgnoreCase(fi.getMd5())) {
 						fi.setDownloaded(true);
+						totalBytes += Files.size(fi.getLfileAbs());
 						continue;
 					}
 				}
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, fi.getRfileAbs(), fi.getLfileAbs());
 				fi.setDownloaded(true);
+				totalBytes += Files.size(fi.getLfileAbs());
+				downloadBytes += Files.size(fi.getLfileAbs());
+				downloadFiles += 1;
+				
 			}
+			
+			bdrs.setDownloadBytes(downloadBytes);
+			bdrs.setDownloadFiles(downloadFiles);
+			bdrs.setTotalBytes(totalBytes);
 
 			// delete the files already deleted from remote repo.
 			List<Path> pathes = Files.walk(localRepo)
@@ -203,7 +236,8 @@ public class BorgService {
 			for(Path p : pathes) {
 				Files.delete(p);
 			}
-			return FacadeResult.doneExpectedResult();
+
+			return FacadeResult.doneExpectedResult(bdrs, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -212,7 +246,11 @@ public class BorgService {
 	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
-	public FacadeResult<RemoteCommandResult> archive(Session session, Box box, String archiveNamePrefix) {
+	public FacadeResult<?> archive(Session session, Box box, String archiveNamePrefix, boolean solveProblems) {
+		if (solveProblems) {
+			install(session);
+			initRepo(session, box.getBorgBackup().getRepo());
+		}
 		try {
 			BorgBackupDescription borgDescription = box.getBorgBackup();
 			List<String> cmdparts = new ArrayList<>();
@@ -227,7 +265,28 @@ public class BorgService {
 				cmdparts.add(f);
 			}
 			String cmd = String.join(" ", cmdparts);
-			return FacadeResult.doneExpectedResult(SSHcommonUtil.runRemoteCommand(session, cmd), CommonActionResult.DONE);
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+			if (rcr.isCommandNotFound()) {
+				return FacadeResult.showMessage("common.application.notinstalled", cmd);
+			}
+			if (rcr.getExitValue() == 0) {
+				return FacadeResult.doneExpectedResult(rcr.getAllTrimedNotEmptyLines(), CommonActionResult.DONE);
+			} else {
+				List<String> lines = rcr.getAllTrimedNotEmptyLines();
+				String errOut = rcr.getErrOut();
+				if (errOut != null) {
+					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH"))) {
+						return FacadeResult.unexpectedResult("borg.archive.noincludes");
+					} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
+						return FacadeResult.unexpectedResult("borg.repo.noinit");
+					} else {
+						logger.error(rcr.getErrOut());
+						return FacadeResult.unexpectedResult("borg.archive.unknown");
+					}
+				} else {
+					return FacadeResult.unexpectedResult("borg.archive.unknown");
+				}
+			}
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -241,8 +300,8 @@ public class BorgService {
 
 	public FacadeResult<BorgListResult> listArchives(Session session, Box box) {
 		try {
-			return FacadeResult.doneExpectedResult( new BorgListResult(
-					SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo()))), CommonActionResult.DONE);
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", box.getBorgBackup().getRepo())); 
+			return FacadeResult.doneExpectedResult(new BorgListResult(rcr), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -271,6 +330,11 @@ public class BorgService {
 		private String executable;
 		private String version;
 		
+		
+		@Override
+		public String toString() {
+			return ObjectUtil.dumpObjectAsMap(this);
+		}
 		
 		public static InstallationInfo notInstalled() {
 			InstallationInfo ii = new InstallationInfo();
@@ -356,5 +420,13 @@ public class BorgService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
+	}
+
+	public FacadeResult<?> archive(Session session, Box box) {
+		return archive(session, box, box.getBorgBackup().getArchiveNamePrefix(), false);
+	}
+
+	public FacadeResult<?> archive(Session session, Box box, boolean solveProblems) {
+		return archive(session, box, box.getBorgBackup().getArchiveNamePrefix(), solveProblems);
 	}
 }

@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.jline.utils.AttributedStringBuilder;
@@ -36,6 +37,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 		try {
 			applicationState.setFacadeResult(result);
 			String msg = "";
+			
 			T resultValue = result.getResult();
 			try {
 				if (result.getException() != null) {
@@ -49,7 +51,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 						msg = resultValue.toString();
 					}
 				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
-					msg = messageService.getMessage(result.getMessage());
+					msg = messageService.getMessage(result.getMessage(), result.getMessagePlaceHolders());
 				} else {
 					msg = "";
 				}
@@ -59,6 +61,10 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 				} else {
 					msg = "An error occured. " + e.getMessage();
 				}
+			}
+			
+			if (result.getStartTime() > 0 ) {
+				msg = String.format("startTime: %s, timeCosts: %s\n", new java.util.Date(result.getStartTime()), result.getTimeCost(TimeUnit.MILLISECONDS)) + msg;
 			}
 			terminal.writer().println(new AttributedStringBuilder()
 					.append(msg, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());

@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.commands;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -51,6 +52,7 @@ import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.MailAddressService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
@@ -119,10 +121,12 @@ public class BackupCommand {
 	public void post() {
 
 	}
-
+	
 	private Session getSession() {
+		sureBoxSelected();
+		Box box = appState.currentBoxOptional().get();
 		if (_session == null || !_session.isConnected()) {
-			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(appState.currentBoxOptional().get());
+			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(box);
 			if (frSession.isExpected()) {
 				_session = frSession.getResult();
 			} else {
@@ -138,6 +142,49 @@ public class BackupCommand {
 		}
 		return _session;
 	}
+	
+	@ShellMethod(value = "Connect to target server.")
+	private FacadeResult<?> ping(
+			@ShellOption(help = "主机名") String host,
+			@ShowDefaultValue()
+			@ShellOption(help = "用户名", defaultValue="root") String username,
+			@ShowDefaultValue()
+			@ShellOption(help = "端口", defaultValue ="22") int port,
+			@ShowDefaultValue()
+			@ShellOption(help = "sshKey文件路径", defaultValue=Box.NO_SSHKEY_FILE) File sshKeyFile,
+			@ShowDefaultValue()
+			@ShellOption(help = "密码", defaultValue = Box.NO_PASSWORD) String password) {
+		File sshk = Box.NO_SSHKEY_FILE.equals(sshKeyFile.getName()) ? null : sshKeyFile;
+		String ppaw = Box.NO_PASSWORD.equals(password) ? null : password;
+		
+		if (sshk == null && ppaw == null) {
+			return FacadeResult.showMessage("ssh.auth.noway");
+		}
+		
+		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(username, host, port, sshk, ppaw);
+		if (frSession.isExpected()) {
+			Session session = frSession.getResult();
+			try {
+				SSHcommonUtil.runRemoteCommand(session, "echo hello");
+				session.disconnect();
+				return FacadeResult.doneExpectedResult("Success!", CommonActionResult.DONE);
+			} catch (RunRemoteCommandException e) {
+				return FacadeResult.unexpectedResult("Ping failed!");
+			}
+		} else {
+			if (frSession.getException() != null) {
+				if (frSession.getException().getMessage().contains("Auth fail")) {
+					throw new ServerConnectionException("jsch.connect.authfailed", "認證失敗，請檢查sshKey的配置。");
+				} else if (frSession.getException().getMessage().contains("Connection timed out")) {
+					throw new ServerConnectionException("jsch.connect.failed", "認證失敗，請檢查sshKey的配置。");
+				} else {
+					return frSession;
+				}
+			}
+			throw new ServerConnectionException("jsch.connect.failed", "无法链接服务器，请查看日志确定故障原因。");
+		}
+	}
+
 
 	@ShellMethod(value = "List all managed servers.")
 	public ApplicationState serverList() throws IOException {
@@ -234,13 +281,21 @@ public class BackupCommand {
 		return borgService.install(getSession());
 	}
 
-	@ShellMethod(value = "查看Borg的描述")
-	public FacadeResult<?> borgDescription() throws JSchException, IOException {
+	@ShellMethod(value = "管理Borg的描述")
+	public FacadeResult<?> borgDescription(
+			@ShowPossibleValue({"CREATE"})
+			@ShellOption(help = "The action to take.", defaultValue="") String action) throws JSchException, IOException {
+		
+		switch (action) {
+		case "CREATE":
+			return borgDescriptionCreate();
+		default:
+			break;
+		}
 		sureBorgConfigurated();
-		return FacadeResult.doneExpectedResult(appState.currentBoxOptional().get().getBorgBackup(), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(appState.currentBoxOptional().get(), CommonActionResult.DONE);
 	}
 
-	@ShellMethod(value = "創建Borg的描述")
 	public FacadeResult<?> borgDescriptionCreate() throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBoxOptional().get();
@@ -263,58 +318,64 @@ public class BackupCommand {
 		Box box = appState.currentBoxOptional().get();
 		return borgService.updateBorgDescription(box, repo, archiveFormat, archiveNamePrefix, archiveCron, pruneCron);
 	}
-
-	@ShellMethod(value = "列出Borg备份包含的目录")
-	public List<String> borgIncludesList() throws JSchException, IOException {
+	
+	
+	@ShellMethod(value = "管理Borg的includes条目")
+	public FacadeResult<?> borgDescriptionIncludes(
+			@ShowPossibleValue({"ADD", "REMOVE"})
+			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE") String action,
+			@ShellOption(help = "The directory to operate on.") String remoteDirectory
+			) throws JSchException, IOException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null) {
-			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		if (bbdi.getIncludes() == null) bbdi.setIncludes(new ArrayList<>());
+		FacadeResult<?> fr = baddremove(action, remoteDirectory, bbdi.getIncludes()); 
+		if (fr.isExpected()) {
+			return borgService.saveBox(box);
 		}
-		return bbdi.getIncludes();
+		return fr;
 	}
-
-	@ShellMethod(value = "列出Borg备份排除的目录")
-	public List<String> borgExcludesList() throws JSchException, IOException {
+	
+	private FacadeResult<?> baddremove(String action, String remoteDirectory, List<String> directories) {
+		if ("ADD".equals(action)) {
+			if (!directories.contains(remoteDirectory)) {
+				try {
+					boolean direxists = SSHcommonUtil.fileExists(getSession(), remoteDirectory);
+					if (!direxists) {
+						return FacadeResult.showMessage("rfile.nonexists", remoteDirectory);
+					}
+					directories.add(remoteDirectory);
+				} catch (RunRemoteCommandException e) {
+					return FacadeResult.unexpectedResult(e);
+				}
+			}
+		} else {
+			if (directories.contains(remoteDirectory)) {
+				directories.remove(remoteDirectory);
+			}
+		}
+		return FacadeResult.doneExpectedResult();
+		
+	}
+	
+	@ShellMethod(value = "管理Borg的excludes条目")
+	public FacadeResult<?> borgDescriptionExcludes(
+			@ShowPossibleValue({"ADD", "REMOVE"})
+			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE") String action,
+			@ShellOption(help = "The directory to operate on.") String remoteDirectory
+			) throws JSchException, IOException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
 		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null) {
-			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
+		if (bbdi.getExcludes() == null) bbdi.setExcludes(new ArrayList<>());
+		FacadeResult<?> fr = baddremove(action, remoteDirectory, bbdi.getExcludes()); 
+		if (fr.isExpected()) {
+			return borgService.saveBox(box);
 		}
-		return bbdi.getExcludes();
+		return fr;
 	}
 
-	@ShellMethod(value = "添加Borg备份或排除的目录")
-	public List<String> borgIncludesExcludesAdd(
-			@ShellOption(help = "Absolute directory to add to 'includes'.", defaultValue = "") String include,
-			@ShellOption(help = "Absolute directory to add to 'excludes'.", defaultValue = "") String exclude)
-			throws JSchException, IOException {
-		sureBorgConfigurated();
-		Box box = appState.currentBoxOptional().get();
-		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null) {
-			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
-		}
-		borgService.updateBorgDescription(getSession(), box, include, exclude, true);
-		return bbdi.getExcludes();
-	}
-
-	@ShellMethod(value = "删除Borg备份或排除的目录")
-	public List<String> borgIncludesExcludesRemove(
-			@ShellOption(help = "Absolute directory to remove from 'includes'.", defaultValue = "") String include,
-			@ShellOption(help = "Absolute directory to remove from 'excludes'.", defaultValue = "") String exclude)
-			throws JSchException, IOException {
-		sureBorgConfigurated();
-		Box box = appState.currentBoxOptional().get();
-		BorgBackupDescription bbdi = box.getBorgBackup();
-		if (bbdi == null) {
-			return Arrays.asList(localedMessageService.getMessage("command.borg.norepo"));
-		}
-		borgService.updateBorgDescription(getSession(), box, include, exclude, false);
-		return bbdi.getExcludes();
-	}
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(
@@ -345,36 +406,37 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
-	public List<String> borgInitRepo() throws RunRemoteCommandException {
+	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
-		return borgService.initRepo(getSession(), box.getBorgBackup().getRepo()).getResult()
-				.getAllTrimedNotEmptyLines();
+		return borgService.initRepo(getSession(), box.getBorgBackup().getRepo());
 	}
-
+	
 	@ShellMethod(value = "创建一次borg备份")
-	public FacadeResult<?> borgCreateArchive() throws RunRemoteCommandException {
+	public FacadeResult<?> borgArchiveCreate(
+			@ShellOption(help = "try to solve comman problems.") boolean solveProblems
+			) throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
-		return borgService.archive(getSession(), box, box.getBorgBackup().getArchiveNamePrefix());
+		return borgService.archive(getSession(), box, solveProblems);
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
-	public void borgDownloadRepo() throws RunRemoteCommandException {
+	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
-		borgService.downloadRepo(getSession(), box);
+		return borgService.downloadRepo(getSession(), box);
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
-	public List<String> borgListArchives() {
+	public List<String> borgArchiveList() {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
 		return borgService.listArchives(getSession(), box).getResult().getArchives();
 	}
 
 	@ShellMethod(value = "修剪borg创建的卷")
-	public String borgPruneArchives() throws RunRemoteCommandException {
+	public String borgArchivePrune() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
 		BorgPruneResult bpr = borgService.pruneRepo(getSession(), box).getResult();
@@ -383,7 +445,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
-	public List<String> borgListRepoFiles() throws RunRemoteCommandException {
+	public List<String> borgRepoListFiles() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Box box = appState.currentBoxOptional().get();
 		return borgService.listRepoFiles(getSession(), box).getResult().getAllTrimedNotEmptyLines();
@@ -440,12 +502,6 @@ public class BackupCommand {
 		mi.setPassword(password);
 		box.setMysqlInstance(mi);
 		return mysqlService.updateMysqlDescription(box);
-	}
-
-	@ShellMethod(value = "查看Mysql的描述")
-	public FacadeResult<?> mysqlDescription() throws JSchException, IOException {
-		sureMysqlConfigurated();
-		return FacadeResult.doneExpectedResult(appState.currentBoxOptional().get().getMysqlInstance(), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")

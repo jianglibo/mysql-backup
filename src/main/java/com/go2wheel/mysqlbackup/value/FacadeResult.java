@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.value;
 
-public class FacadeResult<T> {
+import com.go2wheel.mysqlbackup.aop.TimeCost;
+
+public class FacadeResult<T> implements TimeCost {
 	
 	private boolean expected;
 	
@@ -11,10 +13,43 @@ public class FacadeResult<T> {
 	private Exception exception;
 	
 	private String message;
+
+	private Object[] messagePlaceHolders;
 	
+	private long startTime;
+	
+	private long endTime;
+	
+	public long getStartTime() {
+		return startTime;
+	}
+
+	public void setStartTime(long startTime) {
+		this.startTime = startTime;
+	}
+
+
+	public long getEndTime() {
+		return endTime;
+	}
+
+
+	public void setEndTime(long endTime) {
+		this.endTime = endTime;
+	}
+
 	public static enum CommonActionResult {
 		PREVIOUSLY_DONE, DONE
 	}
+	
+	public static <T> FacadeResult<T> showMessage(String message, Object...placeholders) {
+		FacadeResult<T> r = new FacadeResult<>();
+		r.expected = false;
+		r.setMessage(message);
+		r.messagePlaceHolders =  placeholders;
+		return r;
+	}
+
 	
 	public static <T> FacadeResult<T> unexpectedResult(Exception e) {
 		FacadeResult<T> r = new FacadeResult<>();
@@ -125,5 +160,13 @@ public class FacadeResult<T> {
 
 	public void setMessage(String message) {
 		this.message = message;
+	}
+
+	public Object[] getMessagePlaceHolders() {
+		return messagePlaceHolders;
+	}
+
+	public void setMessagePlaceHolders(Object[] messagePlaceHolders) {
+		this.messagePlaceHolders = messagePlaceHolders;
 	}
 }

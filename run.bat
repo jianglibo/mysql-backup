@@ -3,17 +3,6 @@ echo off
 REM https://ss64.com/nt/for_cmd.html
 SET _lport=8080
 
-REM FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "%_lport%"') DO taskkill /PID %%G /F /T
-REM FOR /f "tokens=4 delims=(=" %%G IN ('%_ping_cmd% ^|find "Ping"') DO echo Result is [%%G]
-::echo on
-:: FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "8080"') DO SET _listening=%%G
-
-::IF [%_listening%]!=[] ECHO "hello"
-::echo %_listening%
-
-::GOTO :eof
-
-
 SET wdir=%~dp0
 CD /D %wdir% 
 SET wdirslash=%wdir:\=/%
@@ -21,6 +10,9 @@ SET pidfile=%wdir%bin\app.pid
 
 SET springParams=--spring.profiles.active=prod
 SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%db/db;shutdown=true
+
+SET springParams=%springParams% --myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+SET springParams=%springParams% --myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
 
 if [%1]==[] GOTO tryToFindJar
 IF %1==stop GOTO stop
@@ -71,3 +63,14 @@ REM set "list=a b c d"
 REM   echo(%%i
   REM echo(
  REM )
+ 
+ 
+REM FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "%_lport%"') DO taskkill /PID %%G /F /T
+REM FOR /f "tokens=4 delims=(=" %%G IN ('%_ping_cmd% ^|find "Ping"') DO echo Result is [%%G]
+::echo on
+:: FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "8080"') DO SET _listening=%%G
+
+::IF [%_listening%]!=[] ECHO "hello"
+::echo %_listening%
+
+::GOTO :eof

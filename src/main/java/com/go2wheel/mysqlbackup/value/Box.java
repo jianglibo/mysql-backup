@@ -10,6 +10,8 @@ public class Box {
 	
 	public static final String NO_PASSWORD="i_have_no_password";
 	
+	public static final String NO_SSHKEY_FILE="i_have_no_sshkey_file";
+	
 	public static final String ROLE_SOURCE="SOURCE";
 	
 	public static final String ROLE_DEST="DEST";

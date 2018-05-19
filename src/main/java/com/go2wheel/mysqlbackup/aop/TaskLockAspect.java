@@ -38,6 +38,17 @@ public class TaskLockAspect {
 		}
 	}
 	
+	@Around("execution(@com.go2wheel.mysqlbackup.aop.MeasureTimeCost * *(..))")
+	public Object measureAdvice(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
+		long startTime = System.currentTimeMillis();
+		Object o = proceedingJoinPoint.proceed();
+		if (o instanceof TimeCost) {
+			((TimeCost)o).setStartTime(startTime);
+			((TimeCost)o).setEndTime(System.currentTimeMillis());
+		}
+		return o;
+	}
+	
 //	@Pointcut("execution(* @com.go2wheel.mysqlbackup.aop。Exclusive *.*(..))")
 //	@Pointcut("execution(* com.go2wheel.mysqlbackup.borg.BorgTaskFacade.*(..))")
 //	@Pointcut("execution(public * *(..))")
