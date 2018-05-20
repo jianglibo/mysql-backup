@@ -66,5 +66,28 @@ public class TestStringUtil {
 		Object o = engin.eval("'Hello';");
 		assertThat(o, equalTo("Hello"));
 	}
+	
+	@Test
+	public void tParseInt() {
+		String s = " 01";
+		int i = StringUtil.parseInt(s);
+		assertThat(i, equalTo(1));
+		
+		s = " 01m";
+		i = StringUtil.parseInt(s);
+		assertThat(i, equalTo(1));
+		
+		s = " 01%";
+		i = StringUtil.parseInt(s);
+		assertThat(i, equalTo(1));
+		
+		s = "a 01%";
+		i = StringUtil.parseInt(s);
+		assertThat(i, equalTo(0));
+
+
+
+		
+	}
 
 }

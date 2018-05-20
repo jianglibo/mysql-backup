@@ -14,6 +14,8 @@ public class StringUtil {
 	
 	public static Pattern ALL_DIGITS_PTN = Pattern.compile("^\\d+$");
 	
+	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
+	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
 	}
@@ -29,6 +31,15 @@ public class StringUtil {
 	public static String getLastPartOfUrl(String url) {
 		int i = url.lastIndexOf('/');
 		return url.substring(i + 1);
+	}
+	
+	public static int parseInt(String numberHeaded) {
+		Matcher m = NUMBER_HEADED.matcher(numberHeaded);
+		if (m.matches()) {
+			return Integer.valueOf(m.group(1));
+		} else {
+			return 0;
+		}
 	}
 	
 	

@@ -22,6 +22,7 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -73,6 +74,15 @@ public class BackupCommand {
 	public static final String DESCRIPTION_FILENAME = "description.yml";
 	
 	public static final String DANGEROUS_ALERT = "I know what i am doing.";
+	
+	@Value("${scheduler.mysql.flush.cron}")
+	private String mysqlFlushCronDefault;
+	
+	@Value("${scheduler.borg.archive.cron}")
+	private String borgArchiveCronDefault;
+	
+	@Value("${scheduler.borg.prune.cron}")
+	private String borgPruneCronDefault;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -299,6 +309,8 @@ public class BackupCommand {
 			FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		}
 		bbd = new BorgBackupDescription();
+		bbd.setArchiveCron(borgArchiveCronDefault);
+		bbd.setPruneCron(borgPruneCronDefault);
 		box.setBorgBackup(bbd);
 		return borgService.saveBox(box);
 	}
@@ -498,11 +510,12 @@ public class BackupCommand {
 		Box box = appState.currentBoxOptional().get();
 		MysqlInstance mi = box.getMysqlInstance();
 		if (mi != null) {
-			return FacadeResult.doneExpectedResult(mi, CommonActionResult.DONE);
+			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		}
 		mi = new MysqlInstance();
 		mi.setUsername(username);
 		mi.setPassword(password);
+		mi.setFlushLogCron(mysqlFlushCronDefault);
 		box.setMysqlInstance(mi);
 		return mysqlService.updateMysqlDescription(box);
 	}

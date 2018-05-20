@@ -10,7 +10,12 @@ public class Diskfree extends BaseModel {
 	private Integer used;
 	private Integer usePercent;
 	private String mountedOn;
+	private Integer available;
 	private Date createdAt;
+	
+	public Diskfree() {
+		this.createdAt = new Date();
+	}
 	
 	public Integer getServerId() {
 		return serverId;
@@ -53,6 +58,14 @@ public class Diskfree extends BaseModel {
 	}
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	public Integer getAvailable() {
+		return available;
+	}
+
+	public void setAvailable(Integer available) {
+		this.available = available;
 	}
 
 }

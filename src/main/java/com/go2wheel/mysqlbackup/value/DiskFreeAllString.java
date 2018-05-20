@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.value;
 
+import com.go2wheel.mysqlbackup.model.Diskfree;
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class DiskFreeAllString {
 	
 	private String fileSystem = "";
@@ -45,6 +48,17 @@ public class DiskFreeAllString {
 	}
 	public String getMountedOn() {
 		return mountedOn;
+	}
+
+	public Diskfree toDiskfree() {
+		Diskfree df = new Diskfree();
+		df.setFileSystem(fileSystem);
+		df.setBlocks(StringUtil.parseInt(blocks));
+		df.setMountedOn(mountedOn);
+		df.setUsed(StringUtil.parseInt(used));
+		df.setUsePercent(StringUtil.parseInt(use));
+		df.setAvailable(StringUtil.parseInt(available));
+		return df;
 	}
 	
 	
