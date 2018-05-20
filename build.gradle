@@ -110,10 +110,6 @@ dependencies {
 	compile group: 'org.jooq', name: 'jooq-codegen', version: '3.10.7'
 	
 	
-	
-	
-	
-	
 	// https://mvnrepository.com/artifact/com.jcraft/jsch
 	compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
 	
@@ -125,3 +121,23 @@ dependencies {
 task wrapper(type: Wrapper) {
     gradleVersion = '4.6'
 }
+
+task copyFilesToArchive(type: Copy) {
+    from "${buildDir}/../explained.docx", "${buildDir}/../run.bat"
+    
+    from("${buildDir}/../") {
+        include "notingit/**"
+    }
+    from "${buildDir}/libs/mysql-backup-boot.jar"
+    into "${buildDir}/archive"
+}
+
+task packmyzip(type: Zip) {
+    archiveName = "mysql-backup.zip"
+    destinationDir = file("${buildDir}/dist")
+
+    from "${buildDir}/archive"
+}
+
+copyFilesToArchive.dependsOn bootJar
+packmyzip.dependsOn copyFilesToArchive

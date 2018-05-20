@@ -10,14 +10,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.UpTime;
+import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.UpTimeService;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.jcraft.jsch.Session;
+import com.go2wheel.mysqlbackup.value.UptimeAllString;
 
 @Component
-public class BorgArchiveJob implements Job {
+public class UpTimeJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -25,7 +28,10 @@ public class BorgArchiveJob implements Job {
 	private ApplicationState applicationState;
 
 	@Autowired
-	private BorgService borgTaskFacade;
+	private UpTimeService upTimeService;
+	
+	@Autowired
+	private ServerService serviceService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -35,14 +41,12 @@ public class BorgArchiveJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		Session session = sshSessionFactory.getConnectedSession(box).getResult();
-		FacadeResult<?> fr = borgTaskFacade.archive(session, box, false);
-		if (!fr.isExpected()) {
-			// send mail.
-		}
-		fr = borgTaskFacade.downloadRepo(session, box);
-		if (!fr.isExpected()) {
-			// send mail.
+		UptimeAllString uta = SSHcommonUtil.getUpTime(sshSessionFactory.getConnectedSession(box).getResult());
+		UpTime ut = uta.toUpTime();
+		Server sv = serviceService.findByHost(host);
+		if (sv != null) {
+			ut.setServerId(sv.getId());
+			upTimeService.save(ut);
 		}
 	}
 

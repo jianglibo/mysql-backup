@@ -24,3 +24,8 @@ systemctl start mysqld
 
 
  /etc/yum.repos.d/mysql-community.repo enable5.6
+ 
+ 我想对目标服务器的情况了解多少呢？
+1、剩余磁盘空间
+2、CUP负荷
+3、borgdownloadstatus, 

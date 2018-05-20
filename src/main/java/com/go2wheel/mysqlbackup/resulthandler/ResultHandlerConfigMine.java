@@ -29,11 +29,6 @@ public class ResultHandlerConfigMine {
 	}
 	
 	@Bean
-	public ExecuteResultHandler executeResultHandler() {
-		return new ExecuteResultHandler();
-	}
-	
-	@Bean
 	public CommandNotFoundResultHandler myThrowableResultHandler() {
 		return new CommandNotFoundResultHandler();
 	}

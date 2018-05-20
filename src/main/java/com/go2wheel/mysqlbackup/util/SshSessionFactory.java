@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +28,19 @@ public class SshSessionFactory {
 		JSch jsch=new JSch();
 		Session session = null;
 		try {
-			session=jsch.getSession(box.getUsername(), box.getHost(), box.getPort());
-			jsch.setKnownHosts(appSettings.getSsh().getKnownHosts());
+			String userName = box.getUsername();
+			String host = box.getHost();
+			int port = box.getPort();
+			session=jsch.getSession(userName, host, port);
+			String knownHosts = appSettings.getSsh().getKnownHosts();
+			if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
+				return FacadeResult.showMessage("ssh.auth.noknownhosts");
+			}
+			
+			if (!Files.exists(Paths.get(knownHosts))) {
+				return FacadeResult.showMessage("ssh.auth.wrongknownhosts", knownHosts);
+			}
+			jsch.setKnownHosts(knownHosts);
 		
 			if (box.canSShKeyAuth()) {
 				jsch.addIdentity(box.getSshKeyFile());
@@ -49,18 +62,23 @@ public class SshSessionFactory {
 				}
 			} catch (Exception e1) {
 			}
-			return FacadeResult.unexpectedResult(e);
+			if (e.getMessage().contains("Auth fail")) {
+				return FacadeResult.unexpectedResult(e, "jsch.connect.authfailed");
+			} else if (e.getMessage().contains("Connection timed out")) {
+				return FacadeResult.unexpectedResult(e, "jsch.connect.failed");
+			} else {
+				return FacadeResult.unexpectedResult(e, "jsch.connect.failed");
+			}
 		}
 		return FacadeResult.doneExpectedResult(session, CommonActionResult.DONE);
 	}
 	
-	public FacadeResult<Session> getConnectedSession(String username, String host, int port, File sshKeyFile, String password) {
+	public FacadeResult<Session> getConnectedSession(String username, String host, int port, File sshKeyFile, File knownHosts, String password) {
 		JSch jsch=new JSch();
 		Session session = null;
 		try {
 			session=jsch.getSession(username, host, port);
-			jsch.setKnownHosts(appSettings.getSsh().getKnownHosts());
-		
+			jsch.setKnownHosts(knownHosts.getAbsolutePath());
 			if (sshKeyFile != null) {
 				jsch.addIdentity(sshKeyFile.getAbsolutePath());
 				session.connect();

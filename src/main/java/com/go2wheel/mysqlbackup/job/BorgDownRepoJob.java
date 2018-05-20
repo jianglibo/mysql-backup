@@ -13,11 +13,9 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
-import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.jcraft.jsch.Session;
 
 @Component
-public class BorgArchiveJob implements Job {
+public class BorgDownRepoJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -35,15 +33,8 @@ public class BorgArchiveJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		Session session = sshSessionFactory.getConnectedSession(box).getResult();
-		FacadeResult<?> fr = borgTaskFacade.archive(session, box, false);
-		if (!fr.isExpected()) {
-			// send mail.
-		}
-		fr = borgTaskFacade.downloadRepo(session, box);
-		if (!fr.isExpected()) {
-			// send mail.
-		}
+		borgTaskFacade.pruneRepo(sshSessionFactory.getConnectedSession(box).getResult(), box);
+
 	}
 
 }

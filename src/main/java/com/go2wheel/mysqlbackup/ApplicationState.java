@@ -24,6 +24,10 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
+import com.go2wheel.mysqlbackup.model.BackupFolder;
+import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.BackupFolderService;
+import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -38,6 +42,12 @@ public class ApplicationState {
 	public static boolean IS_PROD_MODE = false;
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	@Autowired
+	private ServerService serverService;
+	
+	@Autowired
+	private BackupFolderService bfService;
 
 	@Autowired
 	private MyAppSettings appSettings;
@@ -104,6 +114,30 @@ public class ApplicationState {
 							return null;
 						}
 					}).filter(Objects::nonNull).collect(Collectors.toList());
+		} catch (Exception e) {
+			ExceptionUtil.logErrorException(logger, e);
+		}
+		
+		try {
+			servers.stream().forEach(box -> {
+				Server sv = serverService.findByHost(box.getHost());
+				if (sv == null) {
+					sv = new Server(box.getHost());
+					sv = serverService.save(sv);
+				}
+				
+				final Server svfinal = sv;
+				
+				if (box.getBorgBackup() != null && box.getBorgBackup().getIncludes() != null) {
+					box.getBorgBackup().getIncludes().stream().forEach(fo -> {
+						BackupFolder bf = bfService.findByServerHostAndFolder(box.getHost(), fo);
+						if (bf == null) {
+							bf = new BackupFolder(svfinal.getId(), fo);
+						}
+						bfService.save(bf);
+					});
+				}
+			});
 		} catch (Exception e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}

@@ -52,6 +52,7 @@ myapp:
     knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
 using.spring.schedulerFactory: true
 expectit.echo: false
+scheduler.uptime.cron: 0 0/15 * * * ?
 ---
 spring.profiles: dev
 spring:
@@ -91,6 +92,10 @@ logging:
   file: log/spring.log
   file.max-size: 5MB
   file.max-history: 100
+  level:
+    root: DEBUG
+    com.go2wheel.mysqlbackup.job.SampleJob: ERROR
+    com.go2wheel.mysqlbackup.job.SampleJobService: ERROR
 #  quartz
 #    jdbc
 #      initialize-schema: embedded # Database schema initialization mode.
@@ -106,3 +111,4 @@ myapp:
     knownHosts: C:/cygwin64/home/AIR/.ssh/known_hosts
 using.spring.schedulerFactory: true
 expectit.echo: true
+scheduler.uptime.cron: 0 0/2 * * * ?

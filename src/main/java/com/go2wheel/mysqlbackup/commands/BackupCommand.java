@@ -41,7 +41,6 @@ import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ServerConnectionException;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
@@ -53,6 +52,7 @@ import com.go2wheel.mysqlbackup.service.MailAddressService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
@@ -130,14 +130,11 @@ public class BackupCommand {
 			if (frSession.isExpected()) {
 				_session = frSession.getResult();
 			} else {
-				if (frSession.getException() != null) {
-					if (frSession.getException().getMessage().contains("Auth fail")) {
-						throw new ServerConnectionException("jsch.connect.authfailed", "認證失敗，請檢查sshKey的配置。");
-					} else if (frSession.getException().getMessage().contains("Connection timed out")) {
-						throw new ServerConnectionException("jsch.connect.failed", "認證失敗，請檢查sshKey的配置。");
-					}
+				if (StringUtil.hasAnyNonBlankWord(frSession.getMessage())) {
+					throw new ShowToUserException(frSession.getMessage(), frSession.getMessagePlaceHolders());
+				} else if (frSession.getException() != null) {
+					//will not get here.
 				}
-				throw new ServerConnectionException("jsch.connect.failed", "无法链接服务器，请查看日志确定故障原因。");
 			}
 		}
 		return _session;
@@ -151,17 +148,24 @@ public class BackupCommand {
 			@ShowDefaultValue()
 			@ShellOption(help = "端口", defaultValue ="22") int port,
 			@ShowDefaultValue()
-			@ShellOption(help = "sshKey文件路径", defaultValue=Box.NO_SSHKEY_FILE) File sshKeyFile,
+			@ShellOption(help = "sshKey文件路径", defaultValue=ShellCommonParameterValue.NOT_EXIST_FILE) File sshKeyFile,
+			@ShowDefaultValue()
+			@ShellOption(help = "knowHosts文件路径", defaultValue=ShellCommonParameterValue.NOT_EXIST_FILE) File knownHostsFile,
 			@ShowDefaultValue()
 			@ShellOption(help = "密码", defaultValue = Box.NO_PASSWORD) String password) {
-		File sshk = Box.NO_SSHKEY_FILE.equals(sshKeyFile.getName()) ? null : sshKeyFile;
+		File sshk = ShellCommonParameterValue.NOT_EXIST_FILE.equals(sshKeyFile.getName()) ? null : sshKeyFile;
+		File knonwh = ShellCommonParameterValue.NOT_EXIST_FILE.equals(knownHostsFile.getName()) ? null : knownHostsFile;
 		String ppaw = Box.NO_PASSWORD.equals(password) ? null : password;
 		
 		if (sshk == null && ppaw == null) {
 			return FacadeResult.showMessage("ssh.auth.noway");
 		}
 		
-		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(username, host, port, sshk, ppaw);
+		if (sshk != null && knonwh == null) {
+			return FacadeResult.showMessage("ssh.auth.noknownhosts");
+		}
+		
+		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(username, host, port, sshk, knonwh, ppaw);
 		if (frSession.isExpected()) {
 			Session session = frSession.getResult();
 			try {
@@ -172,16 +176,7 @@ public class BackupCommand {
 				return FacadeResult.unexpectedResult("Ping failed!");
 			}
 		} else {
-			if (frSession.getException() != null) {
-				if (frSession.getException().getMessage().contains("Auth fail")) {
-					throw new ServerConnectionException("jsch.connect.authfailed", "認證失敗，請檢查sshKey的配置。");
-				} else if (frSession.getException().getMessage().contains("Connection timed out")) {
-					throw new ServerConnectionException("jsch.connect.failed", "認證失敗，請檢查sshKey的配置。");
-				} else {
-					return frSession;
-				}
-			}
-			throw new ServerConnectionException("jsch.connect.failed", "无法链接服务器，请查看日志确定故障原因。");
+			return frSession;
 		}
 	}
 
@@ -471,10 +466,18 @@ public class BackupCommand {
 			throw new ShowToUserException("mysql.unconfigurated", "");
 		}
 	}
+	
+	private void sureMysqlReadyForBackup() {
+		sureMysqlConfigurated();
+		Box box = appState.currentBoxOptional().get(); 
+		if (box.getMysqlInstance() == null) {
+			throw new ShowToUserException("mysql.unreadyforbackup", box.getHost());
+		}
+	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
-		sureMysqlConfigurated();
+		sureMysqlReadyForBackup();
 		return mysqlService.mysqlDump(getSession(), appState.currentBoxOptional().get());
 	}
 
@@ -506,7 +509,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
-		sureMysqlConfigurated();
+		sureMysqlReadyForBackup();
 		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBoxOptional().get());
 	}
 
@@ -584,7 +587,7 @@ public class BackupCommand {
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = "") String iknow)
 			throws JSchException, IOException {
-		sureMysqlConfigurated();
+		sureMysqlReadyForBackup();
 		Box box = appState.currentBoxOptional().get();
 		if (!DANGEROUS_ALERT.equals(iknow)) {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");

@@ -8,6 +8,7 @@ import org.quartz.TriggerKey;
 
 import com.go2wheel.mysqlbackup.job.BorgBackupSchedule;
 import com.go2wheel.mysqlbackup.job.MysqlBackupSchedule;
+import com.go2wheel.mysqlbackup.job.UpTimeSchedule;
 import com.go2wheel.mysqlbackup.value.Box;
 
 public class BoxUtil {
@@ -35,6 +36,14 @@ public class BoxUtil {
 	
 	public static TriggerKey getMysqlFlushLogTriggerKey(Box box) {
 		return triggerKey(box.getHost(), MysqlBackupSchedule.MYSQL_FLUSH_LOG_GROUP);
+	}
+
+	public static JobKey getUpTimeJobKey(Box box) {
+		return jobKey(box.getHost(), UpTimeSchedule.UPTIME_GROUP);
+	}
+
+	public static TriggerKey getUpTimeTriggerKey(Box box) {
+		return triggerKey(box.getHost(), UpTimeSchedule.UPTIME_GROUP);
 	}
 
 

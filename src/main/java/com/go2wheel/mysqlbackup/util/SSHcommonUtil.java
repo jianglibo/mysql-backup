@@ -6,26 +6,35 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
+import com.go2wheel.mysqlbackup.value.DiskFreeAllString;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.go2wheel.mysqlbackup.value.UptimeAllString;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 public class SSHcommonUtil {
+
+	private static Logger logger = LoggerFactory.getLogger(SSHcommonUtil.class);
 
 	/**
 	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3, origin file was keep.
@@ -120,28 +129,33 @@ public class SSHcommonUtil {
 		return false;
 	}
 
-	//@formatter:off
-	
+	// @formatter:off
+
 	public static String getRemoteFileMd5(Session session, String remoteFile) throws RunRemoteCommandException {
-		Optional<String[]> md5pair =  runRemoteCommand(session, String.format("md5sum %s", remoteFile))
-				.getAllTrimedNotEmptyLines().stream()
-				.map(l -> l.trim())
-				.map(l -> l.split("\\s+"))
-				.filter(pair -> pair.length == 2)
-				.filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
+		Optional<String[]> md5pair = runRemoteCommand(session, String.format("md5sum %s", remoteFile))
+				.getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+"))
+				.filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
 				.findAny();
 		return md5pair.get()[0];
 	}
-	
+
 	public static int countFiles(Session session, String rfile) throws RunRemoteCommandException {
 		RemoteCommandResult rcr = runRemoteCommand(session, String.format("find %s -type f | wc -l", rfile));
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
-	
-	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile) throws RunRemoteCommandException, IOException, ScpException {
+
+	// public static
+
+	public static int countAll(Session session, String rfile) throws RunRemoteCommandException {
+		RemoteCommandResult rcr = runRemoteCommand(session, String.format("find %s | wc -l", rfile));
+		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
+	}
+
+	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
+			throws RunRemoteCommandException, IOException, ScpException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
-				Files.createDirectories(localDir);
+			Files.createDirectories(localDir);
 		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		ScpUtil.from(session, rfile, localTmpFile.toString());
@@ -153,8 +167,8 @@ public class SSHcommonUtil {
 			throw new Md5ChecksumException();
 		}
 	}
-	
-	//@formatter:on
+
+	// @formatter:on
 
 	/**
 	 * returned backupfiles's backups list doesn't contain origin file.
@@ -180,8 +194,7 @@ public class SSHcommonUtil {
 						} else {
 							return line;
 						}
-					})
-					.collect(Collectors.toList());
+					}).collect(Collectors.toList());
 		} else {
 			fns = runRemoteCommand(session, String.format("ls -p %s | grep -v /$", remoteFile + "*"))
 					.getAllTrimedNotEmptyLines();
@@ -239,6 +252,29 @@ public class SSHcommonUtil {
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
 		}
+	}
+
+	public static UptimeAllString getUpTime(Session session) {
+		String command = "uptime -s;uptime -p;uptime";
+		try {
+			RemoteCommandResult rcr = runRemoteCommand(session, command);
+			return UptimeAllString.build(rcr.getAllTrimedNotEmptyLines());
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return null;
+		}
+	}
+
+	public static List<DiskFreeAllString> getDiskUsage(Session session) {
+		String command = "df -l -Bm";
+		try {
+			RemoteCommandResult rcr = runRemoteCommand(session, command);
+			return rcr.getAllTrimedNotEmptyLines().stream().map(DiskFreeAllString::build).filter(Objects::nonNull)
+					.collect(Collectors.toList());
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+		}
+		return new ArrayList<>();
 	}
 
 	public static RemoteCommandResult runRemoteCommand(Session session, String command)

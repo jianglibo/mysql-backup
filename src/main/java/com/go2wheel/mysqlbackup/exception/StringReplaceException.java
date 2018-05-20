@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.exception;
 
-import java.util.List;
-
 public class StringReplaceException extends Exception {
 	
 	/**

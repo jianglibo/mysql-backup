@@ -184,6 +184,7 @@ public class MysqlService {
 						return FacadeResult.unexpectedResult("mysql.enablelogbin.failed");
 					}
 					box.getMysqlInstance().setLogBinSetting(lbs);
+					box.getMysqlInstance().setReadyForBackup(true);
 					boxService.writeDescription(box); // 保存
 					return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 				}

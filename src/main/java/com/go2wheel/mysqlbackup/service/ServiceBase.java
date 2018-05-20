@@ -24,5 +24,9 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 	public List<P> findAll() {
 		return repo.findAll();
 	}
+	
+	public void delete(P pojo) {
+		repo.delete(pojo);
+	}
 
 }
