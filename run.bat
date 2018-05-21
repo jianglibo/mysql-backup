@@ -15,8 +15,8 @@ SET pidfile=%wdir%bin\app.pid
 ::spring.config.location
 ::SET springParams=%springParams% --spring.config.name=application.yml
 
-SET springParams=--spring.profiles.active=prod
-SET springParams=%springParams% --spring.config.location=file:./application.yml,classpath:/
+:: SET springParams=--spring.profiles.active=prod
+SET springParams=--spring.config.location=classpath:/application.yml,file:./application.yml
 
 
 SET springParams=%springParams% --myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa

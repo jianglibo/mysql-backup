@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -19,6 +20,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
@@ -35,7 +38,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Component
-public class ApplicationState {
+public class ApplicationState implements EnvironmentAware {
 
 	public static final String APPLICATION_STATE_PERSIST_FILE = "application-state.yml";
 	
@@ -56,6 +59,8 @@ public class ApplicationState {
 	private ApplicationEventPublisher applicationEventPublisher;
 	
 	private List<Box> servers = new ArrayList<>();
+	
+	private Environment environment;
 
 	private Locale local = Locale.CHINESE;
 	
@@ -142,7 +147,7 @@ public class ApplicationState {
 			ExceptionUtil.logErrorException(logger, e);
 		}
 		
-		ApplicationState.IS_PROD_MODE = expectitEcho;
+		ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
 		loadState();
 	}
 
@@ -271,6 +276,11 @@ public class ApplicationState {
 
 	public void setFacadeResult(FacadeResult<?> facadeResult) {
 		this.facadeResult = facadeResult;
+	}
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
 	}
 
 }

@@ -56,4 +56,4 @@ scheduler:
   borg.archive.cron: 0 40 12,18 * * ?
   borg.prune.cron: 0 30 23 * * ?
   mysql.flush.cron: 0 30 12,18 * * ?
-only.you: false
+only.you: yes
