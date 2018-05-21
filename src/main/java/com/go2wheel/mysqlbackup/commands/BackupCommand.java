@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.commands;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -232,9 +233,18 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
-	public List<String> SystemInfo() throws IOException {
-		return Arrays.asList(formatKeyVal("数据文件路径", appSettings.getDataRoot().toAbsolutePath().toString()),
+	public List<String> SystemInfo(
+			@ShellOption(help = "环境变量名", defaultValue="") String envname) throws IOException {
+		if (StringUtil.hasAnyNonBlankWord(envname)) {
+			return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
+		}
+		return Arrays.asList(formatKeyVal("server profile dirctory", appSettings.getDataRoot().toAbsolutePath().toString()),
 				formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
+				formatKeyVal("working directory", Paths.get("").toAbsolutePath().normalize().toString()),
+				formatKeyVal("download directory", appSettings.getDownloadRoot().normalize().toAbsolutePath().toString()),
+				formatKeyVal("log file", environment.getProperty("logging.file")),
+				formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
+				formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),
 				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
 	}
 

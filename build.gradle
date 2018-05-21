@@ -123,7 +123,7 @@ task wrapper(type: Wrapper) {
 }
 
 task copyFilesToArchive(type: Copy) {
-    from "${buildDir}/../explained.docx", "${buildDir}/../run.bat"
+    from "${buildDir}/../explained.docx", "${buildDir}/../run.bat", "${buildDir}/../src/main/resources/application.yml"
     
     from("${buildDir}/../") {
         include "notingit/**"

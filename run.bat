@@ -8,8 +8,16 @@ CD /D %wdir%
 SET wdirslash=%wdir:\=/%
 SET pidfile=%wdir%bin\app.pid
 
+
+::SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%db/db;shutdown=true
+
+::spring.config.name
+::spring.config.location
+::SET springParams=%springParams% --spring.config.name=application.yml
+
 SET springParams=--spring.profiles.active=prod
-SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%db/db;shutdown=true
+SET springParams=%springParams% --spring.config.location=file:./application.yml,classpath:/
+
 
 SET springParams=%springParams% --myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
 SET springParams=%springParams% --myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
@@ -46,7 +54,7 @@ GOTO :eof
 
 :run
 echo "run command java -jar %jarfile% %springParams%"
-java -jar %jarfile% %springParams%
+java -jar %jarfile% %springParams% --debug
  
 REM echo %mypath:~0,-1%
 REM set arg1= %1

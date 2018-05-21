@@ -13,7 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
-import com.go2wheel.mysqlbackup.util.PathUtil;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -34,31 +34,28 @@ public class MyAppSettings {
 	
 	@PostConstruct
 	public void post() throws IOException {
-		if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
-			this.dataDir = "boxes";
-		}
-		Path tmp = Paths.get(this.dataDir);
-		if (!tmp.isAbsolute()) {
-			tmp = PathUtil.getJarLocation().get().resolve(this.dataDir);
-		}
-		if (!Files.exists(tmp)) {
-			Files.createDirectories(tmp);
-		}
-		this.dataRoot = tmp;
-		
-		logger.info("dataRoot: {}", this.dataRoot);
-		
-		tmp = Paths.get(this.downloadFolder);
-		if (!tmp.isAbsolute()) {
-			tmp = PathUtil.getJarLocation().get().resolve(this.downloadFolder);
-		}
-		if (!Files.exists(tmp)) {
-			Files.createDirectories(tmp);
-		}
-		this.downloadRoot = tmp;
-		
-		logger.info("downloadRoot: {}", this.downloadRoot);
+		try {
+			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
+				this.dataDir = "boxes";
+			}
+			Path tmp = Paths.get(this.dataDir);
+			
+			if (!Files.exists(tmp)) {
+				Files.createDirectories(tmp);
+			}
+			this.dataRoot = tmp;
+			
+			logger.error("downloadFolder cofiguration value is: {}", this.downloadFolder);
+			
+			tmp = Paths.get(this.downloadFolder);
 
+			if (!Files.exists(tmp)) {
+				Files.createDirectories(tmp);
+			}
+			this.downloadRoot = tmp;
+		} catch (Exception e) {
+			ExceptionUtil.logErrorException(logger, e);
+		}
 	}
 	
 	private Path getHostDir(Box box) {
