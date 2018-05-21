@@ -37,8 +37,10 @@ bootJar {
 	classifier = 'boot'
 }
 
+// gradle flywayMigrate
+// gradle flywayRepair
 flyway {
-    url = 'jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true'
+    url = 'jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true'
     user = project.ext['flyway.user']
     password = project.ext['flyway.password']
     baselineVersion = '1_1'

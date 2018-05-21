@@ -6,17 +6,10 @@ import org.jooq.util.GenerationTool;
 import org.jooq.util.jaxb.Configuration;
 import org.jooq.util.jaxb.Jdbc;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
 public class TestJooqCodegen {
-	
-	@Value("${spring.datasource.url}")
-	private String jdbcUrl;
+
+	private String jdbcUrl = "jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true";
 	
 	public static final String JOOQ_CONFIG_FILE = "/jooq-config.xml";
 	
