@@ -35,7 +35,7 @@ public class DiskfreeJob implements Job {
 	private DiskfreeService diskfreeService;
 	
 	@Autowired
-	private ServerService serviceService;
+	private ServerService serverService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -47,7 +47,7 @@ public class DiskfreeJob implements Job {
 		Box box = applicationState.getServerByHost(host);
 		List<DiskFreeAllString> dfss = SSHcommonUtil.getDiskUsage(sshSessionFactory.getConnectedSession(box).getResult());
 		List<Diskfree> dfs = dfss.stream().map(dd -> dd.toDiskfree()).collect(Collectors.toList());
-		Server sv = serviceService.findByHost(host);
+		Server sv = serverService.findByHost(host);
 		final Date d = new Date();
 		if (sv != null) {
 			dfs.stream().forEach(df -> {

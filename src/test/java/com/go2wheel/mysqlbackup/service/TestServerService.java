@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 
 @SpringBootTest("spring.shell.interactive.enabled=false")
 @RunWith(SpringRunner.class)
-public class TestServiceService extends ServiceTbase {
+public class TestServerService extends ServiceTbase {
 	
 	@Autowired
 	private ServerService service;

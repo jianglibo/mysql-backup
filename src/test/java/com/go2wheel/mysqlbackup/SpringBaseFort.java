@@ -1,10 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
-import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.junit.Before;
@@ -19,9 +16,12 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadService;
+import com.go2wheel.mysqlbackup.service.DiskfreeService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.UpTimeService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -55,6 +55,16 @@ public class SpringBaseFort {
 	@Autowired
 	private BackupFolderService backupFolderService;
 	
+	@Autowired
+	private DiskfreeService diskfreeService;
+	
+	@Autowired
+	private UpTimeService upTimeService;
+
+	@Autowired
+	private BorgDownloadService borgDownloadService;
+
+	
 	protected Box box;
 	
 	@Autowired
@@ -79,26 +89,23 @@ public class SpringBaseFort {
 		mysqlDumpService.deteteAll();
 		mysqlFlushService.deteteAll();
 		backupFolderService.deteteAll();
+		diskfreeService.deteteAll();
+		upTimeService.deteteAll();
+		borgDownloadService.deteteAll();
 		serverService.deteteAll();
+		
 		Server sv = new Server(box.getHost());
 		serverService.save(sv);
 	}
 	
 
 	protected void deleteAllJobs() throws SchedulerException {
-		for (JobKey jk : allJobs()) {
+		for (JobKey jk : UtilForTe.allJobs(scheduler)) {
 			scheduler.deleteJob(jk);
 		}
 		;
 	}
 
-	protected List<JobKey> allJobs() throws SchedulerException {
-		List<JobKey> jks = new ArrayList<>();
-		for (String groupName : scheduler.getJobGroupNames()) {
-			jks.addAll(scheduler.getJobKeys(groupEquals(groupName)));
-		}
-		return jks;
-	}
 	
 	private Box createBox() {
 		box = new Box();
@@ -110,6 +117,8 @@ public class SpringBaseFort {
 		
 		box.getBorgBackup().setArchiveCron(dvs.getCron().getBorgArchive());
 		box.getBorgBackup().setPruneCron(dvs.getCron().getBorgPrune());
+		
+		box.getBorgBackup().getIncludes().add("/etc");
 		box.getMysqlInstance().setFlushLogCron(dvs.getCron().getMysqlFlush());
 		
 		

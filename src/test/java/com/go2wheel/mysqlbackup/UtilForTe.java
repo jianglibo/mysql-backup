@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -10,8 +11,14 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.quartz.JobKey;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -31,6 +38,22 @@ public class UtilForTe {
 
 	public static void printme(Object o) {
 		System.out.println(o);
+	}
+	
+	public static void deleteAllJobs(Scheduler scheduler) throws SchedulerException {
+		for (JobKey jk : allJobs(scheduler)) {
+			scheduler.deleteJob(jk);
+		}
+		;
+	}
+	
+	
+	public static List<JobKey> allJobs(Scheduler scheduler) throws SchedulerException {
+		List<JobKey> jks = new ArrayList<>();
+		for (String groupName : scheduler.getJobGroupNames()) {
+			jks.addAll(scheduler.getJobKeys(groupEquals(groupName)));
+		}
+		return jks;
 	}
 	
 	public static MyAppSettings getMyAppSettings() throws IOException {

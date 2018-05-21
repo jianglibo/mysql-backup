@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.job;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 
@@ -12,15 +12,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
+import com.go2wheel.mysqlbackup.service.DiskfreeService;
 
-public class TestMysqlFlushLogJob extends SpringBaseFort {
+public class TestDiskFreeJob extends SpringBaseFort {
 	
 	@Autowired
-	private MysqlFlushLogJob mysqlFlushLogJob;
+	private DiskfreeJob diskfreeJob;
 	
 	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	private DiskfreeService diskfreeService;
 	
 	@MockBean
 	private JobExecutionContext context;
@@ -30,10 +30,10 @@ public class TestMysqlFlushLogJob extends SpringBaseFort {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put("host", HOST_DEFAULT);
 		given(context.getMergedJobDataMap()).willReturn(jdm);
-		mysqlFlushLogJob.execute(context);
+		diskfreeJob.execute(context);
 		
-		mysqlFlushService.count();
-		assertThat(mysqlFlushService.count(), equalTo(1L));
+		diskfreeService.count();
+		assertThat(diskfreeService.count(), greaterThan(3L));
 		
 	}
 

@@ -9,8 +9,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.value.BorgDownloadRepoStatus;
 
 public class TestTimeUnit {
 	
@@ -27,7 +27,7 @@ public class TestTimeUnit {
 	
 	@Test
 	public void tObjectUtil() {
-		String s = ObjectUtil.dumpObjectAsMap(new BorgDownloadRepoStatus());
+		String s = ObjectUtil.dumpObjectAsMap(new BorgDownload());
 		
 		assertTrue(s.contains("totalFiles:"));
 		assertTrue(s.contains("downloadFiles:"));

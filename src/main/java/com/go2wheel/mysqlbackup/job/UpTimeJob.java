@@ -31,7 +31,7 @@ public class UpTimeJob implements Job {
 	private UpTimeService upTimeService;
 	
 	@Autowired
-	private ServerService serviceService;
+	private ServerService serverService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -43,7 +43,7 @@ public class UpTimeJob implements Job {
 		Box box = applicationState.getServerByHost(host);
 		UptimeAllString uta = SSHcommonUtil.getUpTime(sshSessionFactory.getConnectedSession(box).getResult());
 		UpTime ut = uta.toUpTime();
-		Server sv = serviceService.findByHost(host);
+		Server sv = serverService.findByHost(host);
 		if (sv != null) {
 			ut.setServerId(sv.getId());
 			upTimeService.save(ut);

@@ -24,6 +24,7 @@ import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
@@ -34,7 +35,6 @@ import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
-import com.go2wheel.mysqlbackup.value.BorgDownloadRepoStatus;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -49,6 +49,8 @@ import com.jcraft.jsch.Session;
 public class BorgService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	public static final String NO_INCLUDES = "borg.archive.noincludes";
 
 	// https://borgbackup.readthedocs.io/en/stable/quickstart.html
 	// sudo cp borg-linux64 /usr/local/bin/borg
@@ -180,7 +182,7 @@ public class BorgService {
 	
 	//@formatter:off
 	@MeasureTimeCost
-	public FacadeResult<?> downloadRepo(Session session, Box box) {
+	public FacadeResult<BorgDownload> downloadRepo(Session session, Box box) {
 		try {
 			String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", box.getBorgBackup().getRepo());
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, findCmd);
@@ -201,7 +203,7 @@ public class BorgService {
 				return fi;
 			}).collect(Collectors.toList());
 			
-			BorgDownloadRepoStatus bdrs = new BorgDownloadRepoStatus();
+			BorgDownload bdrs = new BorgDownload();
 			bdrs.setTotalFiles(fis.size());
 			long totalBytes = 0;
 			long downloadBytes = 0;
@@ -246,7 +248,7 @@ public class BorgService {
 	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
-	public FacadeResult<?> archive(Session session, Box box, String archiveNamePrefix, boolean solveProblems) {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Box box, String archiveNamePrefix, boolean solveProblems) {
 		if (solveProblems) {
 			install(session);
 			initRepo(session, box.getBorgBackup().getRepo());
@@ -270,13 +272,13 @@ public class BorgService {
 				return FacadeResult.showMessage("common.application.notinstalled", cmd);
 			}
 			if (rcr.getExitValue() == 0) {
-				return FacadeResult.doneExpectedResult(rcr.getAllTrimedNotEmptyLines(), CommonActionResult.DONE);
+				return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
 			} else {
 				List<String> lines = rcr.getAllTrimedNotEmptyLines();
 				String errOut = rcr.getErrOut();
 				if (errOut != null) {
 					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH"))) {
-						return FacadeResult.unexpectedResult("borg.archive.noincludes");
+						return FacadeResult.unexpectedResult(NO_INCLUDES);
 					} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
 						return FacadeResult.unexpectedResult("borg.repo.noinit");
 					} else {
@@ -426,7 +428,7 @@ public class BorgService {
 		return archive(session, box, box.getBorgBackup().getArchiveNamePrefix(), false);
 	}
 
-	public FacadeResult<?> archive(Session session, Box box, boolean solveProblems) {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Box box, boolean solveProblems) {
 		return archive(session, box, box.getBorgBackup().getArchiveNamePrefix(), solveProblems);
 	}
 }
