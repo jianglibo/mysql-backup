@@ -24,6 +24,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -41,8 +42,8 @@ public class UpTimeSchedule {
 	@Autowired
 	private ApplicationState applicationState;
 	
-	@Value("${scheduler.uptime.cron}")
-	private String uptimeCron;
+	@Autowired
+	private DefaultValues dvs;
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
@@ -63,7 +64,7 @@ public class UpTimeSchedule {
 					.build();
 			scheduler.addJob(job, false);
 
-			CronExpression ce = new CronExpression(uptimeCron);
+			CronExpression ce = new CronExpression(dvs.getCron().getUptime());
 			Trigger trigger = newTrigger().withIdentity(tk)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);

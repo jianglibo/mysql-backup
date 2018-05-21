@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
@@ -23,7 +24,6 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -34,6 +34,7 @@ import org.springframework.shell.standard.ShellOption;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
+import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
@@ -48,10 +49,15 @@ import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.MailAddress;
+import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.MailAddressService;
+import com.go2wheel.mysqlbackup.service.MysqlDumpService;
+import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
+import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
@@ -63,8 +69,10 @@ import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -76,14 +84,8 @@ public class BackupCommand {
 	
 	public static final String DANGEROUS_ALERT = "I know what i am doing.";
 	
-	@Value("${scheduler.mysql.flush.cron}")
-	private String mysqlFlushCronDefault;
-	
-	@Value("${scheduler.borg.archive.cron}")
-	private String borgArchiveCronDefault;
-	
-	@Value("${scheduler.borg.prune.cron}")
-	private String borgPruneCronDefault;
+	@Autowired
+	private DefaultValues dvs;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -121,6 +123,16 @@ public class BackupCommand {
 
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
+	
+	@Autowired
+	private ServerService serverService;
+	
+	@Autowired
+	private MysqlDumpService mysqlDumpService;
+	
+	@Autowired
+	private MysqlFlushService mysqlFlushService;
+
 
 	@Autowired
 	private LocaledMessageService localedMessageService;
@@ -319,8 +331,8 @@ public class BackupCommand {
 			FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		}
 		bbd = new BorgBackupDescription();
-		bbd.setArchiveCron(borgArchiveCronDefault);
-		bbd.setPruneCron(borgPruneCronDefault);
+		bbd.setArchiveCron(dvs.getCron().getBorgArchive());
+		bbd.setPruneCron(dvs.getCron().getBorgPrune());
 		box.setBorgBackup(bbd);
 		return borgService.saveBox(box);
 	}
@@ -500,7 +512,27 @@ public class BackupCommand {
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
 		sureMysqlReadyForBackup();
-		return mysqlService.mysqlDump(getSession(), appState.currentBoxOptional().get());
+		Box box = appState.currentBoxOptional().get();
+		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), box);
+		MysqlDump md = new MysqlDump();
+		md.setCreatedAt(new Date());
+		md.setTimeCost(fr.getEndTime() - fr.getStartTime());
+		if(fr.isExpected()) {
+			if (fr.getResult() != null) {
+				md.setFileSize(fr.getResult().getSize());
+				md.setResult(ResultEnum.SUCCESS);
+			} else if (MysqlService.ALREADY_DUMP.equals(fr.getMessage())) {
+				md.setResult(ResultEnum.SKIP);
+			} else {
+				md.setResult(ResultEnum.UNKNOWN);
+			}
+		} else {
+			md.setResult(ResultEnum.UNKNOWN);
+		}
+		Server sv = serverService.findByHost(box.getHost());
+		md.setServerId(sv.getId());
+		mysqlDumpService.save(md);
+		return fr;
 	}
 
 	@ShellMethod(value = "添加或更改Mysql的描述")
@@ -525,7 +557,7 @@ public class BackupCommand {
 		mi = new MysqlInstance();
 		mi.setUsername(username);
 		mi.setPassword(password);
-		mi.setFlushLogCron(mysqlFlushCronDefault);
+		mi.setFlushLogCron(dvs.getCron().getMysqlFlush());
 		box.setMysqlInstance(mi);
 		return mysqlService.updateMysqlDescription(box);
 	}
@@ -533,7 +565,10 @@ public class BackupCommand {
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
 		sureMysqlReadyForBackup();
-		return mysqlService.mysqlFlushLogs(getSession(), appState.currentBoxOptional().get());
+		Box box = appState.currentBoxOptional().get();
+		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(getSession(), box); 
+		mysqlFlushService.processFlushResult(box, fr);
+		return fr;
 	}
 
 	@ShellMethod(value = "添加常用的CRON表达式")
@@ -630,59 +665,6 @@ public class BackupCommand {
 			}
 		}
 	}
-
-	// @ShellMethod(value = "Quartz 触发器")
-	// public List<String> quartzListTriggers(
-	// @Pattern(regexp = "^.+\\..+$") @ShellOption(help = "任务标识，Group.name的形式，
-	// 不知道的话可以先执行quartz-list-jobs命令。", defaultValue = "a.b") String jobkey)
-	// throws SchedulerException {
-	// if (jobkey == null || jobkey.trim().isEmpty() || "a.b".equals(jobkey)) {
-	// return scheduler.getTriggerGroupNames().stream().flatMap(grn -> {
-	// try {
-	// return scheduler.getTriggerKeys(groupEquals(grn)).stream();
-	// } catch (SchedulerException e) {
-	// return Stream.empty();
-	// }
-	// }).map(jk -> {
-	// try {
-	// return scheduler.getTrigger(jk);
-	// } catch (SchedulerException e) {
-	// return null;
-	// }
-	// }).filter(Objects::nonNull).map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
-	// } else {
-	// String[] ss = jobkey.split("\\.", 2);
-	// return scheduler.getTriggersOfJob(jobKey(ss[1],
-	// ss[0])).stream().map(ToStringFormat::formatTriggerOutput)
-	// .collect(Collectors.toList());
-	// }
-	// }
-
-	// @ShellMethod(value = "Quartz 取消出发器")
-	// public void quartzUnscheduleJob(String triggerName, String triggerGroup)
-	// throws SchedulerException {
-	// scheduler.unscheduleJob(triggerKey(triggerName, triggerGroup));
-	// }
-
-	// @ShellMethod(value = "Quartz 设置出发器")
-	// public void quartzScheduleJob(String triggerName, String triggerGroup, String
-	// jobName, String jobGroup)
-	// throws SchedulerException {
-	// Trigger trigger = newTrigger().withIdentity(triggerName,
-	// triggerGroup).startNow()
-	// .forJob(jobKey(jobName, jobGroup)).build();
-	//
-	// // Schedule the trigger
-	// scheduler.scheduleJob(trigger);
-	// }
-
-	// @ShellMethod(value = "Quartz 设置出发器")
-	// public void quartzRescheduleJob(String triggerName, String triggerGroup)
-	// throws SchedulerException {
-	// Trigger trigger = newTrigger().withIdentity(triggerName,
-	// triggerGroup).startNow().build();
-	// scheduler.rescheduleJob(triggerKey(triggerName, triggerGroup), trigger);
-	// }
 
 	@ShellMethod(value = "重新设置出发器")
 	public void schedulerRescheduleJob(String triggerKey, String cronExpression)

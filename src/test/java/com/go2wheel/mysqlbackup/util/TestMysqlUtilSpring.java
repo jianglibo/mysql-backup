@@ -8,14 +8,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
-import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
@@ -24,28 +24,17 @@ import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
 import com.jcraft.jsch.JSchException;
 
-public class TestMysqlUtil extends SshBaseFort {
+public class TestMysqlUtilSpring extends SpringBaseFort {
 
+	@Autowired
 	private MysqlUtil mysqlUtil;
 
-	@Before
-	public void before() throws IOException {
-		super.before();
-		mysqlUtil = new MysqlUtil();
-		mysqlUtil.setAppSettings(appSettings);
-	}
 
 	@Test
 	public void testMysqlVariable()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		LogBinSetting lbs = mysqlUtil.getLogbinState(session, box);
 		assertThat(lbs.getMap().size(), equalTo(3));
-	}
-
-	@Test
-	public void testMysqlDump() throws JSchException, IOException {
-		// DumpResult dumpResult = mysqlUtil.mysqldump(session, box);
-		// assertNotNull(dumpResult);
 	}
 
 	@Test

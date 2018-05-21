@@ -152,13 +152,6 @@ public class ApplicationState implements EnvironmentAware {
 	}
 
 	public synchronized List<Box> getServers() {
-		if (servers.isEmpty()) {
-			try {
-				post();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		return servers;
 	}
 

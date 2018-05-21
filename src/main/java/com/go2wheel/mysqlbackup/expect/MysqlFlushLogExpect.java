@@ -48,7 +48,8 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	}
 	
 	private List<String> catIndex() throws IOException {
-		expect.sendLine("cat " + box.getMysqlInstance().getLogBinSetting().getLogBinIndex());
+		String bidx = box.getMysqlInstance().getLogBinSetting().getLogBinIndex();
+		expect.sendLine(String.format("cat %s", bidx));
 		String s = expectBashPromptAndReturnRaw(1);
 		if (s.indexOf("Last login:") != -1) {
 			s = expectBashPromptAndReturnRaw(1);

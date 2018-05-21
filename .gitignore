@@ -47,4 +47,4 @@ demobox.yml
 notingit/
 **/jooqschema/
 dbdata/
-application.dev.yml
+application-dev.yml

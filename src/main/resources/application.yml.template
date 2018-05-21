@@ -50,10 +50,11 @@ myapp:
     knownHosts: G:/cygwin64/home/Administrator/.ssh/known_hosts
 using.spring.schedulerFactory: true
 expectit.echo: false
-scheduler:
-  uptime.cron: 0 0/15 * * * ?
-  diskfree.cron: 0 0 0 1/1 * ?
-  borg.archive.cron: 0 40 12,18 * * ?
-  borg.prune.cron: 0 30 23 * * ?
-  mysql.flush.cron: 0 30 12,18 * * ?
+dv:
+  cron:
+    uptime: 0 0/15 * * * ?
+    diskfree: 0 0 0 1/1 * ?
+    borg_archive: 0 40 12,18 * * ?
+    borg_prune: 0 30 23 * * ?
+    mysql_flush: 0 30 12,18 * * ?
 only.you: false

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
+import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
@@ -43,6 +44,8 @@ import com.jcraft.jsch.Session;
 
 @Service
 public class MysqlService {
+	
+	public static final String ALREADY_DUMP = "mysql.dump.already";
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -75,13 +78,14 @@ public class MysqlService {
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
+	@MeasureTimeCost
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Box box, boolean force) {
 		try {
 			Path dumpDir = appSettings.getDumpDir(box);
 			Path logbinDir = appSettings.getLogBinDir(box);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
-				return FacadeResult.doneExpectedResultPreviousDone("mysql.dump.already");
+				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
 			}
 			if (force) {
 				FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
@@ -103,7 +107,8 @@ public class MysqlService {
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
-	public FacadeResult<?> mysqlFlushLogs(Session session, Box box) {
+	@MeasureTimeCost
+	public FacadeResult<String> mysqlFlushLogs(Session session, Box box) {
 		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, box);
 		List<String> r = mfle.start();
 		if (r.size() == 2) {
@@ -114,7 +119,7 @@ public class MysqlService {
 	}
 
 	// @formatter:off
-	public FacadeResult<?> downloadBinLog(Session session, Box box) {
+	public FacadeResult<String> downloadBinLog(Session session, Box box) {
 		try {
 			LogBinSetting lbs = box.getMysqlInstance().getLogBinSetting();
 			String remoteIndexFile = lbs.getLogBinIndex();
@@ -128,11 +133,13 @@ public class MysqlService {
 			if (Files.exists(localIndexFile)) {
 				PathUtil.archiveLocalFile(localIndexFile, 6);
 			}
+			
 			SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
 
 			List<String> localBinLogFiles = Files.list(localDir)
 					.map(p -> p.getFileName().toString())
 					.collect(Collectors.toList());
+			
 			// index file contains all logbin file names.
 			List<String> unLocalExists = Files.lines(localIndexFile)
 					.filter(l -> l.indexOf(basenameOnlyName) != -1)
@@ -146,8 +153,7 @@ public class MysqlService {
 						localDir.resolve(fn));
 
 			}
-			List<String> ls = Files.readAllLines(localIndexFile);
-			return FacadeResult.doneExpectedResult(ls, CommonActionResult.DONE);
+			return FacadeResult.doneExpectedResult(localIndexFile.toAbsolutePath().toString(), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | IOException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);

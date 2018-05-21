@@ -1,26 +1,16 @@
 package com.go2wheel.mysqlbackup;
 
-import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.Arrays;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@SpringBootTest({"spring.shell.interactive.enabled=false"})
-@RunWith(SpringRunner.class)
-public class TestMyappSettings {
-	
-	@Autowired
-	private MyAppSettings myAppSettings;
-	
-	@Autowired
-	private Environment env;
+public class TestMyappSettings  extends SpringBaseFort {
 	
 	@Test
 	public void t() {
@@ -36,6 +26,9 @@ public class TestMyappSettings {
 	@Test
 	public void tappstate() {
 		assertFalse(ApplicationState.IS_PROD_MODE);
+		String[] profiles = env.getActiveProfiles();
+		assertThat(profiles.length, equalTo(1));
+		assertTrue("should in dev profile.", Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "dev".equals(p)));
 	}
 
 }

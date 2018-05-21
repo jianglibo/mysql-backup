@@ -8,19 +8,7 @@ CD /D %wdir%
 SET wdirslash=%wdir:\=/%
 SET pidfile=%wdir%bin\app.pid
 
-
-::SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%db/db;shutdown=true
-
-::spring.config.name
-::spring.config.location
-::SET springParams=%springParams% --spring.config.name=application.yml
-
-:: SET springParams=--spring.profiles.active=prod
 SET springParams=--spring.config.location=classpath:/application.yml,file:./application.yml
-
-
-SET springParams=%springParams% --myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
-SET springParams=%springParams% --myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
 
 if [%1]==[] GOTO tryToFindJar
 IF %1==stop GOTO stop
@@ -82,3 +70,16 @@ REM FOR /f "tokens=4 delims=(=" %%G IN ('%_ping_cmd% ^|find "Ping"') DO echo Res
 ::echo %_listening%
 
 ::GOTO :eof
+
+::SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%db/db;shutdown=true
+
+::spring.config.name
+::spring.config.location
+::SET springParams=%springParams% --spring.config.name=application.yml
+
+:: SET springParams=--spring.profiles.active=prod
+
+
+
+::SET springParams=%springParams% --myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+::SET springParams=%springParams% --myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts

@@ -19,11 +19,11 @@ import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -41,8 +41,8 @@ public class DiskfreeSchedule {
 	@Autowired
 	private ApplicationState applicationState;
 	
-	@Value("${scheduler.diskfree.cron}")
-	private String diskfreeCron;
+	@Autowired
+	private DefaultValues dvs;
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
@@ -63,7 +63,7 @@ public class DiskfreeSchedule {
 					.build();
 			scheduler.addJob(job, false);
 
-			CronExpression ce = new CronExpression(diskfreeCron);
+			CronExpression ce = new CronExpression(dvs.getCron().getDiskfree());
 			Trigger trigger = newTrigger().withIdentity(tk)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);
