@@ -8,19 +8,20 @@ import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.SchedulerException;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.MysqlWrongPasswordException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.jcraft.jsch.JSchException;
 
-public class TestMysqlFlushLogExpect extends SshBaseFort {
+public class TestMysqlFlushLogExpect extends SpringBaseFort {
 	
 	private String oriPwd;
 	
 	@Before
-	public void before() throws IOException {
+	public void b() throws IOException, SchedulerException {
 		super.before();
 		oriPwd = box.getMysqlInstance().getPassword();
 	}

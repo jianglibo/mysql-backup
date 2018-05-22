@@ -18,6 +18,7 @@ import javax.crypto.Cipher;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.jcraft.jsch.HostKey;
@@ -31,7 +32,7 @@ import com.jcraft.jsch.Session;
  * @author admin
  *
  */
-public class TestKnownHosts extends SshBaseFort {
+public class TestKnownHosts extends SpringBaseFort {
 
 	// @Test(expected = TransportException.class)
 	// public void testNoKnownHostSetting() throws IOException {

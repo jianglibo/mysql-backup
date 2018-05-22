@@ -14,7 +14,6 @@ import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 public class TestTimeUnit {
 	
-	
 	@Test
 	public void t() {
 		long l = TimeUnit.MINUTES.toSeconds(1L);

@@ -1,25 +1,25 @@
 package com.go2wheel.mysqlbackup.util;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.SchedulerException;
 
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
-public class TestMysqlInstaller extends SshBaseFort {
+public class TestMysqlInstaller extends SpringBaseFort {
 	
 	private MysqlUtil mysqlUtil;
 	private MySqlInstaller mii = new MySqlInstaller();
 	
 	@Before
-	public void before() throws IOException {
+	public void b() throws IOException, SchedulerException {
 		super.before();
 		mysqlUtil = new MysqlUtil();
 		mysqlUtil.setAppSettings(appSettings);

@@ -10,11 +10,12 @@ import java.nio.file.Path;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
 
-public class TestScpFrom extends SshBaseFort {
+public class TestScpFrom extends SpringBaseFort {
 
 	@Test
 	public void tFromFileToFile() throws IOException, JSchException, ScpException {

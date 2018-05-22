@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.After;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -21,7 +22,7 @@ import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
-public class TestSSHcommonUtil extends SshBaseFort {
+public class TestSSHcommonUtil extends SpringBaseFort {
 	
 	private List<String> remoteFiles = new ArrayList<>();
 	

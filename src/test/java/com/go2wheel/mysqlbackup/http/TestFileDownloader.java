@@ -9,9 +9,9 @@ import java.nio.file.Path;
 import org.apache.http.client.ClientProtocolException;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 
-public class TestFileDownloader extends SshBaseFort {
+public class TestFileDownloader extends SpringBaseFort {
 	
 	@Test
 	public void t() throws ClientProtocolException, IOException {

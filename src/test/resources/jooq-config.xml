@@ -3,7 +3,7 @@
   <!-- Configure the database connection here -->
   <jdbc>
     <driver>org.hsqldb.jdbc.JDBCDriver</driver>
-    <url>jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true</url>
+    <url>jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true</url>
     <user>sa</user>
     <password></password>
     

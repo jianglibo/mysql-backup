@@ -9,13 +9,13 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 
-public class TestMysqlDumpExpect extends SshBaseFort {
+public class TestMysqlDumpExpect extends SpringBaseFort {
 	
 	@Test
 	public void t() throws Exception {

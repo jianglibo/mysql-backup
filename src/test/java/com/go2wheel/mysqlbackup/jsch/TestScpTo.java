@@ -11,13 +11,14 @@ import java.util.stream.Collectors;
 import org.apache.logging.log4j.util.Strings;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
 
-public class TestScpTo extends SshBaseFort {
+public class TestScpTo extends SpringBaseFort {
 
 	@Test
 	public void scpToFileToFile() throws IOException, JSchException, ScpException, RunRemoteCommandException {

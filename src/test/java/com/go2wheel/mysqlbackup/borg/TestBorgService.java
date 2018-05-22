@@ -12,11 +12,12 @@ import java.util.ArrayList;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.BorgService.InstallationInfo;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.http.FileDownloader;
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -24,116 +25,103 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
-public class TestBorgTaskFacade extends SshBaseFort {
-	
-	private BorgService borgTaskFacade;
-	
+public class TestBorgService extends SpringBaseFort {
+
+	@Autowired
+	private BorgService borgService;
+
 	@Before
-	public void b() throws IOException, RunRemoteCommandException {
-		super.before();
-		borgTaskFacade = new BorgService();
-		borgTaskFacade.setAppSettings(appSettings);
-		FileDownloader fd = new FileDownloader();
-		fd.setAppSettings(appSettings);
-		fd.post();
-		borgTaskFacade.setFileDownloader(fd);
-		InstallationInfo ii = borgTaskFacade.unInstall(session).getResult();
-		assertFalse("borg should not installed now.", ii.isInstalled());
+	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
+		InstallationInfo ii = borgService.unInstall(session).getResult();
 	}
-	
+
 	@After
 	public void a() throws IOException, JSchException, RunRemoteCommandException {
 		super.after();
 	}
-	
-	
+
 	@Test
 	public void tRepoInit() throws RunRemoteCommandException {
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
-			borgTaskFacade.install(session);
-			FacadeResult<?> fr = borgTaskFacade.initRepo(session, "");
-			assertFalse(fr.isExpected());
-			assertThat(fr.getMessage(), equalTo("borg.repo.wrongpath"));
-			fr = borgTaskFacade.initRepo(session, null);
-			assertFalse(fr.isExpected());
-			assertThat(fr.getMessage(), equalTo("common.file.exists"));
-			
-			fr = borgTaskFacade.initRepo(session, "/abc");
-			assertTrue(fr.isExpected());
-			
-			fr = borgTaskFacade.initRepo(session, "/abc");
-			assertFalse(fr.isExpected());
-			assertThat(fr.getMessage(), equalTo("common.file.exists"));
+		borgService.install(session);
+		FacadeResult<?> fr = borgService.initRepo(session, "");
+		assertFalse(fr.isExpected());
+		assertThat(fr.getMessage(), equalTo("borg.repo.wrongpath"));
+		fr = borgService.initRepo(session, null);
+		assertFalse(fr.isExpected());
+		assertThat(fr.getMessage(), equalTo("common.file.exists"));
 
-			
-			SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
-			
+		fr = borgService.initRepo(session, "/abc");
+		assertTrue(fr.isExpected());
+
+		fr = borgService.initRepo(session, "/abc");
+		assertFalse(fr.isExpected());
+		assertThat(fr.getMessage(), equalTo("common.file.exists"));
+
+		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
+
 	}
-	
+
 	@Test
 	public void testArchive() {
-		borgTaskFacade.unInstall(session);
-		FacadeResult<?> fr = borgTaskFacade.archive(session, box);
+		borgService.unInstall(session);
+		FacadeResult<?> fr = borgService.archive(session, box);
 		assertFalse(fr.isExpected());
 		assertThat(fr.getMessage(), equalTo("common.application.notinstalled"));
-		
-		fr = borgTaskFacade.install(session);
+
+		fr = borgService.install(session);
 		assertTrue(fr.isExpected());
-		
-		fr = borgTaskFacade.archive(session, box);
+
+		fr = borgService.archive(session, box);
 		assertTrue(fr.isExpected());
-		
+
 	}
 
-
-	
-	
 	@Test
 	public void tArchive() throws RunRemoteCommandException, InterruptedException {
-		borgTaskFacade.install(session);
+		borgService.install(session);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", box.getBorgBackup().getRepo()));
-		RemoteCommandResult rcr1 = borgTaskFacade.initRepo(session, box.getBorgBackup().getRepo()).getResult();
+		RemoteCommandResult rcr1 = borgService.initRepo(session, box.getBorgBackup().getRepo()).getResult();
 		assertThat(rcr1.getExitValue(), equalTo(0));
-		FacadeResult<?> fr = borgTaskFacade.archive(session, box);
+		FacadeResult<?> fr = borgService.archive(session, box);
 		assertTrue(fr.isExpected());
 
-		borgTaskFacade.downloadRepo(session, box);
-		
-		for(int i = 0; i< 2; i++) {
+		borgService.downloadRepo(session, box);
+
+		for (int i = 0; i < 2; i++) {
 			archive();
 		}
-		
-		BorgListResult blr = borgTaskFacade.listArchives(session, box).getResult();
+
+		BorgListResult blr = borgService.listArchives(session, box).getResult();
 		assertThat(blr.getArchives().size(), equalTo(3));
-		
-		BorgPruneResult bpr = borgTaskFacade.pruneRepo(session, box).getResult();
+
+		BorgPruneResult bpr = borgService.pruneRepo(session, box).getResult();
 		assertTrue(bpr.isSuccess());
 		assertThat(bpr.prunedArchiveNumbers(), equalTo(2L));
 		assertThat(bpr.keepedArchiveNumbers(), equalTo(1L));
-		
-		blr = borgTaskFacade.listArchives(session, box).getResult();
+
+		blr = borgService.listArchives(session, box).getResult();
 		assertThat(blr.getArchives().size(), equalTo(1));
-		
-		
+
 		int c = SSHcommonUtil.countFiles(session, box.getBorgBackup().getRepo());
 		assertThat(c, greaterThan(3));
 	}
-	
+
 	@Test
 	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException {
-		borgTaskFacade.install(session);
+		borgService.install(session);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", box.getBorgBackup().getRepo()));
-		RemoteCommandResult rcr1 = borgTaskFacade.initRepo(session, box.getBorgBackup().getRepo()).getResult();
+		RemoteCommandResult rcr1 = borgService.initRepo(session, box.getBorgBackup().getRepo()).getResult();
 		assertThat(rcr1.getExitValue(), equalTo(0));
 		box.getBorgBackup().setIncludes(new ArrayList<>());
 		box.getBorgBackup().setExcludes(new ArrayList<>());
-		FacadeResult<?> fr = borgTaskFacade.archive(session, box);
+		FacadeResult<?> fr = borgService.archive(session, box);
 		assertFalse("result should fail.", fr.isExpected());
 		assertThat(fr.getMessage(), equalTo("borg.archive.noincludes"));
 	}
-	
+
 	private void archive() throws RunRemoteCommandException, InterruptedException {
-		borgTaskFacade.archive(session, box);
+		borgService.archive(session, box);
 		Thread.sleep(1000);
 	}
 

@@ -7,13 +7,14 @@ import java.io.PrintStream;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSchException;
 
-public class TestJschShellChannel extends SshBaseFort {
+public class TestJschShellChannel extends SpringBaseFort {
 
 	@Test
 	public void t() throws JSchException, IOException {

@@ -51,6 +51,13 @@ public class BorgService {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	public static final String NO_INCLUDES = "borg.archive.noincludes";
+	
+	public static final String UNKNOWN = "borg.archive.unknown";
+	
+	public static final String REPO_NON_INIT = "borg.repo.noinit";
+	
+	public static final String MALFORM_PATH = "borg.repo.wrongpath";
+	
 
 	// https://borgbackup.readthedocs.io/en/stable/quickstart.html
 	// sudo cp borg-linux64 /usr/local/bin/borg
@@ -147,7 +154,7 @@ public class BorgService {
 				
 				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
 				if (iserrorPath) {
-					return FacadeResult.showMessage("borg.repo.wrongpath", repoPath);
+					return FacadeResult.showMessage(MALFORM_PATH, repoPath);
 				}
 				
 				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("A repository already exists at "));
@@ -280,13 +287,13 @@ public class BorgService {
 					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH"))) {
 						return FacadeResult.unexpectedResult(NO_INCLUDES);
 					} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
-						return FacadeResult.unexpectedResult("borg.repo.noinit");
+						return FacadeResult.unexpectedResult(REPO_NON_INIT);
 					} else {
 						logger.error(rcr.getErrOut());
-						return FacadeResult.unexpectedResult("borg.archive.unknown");
+						return FacadeResult.unexpectedResult(UNKNOWN);
 					}
 				} else {
-					return FacadeResult.unexpectedResult("borg.archive.unknown");
+					return FacadeResult.unexpectedResult(UNKNOWN);
 				}
 			}
 		} catch (RunRemoteCommandException e) {

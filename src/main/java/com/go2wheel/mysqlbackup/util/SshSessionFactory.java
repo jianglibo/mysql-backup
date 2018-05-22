@@ -19,6 +19,8 @@ import com.jcraft.jsch.Session;
 
 @Component
 public class SshSessionFactory {
+	
+	public static final String AUTH_WRONGKNOWNHOSTS = "ssh.auth.wrongknownhosts";
 
 	private MyAppSettings appSettings;
 
@@ -38,7 +40,7 @@ public class SshSessionFactory {
 			}
 			
 			if (!Files.exists(Paths.get(knownHosts))) {
-				return FacadeResult.showMessage("ssh.auth.wrongknownhosts", knownHosts);
+				return FacadeResult.showMessage(AUTH_WRONGKNOWNHOSTS, knownHosts);
 			}
 			jsch.setKnownHosts(knownHosts);
 		

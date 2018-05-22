@@ -1,39 +1,27 @@
 package com.go2wheel.mysqlbackup.expect;
 
 import static net.sf.expectit.matcher.Matchers.contains;
-import static net.sf.expectit.matcher.Matchers.regexp;
+import static net.sf.expectit.matcher.Matchers.times;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static net.sf.expectit.matcher.Matchers.anyString;
-import static net.sf.expectit.matcher.Matchers.exact;
-import static net.sf.expectit.matcher.Matchers.eof;
-import static net.sf.expectit.matcher.Matchers.times;
 
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.jsch.SshBaseFort;
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
-import net.sf.expectit.Result;
-import net.sf.expectit.filter.Filter;
-import net.sf.expectit.filter.FilterAdapter;
 
-public class TestGetMysqlCnf extends SshBaseFort {
+public class TestGetMysqlCnf extends SpringBaseFort {
 	
 	/**
 	 * .*foo  // greedy quantifier
