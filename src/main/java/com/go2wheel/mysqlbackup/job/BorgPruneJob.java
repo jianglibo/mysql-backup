@@ -13,6 +13,7 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.jcraft.jsch.Session;
 
 @Component
 public class BorgPruneJob implements Job {
@@ -30,10 +31,18 @@ public class BorgPruneJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		JobDataMap data = context.getMergedJobDataMap();
-		String host = data.getString("host");
-		Box box = applicationState.getServerByHost(host);
-		borgTaskFacade.pruneRepo(sshSessionFactory.getConnectedSession(box).getResult(), box);
+		Session session = null;
+		try {
+			JobDataMap data = context.getMergedJobDataMap();
+			String host = data.getString("host");
+			Box box = applicationState.getServerByHost(host);
+			session = sshSessionFactory.getConnectedSession(box).getResult();
+			borgTaskFacade.pruneRepo(session, box);
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
+		}
 
 	}
 

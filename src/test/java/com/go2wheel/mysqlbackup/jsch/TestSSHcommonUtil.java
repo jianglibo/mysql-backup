@@ -43,7 +43,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		String content = ScpUtil.from(session, rfn).toString();
 		assertThat(content, equalTo("abc"));
 	}
-	
+
 	@Test
 	public void tBackupByMove() throws IOException, ScpException, JSchException, RunRemoteCommandException {
 		createADirOnServer(3);
@@ -101,6 +101,12 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	public void isExecutable() throws RunRemoteCommandException {
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "kkzx");
 		assertThat(rcr.getExitValue(), greaterThan(0));
+	}
+	
+	@Test
+	public void testCoreNumber() {
+		int cores = SSHcommonUtil.coreNumber(session);
+		assertThat(cores, greaterThan(0));
 	}
 
 }

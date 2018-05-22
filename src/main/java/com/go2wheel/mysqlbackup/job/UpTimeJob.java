@@ -18,6 +18,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.UptimeAllString;
+import com.jcraft.jsch.Session;
 
 @Component
 public class UpTimeJob implements Job {
@@ -41,12 +42,25 @@ public class UpTimeJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString("host");
 		Box box = applicationState.getServerByHost(host);
-		UptimeAllString uta = SSHcommonUtil.getUpTime(sshSessionFactory.getConnectedSession(box).getResult());
-		UpTime ut = uta.toUpTime();
-		Server sv = serverService.findByHost(host);
-		if (sv != null) {
-			ut.setServerId(sv.getId());
-			upTimeService.save(ut);
+		Session session = null;
+		try {
+			session = sshSessionFactory.getConnectedSession(box).getResult();
+			UptimeAllString uta = SSHcommonUtil.getUpTime(session);
+			UpTime ut = uta.toUpTime();
+			Server sv = serverService.findByHost(host);
+			if (sv.getCoreNumber() == 0) {
+				int cn = SSHcommonUtil.coreNumber(session);
+				sv.setCoreNumber(cn);
+				serverService.save(sv);
+			}
+			if (sv != null) {
+				ut.setServerId(sv.getId());
+				upTimeService.save(ut);
+			}
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
 		}
 	}
 

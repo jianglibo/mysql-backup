@@ -36,11 +36,11 @@ public class SshSessionFactory {
 			session=jsch.getSession(userName, host, port);
 			String knownHosts = appSettings.getSsh().getKnownHosts();
 			if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
-				return FacadeResult.showMessage("ssh.auth.noknownhosts");
+				return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
 			}
 			
 			if (!Files.exists(Paths.get(knownHosts))) {
-				return FacadeResult.showMessage(AUTH_WRONGKNOWNHOSTS, knownHosts);
+				return FacadeResult.showMessageUnExpected(AUTH_WRONGKNOWNHOSTS, knownHosts);
 			}
 			jsch.setKnownHosts(knownHosts);
 		
@@ -54,7 +54,7 @@ public class SshSessionFactory {
 				jsch.addIdentity(appSettings.getSsh().getSshIdrsa());
 				session.connect();
 			} else {
-				FacadeResult.showMessage("ssh.auth.noway");
+				FacadeResult.showMessageUnExpected("ssh.auth.noway");
 			}
 		} catch (JSchException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -88,7 +88,7 @@ public class SshSessionFactory {
 				session.setPassword(password);
 				session.connect();
 			} else {
-				return FacadeResult.showMessage("ssh.auth.noway");
+				return FacadeResult.showMessageUnExpected("ssh.auth.noway");
 			}
 		} catch (JSchException e) {
 			ExceptionUtil.logErrorException(logger, e);

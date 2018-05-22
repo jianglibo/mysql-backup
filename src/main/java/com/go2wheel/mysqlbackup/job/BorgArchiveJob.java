@@ -35,51 +35,59 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private BorgService borgTaskFacade;
-	
+
 	@Autowired
 	private BorgDownloadService borgDownloadService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
+
 	@Autowired
 	private ServerService serverService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		JobDataMap data = context.getMergedJobDataMap();
-		String host = data.getString("host");
-		Box box = applicationState.getServerByHost(host);
-		Session session = sshSessionFactory.getConnectedSession(box).getResult();
-		
-		FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, box, false);
-		
-		long ts = fr.getEndTime() - fr.getStartTime();
-		BorgDownload bd = null;
-		if (!fr.isExpected()) {
-			ExceptionUtil.logRemoteCommandResult(logger, fr.getResult());
-		} else {
-			FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, box);
-			ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
-			if (!frBorgDownload.isExpected()) {
-				if (frBorgDownload.getResult() != null) {
-					bd = frBorgDownload.getResult();
+
+		Session session = null;
+		try {
+			JobDataMap data = context.getMergedJobDataMap();
+			String host = data.getString("host");
+			Box box = applicationState.getServerByHost(host);
+			session = sshSessionFactory.getConnectedSession(box).getResult();
+
+			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, box, false);
+
+			long ts = fr.getEndTime() - fr.getStartTime();
+			BorgDownload bd = null;
+			if (!fr.isExpected()) {
+				ExceptionUtil.logRemoteCommandResult(logger, fr.getResult());
+			} else {
+				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, box);
+				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
+				if (!frBorgDownload.isExpected()) {
+					if (frBorgDownload.getResult() != null) {
+						bd = frBorgDownload.getResult();
+					}
 				}
 			}
+
+			if (bd == null) {
+				bd = new BorgDownload();
+				bd.setResult(ResultEnum.FAIL);
+			} else {
+				bd.setResult(ResultEnum.SUCCESS);
+			}
+
+			Server sv = serverService.findByHost(host);
+			bd.setServerId(sv.getId());
+			bd.setCreatedAt(new Date());
+			bd.setTimeCost(ts);
+			borgDownloadService.save(bd);
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
 		}
-		
-		if (bd == null) {
-			bd = new BorgDownload();
-			bd.setResult(ResultEnum.FAIL);
-		} else {
-			bd.setResult(ResultEnum.SUCCESS);
-		}
-		
-		Server sv = serverService.findByHost(host);
-		bd.setServerId(sv.getId());
-		bd.setCreatedAt(new Date());
-		bd.setTimeCost(ts);
-		borgDownloadService.save(bd);
 	}
 
 }

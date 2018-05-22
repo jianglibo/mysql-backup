@@ -7,7 +7,6 @@ public class Diskfree extends BaseModel {
 	private Integer serverId;
 	private Date createdAt;
 	
-	
 	private String fileSystem;
 	private Integer blocks;
 	private Integer used;

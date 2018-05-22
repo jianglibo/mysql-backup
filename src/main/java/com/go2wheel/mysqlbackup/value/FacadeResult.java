@@ -42,9 +42,17 @@ public class FacadeResult<T> implements TimeCost {
 		PREVIOUSLY_DONE, DONE
 	}
 	
-	public static <T> FacadeResult<T> showMessage(String message, Object...placeholders) {
+	public static <T> FacadeResult<T> showMessageUnExpected(String message, Object...placeholders) {
 		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = false;
+		r.setMessage(message);
+		r.messagePlaceHolders =  placeholders;
+		return r;
+	}
+	
+	public static <T> FacadeResult<T> showMessageExpected(String message, Object...placeholders) {
+		FacadeResult<T> r = new FacadeResult<>();
+		r.expected = true;
 		r.setMessage(message);
 		r.messagePlaceHolders =  placeholders;
 		return r;
@@ -77,7 +85,7 @@ public class FacadeResult<T> implements TimeCost {
 		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = true;
 		r.setCommonActionResult(CommonActionResult.DONE);
-		r.setMessage("common.mission.accomplished");
+		r.setMessage(CommonMessageKeys.MISSION_ACCOMPLISHED);
 		return r;
 	}
 
@@ -95,7 +103,7 @@ public class FacadeResult<T> implements TimeCost {
 		r.setCommonActionResult(commonActionResult);
 		switch (commonActionResult) {
 		case DONE:
-			r.setMessage("common.mission.accomplished");
+			r.setMessage(CommonMessageKeys.MISSION_ACCOMPLISHED);
 			break;
 		case PREVIOUSLY_DONE:
 			r.setMessage("common.mission.previousdone");

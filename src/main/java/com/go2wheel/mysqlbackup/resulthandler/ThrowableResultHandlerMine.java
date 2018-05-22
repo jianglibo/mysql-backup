@@ -47,7 +47,8 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 		if ( ShowToUserException.class.isAssignableFrom(result.getClass())) {
 			String s;
 			try {
-				s = messageService.getMessage(((ShowToUserException) result).getMessageKey());
+				ShowToUserException stue = (ShowToUserException) result;
+				s = messageService.getMessage(stue.getMessageKey(), stue.getMessagePlaceHolders());
 			} catch (NoSuchMessageException e) {
 				s = result.getMessage();
 			}

@@ -7,6 +7,8 @@ public class Server extends BaseModel {
 	@NotNull
 	private String host;
 	
+	private int coreNumber;
+	
 	@Override
 	public String toString() {
 		return String.format("[%s, %s]", getId(), host);
@@ -24,6 +26,14 @@ public class Server extends BaseModel {
 
 	public void setHost(String host) {
 		this.host = host;
+	}
+
+	public int getCoreNumber() {
+		return coreNumber;
+	}
+
+	public void setCoreNumber(int coreNumber) {
+		this.coreNumber = coreNumber;
 	}
 	
 }

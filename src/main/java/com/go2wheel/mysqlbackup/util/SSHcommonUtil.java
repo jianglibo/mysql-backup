@@ -264,6 +264,23 @@ public class SSHcommonUtil {
 			return null;
 		}
 	}
+	
+	
+	public static int coreNumber(Session session) {
+		String command = "grep 'model name' /proc/cpuinfo | wc -l";
+		try {
+			RemoteCommandResult rcr = runRemoteCommand(session, command);
+			if (rcr.getExitValue() == 0) {
+				return Integer.valueOf(rcr.getStdOut().trim());
+			} else {
+				ExceptionUtil.logRemoteCommandResult(logger, rcr);
+				return -1;
+			}
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return -1;
+		}
+	}
 
 	public static List<DiskFreeAllString> getDiskUsage(Session session) {
 		String command = "df -l -Bm";

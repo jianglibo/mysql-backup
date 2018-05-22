@@ -22,6 +22,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DiskFreeAllString;
+import com.jcraft.jsch.Session;
 
 @Component
 public class DiskfreeJob implements Job {
@@ -33,7 +34,7 @@ public class DiskfreeJob implements Job {
 
 	@Autowired
 	private DiskfreeService diskfreeService;
-	
+
 	@Autowired
 	private ServerService serverService;
 
@@ -42,19 +43,27 @@ public class DiskfreeJob implements Job {
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		JobDataMap data = context.getMergedJobDataMap();
-		String host = data.getString("host");
-		Box box = applicationState.getServerByHost(host);
-		List<DiskFreeAllString> dfss = SSHcommonUtil.getDiskUsage(sshSessionFactory.getConnectedSession(box).getResult());
-		List<Diskfree> dfs = dfss.stream().map(dd -> dd.toDiskfree()).collect(Collectors.toList());
-		Server sv = serverService.findByHost(host);
-		final Date d = new Date();
-		if (sv != null) {
-			dfs.stream().forEach(df -> {
-				df.setCreatedAt(d);
-				df.setServerId(sv.getId());
-				diskfreeService.save(df);
-			});
+		Session session = null;
+		try {
+			JobDataMap data = context.getMergedJobDataMap();
+			String host = data.getString("host");
+			Box box = applicationState.getServerByHost(host);
+			session = sshSessionFactory.getConnectedSession(box).getResult();
+			List<DiskFreeAllString> dfss = SSHcommonUtil.getDiskUsage(session);
+			List<Diskfree> dfs = dfss.stream().map(dd -> dd.toDiskfree()).collect(Collectors.toList());
+			Server sv = serverService.findByHost(host);
+			final Date d = new Date();
+			if (sv != null) {
+				dfs.stream().forEach(df -> {
+					df.setCreatedAt(d);
+					df.setServerId(sv.getId());
+					diskfreeService.save(df);
+				});
+			}
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
 		}
 	}
 

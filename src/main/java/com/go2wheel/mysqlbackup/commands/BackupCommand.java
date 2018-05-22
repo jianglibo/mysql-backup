@@ -181,11 +181,11 @@ public class BackupCommand {
 		String ppaw = Box.NO_PASSWORD.equals(password) ? null : password;
 		
 		if (sshk == null && ppaw == null) {
-			return FacadeResult.showMessage("ssh.auth.noway");
+			return FacadeResult.showMessageUnExpected("ssh.auth.noway");
 		}
 		
 		if (sshk != null && knonwh == null) {
-			return FacadeResult.showMessage("ssh.auth.noknownhosts");
+			return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
 		}
 		
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(username, host, port, sshk, knonwh, ppaw);
@@ -372,7 +372,7 @@ public class BackupCommand {
 				try {
 					boolean direxists = SSHcommonUtil.fileExists(getSession(), remoteDirectory);
 					if (!direxists) {
-						return FacadeResult.showMessage("rfile.nonexists", remoteDirectory);
+						return FacadeResult.showMessageUnExpected("rfile.nonexists", remoteDirectory);
 					}
 					directories.add(remoteDirectory);
 				} catch (RunRemoteCommandException e) {
@@ -504,7 +504,7 @@ public class BackupCommand {
 	private void sureMysqlReadyForBackup() {
 		sureMysqlConfigurated();
 		Box box = appState.currentBoxOptional().get(); 
-		if (box.getMysqlInstance() == null) {
+		if (box.getMysqlInstance() == null || box.getMysqlInstance().getLogBinSetting() == null) {
 			throw new ShowToUserException("mysql.unreadyforbackup", box.getHost());
 		}
 	}

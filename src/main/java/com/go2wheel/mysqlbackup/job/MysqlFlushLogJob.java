@@ -13,30 +13,40 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.jcraft.jsch.Session;
 
 @Component
 public class MysqlFlushLogJob implements Job {
-	
+
 	@Autowired
 	private ApplicationState applicationState;
-	
+
 	@Autowired
 	private MysqlService mysqlTaskFacade;
-	
+
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
+
 	@Autowired
 	private MysqlFlushService mysqlFlushService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		JobDataMap data = context.getMergedJobDataMap();
-		String host = data.getString("host");
-		Box box = applicationState.getServerByHost(host);
-		if (box == null) return;
-		FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(sshSessionFactory.getConnectedSession(box).getResult(), box);
-		mysqlFlushService.processFlushResult(box, fr);
+		Session session = null;
+		try {
+			JobDataMap data = context.getMergedJobDataMap();
+			String host = data.getString("host");
+			Box box = applicationState.getServerByHost(host);
+			if (box == null)
+				return;
+			session = sshSessionFactory.getConnectedSession(box).getResult();
+			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, box);
+			mysqlFlushService.processFlushResult(box, fr);
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
+		}
 	}
 
 }

@@ -11,13 +11,9 @@ public class BorgDownload extends BaseModel {
 	private Date createdAt;
 	private ResultEnum result;
 	private long timeCost;
-	
 	private int totalFiles;
-	
 	private int downloadFiles;
-	
 	private long totalBytes;
-	
 	private long downloadBytes;
 	
 	@Override

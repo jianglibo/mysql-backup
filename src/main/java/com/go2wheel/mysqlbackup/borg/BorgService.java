@@ -38,6 +38,7 @@ import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
@@ -154,18 +155,18 @@ public class BorgService {
 				
 				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
 				if (iserrorPath) {
-					return FacadeResult.showMessage(MALFORM_PATH, repoPath);
+					return FacadeResult.showMessageUnExpected(MALFORM_PATH, repoPath);
 				}
 				
 				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("A repository already exists at "));
 				
 				if (alreadyExists) {
-					return FacadeResult.showMessage("common.file.exists", repoPath);
+					return FacadeResult.showMessageUnExpected("common.file.exists", repoPath);
 				}
 				
 				logger.error(command);
 				logger.error(String.join("\n", rcr.getAllTrimedNotEmptyLines()));
-				return FacadeResult.showMessage("ssh.command.failed", command);
+				return FacadeResult.showMessageUnExpected("ssh.command.failed", command);
 			}
 			return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
@@ -276,10 +277,10 @@ public class BorgService {
 			String cmd = String.join(" ", cmdparts);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 			if (rcr.isCommandNotFound()) {
-				return FacadeResult.showMessage("common.application.notinstalled", cmd);
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.APPLICATION_NOTINSTALLED, cmd);
 			}
 			if (rcr.getExitValue() == 0) {
-				return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
+				return FacadeResult.showMessageExpected(CommonMessageKeys.MISSION_ACCOMPLISHED);
 			} else {
 				List<String> lines = rcr.getAllTrimedNotEmptyLines();
 				String errOut = rcr.getErrOut();
