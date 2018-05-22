@@ -26,6 +26,7 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
@@ -45,12 +46,16 @@ public class DiskfreeSchedule {
 	private DefaultValues dvs;
 
 	@PostConstruct
-	public void post() throws SchedulerException, ParseException {
-		List<Box> mysqlBoxes = applicationState.getServers();
-		for (Box box : mysqlBoxes) {
-			scheduleTrigger(box);
+	public void post() {
+		try {
+			List<Box> mysqlBoxes = applicationState.getServers();
+			for (Box box : mysqlBoxes) {
+				scheduleTrigger(box);
+			}
+			;
+		} catch (Exception e) {
+			ExceptionUtil.logErrorException(logger, e);
 		}
-		;
 	}
 
 	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {

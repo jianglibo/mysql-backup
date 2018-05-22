@@ -9,6 +9,7 @@ SET wdirslash=%wdir:\=/%
 SET pidfile=%wdir%bin\app.pid
 
 SET springParams=--spring.config.location=classpath:/application.yml,file:./application.yml
+SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%dbdata/db;shutdown=true
 
 if [%1]==[] GOTO tryToFindJar
 IF %1==stop GOTO stop
