@@ -76,6 +76,10 @@ public class MysqlService {
 	private Path getDumpFile(Path dumpDir) {
 		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 	}
+	
+	public boolean isMysqlNotReadyForBackup(Box box) {
+		return box == null || box.getMysqlInstance() == null || box.getMysqlInstance().getLogBinSetting() == null;
+	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost

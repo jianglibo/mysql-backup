@@ -4,6 +4,8 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,8 @@ import com.jcraft.jsch.Session;
 
 @Component
 public class MysqlFlushLogJob implements Job {
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private ApplicationState applicationState;
@@ -37,8 +41,9 @@ public class MysqlFlushLogJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
-			if (box == null)
-				return;
+			if (mysqlTaskFacade.isMysqlNotReadyForBackup(box)) {
+				logger.info("Box {} is not ready for Backup.", host);
+			}
 			session = sshSessionFactory.getConnectedSession(box).getResult();
 			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, box);
 			mysqlFlushService.processFlushResult(box, fr);

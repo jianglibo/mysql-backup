@@ -138,8 +138,8 @@ public class ApplicationState implements EnvironmentAware {
 						BackupFolder bf = bfService.findByServerHostAndFolder(box.getHost(), fo);
 						if (bf == null) {
 							bf = new BackupFolder(svfinal.getId(), fo);
+							bfService.save(bf);
 						}
-						bfService.save(bf);
 					});
 				}
 			});

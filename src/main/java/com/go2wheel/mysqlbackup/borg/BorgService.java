@@ -174,6 +174,10 @@ public class BorgService {
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
+	
+	public boolean isBorgNotReady(Box box) {
+		return box == null || box.getBorgBackup() == null || box.getBorgBackup().getIncludes() == null || box.getBorgBackup().getIncludes().isEmpty();
+	}
 
 	//@formatter:off
 	public FacadeResult<BorgPruneResult> pruneRepo(Session session, Box box) {

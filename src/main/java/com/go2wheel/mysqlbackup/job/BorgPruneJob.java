@@ -36,6 +36,10 @@ public class BorgPruneJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
+			if (borgTaskFacade.isBorgNotReady(box)) {
+				logger.error("Box {} is not ready for Prune.", host);
+				return;
+			}
 			session = sshSessionFactory.getConnectedSession(box).getResult();
 			borgTaskFacade.pruneRepo(session, box);
 		} finally {

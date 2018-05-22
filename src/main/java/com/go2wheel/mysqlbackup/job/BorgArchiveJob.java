@@ -53,6 +53,12 @@ public class BorgArchiveJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
+			
+			if (borgTaskFacade.isBorgNotReady(box)) {
+				logger.error("Box {} is not ready for Archive.", host);
+				return;
+			}
+			
 			session = sshSessionFactory.getConnectedSession(box).getResult();
 
 			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, box, false);

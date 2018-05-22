@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,7 @@ import org.springframework.shell.standard.StandardAPIAutoConfiguration;
 import org.springframework.shell.standard.StandardMethodTargetRegistrar;
 import org.springframework.shell.standard.StandardParameterResolver;
 import org.springframework.shell.standard.ValueProvider;
+import org.springframework.shell.standard.commands.Help;
 
 import com.go2wheel.mysqlbackup.valueprovider.BorgDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BoxDescriptionProvider;
@@ -82,6 +85,11 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider boxTriggerProvider() {
 		return new BoxTriggerProvider();
+	}
+	
+	@Bean
+	public I18NHelp i18NHelp() {
+		return new I18NHelp();
 	}
 	
 
