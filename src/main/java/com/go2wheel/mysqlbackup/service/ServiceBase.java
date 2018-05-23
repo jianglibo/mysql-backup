@@ -37,5 +37,4 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 		findAll().forEach(item -> delete(item));
 	}
 
-
 }

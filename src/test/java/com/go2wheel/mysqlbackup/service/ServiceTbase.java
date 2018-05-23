@@ -2,9 +2,10 @@ package com.go2wheel.mysqlbackup.service;
 
 import org.jooq.UpdatableRecord;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 
-public class ServiceTbase {
+public class ServiceTbase extends SpringBaseFort {
 	
 	protected String serverHost = "abc";
 	

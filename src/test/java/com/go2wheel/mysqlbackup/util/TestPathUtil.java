@@ -14,8 +14,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.UtilForTe;
-
 public class TestPathUtil {
 	
 	private Path dir;

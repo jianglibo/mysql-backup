@@ -70,7 +70,7 @@ public class BorgArchiveJob implements Job {
 			} else {
 				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, box);
 				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
-				if (!frBorgDownload.isExpected()) {
+				if (frBorgDownload.isExpected()) {
 					if (frBorgDownload.getResult() != null) {
 						bd = frBorgDownload.getResult();
 					}

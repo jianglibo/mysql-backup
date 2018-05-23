@@ -36,9 +36,10 @@ logging:
   file.max-size: 5MB
   file.max-history: 100
   level:
-    root: DEBUG
+    root: INFO
     com.go2wheel.mysqlbackup.job.SampleJob: ERROR
     com.go2wheel.mysqlbackup.job.SampleJobService: ERROR
+    org.jooq: DEBUG
 myapp:
   dataDir: boxes
   downloadFolder: notingit

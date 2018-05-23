@@ -16,6 +16,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
@@ -33,6 +34,7 @@ import org.springframework.util.StringUtils;
 @SpringBootApplication(exclude = { SpringShellAutoConfiguration.class, JLineShellAutoConfiguration.class,
 		StandardAPIAutoConfiguration.class })
 @EnableAspectJAutoProxy
+@EnableAsync
 public class StartPointer {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());

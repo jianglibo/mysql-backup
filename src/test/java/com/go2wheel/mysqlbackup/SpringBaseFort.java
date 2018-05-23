@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.BDDMockito.given;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -16,11 +17,14 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.quartz.JobDataMap;
+import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -54,6 +58,9 @@ import com.jcraft.jsch.Session;
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
+	
+	@MockBean
+	protected JobExecutionContext context;
 
 	@Autowired
 	protected MyAppSettings myAppSettings;
@@ -65,28 +72,28 @@ public class SpringBaseFort {
 	private Scheduler scheduler;
 	
 	@Autowired
-	private ServerService serverService;
+	protected ServerService serverService;
 	
 	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	protected MysqlFlushService mysqlFlushService;
 	
 	@Autowired
-	private MysqlDumpService mysqlDumpService;
+	protected MysqlDumpService mysqlDumpService;
 	
 	@Autowired
-	private BackupFolderService backupFolderService;
+	protected BackupFolderService backupFolderService;
 	
 	@Autowired
-	private BackupFolderStateService backupFolderStateService;
+	protected BackupFolderStateService backupFolderStateService;
 	
 	@Autowired
-	private DiskfreeService diskfreeService;
+	protected DiskfreeService diskfreeService;
 	
 	@Autowired
-	private UpTimeService upTimeService;
+	protected UpTimeService upTimeService;
 
 	@Autowired
-	private BorgDownloadService borgDownloadService;
+	protected BorgDownloadService borgDownloadService;
 
 	
 	protected Box box;
@@ -145,6 +152,10 @@ public class SpringBaseFort {
 		
 		Server sv = new Server(box.getHost());
 		serverService.save(sv);
+		
+		JobDataMap jdm = new JobDataMap();
+		jdm.put("host", HOST_DEFAULT);
+		given(context.getMergedJobDataMap()).willReturn(jdm);
 	}
 	
 	

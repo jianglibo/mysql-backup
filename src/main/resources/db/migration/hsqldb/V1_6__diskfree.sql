@@ -7,7 +7,9 @@ CREATE TABLE diskfree
   used INTEGER,
   available INTEGER,
   use_percent INTEGER,
-  mounted_on VARCHAR(200),
-  created_at TIMESTAMP(2),
+  mounted_on VARCHAR(200) NOT NULL,
+  created_at TIMESTAMP(2) NOT NULL,
   CONSTRAINT fk_diskfree_server FOREIGN KEY (server_id)  REFERENCES server (id)
 );
+
+ALTER TABLE diskfree ADD CONSTRAINT unique_diskfree UNIQUE (mounted_on, created_at);

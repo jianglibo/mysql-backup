@@ -28,7 +28,6 @@ import java.util.Set;
 import javax.annotation.PostConstruct;
 
 import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.quartz.Job;
@@ -68,11 +67,6 @@ public class TestSpringQrtzScheduler {
 	
 	@MockBean
 	private MyJobListener myJobListener;
-	
-//	@Before
-//	public void before() throws SchedulerException {
-//		UtilForTe.deleteAllJobs(scheduler);
-//	}
 	
 	@After
 	public void after() throws SchedulerException {

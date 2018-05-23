@@ -23,6 +23,10 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	
 	@Override
 	public P insertAndReturn(P pojo) {
+		if (pojo.getId() != null) {
+			update(pojo);
+			return pojo;
+		}
 		R record = jooq.newRecord(getTable(), pojo);
 		record.store();
 		return record.into(getType());

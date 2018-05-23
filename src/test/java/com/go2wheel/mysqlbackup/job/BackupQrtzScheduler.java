@@ -14,7 +14,8 @@ public class BackupQrtzScheduler {
 
     Logger logger = LoggerFactory.getLogger(getClass());
 
-    @Autowired
+    @SuppressWarnings("unused")
+	@Autowired
     private ApplicationContext applicationContext;
     
     @Bean

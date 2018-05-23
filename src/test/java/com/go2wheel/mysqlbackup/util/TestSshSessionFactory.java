@@ -3,7 +3,6 @@ package com.go2wheel.mysqlbackup.util;
 import static org.junit.Assert.assertFalse;
 
 import java.io.IOException;
-import java.util.Optional;
 
 import org.junit.Before;
 import org.junit.Test;

@@ -18,7 +18,7 @@ CREATE TABLE mysql_flush
   time_cost BIGINT,
   created_at TIMESTAMP(2),
   
-   file_size BIGINT,
+  file_size BIGINT,
   file_number INTEGER,
 
   CONSTRAINT fk_mysqlflush_server FOREIGN KEY (server_id)  REFERENCES server (id)
