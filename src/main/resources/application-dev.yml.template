@@ -6,7 +6,7 @@ spring:
       enabled: true
   datasource:
     url: jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true
-    username: sa
+    username: SA
     password:
     driver-class-name: org.hsqldb.jdbc.JDBCDriver
     validation-query: select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
@@ -39,13 +39,6 @@ logging:
     root: DEBUG
     com.go2wheel.mysqlbackup.job.SampleJob: ERROR
     com.go2wheel.mysqlbackup.job.SampleJobService: ERROR
-#  quartz
-#    jdbc
-#      initialize-schema: embedded # Database schema initialization mode.
-#      schema: classpath:org/quartz/impl/jdbcjobstore/tables_@@platform@@.sql # Path to the SQL file to use to initialize the database schema.
-#    quartz
-#      job-store-type: memory # Quartz job store type.
-#      # properties.*= # Additional Quartz Scheduler properties.      
 myapp:
   dataDir: boxes
   downloadFolder: notingit

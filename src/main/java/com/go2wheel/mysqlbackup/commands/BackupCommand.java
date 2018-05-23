@@ -18,13 +18,12 @@ import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
-import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
-import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.shell.jline.PromptProvider;
@@ -107,13 +106,10 @@ public class BackupCommand {
 	private Session _session;
 
 	@Autowired
-	private Scheduler scheduler;
-
-	@Autowired
 	private BorgService borgService;
 
-	@Autowired
-	private SchedulerService schedulerTaskFacade;
+	@Autowired @Lazy
+	private SchedulerService schedulerService;
 
 	@Autowired
 	private ReusableCronService reusableCronService;
@@ -670,7 +666,7 @@ public class BackupCommand {
 	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
 			throws SchedulerException, ParseException {
 		sureBoxSelected();
-		schedulerTaskFacade.schedulerRescheduleJob(triggerKey, cronExpression);
+		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
 
 	@ShellMethod(value = "支持的语言")
@@ -695,15 +691,15 @@ public class BackupCommand {
 	@ShellMethod(value = "列出当前主机的计划任务")
 	public List<String> schedulerJobList() throws SchedulerException {
 		sureBoxSelected();
-		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
-				.filter(jk -> jk.getName().equals(appState.currentBoxOptional().get().getHost())).map(jk -> jk.toString())
-				.collect(Collectors.toList());
+		Box box = appState.currentBoxOptional().get();
+		return schedulerService.getBoxSchedulerJobList(box);
+
 	}
 
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
 	public List<String> schedulerTriggerList() throws SchedulerException {
 		sureBoxSelected();
-		return schedulerTaskFacade.getBoxTriggers(appState.currentBoxOptional().get()).stream()
+		return schedulerService.getBoxTriggers(appState.currentBoxOptional().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
 
@@ -711,7 +707,7 @@ public class BackupCommand {
 	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
 		sureBoxSelected();
 		Box box = appState.currentBoxOptional().get();
-		return schedulerTaskFacade.delteBoxTriggers(box, triggerKey);
+		return schedulerService.delteBoxTriggers(box, triggerKey);
 	}
 
 	@ShellMethod(value = "查看最后一个命令的详细执行结果")

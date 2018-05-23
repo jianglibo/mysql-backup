@@ -1,1 +1,2 @@
-org.springframework.boot.diagnostics.FailureAnalyzer=com.go2wheel.mysqlbackup。StartUpFailedReason
+org.springframework.boot.diagnostics.FailureAnalyzer=com.go2wheel.mysqlbackup.StartUpFailedReason
+org.springframework.context.ApplicationListener=com.go2wheel.mysqlbackup.FailListener

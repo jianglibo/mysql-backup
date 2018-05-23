@@ -10,7 +10,9 @@ import org.springframework.boot.diagnostics.AbstractFailureAnalyzer;
 import org.springframework.boot.diagnostics.FailureAnalysis;
 import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
 
+@Component
 public class StartUpFailedReason extends AbstractFailureAnalyzer<Throwable> implements BeanFactoryAware, EnvironmentAware  {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());

@@ -35,13 +35,10 @@ logging:
   file: log/spring.log
   file.max-size: 5MB
   file.max-history: 100
-#  quartz
-#    jdbc
-#      initialize-schema: embedded # Database schema initialization mode.
-#      schema: classpath:org/quartz/impl/jdbcjobstore/tables_@@platform@@.sql # Path to the SQL file to use to initialize the database schema.
-#    quartz
-#      job-store-type: memory # Quartz job store type.
-#      # properties.*= # Additional Quartz Scheduler properties.      
+  level:
+    root: DEBUG
+    com.go2wheel.mysqlbackup.job.SampleJob: ERROR
+    com.go2wheel.mysqlbackup.job.SampleJobService: ERROR
 myapp:
   dataDir: boxes
   downloadFolder: notingit

@@ -2,11 +2,10 @@ package com.go2wheel.mysqlbackup;
 
 import java.time.Duration;
 
-import javax.sql.DataSource;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
-import org.springframework.boot.autoconfigure.quartz.QuartzAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -14,7 +13,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.context.annotation.Primary;
 import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jline.JLineShellAutoConfiguration;
@@ -34,6 +32,8 @@ import org.springframework.util.StringUtils;
 		StandardAPIAutoConfiguration.class })
 @EnableAspectJAutoProxy
 public class StartPointer {
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
@@ -76,4 +76,5 @@ public class StartPointer {
 		messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
 		return messageSource;
 	}
+
 }

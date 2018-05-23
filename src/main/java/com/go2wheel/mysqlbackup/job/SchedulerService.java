@@ -84,4 +84,10 @@ public class SchedulerService {
 		return FacadeResult.doneExpectedResult();
 	}
 
+	public List<String> getBoxSchedulerJobList(Box box) throws SchedulerException {
+		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
+				.filter(jk -> jk.getName().equals(box.getHost())).map(jk -> jk.toString())
+				.collect(Collectors.toList());
+	}
+
 }

@@ -16,6 +16,13 @@ public class ExceptionUtil {
 		logger.error(sw.toString());
 	}
 	
+	public static void logThrowable(Logger logger, Throwable e) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		logger.error(sw.toString());
+	}
+	
 	public static void logRemoteCommandResult(Logger logger, RemoteCommandResult rcr) {
 		String s = "";
 		if (rcr != null) {
