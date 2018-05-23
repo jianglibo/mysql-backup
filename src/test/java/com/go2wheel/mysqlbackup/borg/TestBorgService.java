@@ -21,6 +21,7 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
@@ -33,6 +34,7 @@ public class TestBorgService extends SpringBaseFort {
 	@Before
 	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
 		InstallationInfo ii = borgService.unInstall(session).getResult();
+		assertFalse(ii.isInstalled());
 	}
 
 	@After
@@ -44,19 +46,21 @@ public class TestBorgService extends SpringBaseFort {
 	public void tRepoInit() throws RunRemoteCommandException {
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 		borgService.install(session);
+		
 		FacadeResult<?> fr = borgService.initRepo(session, "");
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo("borg.repo.wrongpath"));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_PATH));
+		
 		fr = borgService.initRepo(session, null);
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo("common.file.exists"));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_PATH));
 
 		fr = borgService.initRepo(session, "/abc");
 		assertTrue(fr.isExpected());
 
 		fr = borgService.initRepo(session, "/abc");
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo("common.file.exists"));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.FILE_EXISTS));
 
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 

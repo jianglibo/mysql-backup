@@ -57,7 +57,6 @@ public class BorgService {
 	
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
 	
-	public static final String MALFORM_PATH = "borg.repo.wrongpath";
 	
 
 	// https://borgbackup.readthedocs.io/en/stable/quickstart.html
@@ -138,10 +137,13 @@ public class BorgService {
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
+			if (!StringUtil.hasAnyNonBlankWord(repoPath)) {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_PATH, repoPath);
+			}
 			String command = String.format("borg init --encryption=none %s", repoPath);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 			if (rcr.isCommandNotFound()) {
-				return FacadeResult.unexpectedResult("command not found.");
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.APPLICATION_NOTINSTALLED, command);
 			}
 			if (rcr.getExitValue() != 0) {
 				boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
@@ -155,13 +157,14 @@ public class BorgService {
 				
 				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
 				if (iserrorPath) {
-					return FacadeResult.showMessageUnExpected(MALFORM_PATH, repoPath);
+					return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_PATH, repoPath);
 				}
 				
-				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("A repository already exists at "));
+				//Repository /abc already exists.
+				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.trim().matches("Repository .* already exists\\."));
 				
 				if (alreadyExists) {
-					return FacadeResult.showMessageUnExpected("common.file.exists", repoPath);
+					return FacadeResult.showMessageUnExpected(CommonMessageKeys.FILE_EXISTS, repoPath);
 				}
 				
 				logger.error(command);
@@ -289,7 +292,7 @@ public class BorgService {
 				List<String> lines = rcr.getAllTrimedNotEmptyLines();
 				String errOut = rcr.getErrOut();
 				if (errOut != null) {
-					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH"))) {
+					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH") || line.contains("the following arguments are required: PATH"))) {
 						return FacadeResult.unexpectedResult(NO_INCLUDES);
 					} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
 						return FacadeResult.unexpectedResult(REPO_NON_INIT);

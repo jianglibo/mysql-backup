@@ -20,7 +20,8 @@ import com.jcraft.jsch.Session;
 @Component
 public class SshSessionFactory {
 	
-	public static final String AUTH_WRONGKNOWNHOSTS = "ssh.auth.wrongknownhosts";
+	public static final String KNOWNHOSTS_NOTEXISTS = "ssh.knownhosts.notexists";
+	public static final String SSHKEYFILE_NOTEXISTS = "ssh.keyfile.notexists";
 
 	private MyAppSettings appSettings;
 
@@ -35,12 +36,13 @@ public class SshSessionFactory {
 			int port = box.getPort();
 			session=jsch.getSession(userName, host, port);
 			String knownHosts = appSettings.getSsh().getKnownHosts();
+			String idrsaFile = appSettings.getSsh().getSshIdrsa();
 			if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
 				return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
 			}
 			
 			if (!Files.exists(Paths.get(knownHosts))) {
-				return FacadeResult.showMessageUnExpected(AUTH_WRONGKNOWNHOSTS, knownHosts);
+				return FacadeResult.showMessageUnExpected(KNOWNHOSTS_NOTEXISTS, knownHosts);
 			}
 			jsch.setKnownHosts(knownHosts);
 		
@@ -51,12 +53,12 @@ public class SshSessionFactory {
 				session.setPassword(box.getPassword());
 				session.connect();
 			} else if(appSettings.getSsh().sshIdrsaExists()) {
-				jsch.addIdentity(appSettings.getSsh().getSshIdrsa());
+				jsch.addIdentity(idrsaFile);
 				session.connect();
 			} else {
-				FacadeResult.showMessageUnExpected("ssh.auth.noway");
+				return FacadeResult.showMessageUnExpected(SSHKEYFILE_NOTEXISTS, idrsaFile);
 			}
-		} catch (JSchException e) {
+		} catch (Exception e) {
 			ExceptionUtil.logErrorException(logger, e);
 			try {
 				if (session != null) {

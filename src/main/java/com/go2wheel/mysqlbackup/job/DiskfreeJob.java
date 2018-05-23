@@ -22,6 +22,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DiskFreeAllString;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -48,7 +49,12 @@ public class DiskfreeJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
-			session = sshSessionFactory.getConnectedSession(box).getResult();
+			FacadeResult<Session> fr = sshSessionFactory.getConnectedSession(box); 
+			session = fr.getResult();
+			if (session == null) {
+				logger.error("Connecting to server {} failed. message is: {}", host, fr.getMessage());
+				return;
+			}
 			List<DiskFreeAllString> dfss = SSHcommonUtil.getDiskUsage(session);
 			List<Diskfree> dfs = dfss.stream().map(dd -> dd.toDiskfree()).collect(Collectors.toList());
 			Server sv = serverService.findByHost(host);
