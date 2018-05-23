@@ -4,8 +4,10 @@ import java.time.Duration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
+import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,6 +36,11 @@ import org.springframework.util.StringUtils;
 public class StartPointer {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	// This line of code will cause flyway initializing earlier.
+	@SuppressWarnings("unused")
+	@Autowired
+	private FlywayMigrationInitializer flywayInitializer;
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {

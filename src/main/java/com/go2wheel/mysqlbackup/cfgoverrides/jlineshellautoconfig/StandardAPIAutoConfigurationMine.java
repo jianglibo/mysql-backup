@@ -86,12 +86,6 @@ public class StandardAPIAutoConfigurationMine {
 	public ValueProvider boxTriggerProvider() {
 		return new BoxTriggerProvider();
 	}
-	
-	@Bean
-	public I18NHelp i18NHelp() {
-		return new I18NHelp();
-	}
-	
 
 	@Bean
 	public MethodTargetRegistrar standardMethodTargetResolver() {
