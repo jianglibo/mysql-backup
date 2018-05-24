@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -83,6 +86,23 @@ public class StringUtil {
 //		String fmt = pattern.replaceAll(placeHoderPtn, "%s");
 		return String.format(fmt, matchGroupReplace(m, replaces));
 		
+	}
+	
+	
+	public static String inputstreamToString(InputStream inputStream) {
+		try {
+			ByteArrayOutputStream result = new ByteArrayOutputStream();
+			byte[] buffer = new byte[1024];
+			int length;
+			while ((length = inputStream.read(buffer)) != -1) {
+			    result.write(buffer, 0, length);
+			}
+			// StandardCharsets.UTF_8.name() > JDK 7
+			return result.toString("UTF-8");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return "";
 	}
 
 

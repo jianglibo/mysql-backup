@@ -1,6 +1,7 @@
 echo off
 
 REM https://ss64.com/nt/for_cmd.html
+REM http://steve-jansen.github.io/guides/windows-batch-scripting/part-3-return-codes.html
 SET _lport=8080
 
 SET wdir=%~dp0
@@ -33,17 +34,24 @@ IF EXIST %jarfile% (
 	echo found %jarfile%, and start it.....
  	GOTO run
 )
+
 SET jarfile="%wdir%build\libs\mysql-backup-boot.jar"
 echo try to find jar in %jarfile% ......
 IF EXIST %jarfile% (
 	echo found %jarfile%, and start it......
  	GOTO run
 )
+
 GOTO :eof
 
 :run
 echo "run command java -jar %jarfile% %springParams%"
 java -jar %jarfile% %springParams% --debug
+
+set exitcode=%ERRORLEVEL%
+
+IF %exitcode% == 101 GOTO run
+:: IF %exitcode% EQ "10" ECHO %exitcode%
  
 REM echo %mypath:~0,-1%
 REM set arg1= %1

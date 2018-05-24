@@ -31,6 +31,15 @@ eclipse {
 }
 springBoot {
     mainClassName = 'com.go2wheel.mysqlbackup.StartPointer'
+//    buildInfo()
+    buildInfo {
+		properties {
+			additional = [
+				'a': 'alpha',
+				'b': 'bravo'
+			]
+		}
+	}
 }
 
 bootJar {
@@ -46,6 +55,9 @@ flyway {
     baselineVersion = '1_1'
 }
 
+archivesBaseName = 'mysql-backup'
+version = '1.0'
+
 sourceSets {
     main {
         resources {
@@ -55,10 +67,12 @@ sourceSets {
     }
 }
 
+/*
 jar {
     baseName = 'mysql-backup'
     version = '0.0.1-SNAPSHOT'
 }
+*/
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
@@ -130,16 +144,42 @@ task copyFilesToArchive(type: Copy) {
     from("${buildDir}/../") {
         include "notingit/**"
     }
-    from "${buildDir}/libs/mysql-backup-boot.jar"
-    into "${buildDir}/archive"
+    from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
+    
+    rename 'mysql-backup-.*-boot.jar', 'mysql-backup-boot.jar'
+    
+    into "${buildDir}/archive/"
 }
 
+task renameJar(type: Copy) {
+    from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
+    
+    rename 'mysql-backup-.*-boot.jar', 'mysql-backup-boot.jar'
+    
+    into "${buildDir}/libs/"
+}
 task packmyzip(type: Zip) {
-    archiveName = "mysql-backup.zip"
+    archiveName = project['archivesBaseName'] + '-' + project['version'] + ".zip"
     destinationDir = file("${buildDir}/dist")
 
     from "${buildDir}/archive"
 }
 
+bootJar.dependsOn bootBuildInfo
 copyFilesToArchive.dependsOn bootJar
-packmyzip.dependsOn copyFilesToArchive
+packmyzip.dependsOn copyFilesToArchive, renameJar
+
+task writeVersionFile() << {
+   def props = new Properties()
+   def writer = new FileWriter(file(project['buildDir'] + "/merged.properties"))
+   try {
+      props.store(writer, 'Some comment')
+      writer.flush()
+   } finally {
+      writer.close()
+   }
+}
+
+task (v) << {
+	println project['buildDir']
+}

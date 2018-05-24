@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.Pattern;
 
+import org.hibernate.validator.constraints.SafeHtml;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.quartz.SchedulerException;
@@ -241,7 +242,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
-	public List<String> SystemInfo(
+	public List<String> systemInfo(
 			@ShellOption(help = "环境变量名", defaultValue="") String envname) throws IOException {
 		if (StringUtil.hasAnyNonBlankWord(envname)) {
 			return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
@@ -254,6 +255,15 @@ public class BackupCommand {
 				formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
 				formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),
 				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
+	}
+	
+	@ShellMethod(value = "Exit system.")
+	public void systemExit(@ShellOption(help = "退出值", defaultValue="0") int exitValue,
+			@ShellOption(help = "重启") boolean restart) {
+		if (restart) {
+			System.exit(101);
+		}
+		System.exit(exitValue);
 	}
 
 	@ShellMethod(value = "加载示例服务器。")
