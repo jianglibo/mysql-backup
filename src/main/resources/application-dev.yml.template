@@ -18,7 +18,7 @@ spring:
     jdbc:
       initialize-schema: never # always, embeded.
   flyway:
-    baseline-version: 1_1
+    locations: classpath:/dev/db/migration
   mail:
     host: smtp.qq.com
     port: 587 #465
