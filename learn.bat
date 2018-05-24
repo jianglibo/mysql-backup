@@ -16,3 +16,22 @@ FOR /F "tokens=4" %%G IN ('dir %_dir%') DO IF NOT %jarfile:bootjar=% == %jarfile
 ECHO %jarfile%
 
 ::FOR /f "tokens=5" %%G IN ('netstat -aon ^| find "%_lport%"') DO ECHO %%G
+FOR /F "tokens=4" %%G IN ('dir %_dir% ^| FIND "boot.jar"') DO SET jarfile=%%G
+ECHO %jarfile%
+
+
+FOR /F "tokens=4" %%G IN ('dir %_dir% ^| FINDSTR "mysql-backup-boot.jar"') DO SET jarfile=%%G
+ECHO %jarfile%
+
+FOR /F "tokens=4" %%G IN ('dir %_dir% ^| FINDSTR /R "mysql-backup-.*-boot.jar"') DO SET jarfile=%%G
+ECHO %jarfile%
+
+for /f "delims=" %%x in ('type upgrade.txt ^| FINDSTR "he"') do set Build=%%x
+
+ECHO %Build%
+
+for /f "delims== tokens=1,2" %%G in (upgrade.txt) do set %%G=%%H
+ECHO %aa%
+ECHO %bb%
+
+:: SETLOCAL EnableDelayedExpansion

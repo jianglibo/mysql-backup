@@ -266,6 +266,11 @@ public class BackupCommand {
 		System.exit(exitValue);
 	}
 
+	@ShellMethod(value = "Upgrade system.")
+	public void systemUpgrade(@ShellOption(help = "新版本的zip文件") String zipFile) {
+		
+	}
+
 	@ShellMethod(value = "加载示例服务器。")
 	public String loadDemoServer() throws IOException {
 		try (InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml")) {

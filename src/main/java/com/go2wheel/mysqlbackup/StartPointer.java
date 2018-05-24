@@ -37,7 +37,7 @@ import org.springframework.util.StringUtils;
 @EnableAsync
 public class StartPointer {
 	
-	private Logger logger = LoggerFactory.getLogger(getClass());
+	private static Logger logger = LoggerFactory.getLogger(StartPointer.class);
 
 	// This line of code will cause flyway initializing earlier.
 	@SuppressWarnings("unused")
@@ -46,6 +46,19 @@ public class StartPointer {
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
+		logger.info("---start args----");
+		boolean upgrade = false;
+		for(String a: args) {
+			logger.info(a);
+			if (a.indexOf("upgrade") != -1) {
+				upgrade = true;
+			}
+		}
+		logger.info("---start args----");
+		
+		if (upgrade) {
+			logger.info("no implemented yet.");
+		}
 		String[] disabledCommands = {};
 		// String[] disabledCommands =
 		// {"--spring.shell.command.stacktrace.enabled=false"};
@@ -58,6 +71,8 @@ public class StartPointer {
 	}
 
 	
+
+
 	@Bean
 	@ConfigurationProperties(prefix = "spring.messages")
 	public MessageSourceProperties messageSourceProperties() {
