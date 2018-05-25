@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.validation.constraints.Pattern;
 
-import org.hibernate.validator.constraints.SafeHtml;
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
 import org.quartz.SchedulerException;
@@ -265,6 +264,16 @@ public class BackupCommand {
 		}
 		System.exit(exitValue);
 	}
+	
+	@ShellMethod(value = "Exit the shell.", key = {"quit", "exit"})
+	public void quit(@ShellOption(help = "退出值", defaultValue="0") int exitValue,
+			@ShellOption(help = "重启") boolean restart) {
+		if (restart) {
+			System.exit(101);
+		}
+		System.exit(exitValue);
+	}
+
 
 	@ShellMethod(value = "Upgrade system.")
 	public void systemUpgrade(@ShellOption(help = "新版本的zip文件") String zipFile) {

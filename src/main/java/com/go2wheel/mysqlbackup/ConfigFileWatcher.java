@@ -20,16 +20,19 @@ public class ConfigFileWatcher {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
+	private static String APPLICATION_CONFIGFILE = "application.properties";
+	private static String APPLICATION_CONFIGFILE_DEV = "application-dev.properties";
+	
 	private Path fileToWatcher;
 	
 	private Path dir;
 	
 	public ConfigFileWatcher() {
 		dir = Paths.get("");
-		fileToWatcher = dir.resolve("application-dev.yml");
+		fileToWatcher = dir.resolve(APPLICATION_CONFIGFILE_DEV);
 		if (!Files.exists(fileToWatcher)) {
 			dir = Paths.get("src", "main", "resources");
-			fileToWatcher = dir.resolve("application-dev.yml");
+			fileToWatcher = dir.resolve(APPLICATION_CONFIGFILE_DEV);
 		}
 	}
 
@@ -80,7 +83,7 @@ public class ConfigFileWatcher {
 	}
 
 	private void doOnChange() {
-		logger.info("application.yml changed.");
+		logger.info("{} changed.", APPLICATION_CONFIGFILE_DEV);
 	}
 
 }

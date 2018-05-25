@@ -22,8 +22,8 @@ gradle-app.setting
 # Cache of project
 .gradletasknamecache 
 
-application.yaml
-application.yml
+application.properties
+application-dev.properties
 mrjars/
 hadoop-config.xml
 jobproperties/**/*.job
@@ -47,4 +47,3 @@ demobox.yml
 notingit/
 **/jooqschema/
 dbdata/
-application-dev.yml

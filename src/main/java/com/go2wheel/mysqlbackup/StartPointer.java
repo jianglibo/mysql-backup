@@ -59,7 +59,7 @@ public class StartPointer {
 		if (upgrade) {
 			logger.info("no implemented yet.");
 		}
-		String[] disabledCommands = {};
+		String[] disabledCommands = {"--spring.shell.command.quit.enabled=false"};
 		// String[] disabledCommands =
 		// {"--spring.shell.command.stacktrace.enabled=false"};
 		String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);

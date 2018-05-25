@@ -38,7 +38,6 @@ public class InteractiveShellApplicationRunnerMine  implements ApplicationRunner
 
 	private final Shell shell;
 
-	@SuppressWarnings("unused")
 	private final Environment environment;
 
 	public InteractiveShellApplicationRunnerMine(LineReader lineReader, PromptProvider promptProvider, Parser parser, Shell shell, Environment environment) {
