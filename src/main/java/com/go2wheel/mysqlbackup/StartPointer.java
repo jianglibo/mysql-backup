@@ -6,8 +6,11 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,7 @@ import org.springframework.shell.jline.JLineShellAutoConfiguration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
 import org.springframework.util.StringUtils;
 
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 
@@ -67,7 +71,7 @@ public class StartPointer {
 		logger.info("---start args----");
 
 		if (upgrade) {
-			doUpgrade();
+			doUpgrade(args);
 		}
 		String[] disabledCommands = { "--spring.shell.command.quit.enabled=false" };
 		// String[] disabledCommands =
@@ -80,7 +84,25 @@ public class StartPointer {
 				.listeners(new ApplicationPidFileWriter("./bin/app.pid")).logStartupInfo(false).run(fullArgs);
 	}
 
-	private static void doUpgrade() throws IOException {
+	private static void doUpgrade(String[] args) throws IOException {
+//		--spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
+		Pattern ptn = Pattern.compile(".*jdbc:hsqldb:file:([^;]+);.*");
+		String dbPath = null;
+		for(String s : args) {
+			Matcher m = ptn.matcher(s);
+			if (m.matches()) {
+				dbPath = m.group(1);
+			}
+		}
+		
+		// This pattern is fixed.
+		if (dbPath != null) {
+			String newDbdir = dbPath.replaceAll("/db", "");
+			FileUtil.backup(3, false, Paths.get(newDbdir));
+			String origindbDir = dbPath.replaceAll(".prev/db", "");
+			Files.copy(Paths.get(origindbDir), Paths.get(newDbdir), StandardCopyOption.COPY_ATTRIBUTES);
+		}
+		
 		String propfn = "application.properties";
 		Path curPath = Paths.get("");
 		Path currentJar = Files.list(curPath)

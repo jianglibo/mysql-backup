@@ -5,6 +5,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -39,7 +40,7 @@ public class TestFileUtil {
 		Files.write(dir1.resolve("a.b.0"), "abc".getBytes());
 		Path dst1 = dir1.getParent().resolve(dir1.getFileName().toString() + ".1");
 
-		FileUtil.moveFilesAllOrNone(new Path[] {dir, dst}, new Path[] {dir1, dst1});
+		FileUtil.moveFilesAllOrNone(false, new Path[] {dir, dst}, new Path[] {dir1, dst1});
 		
 		assertTrue(Files.exists(dst));
 		assertFalse(Files.exists(dir));
@@ -58,12 +59,12 @@ public class TestFileUtil {
 		Path dst1_000 = dir1.getParent().resolve(dir1.getFileName().toString() + ".000");
 		Path dst1_001 = dir1.getParent().resolve(dir1.getFileName().toString() + ".001");
 		
-		FileUtil.createNewBackupAndRemoveOrigin(3, dir, dir1);
+		FileUtil.backup(3,false, dir, dir1);
 		
 		Files.createDirectories(dir);
 		Files.createDirectories(dir1);
 		
-		FileUtil.createNewBackupAndRemoveOrigin(3, dir, dir1);
+		FileUtil.backup(3,false, dir, dir1);
 		
 		assertTrue(Files.exists(dst000));
 		assertTrue(Files.exists(dst001));
@@ -95,7 +96,7 @@ public class TestFileUtil {
 
 	}
 	
-	@Test
+	@Test(expected=DirectoryNotEmptyException.class)
 	public void tFailed() throws IOException {
 		Path f = dir.resolve("a.b.0");
 		Files.write(f, "abc".getBytes());
@@ -122,7 +123,7 @@ public class TestFileUtil {
 		} catch (InterruptedException e) {
 		}
 
-		FileUtil.moveFilesAllOrNone(new Path[] {dir, dst}, new Path[] {dir1, dst1});
+		FileUtil.moveFilesAllOrNone(false, new Path[] {dir, dst}, new Path[] {dir1, dst1});
 		
 		assertTrue(Files.exists(dir));
 		assertFalse(Files.exists(dst));
@@ -143,6 +144,4 @@ public class TestFileUtil {
 		assertFalse(Files.exists(f1));
 		assertTrue(Files.exists(f2));
 	}
-
-
 }

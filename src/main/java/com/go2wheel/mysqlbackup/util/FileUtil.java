@@ -15,28 +15,11 @@ public class FileUtil {
 	
 	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
-	public static void moveFilesAllOrNone(Path[]... pairs) throws IOException  {
-		IOException savedEx = null;
-		try {
-			for (Path[] pair : pairs) {
-				Files.move(pair[0], pair[1], StandardCopyOption.ATOMIC_MOVE);
-			}
-		} catch (IOException e) {
-			for (Path[] pair : pairs) {
-				if (Files.exists(pair[1])) {
-					if (!Files.exists(pair[0])) {
-						try {
-							Files.move(pair[1], pair[0], StandardCopyOption.ATOMIC_MOVE);
-						} catch (IOException e1) {
-							savedEx = e1;
-						}
-					} else {
-						// will not happen.
-					}
-				}
-			}
-			if (savedEx != null) {
-				throw savedEx;
+	public static void moveFilesAllOrNone(boolean keepOrigin, Path[]... pairs) throws IOException  {
+		for (Path[] pair : pairs) {
+			Files.copy(pair[0], pair[1], StandardCopyOption.COPY_ATTRIBUTES);
+			if (!keepOrigin) {
+				 deleteFolder(pair[0]);
 			}
 		}
 	}
@@ -68,7 +51,7 @@ public class FileUtil {
 		}
 	}
 
-	public static void createNewBackupAndRemoveOrigin(int postfixNumber, Path... files) throws IOException {
+	public static void backup(int postfixNumber,boolean keepOrigin, Path... files) throws IOException {
 		int len = files.length;
 		Path[][] pairs = new Path[len][];
 		int idx = 0;
@@ -87,7 +70,7 @@ public class FileUtil {
 			pairs[idx] = new Path[] {file, file1};
 			idx++;
 		}
-		moveFilesAllOrNone(pairs);
+		moveFilesAllOrNone(keepOrigin, pairs);
 	}
 	
 	public static void atomicWriteFile(Path dstFile, byte[] content) throws IOException {

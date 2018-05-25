@@ -15,6 +15,7 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 
@@ -44,6 +45,7 @@ public class AppEventListenerBean {
     	if (Files.exists(upgrade)) {
     		try {
 				Files.delete(upgrade);
+				System.exit(BackupCommand.RESTART_CODE);
 			} catch (IOException e) {
 				ExceptionUtil.logErrorException(logger, e);
 			}

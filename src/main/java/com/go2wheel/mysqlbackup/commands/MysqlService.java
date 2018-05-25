@@ -92,7 +92,7 @@ public class MysqlService {
 				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
 			}
 			if (force) {
-				FileUtil.createNewBackupAndRemoveOrigin(3, dumpDir, logbinDir);
+				FileUtil.backup(3, false, dumpDir, logbinDir);
 				Files.createDirectories(dumpDir);
 				Files.createDirectories(logbinDir);
 			}
