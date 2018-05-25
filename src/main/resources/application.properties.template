@@ -12,7 +12,7 @@ spring.jooq.sql-dialect=HSQLDB
 # jdbc, memory
 spring.quartz.job-store-type=jdbc
 # always, embeded.
-spring.quartz.jdbcinitialize-schema=never
+spring.quartz.jdbc.initialize-schema=never
 
 spring.flyway.locations=classpath:/dev/db/migration
 

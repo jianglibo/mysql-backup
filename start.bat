@@ -2,6 +2,8 @@ echo off
 
 REM https://ss64.com/nt/for_cmd.html
 REM http://steve-jansen.github.io/guides/windows-batch-scripting/part-3-return-codes.html
+REM http://steve-jansen.github.io/guides/windows-batch-scripting/part-7-functions.html
+REM https://ss64.com/nt/setlocal.html
 SET _lport=8080
 
 SET wdir=%~dp0
@@ -27,16 +29,28 @@ IF DEFINED apppid taskkill /PID %apppid% /F /T
 GOTO :eof
 
 :tryToFindJar
+ECHO on
 FOR /f "tokens=5" %%G IN ('netstat -aon ^|find /i "listening" ^| find "%_lport%"') DO taskkill /PID %%G /F /T
-SET jarfile="%wdir%mysql-backup-boot.jar"
+
+SET _dir="%wdir%"
+FOR /F "tokens=4" %%G IN ('dir %_dir% ^| FINDSTR /R "mysql-backup-.*-boot.jar"') DO SET jarfile=%%G
+IF DEFINED jarfile ECHO jarfile defined %jarfile% here.
+IF DEFINED jarfile SET jarfile="%_dir%%jarfile%"
+:: SET jarfile="%_dir%mysql-backup-boot.jar"
 echo try to find jar in %jarfile%  ......
-IF EXIST %jarfile% (
-	echo found %jarfile%, and start it.....
- 	GOTO run
+IF DEFINED jarfile (
+	IF EXIST %jarfile% (
+		echo found %jarfile%, and start it.....
+	 	GOTO run
+	)
 )
 
-SET jarfile="%wdir%build\libs\mysql-backup-boot.jar"
-echo try to find jar in %jarfile% ......
+echo aaaa
+SET _dir="%wdir%build\libs\"
+echo try to find jar in %_dir% ......
+FOR /F "tokens=4" %%G IN ('dir %_dir% ^| FINDSTR /R "mysql-backup-.*-boot.jar"') DO SET jarfile=%%G
+:: SET jarfile="%wdir%build\libs\mysql-backup-boot.jar"
+IF DEFINED jarfile SET jarfile="%_dir%%jarfile%"
 IF EXIST %jarfile% (
 	echo found %jarfile%, and start it......
  	GOTO run

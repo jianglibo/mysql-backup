@@ -146,11 +146,12 @@ task copyFilesToArchive(type: Copy) {
     }
     from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
     
-    rename 'mysql-backup-.*-boot.jar', 'mysql-backup-boot.jar'
+//    rename 'mysql-backup-.*-boot.jar', 'mysql-backup-boot.jar'
     
     into "${buildDir}/archive/"
 }
 
+/*
 task renameJar(type: Copy) {
     from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
     
@@ -158,6 +159,7 @@ task renameJar(type: Copy) {
     
     into "${buildDir}/libs/"
 }
+*/
 task packmyzip(type: Zip) {
     archiveName = project['archivesBaseName'] + '-' + project['version'] + ".zip"
     destinationDir = file("${buildDir}/dist")
@@ -167,7 +169,7 @@ task packmyzip(type: Zip) {
 
 bootJar.dependsOn bootBuildInfo
 copyFilesToArchive.dependsOn bootJar
-packmyzip.dependsOn copyFilesToArchive, renameJar
+packmyzip.dependsOn copyFilesToArchive
 
 task writeVersionFile() << {
    def props = new Properties()

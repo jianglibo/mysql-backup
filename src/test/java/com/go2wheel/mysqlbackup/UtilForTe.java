@@ -57,34 +57,35 @@ public class UtilForTe {
 	}
 	
 	public static MyAppSettings getMyAppSettings() throws IOException {
-		InputStream is = ClassLoader.class.getResourceAsStream("/application.yml");
-		
-		MyAppSettings mas = new MyAppSettings();
-		mas.setDataRoot(Paths.get("boxes"));
-		mas.setDownloadRoot(Paths.get("notingit"));
-		Files.createDirectories(Paths.get("notingit"));
-		Files.createDirectories(Paths.get("boxes"));
-		SshConfig sc = new SshConfig();
-		mas.setSsh(sc);
-		if (is != null) {
-			BufferedReader in = new BufferedReader(new InputStreamReader(is));
-			String line = null;
-			try {
-				while((line = in.readLine()) != null) {
-					Matcher m = getItemPtn("sshIdrsa").matcher(line);
-					if (m.matches()) {
-						 sc.setSshIdrsa((String) m.group(1));
+		try (InputStream is = ClassLoader.class.getResourceAsStream("/application.yml")) {
+			MyAppSettings mas = new MyAppSettings();
+			mas.setDataRoot(Paths.get("boxes"));
+			mas.setDownloadRoot(Paths.get("notingit"));
+			Files.createDirectories(Paths.get("notingit"));
+			Files.createDirectories(Paths.get("boxes"));
+			SshConfig sc = new SshConfig();
+			mas.setSsh(sc);
+			if (is != null) {
+				BufferedReader in = new BufferedReader(new InputStreamReader(is));
+				String line = null;
+				try {
+					while((line = in.readLine()) != null) {
+						Matcher m = getItemPtn("sshIdrsa").matcher(line);
+						if (m.matches()) {
+							 sc.setSshIdrsa((String) m.group(1));
+						}
+						m = getItemPtn("knownHosts").matcher(line);
+						if (m.matches()) {
+							sc.setKnownHosts((m.group(1)));
+						}
 					}
-					m = getItemPtn("knownHosts").matcher(line);
-					if (m.matches()) {
-						sc.setKnownHosts((m.group(1)));
-					}
+				} catch (IOException e) {
 				}
-			} catch (IOException e) {
+				 
 			}
-			 
+			return mas;
 		}
-		return mas;
+		
 	}
 	
 	public static Box loadDemoBox() throws IOException {

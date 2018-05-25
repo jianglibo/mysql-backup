@@ -47,3 +47,4 @@ demobox.yml
 notingit/
 **/jooqschema/
 dbdata/
+_upgrade.txt
