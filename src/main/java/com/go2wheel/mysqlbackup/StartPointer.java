@@ -1,6 +1,13 @@
 package com.go2wheel.mysqlbackup;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.Properties;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +29,9 @@ import org.springframework.shell.jline.JLineShellAutoConfiguration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
 import org.springframework.util.StringUtils;
 
+import com.go2wheel.mysqlbackup.util.UpgradeUtil;
+import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
+
 /**
  * Components scan start from this class's package.
  * 
@@ -36,7 +46,7 @@ import org.springframework.util.StringUtils;
 @EnableAspectJAutoProxy
 @EnableAsync
 public class StartPointer {
-	
+
 	private static Logger logger = LoggerFactory.getLogger(StartPointer.class);
 
 	// This line of code will cause flyway initializing earlier.
@@ -48,30 +58,62 @@ public class StartPointer {
 	public static void main(String[] args) throws Exception {
 		logger.info("---start args----");
 		boolean upgrade = false;
-		for(String a: args) {
+		for (String a : args) {
 			logger.info(a);
-			if (a.indexOf("upgrade") != -1) {
+			if (a.indexOf("_upgrade_") != -1) {
 				upgrade = true;
 			}
 		}
 		logger.info("---start args----");
-		
+
 		if (upgrade) {
-			logger.info("no implemented yet.");
+			doUpgrade();
 		}
-		String[] disabledCommands = {"--spring.shell.command.quit.enabled=false"};
+		String[] disabledCommands = { "--spring.shell.command.quit.enabled=false" };
 		// String[] disabledCommands =
 		// {"--spring.shell.command.stacktrace.enabled=false"};
 		String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
 
 		// ConfigurableApplicationContext context =
 		// SpringApplication.run(StartPointer.class, fullArgs);
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class).listeners(new ApplicationPidFileWriter("./bin/app.pid")).logStartupInfo(false)
-				.run(fullArgs);
+		ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class)
+				.listeners(new ApplicationPidFileWriter("./bin/app.pid")).logStartupInfo(false).run(fullArgs);
 	}
 
-	
+	private static void doUpgrade() throws IOException {
+		String propfn = "application.properties";
+		Path curPath = Paths.get("");
+		Path currentJar = Files.list(curPath)
+				.filter(p -> UpgradeUtil.JAR_FILE_PTN.matcher(p.getFileName().toString()).matches()).findAny().get();
+		
+		Path currentApplicationProperties = Paths.get(propfn);
+		try {
+			
+			UpgradeFile uf = new UpgradeFile(Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE));
+			Path newJar = Paths.get(uf.getUpgradeJar());
+			
+			Properties pros = new Properties();
+			Properties npros = new Properties();
+			try (InputStream is = Files.newInputStream(currentApplicationProperties); InputStream isn = Files.newInputStream(newJar.getParent().resolve(propfn))) {
+				pros.load(is);
+				npros.load(isn);
+				npros.putAll(pros);
+			}
+			
+			Path prevProperties = currentApplicationProperties.getParent().resolve(currentApplicationProperties.getFileName().toString() + ".prev");
+			Files.copy(currentApplicationProperties, prevProperties);
+			
+			try (OutputStream os = Files.newOutputStream(currentApplicationProperties)) {
+				npros.store(os, uf.getNewVersion());
+			}
+			Path bak = currentJar.getParent().resolve(currentJar.getFileName().toString() + ".prev");
+			Files.move(currentJar, bak);
+			Files.copy(newJar, curPath);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
+	}
 
 	@Bean
 	@ConfigurationProperties(prefix = "spring.messages")
@@ -85,8 +127,8 @@ public class StartPointer {
 		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
 		String bn = properties.getBasename();
 		if (StringUtils.hasText(bn)) {
-			messageSource.setBasenames(StringUtils.commaDelimitedListToStringArray(
-					StringUtils.trimAllWhitespace(properties.getBasename())));
+			messageSource.setBasenames(StringUtils
+					.commaDelimitedListToStringArray(StringUtils.trimAllWhitespace(properties.getBasename())));
 		}
 		if (properties.getEncoding() != null) {
 			messageSource.setDefaultEncoding(properties.getEncoding().name());

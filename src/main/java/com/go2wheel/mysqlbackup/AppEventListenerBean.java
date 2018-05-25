@@ -2,26 +2,27 @@ package com.go2wheel.mysqlbackup;
 
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-@Component
-public class EventListenerExampleBean {
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 
-    private static final Logger LOG = LoggerFactory.getLogger(EventListenerExampleBean.class);
+@Component
+public class AppEventListenerBean {
+
+    private static final Logger logger = LoggerFactory.getLogger(AppEventListenerBean.class);
     
-    public static int counter;
-    
-//    @Autowired
-//    private MyAppSettings myAppSettings;
- 
     /**
      *  @see ApplicationEvent
      *  
@@ -29,13 +30,27 @@ public class EventListenerExampleBean {
      */
     @EventListener
     public void onApplicationEvent(ContextRefreshedEvent event) {
-        LOG.info("Increment counter");
-        counter++;
     }
     
     @EventListener
     public void onApplicationStartedEvent(ApplicationStartedEvent event) throws IOException {
 //    	myAppSettings.post();
     }
+    
+    @EventListener
+    public void onApplicationReadyEvent(ApplicationReadyEvent applicationReadyEvent) {
+    	Path upgrade = Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE);
+    	
+    	if (Files.exists(upgrade)) {
+    		try {
+				Files.delete(upgrade);
+			} catch (IOException e) {
+				ExceptionUtil.logErrorException(logger, e);
+			}
+    	}
+    	
+    }
+    
+    
     
 }

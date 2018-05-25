@@ -21,9 +21,11 @@ import java.util.zip.ZipFile;
 
 public class UpgradeUtil {
 
+	public static final String UPGRADE_FLAG_FILE = "_upgrade.properties";
+	
 	public static final String BUILD_PROPERTIES_FILE = "BOOT-INF/classes/META-INF/build-info.properties";
 	
-	private static final Pattern JAR_FILE_PTN = Pattern.compile("mysql-backup-[^-]*-boot.jar");
+	public static final Pattern JAR_FILE_PTN = Pattern.compile("mysql-backup-[^-]*-boot.jar");
 	
 	private static final Pattern MIGS_PTN = Pattern.compile(".*/mig/.*\\.yml");
 
@@ -42,7 +44,37 @@ public class UpgradeUtil {
 		} catch (IOException e) {
 		}
 		iterateJarFile();
-		
+	}
+	
+	public UpgradeFile writeUpgradeFile() throws IOException {
+		return writeUpgradeFile(Paths.get(""));
+	}
+	
+	public UpgradeFile writeUpgradeFile(Path dir) throws IOException {
+		Properties p = new Properties();
+		p.setProperty(UpgradeFile.NEW_VESION, buildInfo.getVersion());
+		p.setProperty(UpgradeFile.UPGRADE_JAR, tmpPath.resolve(jarFile).toAbsolutePath().toString());
+		try (InputStream is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties")) {
+			if (is != null) {
+				BuildInfo bi = new BuildInfo(is);
+				p.setProperty(UpgradeFile.CURRENT_VESION, bi.getVersion());
+			}
+		}
+		UpgradeFile uf = new UpgradeFile(p);
+		if (uf.isUpgradeable()) {
+			try (OutputStream os = Files.newOutputStream(dir.resolve(UPGRADE_FLAG_FILE))) {
+				p.store(os, "upgrade file.");
+			}
+		}
+		return uf;
+	}
+	
+	public UpgradeFile getUpgradeFilẹ() throws IOException {
+		Path upf = Paths.get(UPGRADE_FLAG_FILE);
+		if (Files.exists(upf)) {
+			return new UpgradeFile(upf);
+		}
+		return null;
 	}
 
 	private void iterateJarFile() {
@@ -158,6 +190,73 @@ public class UpgradeUtil {
 
 	public void setBuildInfo(BuildInfo buildInfo) {
 		this.buildInfo = buildInfo;
+	}
+	
+//	Properties p = new Properties();
+//	p.setProperty("new-version", buildInfo.getVersion());
+//	p.setProperty("upgrade-folder", tmpPath.resolve(jarFile).toAbsolutePath().toString());
+//	try (InputStream is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties")) {
+//		if (is != null) {
+//			BuildInfo bi = new BuildInfo(is);
+//			p.setProperty("current-version", bi.getVersion());
+//		} else {
+//			p.setProperty("current-version", "0");
+//		}
+//	}
+	
+	public static class UpgradeFile {
+		
+		public static final String NEW_VESION = "new-version";
+		public static final String CURRENT_VESION = "current-version";
+		public static final String UPGRADE_JAR = "upgrade-jar";
+		
+		private Properties properties;
+		
+		public UpgradeFile(Properties properties) {
+			this.properties = properties;
+		}
+		
+		public boolean isUpgradeable() {
+			return getNewVersion().compareTo(getCurrentVersion()) > 0;
+		}
+
+		
+		public UpgradeFile() {
+			properties = new Properties();
+		}
+
+		public UpgradeFile(InputStream is) throws IOException {
+			loadis(is);
+		}
+
+
+		private void loadis(InputStream is) throws IOException {
+			properties = new Properties();
+			properties.load(is);
+		}
+		
+		public UpgradeFile(Path upf) throws IOException {
+			try (InputStream is = Files.newInputStream(upf)) {
+				loadis(is);
+			}
+		}
+
+
+		public String getCurrentVersion() {
+			return properties.getProperty(CURRENT_VESION, "");
+		}
+		
+		public String getNewVersion() {
+			return properties.getProperty(NEW_VESION, "");
+		}
+
+		
+		public String getUpgradeJar() {
+			return properties.getProperty(UPGRADE_JAR, "");
+		}
+
+
+		
 	}
 
 	public static class BuildInfo {

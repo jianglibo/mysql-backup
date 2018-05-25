@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.commands;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -63,9 +65,12 @@ import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
+import com.go2wheel.mysqlbackup.util.UpgradeUtil;
+import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
@@ -82,6 +87,8 @@ public class BackupCommand {
 	public static final String DESCRIPTION_FILENAME = "description.yml";
 	
 	public static final String DANGEROUS_ALERT = "I know what i am doing.";
+	
+	public static final int RESTART_CODE = 101;
 	
 	@Autowired
 	private DefaultValues dvs;
@@ -256,15 +263,6 @@ public class BackupCommand {
 				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
 	}
 	
-	@ShellMethod(value = "Exit system.")
-	public void systemExit(@ShellOption(help = "退出值", defaultValue="0") int exitValue,
-			@ShellOption(help = "重启") boolean restart) {
-		if (restart) {
-			System.exit(101);
-		}
-		System.exit(exitValue);
-	}
-	
 	@ShellMethod(value = "Exit the shell.", key = {"quit", "exit"})
 	public void quit(@ShellOption(help = "退出值", defaultValue="0") int exitValue,
 			@ShellOption(help = "重启") boolean restart) {
@@ -276,8 +274,23 @@ public class BackupCommand {
 
 
 	@ShellMethod(value = "Upgrade system.")
-	public void systemUpgrade(@ShellOption(help = "新版本的zip文件") String zipFile) {
-		
+	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") String zipFile) {
+		Path zp = Paths.get(zipFile);
+		if (!Files.exists(zp)) {
+			return FacadeResult.showMessageExpected(CommonMessageKeys.FILE_NOT_EXISTS, zipFile);
+		}
+		try {
+			UpgradeUtil uu = new UpgradeUtil(zp);
+			UpgradeFile uf = uu.writeUpgradeFile();
+			if (!uf.isUpgradeable()) {
+				return FacadeResult.showMessageExpected("command.upgrade.degrade", uf.getNewVersion(), uf.getCurrentVersion());
+			}
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e, "command.upgrade.failed");
+		}
+		quit(0, true);
+		return null;
 	}
 
 	@ShellMethod(value = "加载示例服务器。")

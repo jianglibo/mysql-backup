@@ -10,7 +10,6 @@ public class CommonMessageKeys {
 	
 	public static final String FILE_EXISTS = "common.file.exists";
 	
-	
-	
+	public static final String FILE_NOT_EXISTS = "common.file.notexists";
 
 }

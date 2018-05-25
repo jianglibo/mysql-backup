@@ -2,9 +2,12 @@ package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,27 +17,50 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.BuildInfo;
+import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 
 public class TestUpgradeUtil {
 	
-	private Path jarFile;
+	private Path zipFile;
 	
 	@Before
 	public void b() throws IOException {
 		Path p = Paths.get("build", "dist");
-		jarFile = Files.list(p).filter(pp -> pp.toString().endsWith(".zip")).findAny().get();
+		zipFile = Files.list(p).filter(pp -> pp.toString().endsWith(".zip")).findAny().get();
 	}
 	
 	@Test
 	public void t() throws IOException {
-		UpgradeUtil uu = new UpgradeUtil(jarFile);
+		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		BuildInfo bi = uu.getBuildInfo();
 		assertFalse(bi.getVersion().isEmpty());
-		
 		SortedMap<String, String> sm = uu.getMigs();
-		
 		assertThat(sm.size(), greaterThan(0));
+	}
+
+	@Test
+	public void twriteUpgradeFile() throws IOException {
+
+//		try (InputStream is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties")) {
+//			assertNotNull(is);
+//			BuildInfo bi = new BuildInfo(is);
+//		
+//		}
+		UpgradeUtil uu = new UpgradeUtil(zipFile);
+		uu.writeUpgradeFile();
+		UpgradeFile uf = uu.getUpgradeFilẹ();
+		String nv = uf.getNewVersion();
+		String cv = uf.getCurrentVersion();
+		int v = nv.compareTo(cv);
+		assertTrue("new-version is great than older veriosn", v > 0);
 		
+		assertTrue(Files.exists(Paths.get("").resolve(UpgradeUtil.UPGRADE_FLAG_FILE)));
+		
+		assertTrue("1.0.1".compareTo("1.0") > 0);
+		
+		assertTrue("2".compareTo("1.0") > 0);
+		
+		assertTrue("1.000012122".compareTo("2") < 0);
 	}
 
 }
