@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,18 +62,11 @@ public class StartPointer {
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws Exception {
 		logger.info("---start args----");
-		boolean upgrade = false;
 		for (String a : args) {
 			logger.info(a);
-			if (a.indexOf("_upgrade_") != -1) {
-				upgrade = true;
-			}
 		}
 		logger.info("---start args----");
-
-		if (upgrade) {
-			doUpgrade(args);
-		}
+		doUpgrade(Paths.get(""), args);
 		String[] disabledCommands = { "--spring.shell.command.quit.enabled=false" };
 		// String[] disabledCommands =
 		// {"--spring.shell.command.stacktrace.enabled=false"};
@@ -84,53 +78,71 @@ public class StartPointer {
 				.listeners(new ApplicationPidFileWriter("./bin/app.pid")).logStartupInfo(false).run(fullArgs);
 	}
 
-	private static void doUpgrade(String[] args) throws IOException {
-//		--spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
+	protected static void doUpgrade(Path curPath, String[] args) throws IOException {
+		// --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
+
+		if (!Files.exists(Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE))) {
+			logger.info("no upgrade file {} found. skiping.",
+					Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE).toAbsolutePath().toString());
+			return;
+		}
+		logger.info("start upgrading...");
 		Pattern ptn = Pattern.compile(".*jdbc:hsqldb:file:([^;]+);.*");
 		String dbPath = null;
-		for(String s : args) {
+		Optional<Path> currentJarOp = Files.list(curPath)
+				.filter(p -> UpgradeUtil.JAR_FILE_PTN.matcher(p.getFileName().toString()).matches()).findAny();
+		if (!currentJarOp.isPresent()) {
+			logger.error("Cannot locate current jar file.");
+			return;
+		}
+		Path currentJar = currentJarOp.get();
+		
+		for (String s : args) {
 			Matcher m = ptn.matcher(s);
 			if (m.matches()) {
 				dbPath = m.group(1);
 			}
 		}
-		
+
 		// This pattern is fixed.
+		logger.info("db path: {}", dbPath);
 		if (dbPath != null) {
 			String newDbdir = dbPath.replaceAll("/db", "");
 			FileUtil.backup(3, false, Paths.get(newDbdir));
 			String origindbDir = dbPath.replaceAll(".prev/db", "");
 			Files.copy(Paths.get(origindbDir), Paths.get(newDbdir), StandardCopyOption.COPY_ATTRIBUTES);
+			logger.info("copy db folder, from {} to {}", origindbDir, newDbdir);
 		}
-		
+
 		String propfn = "application.properties";
-		Path curPath = Paths.get("");
-		Path currentJar = Files.list(curPath)
-				.filter(p -> UpgradeUtil.JAR_FILE_PTN.matcher(p.getFileName().toString()).matches()).findAny().get();
-		
+		String startBatFn = "start.bat";
+
+
 		Path currentApplicationProperties = Paths.get(propfn);
 		try {
-			
 			UpgradeFile uf = new UpgradeFile(Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE));
 			Path newJar = Paths.get(uf.getUpgradeJar());
-			
+			Path newBat = newJar.getParent().resolve(startBatFn);
+			FileUtil.backup(3, true, Paths.get(startBatFn));
+			Files.copy(newBat, Paths.get(startBatFn));
+
 			Properties pros = new Properties();
 			Properties npros = new Properties();
-			try (InputStream is = Files.newInputStream(currentApplicationProperties); InputStream isn = Files.newInputStream(newJar.getParent().resolve(propfn))) {
+			try (InputStream is = Files.newInputStream(currentApplicationProperties);
+					InputStream isn = Files.newInputStream(newJar.getParent().resolve(propfn))) {
 				pros.load(is);
 				npros.load(isn);
 				npros.putAll(pros);
 			}
 			
-			Path prevProperties = currentApplicationProperties.getParent().resolve(currentApplicationProperties.getFileName().toString() + ".prev");
-			Files.copy(currentApplicationProperties, prevProperties);
-			
+			FileUtil.backup(3, true, currentApplicationProperties);
+
 			try (OutputStream os = Files.newOutputStream(currentApplicationProperties)) {
 				npros.store(os, uf.getNewVersion());
 			}
 			Path bak = currentJar.getParent().resolve(currentJar.getFileName().toString() + ".prev");
 			Files.move(currentJar, bak);
-			Files.copy(newJar, curPath);
+			Files.copy(newJar, curPath.resolve(newJar.getFileName()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

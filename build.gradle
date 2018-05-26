@@ -52,7 +52,7 @@ flyway {
     url = 'jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true'
     user = project.ext['flyway.user']
     password = project.ext['flyway.password']
-    baselineVersion = '1_1'
+    baselineVersion = '1'
 }
 
 archivesBaseName = 'mysql-backup'
@@ -139,14 +139,12 @@ task wrapper(type: Wrapper) {
 }
 
 task copyFilesToArchive(type: Copy) {
-    from "${buildDir}/../explained.docx", "${buildDir}/../run.bat", "${buildDir}/../src/main/resources/application.yml"
+    from "${buildDir}/../explained.docx", "${buildDir}/../start.bat", "${buildDir}/../src/main/resources/application.properties"
     
     from("${buildDir}/../") {
         include "notingit/**"
     }
     from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
-    
-//    rename 'mysql-backup-.*-boot.jar', 'mysql-backup-boot.jar'
     
     into "${buildDir}/archive/"
 }

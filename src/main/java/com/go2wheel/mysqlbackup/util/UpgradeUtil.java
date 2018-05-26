@@ -10,12 +10,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -54,6 +56,11 @@ public class UpgradeUtil {
 		Properties p = new Properties();
 		p.setProperty(UpgradeFile.NEW_VESION, buildInfo.getVersion());
 		p.setProperty(UpgradeFile.UPGRADE_JAR, tmpPath.resolve(jarFile).toAbsolutePath().toString());
+		String f = tmpPath.toAbsolutePath().toString();
+		if (!f.endsWith("\\")) {
+			f = f + "\\";
+		}
+		p.setProperty(UpgradeFile.UPGRADE_FOLDER, f);
 		try (InputStream is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties")) {
 			if (is != null) {
 				BuildInfo bi = new BuildInfo(is);
@@ -62,9 +69,10 @@ public class UpgradeUtil {
 		}
 		UpgradeFile uf = new UpgradeFile(p);
 		if (uf.isUpgradeable()) {
-			try (OutputStream os = Files.newOutputStream(dir.resolve(UPGRADE_FLAG_FILE))) {
-				p.store(os, "upgrade file.");
-			}
+//			try (OutputStream os = Files.newOutputStream(dir.resolve(UPGRADE_FLAG_FILE))) {
+				List<String> lines = p.entrySet().stream().map(et -> et.getKey() + "=" + et.getValue()).collect(Collectors.toList());
+				Files.write(dir.resolve(UPGRADE_FLAG_FILE), lines);
+//			}
 		}
 		return uf;
 	}
@@ -209,6 +217,7 @@ public class UpgradeUtil {
 		public static final String NEW_VESION = "new-version";
 		public static final String CURRENT_VESION = "current-version";
 		public static final String UPGRADE_JAR = "upgrade-jar";
+		public static final String UPGRADE_FOLDER = "upgrade-folder";
 		
 		private Properties properties;
 		
@@ -238,9 +247,12 @@ public class UpgradeUtil {
 		public UpgradeFile(Path upf) throws IOException {
 			try (InputStream is = Files.newInputStream(upf)) {
 				loadis(is);
+			} catch (Exception e) {
+				Files.readAllLines(upf).stream().map(line -> line.trim()).map(line -> line.split("=", 2)).filter(pair -> pair.length == 2).forEach(pa -> {
+					properties.put(pa[0], pa[1]);
+				});
 			}
 		}
-
 
 		public String getCurrentVersion() {
 			return properties.getProperty(CURRENT_VESION, "");
@@ -254,6 +266,11 @@ public class UpgradeUtil {
 		public String getUpgradeJar() {
 			return properties.getProperty(UPGRADE_JAR, "");
 		}
+		
+		public String getUpgradeFolder() {
+			return properties.getProperty(UPGRADE_FOLDER, "");
+		}
+
 
 
 		

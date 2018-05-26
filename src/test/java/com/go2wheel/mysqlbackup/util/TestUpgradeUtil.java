@@ -2,12 +2,10 @@ package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -41,11 +39,6 @@ public class TestUpgradeUtil {
 	@Test
 	public void twriteUpgradeFile() throws IOException {
 
-//		try (InputStream is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties")) {
-//			assertNotNull(is);
-//			BuildInfo bi = new BuildInfo(is);
-//		
-//		}
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		uu.writeUpgradeFile();
 		UpgradeFile uf = uu.getUpgradeFilẹ();
