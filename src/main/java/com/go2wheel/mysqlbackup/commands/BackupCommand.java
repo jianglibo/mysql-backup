@@ -274,8 +274,8 @@ public class BackupCommand {
 
 
 	@ShellMethod(value = "Upgrade system.")
-	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") String zipFile) {
-		Path zp = Paths.get(zipFile);
+	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) {
+		Path zp = zipFile.toPath();
 		if (!Files.exists(zp)) {
 			return FacadeResult.showMessageExpected(CommonMessageKeys.FILE_NOT_EXISTS, zipFile);
 		}

@@ -23,7 +23,7 @@ SET _db=%wdirslash%dbdata/db
 
 SET springParams=--spring.config.location=classpath:/application.properties,file:./application.properties
 
-IF DEFINED upgrade-jar SET _db=%wdirslash%dbdata.prev/db
+:: IF DEFINED upgrade-jar SET _db=%wdirslash%dbdata.prev/db
 
 SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%_db%;shutdown=true
 
@@ -44,6 +44,7 @@ ECHO exit with code %ERRORLEVEL%
 
 IF %ERRORLEVEL% == 101 (
 	ECHO restarting....
+	SET "upgrade-jar="
 	GOTO :loop
 )
 
@@ -59,7 +60,7 @@ REM EXIT /B %ERRORLEVEL%
 :findrun
 SET jarfile=NOT_EXISTS_FILE
 SETLOCAL EnableDelayedExpansion
-FOR /F "tokens=4" %%G IN ('dir %~1 ^| FINDSTR /R "mysql-backup-.*-boot.jar"') DO SET jarfile=%%G
+FOR /F "tokens=4" %%G IN ('dir %~1 ^| FINDSTR /R "mysql-backup-.*-boot.jar$"') DO SET jarfile=%%G
 SET jarfile=%~1%jarfile%
 IF EXIST %jarfile% (
 	ECHO found %jarfile%, and start it......

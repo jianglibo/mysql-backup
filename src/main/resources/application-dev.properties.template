@@ -35,6 +35,7 @@ logging.level.root= INFO
 logging.level.com.go2wheel.mysqlbackup.job.SampleJob= ERROR
 logging.level.com.go2wheel.mysqlbackup.job.SampleJobService= ERROR
 logging.level.org.jooq= DEBUG
+logging.level.org.flywaydb= DEBUG
 
 myapp.dataDir= boxes
 myapp.downloadFolder= notingit

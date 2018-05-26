@@ -14,7 +14,7 @@ spring.quartz.job-store-type=jdbc
 # always, embeded.
 spring.quartz.jdbc.initialize-schema=never
 
-spring.flyway.locations=classpath:/dev/db/migration
+spring.flyway.locations=classpath:/db/migration
 
 
 spring.mail.host= smtp.qq.com
@@ -35,6 +35,7 @@ logging.level.root= INFO
 logging.level.com.go2wheel.mysqlbackup.job.SampleJob= ERROR
 logging.level.com.go2wheel.mysqlbackup.job.SampleJobService= ERROR
 logging.level.org.jooq= DEBUG
+logging.level.org.flywaydb= DEBUG
 
 myapp.dataDir= boxes
 myapp.downloadFolder= notingit
@@ -49,3 +50,4 @@ dv.cron.diskfree= 0 0/2 * * * ?
 dv.cron.borg_archive= 0 0/2 * * * ?
 dv.cron.borg_prune= 0 0/2 * * * ?
 dv.cron.mysql_flush= 0 0/2 * * * ?
+only.you=true

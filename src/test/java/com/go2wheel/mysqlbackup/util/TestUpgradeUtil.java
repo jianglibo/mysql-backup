@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +30,7 @@ public class TestUpgradeUtil {
 	
 	@Test
 	public void t() throws IOException {
+		assumeTrue(Files.exists(zipFile));
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		BuildInfo bi = uu.getBuildInfo();
 		assertFalse(bi.getVersion().isEmpty());
