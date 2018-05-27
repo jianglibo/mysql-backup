@@ -2,8 +2,8 @@ package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
+import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,9 +13,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.jooq.DSLContext;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -28,7 +28,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
@@ -38,6 +37,7 @@ import com.go2wheel.mysqlbackup.service.DiskfreeService;
 import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
+import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UpTimeService;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -64,6 +64,9 @@ public class SpringBaseFort {
 
 	@Autowired
 	protected MyAppSettings myAppSettings;
+	
+	@Autowired
+	protected DSLContext jooq;
 
 	@Autowired
 	protected Environment env;
@@ -97,6 +100,9 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected JobErrorService jobErrorService;
+	
+	@Autowired
+	protected ServerGrpService serverGrpService;
 
 	
 	protected Box box;
@@ -129,15 +135,27 @@ public class SpringBaseFort {
 
 	private long startTime;
 	
+	private boolean needSession;
+	
+	public SpringBaseFort() {
+		this.needSession = true;
+	}
+
+	
+	public SpringBaseFort(boolean needSession) {
+		this.needSession = needSession;
+	}
+	
 	@Before
 	public void beforeBase() throws SchedulerException {
 		UtilForTe.deleteAllJobs(scheduler);
 		box = createBox();
-		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(box);
-		if (!frs.isExpected()) {
-			throw new ShowToUserException(frs.getMessage());
+		if (needSession) {
+			FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(box);
+			if (frs.isExpected()) {
+				session = frs.getResult();
+			}
 		}
-		session = frs.getResult();
 		applicationState.setServers(new ArrayList<>());
 		applicationState.getServers().add(box);
 		
@@ -149,7 +167,10 @@ public class SpringBaseFort {
 		upTimeService.deteteAll();
 		borgDownloadService.deteteAll();
 		jobErrorService.deteteAll();
+		
+		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		serverService.deteteAll();
+		serverGrpService.deteteAll();
 		
 		Server sv = new Server(box.getHost());
 		serverService.save(sv);
@@ -290,12 +311,6 @@ public class SpringBaseFort {
 		assertThat("total should right.", Files.walk(topPath).count(), equalTo(total));
 
 	}
-	
-	@Test
-	public void placeholderTest() {
-		assertTrue(true);
-	}
-
 }
 
 
