@@ -1,11 +1,11 @@
 spring.shell.interactive.enabled=true
 spring.shell.script.enabled=true
 
-spring.datasource.url= jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true
-spring.datasource.username= SA
+spring.datasource.url=jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true
+spring.datasource.username=SA
 spring.datasource.password=
-spring.datasource.driver-class-name= org.hsqldb.jdbc.JDBCDriver
-spring.datasource.validation-query= select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
+spring.datasource.validation-query=select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
 spring.datasource.test-on-borrow= true
  
 spring.jooq.sql-dialect=HSQLDB
@@ -36,6 +36,7 @@ logging.level.com.go2wheel.mysqlbackup.job.SampleJob= ERROR
 logging.level.com.go2wheel.mysqlbackup.job.SampleJobService= ERROR
 logging.level.org.jooq= DEBUG
 logging.level.org.flywaydb= DEBUG
+logging.level.com.zaxxer.hikari=DEBUG
 
 myapp.dataDir= boxes
 myapp.downloadFolder= notingit

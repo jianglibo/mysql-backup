@@ -27,9 +27,8 @@ public class ExceptionUtil {
 		String s = "";
 		if (rcr != null) {
 			s = String.join("\n", rcr.getAllTrimedNotEmptyLines());
+			logger.error("exitValue: {}, output: {}", rcr.getExitValue(), s);
 		}
-		
-		logger.error("exitValue: {}, output: {}", rcr.getExitValue(), s);
 	}
 
 	public static String stackTraceToString(Exception e) {

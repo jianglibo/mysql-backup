@@ -13,15 +13,16 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -32,19 +33,21 @@ import com.jcraft.jsch.Session;
 
 public class UtilForTe {
 	
-	private static Pattern getItemPtn(String name) {
-		return Pattern.compile("\\s+" + name + ":\\s*(.*?)\\s*");
-	}
+	private static Logger logger = LoggerFactory.getLogger(UtilForTe.class);
 
 	public static void printme(Object o) {
 		System.out.println(o);
 	}
 	
 	public static void deleteAllJobs(Scheduler scheduler) throws SchedulerException {
-		for (JobKey jk : allJobs(scheduler)) {
-			scheduler.deleteJob(jk);
+		try {
+			for (JobKey jk : allJobs(scheduler)) {
+				scheduler.deleteJob(jk);
+			}
+			;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		;
 	}
 	
 	
@@ -57,7 +60,14 @@ public class UtilForTe {
 	}
 	
 	public static MyAppSettings getMyAppSettings() throws IOException {
-		try (InputStream is = ClassLoader.class.getResourceAsStream("/application.yml")) {
+		try (InputStream is = ClassLoader.class.getResourceAsStream("/application-dev.properties")) {
+			String s= StringUtil.inputstreamToString(is);
+			printme(is);
+			printme(s);
+			printme(s.length());
+		}
+		
+		try (InputStream is = ClassLoader.class.getResourceAsStream("/application-dev.properties")) {
 			MyAppSettings mas = new MyAppSettings();
 			mas.setDataRoot(Paths.get("boxes"));
 			mas.setDownloadRoot(Paths.get("notingit"));
@@ -70,35 +80,28 @@ public class UtilForTe {
 				String line = null;
 				try {
 					while((line = in.readLine()) != null) {
-						Matcher m = getItemPtn("sshIdrsa").matcher(line);
-						if (m.matches()) {
-							 sc.setSshIdrsa((String) m.group(1));
+						printme(line);
+						if (line.contains("sshIdrsa")) {
+							sc.setSshIdrsa(line.split("=", 2)[1].trim());
 						}
-						m = getItemPtn("knownHosts").matcher(line);
-						if (m.matches()) {
-							sc.setKnownHosts((m.group(1)));
+						
+						if (line.contains("knownHosts")) {
+							sc.setKnownHosts(line.split("=", 2)[1].trim());
 						}
 					}
 				} catch (IOException e) {
+					e.printStackTrace();
 				}
 				 
 			}
 			return mas;
 		}
-		
 	}
 	
 	public static Box loadDemoBox() throws IOException {
 		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
 		return YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
 	}
-	
-//	public static BackupCommand backupCommandInstance() throws IOException {
-//		BackupCommand bc = new BackupCommand();
-//		bc.setInstancesBase(Files.createTempDirectory("backupcommandbase"));
-//		return bc;
-//	}
-	
 	
 	public static Path getMysqlInstanceDescription(String hostname) {
 		return Paths.get("fixtures", "boxes", hostname, "description.yml");

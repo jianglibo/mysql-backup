@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
@@ -20,16 +21,20 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 
 public class TestUpgradeUtil {
 	
-	private Path zipFile;
+	private Path zipFile = null;
 	
 	@Before
 	public void b() throws IOException {
 		Path p = Paths.get("build", "dist");
-		zipFile = Files.list(p).filter(pp -> pp.toString().endsWith(".zip")).findAny().get();
+		if (Files.exists(p)) {
+			zipFile = Files.list(p).filter(pp -> pp.toString().endsWith(".zip")).findAny().orElse(null);
+		}
+		
 	}
 	
 	@Test
 	public void t() throws IOException {
+		assumeNotNull(zipFile);
 		assumeTrue(Files.exists(zipFile));
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		BuildInfo bi = uu.getBuildInfo();
@@ -40,7 +45,7 @@ public class TestUpgradeUtil {
 
 	@Test
 	public void twriteUpgradeFile() throws IOException {
-
+		assumeNotNull(zipFile);
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		uu.writeUpgradeFile();
 		UpgradeFile uf = uu.getUpgradeFilẹ();

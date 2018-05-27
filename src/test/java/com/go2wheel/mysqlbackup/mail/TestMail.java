@@ -1,10 +1,8 @@
 package com.go2wheel.mysqlbackup.mail;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
@@ -15,26 +13,22 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.core.io.Resource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.messageresolver.IMessageResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
-public class TestMail {
+import com.go2wheel.mysqlbackup.SpringBaseFort;
+
+public class TestMail extends SpringBaseFort {
 
 	@Autowired
 	private JavaMailSender javaMailSender;
@@ -50,11 +44,6 @@ public class TestMail {
 	private String subject = "Test subject";
 	private String textMail = "Text subject mail";
 
-//	@Test
-//	public void tsend() {
-//		SimpleMailMessage message = composeEmailMessage();
-//		javaMailSender.send(message);
-//	}
 
 	private SimpleMailMessage composeEmailMessage() {
 		SimpleMailMessage mailMessage = new SimpleMailMessage();

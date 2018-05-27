@@ -42,7 +42,7 @@ public class Box {
 	}
 	
 	public boolean canSShKeyAuth() {
-		boolean b =  sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile));
+		boolean b =  sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile.trim()));
 		return b;
 	}
 	

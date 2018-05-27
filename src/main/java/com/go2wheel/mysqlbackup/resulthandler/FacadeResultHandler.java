@@ -1,13 +1,7 @@
 package com.go2wheel.mysqlbackup.resulthandler;
 
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
@@ -42,14 +36,8 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 			try {
 				if (result.getException() != null) {
 					msg = ExceptionUtil.stackTraceToString(result.getException());
-				} else if(result.getResult() != null) {
-					if (resultValue instanceof Collection) {
-						msg = handleCollection((Collection<?>) resultValue);
-					} else if (resultValue instanceof Map) {
-						msg = handleMap((Map<?, ?>) resultValue);
-					} else {
-						msg = resultValue.toString();
-					}
+				} else if(resultValue != null) {
+					msg = result.resultToString();
 				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {
 					msg = messageService.getMessage(result.getMessage(), result.getMessagePlaceHolders());
 				} else {
@@ -72,28 +60,4 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 			ExceptionUtil.logErrorException(logger, e);
 		}
 	}
-
-	private String handleMap(Map<?, ?> result) {
-		String msg = "";
-		if (result.size() > 0) {
-			List<String> ls = new ArrayList<>();
-			
-			for(Entry<?, ?> entry: result.entrySet()) {
-				ls.add(String.format("%s: %s", entry.getKey().toString(), entry.getValue().toString()));
-			}
-			msg = String.join("\n", ls);
-		}
-		return msg;
-	}
-
-	private String handleCollection(Collection<?> result) {
-		String msg = "";
-		if (result.size() > 0) {
-			List<String> ls = (List<String>) result.stream().map(o -> o.toString()).collect(Collectors.toList());
-			msg = String.join("\n", ls);
-		}
-		return msg;
-	}
-
-
 }

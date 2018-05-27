@@ -31,7 +31,6 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		for(String fn : remoteFiles) {
 			SSHcommonUtil.runRemoteCommand(session, String.format("rm %s", fn));
 		}
-		super.after();
 	}
 	
 	@Test

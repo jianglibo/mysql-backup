@@ -29,7 +29,6 @@ import javax.annotation.PostConstruct;
 
 import org.junit.After;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
@@ -45,7 +44,6 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.ApplicationContext;
@@ -53,14 +51,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.scheduling.quartz.JobDetailFactoryBean;
 import org.springframework.scheduling.quartz.SimpleTriggerFactoryBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.UtilForTe;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
 @Import(com.go2wheel.mysqlbackup.job.TestSpringQrtzScheduler.SpringQrtzScheduler.class)
-public class TestSpringQrtzScheduler {
+public class TestSpringQrtzScheduler extends SpringBaseFort  {
 	
 	@Autowired
 	private Scheduler scheduler;
@@ -77,24 +73,24 @@ public class TestSpringQrtzScheduler {
 	@Test
 	public void testJobAndTriggers() throws SchedulerException, InterruptedException {
 		
-		when(myJobListener.getName()).thenReturn("myjl");
-		assertNotNull(scheduler);
-		List<String> grps = scheduler.getJobGroupNames();
-		Collections.sort(grps);
-		List<String> expected = Arrays.asList("group1", "MYSQL", SpringQrtzScheduler.GROUP_NAME);
-		Collections.sort(expected);
-		assertTrue(grps.contains("FOR_TEST_GROUP") && grps.contains("group1"));
-		
-		
-		scheduler.getListenerManager().addJobListener(myJobListener, allJobs());
-		
-		Set<JobKey> jks = scheduler.getJobKeys(GroupMatcher.groupEquals("MYSQL"));
-		jks = scheduler.getJobKeys(GroupMatcher.groupEquals("DEFAULT"));
-		jks = scheduler.getJobKeys(GroupMatcher.groupEquals(SpringQrtzScheduler.GROUP_NAME));
-		
-		String jkname = jks.iterator().next().toString();
-		assertThat(jkname, equalTo(SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Job_Detail"));
-		assertThat(jks.size(), equalTo(1));
+//		when(myJobListener.getName()).thenReturn("myjl");
+//		assertNotNull(scheduler);
+//		List<String> grps = scheduler.getJobGroupNames();
+//		Collections.sort(grps);
+//		List<String> expected = Arrays.asList("group1", "MYSQL", SpringQrtzScheduler.GROUP_NAME);
+//		Collections.sort(expected);
+//		assertTrue(grps.contains("FOR_TEST_GROUP") && grps.contains("group1"));
+//		
+//		
+//		scheduler.getListenerManager().addJobListener(myJobListener, allJobs());
+//		
+//		Set<JobKey> jks = scheduler.getJobKeys(GroupMatcher.groupEquals("MYSQL"));
+//		jks = scheduler.getJobKeys(GroupMatcher.groupEquals("DEFAULT"));
+//		jks = scheduler.getJobKeys(GroupMatcher.groupEquals(SpringQrtzScheduler.GROUP_NAME));
+//		
+//		String jkname = jks.iterator().next().toString();
+//		assertThat(jkname, equalTo(SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Job_Detail"));
+//		assertThat(jks.size(), equalTo(1));
 	}
 	
 	public class MyJobListener implements JobListener {
@@ -142,35 +138,6 @@ public class TestSpringQrtzScheduler {
 	        logger.info("Hello world from Spring...");
 	    }
 
-//	    @Bean
-//	    public SpringBeanJobFactory springBeanJobFactory() {
-//	        AutoWiringSpringBeanJobFactory jobFactory = new AutoWiringSpringBeanJobFactory();
-//	        logger.debug("Configuring Job factory");
-	//
-//	        jobFactory.setApplicationContext(applicationContext);
-//	        return jobFactory;
-//	    }
-	    
-//	    org.springframework.boot.autoconfigure.quartz
-//		@Bean
-//		@ConditionalOnMissingBean
-//		public SchedulerFactoryBean quartzScheduler() {
-			
-
-//	    @Bean
-//	    public SchedulerFactoryBean scheduler(Trigger trigger, JobDetail job) {
-	//
-//	        SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
-//	        schedulerFactory.setConfigLocation(new ClassPathResource("quartz.properties"));
-//	        Properties p = new Properties();
-	//
-//	        logger.debug("Setting the Scheduler up");
-//	        schedulerFactory.setJobFactory(springBeanJobFactory());
-//	        schedulerFactory.setJobDetails(job);
-//	        schedulerFactory.setTriggers(trigger);
-	//
-//	        return schedulerFactory;
-//	    }
 
 	    @Bean
 	    public JobDetailFactoryBean sampleJobDetail() {

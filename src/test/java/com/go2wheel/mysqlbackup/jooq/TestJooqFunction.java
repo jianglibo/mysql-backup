@@ -6,19 +6,15 @@ import org.jooq.Result;
 import org.jooq.impl.DSL;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataAccessException;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Author;
 import com.go2wheel.mysqlbackup.jooqschema.tables.AuthorBook;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Book;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
-public class TestJooqFunction {
+public class TestJooqFunction extends SpringBaseFort {
 
 	// http://www.jooq.org/doc/3.10/manual/getting-started/tutorials/jooq-with-spring/
 	Author author = Author.AUTHOR;

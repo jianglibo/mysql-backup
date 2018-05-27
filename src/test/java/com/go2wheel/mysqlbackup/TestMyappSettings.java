@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -25,7 +24,6 @@ public class TestMyappSettings  extends SpringBaseFort {
 	
 	@Test
 	public void tappstate() {
-		assertFalse(ApplicationState.IS_PROD_MODE);
 		String[] profiles = env.getActiveProfiles();
 		assertThat(profiles.length, equalTo(1));
 		assertTrue("should in dev profile.", Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "dev".equals(p)));

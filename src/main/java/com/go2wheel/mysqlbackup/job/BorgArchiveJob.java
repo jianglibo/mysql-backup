@@ -14,8 +14,10 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
+import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadService;
+import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -41,6 +43,9 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private JobErrorService jobErrorService;
 
 	@Autowired
 	private ServerService serverService;
@@ -53,9 +58,16 @@ public class BorgArchiveJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
+			Server sv = serverService.findByHost(host);
+			
+			JobError je = new JobError();
+			je.setServerId(sv.getId());
+
 			
 			if (borgTaskFacade.isBorgNotReady(box)) {
 				logger.error("Box {} is not ready for Archive.", host);
+				je.setMessageDetail("borg not ready for backup.");
+				jobErrorService.save(je);
 				return;
 			}
 			
@@ -64,9 +76,17 @@ public class BorgArchiveJob implements Job {
 			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, box, false);
 
 			long ts = fr.getEndTime() - fr.getStartTime();
+			
+			
+			
 			BorgDownload bd = null;
 			if (!fr.isExpected()) {
-				ExceptionUtil.logRemoteCommandResult(logger, fr.getResult());
+				if (fr.getResult() != null) {
+					ExceptionUtil.logRemoteCommandResult(logger, fr.getResult());
+				}
+				je.setMessageKey(fr.getMessage());
+				je.setMessageDetail(fr.resultToString());
+				jobErrorService.save(je);
 			} else {
 				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, box);
 				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
@@ -84,7 +104,7 @@ public class BorgArchiveJob implements Job {
 				bd.setResult(ResultEnum.SUCCESS);
 			}
 
-			Server sv = serverService.findByHost(host);
+			
 			bd.setServerId(sv.getId());
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);

@@ -16,7 +16,7 @@ public class TestFileDownloader extends SpringBaseFort {
 	@Test
 	public void t() throws ClientProtocolException, IOException {
 		FileDownloader fd = new FileDownloader();
-		fd.setAppSettings(appSettings);
+		fd.setAppSettings(myAppSettings);
 		
 		Path downloaded = fd.download("https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm");
 		assertTrue(Files.isRegularFile(downloaded));

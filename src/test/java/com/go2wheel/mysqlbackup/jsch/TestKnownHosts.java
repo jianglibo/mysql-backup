@@ -34,18 +34,14 @@ import com.jcraft.jsch.Session;
  */
 public class TestKnownHosts extends SpringBaseFort {
 
-	// @Test(expected = TransportException.class)
-	// public void testNoKnownHostSetting() throws IOException {
-	// new SSHClient().connect(box.getHost());
-	// }
 
 	@Test()
 	public void testKnownHostFromFile() throws IOException, JSchException, RunRemoteCommandException {
 		JSch jsch=new JSch();
 		
-		jsch.setKnownHosts(appSettings.getSsh().getKnownHosts());
+		jsch.setKnownHosts(myAppSettings.getSsh().getKnownHosts());
 		
-		assertTrue(".known hosts should be exists.", Files.exists(Paths.get(appSettings.getSsh().getKnownHosts())));
+		assertTrue(".known hosts should be exists.", Files.exists(Paths.get(myAppSettings.getSsh().getKnownHosts())));
 		HostKeyRepository hkr = jsch.getHostKeyRepository();
 		HostKey[] hks = hkr.getHostKey();
 		HostKey demoKey = null;
@@ -62,10 +58,9 @@ public class TestKnownHosts extends SpringBaseFort {
 		System.out.println(demoKey.getType());
 		System.out.println(demoKey.getFingerPrint(jsch));
 		Session session=jsch.getSession(box.getUsername(), box.getHost(), box.getPort());
-		session.setPassword(box.getPassword());
+		session.setPassword("vagrant");
 		session.connect();
 		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
-		
 		assertThat(sl.size(), greaterThan(2));
 		sl.stream().forEach(System.out::println);
 	}

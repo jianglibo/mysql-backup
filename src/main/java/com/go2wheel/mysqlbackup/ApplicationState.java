@@ -146,7 +146,6 @@ public class ApplicationState implements EnvironmentAware {
 		} catch (Exception e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}
-		
 		ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
 		loadState();
 	}

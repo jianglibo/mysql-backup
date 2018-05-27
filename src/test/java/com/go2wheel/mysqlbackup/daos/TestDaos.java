@@ -10,12 +10,10 @@ import javax.validation.ConstraintViolationException;
 
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.test.context.junit4.SpringRunner;
 
+import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.MailAddress;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.repository.MailAddressRepository;
@@ -23,10 +21,7 @@ import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
 import com.go2wheel.mysqlbackup.service.MailAddressService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
-public class TestDaos {
-	
+public class TestDaos extends SpringBaseFort {
 	
 	@Autowired
 	private MailAddressService mailAddressService;

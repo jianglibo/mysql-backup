@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.util.ArrayList;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.quartz.SchedulerException;
@@ -24,7 +23,6 @@ import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.jcraft.jsch.JSchException;
 
 public class TestBorgService extends SpringBaseFort {
 
@@ -37,10 +35,6 @@ public class TestBorgService extends SpringBaseFort {
 		assertFalse(ii.isInstalled());
 	}
 
-	@After
-	public void a() throws IOException, JSchException, RunRemoteCommandException {
-		super.after();
-	}
 
 	@Test
 	public void tRepoInit() throws RunRemoteCommandException {

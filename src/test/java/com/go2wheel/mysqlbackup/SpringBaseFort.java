@@ -19,7 +19,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
-import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +35,7 @@ import com.go2wheel.mysqlbackup.service.BackupFolderService;
 import com.go2wheel.mysqlbackup.service.BackupFolderStateService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadService;
 import com.go2wheel.mysqlbackup.service.DiskfreeService;
+import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ServerService;
@@ -54,7 +54,7 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-@SpringBootTest({ "spring.shell.interactive.enabled=false", "spring.profiles.active=dev" })
+@SpringBootTest(classes = StartPointer.class, value = { "spring.shell.interactive.enabled=false", "spring.shell.command.quit.enabled=false" , "spring.profiles.active=dev" })
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
@@ -94,6 +94,9 @@ public class SpringBaseFort {
 
 	@Autowired
 	protected BorgDownloadService borgDownloadService;
+	
+	@Autowired
+	protected JobErrorService jobErrorService;
 
 	
 	protected Box box;
@@ -109,9 +112,6 @@ public class SpringBaseFort {
 	
 	protected Session session;
 	
-
-	protected MyAppSettings appSettings;
-
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
 
 	protected String TMP_SERVER_DIR_NAME = "/tmp/abc";
@@ -130,8 +130,8 @@ public class SpringBaseFort {
 	private long startTime;
 	
 	@Before
-	public void before() throws SchedulerException {
-		deleteAllJobs();
+	public void beforeBase() throws SchedulerException {
+		UtilForTe.deleteAllJobs(scheduler);
 		box = createBox();
 		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(box);
 		if (!frs.isExpected()) {
@@ -148,6 +148,7 @@ public class SpringBaseFort {
 		diskfreeService.deteteAll();
 		upTimeService.deteteAll();
 		borgDownloadService.deteteAll();
+		jobErrorService.deteteAll();
 		serverService.deteteAll();
 		
 		Server sv = new Server(box.getHost());
@@ -160,7 +161,7 @@ public class SpringBaseFort {
 	
 	
 	@After
-	public void after() throws IOException, JSchException, RunRemoteCommandException {
+	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
 		if (tmpDirectory != null) {
 			try {
 				FileUtil.deleteFolder(tmpDirectory);
@@ -178,15 +179,6 @@ public class SpringBaseFort {
 			session.disconnect();
 		}
 	}
-	
-
-	protected void deleteAllJobs() throws SchedulerException {
-		for (JobKey jk : UtilForTe.allJobs(scheduler)) {
-			scheduler.deleteJob(jk);
-		}
-		;
-	}
-
 	
 	private Box createBox() {
 		box = new Box();

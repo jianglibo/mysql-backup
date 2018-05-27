@@ -1,5 +1,12 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
 import com.go2wheel.mysqlbackup.aop.TimeCost;
 
 public class FacadeResult<T> implements TimeCost {
@@ -176,5 +183,39 @@ public class FacadeResult<T> implements TimeCost {
 
 	public void setMessagePlaceHolders(Object[] messagePlaceHolders) {
 		this.messagePlaceHolders = messagePlaceHolders;
+	}
+	
+	
+	public String resultToString() {
+		if (result == null) return "";
+		if (result instanceof Collection) {
+			return handleCollection((Collection<?>) result);
+		} else if (result instanceof Map) {
+			return handleMap((Map<?, ?>) result);
+		} else {
+			return result.toString();
+		}
+	}
+	
+	private String handleMap(Map<?, ?> result) {
+		String msg = "";
+		if (result.size() > 0) {
+			List<String> ls = new ArrayList<>();
+			
+			for(Entry<?, ?> entry: result.entrySet()) {
+				ls.add(String.format("%s: %s", entry.getKey().toString(), entry.getValue().toString()));
+			}
+			msg = String.join("\n", ls);
+		}
+		return msg;
+	}
+
+	private String handleCollection(Collection<?> result) {
+		String msg = "";
+		if (result.size() > 0) {
+			List<String> ls = (List<String>) result.stream().map(o -> o.toString()).collect(Collectors.toList());
+			msg = String.join("\n", ls);
+		}
+		return msg;
 	}
 }

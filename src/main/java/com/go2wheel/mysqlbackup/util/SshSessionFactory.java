@@ -40,20 +40,19 @@ public class SshSessionFactory {
 			if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
 				return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
 			}
-			
-			if (!Files.exists(Paths.get(knownHosts))) {
+			if (!Files.exists(Paths.get(knownHosts.trim()))) {
 				return FacadeResult.showMessageUnExpected(KNOWNHOSTS_NOTEXISTS, knownHosts);
 			}
-			jsch.setKnownHosts(knownHosts);
+			jsch.setKnownHosts(Paths.get(knownHosts.trim()).toAbsolutePath().toString());
 		
 			if (box.canSShKeyAuth()) {
-				jsch.addIdentity(box.getSshKeyFile());
+				jsch.addIdentity(Paths.get(box.getSshKeyFile().trim()).toAbsolutePath().toString());
 				session.connect();
 			} else if (box.canPasswordAuth()) {
 				session.setPassword(box.getPassword());
 				session.connect();
 			} else if(appSettings.getSsh().sshIdrsaExists()) {
-				jsch.addIdentity(idrsaFile);
+				jsch.addIdentity(Paths.get(idrsaFile.trim()).toAbsolutePath().toString());
 				session.connect();
 			} else {
 				return FacadeResult.showMessageUnExpected(SSHKEYFILE_NOTEXISTS, idrsaFile);

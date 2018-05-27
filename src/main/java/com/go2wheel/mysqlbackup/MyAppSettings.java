@@ -162,7 +162,7 @@ public class MyAppSettings {
 		}
 		
 		public boolean sshIdrsaExists() {
-			return sshIdrsa != null && !sshIdrsa.trim().isEmpty() && Files.exists(Paths.get(sshIdrsa));
+			return sshIdrsa != null && !sshIdrsa.trim().isEmpty() && Files.exists(Paths.get(sshIdrsa.trim()));
 		}
 	}
 }

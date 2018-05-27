@@ -6,27 +6,13 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.env.AbstractEnvironment;
-import org.springframework.core.env.Environment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
-import org.springframework.test.context.junit4.SpringRunner;
 
-@SpringBootTest("spring.shell.interactive.enabled=false")
-@RunWith(SpringRunner.class)
-public class TestLoggingEnv {
-	
-	@Autowired
-	private Environment env;
-	
-//	@Value("${org.springframework.boot.logging.LoggingSystem}")
-//	private String logsys;
-	
-//	logging.config
-//	org.springframework.boot.logging.LoggingSystem
+import com.go2wheel.mysqlbackup.SpringBaseFort;
+
+public class TestLoggingEnv extends SpringBaseFort {
 	
 	@Test
 	public void t() {
