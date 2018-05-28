@@ -40,6 +40,8 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UpTimeService;
+import com.go2wheel.mysqlbackup.service.UserAccountService;
+import com.go2wheel.mysqlbackup.service.UserServerGrpService;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -76,6 +78,12 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected ServerService serverService;
+	
+	@Autowired
+	protected UserServerGrpService userServerGrpService;
+	
+	@Autowired
+	protected UserAccountService userAccountService;
 	
 	@Autowired
 	protected MysqlFlushService mysqlFlushService;
@@ -159,18 +167,20 @@ public class SpringBaseFort {
 		applicationState.setServers(new ArrayList<>());
 		applicationState.getServers().add(box);
 		
-		mysqlDumpService.deteteAll();
-		mysqlFlushService.deteteAll();
-		backupFolderStateService.deteteAll();
-		backupFolderService.deteteAll();
-		diskfreeService.deteteAll();
-		upTimeService.deteteAll();
-		borgDownloadService.deteteAll();
-		jobErrorService.deteteAll();
+		mysqlDumpService.deleteAll();
+		mysqlFlushService.deleteAll();
+		backupFolderStateService.deleteAll();
+		backupFolderService.deleteAll();
+		diskfreeService.deleteAll();
+		upTimeService.deleteAll();
+		borgDownloadService.deleteAll();
+		jobErrorService.deleteAll();
 		
+		userServerGrpService.deleteAll();
+		userAccountService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
-		serverService.deteteAll();
-		serverGrpService.deteteAll();
+		serverService.deleteAll();
+		serverGrpService.deleteAll();
 		
 		Server sv = new Server(box.getHost());
 		serverService.save(sv);

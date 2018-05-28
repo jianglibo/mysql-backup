@@ -5,7 +5,7 @@ import java.util.List;
 import com.go2wheel.mysqlbackup.jooqschema.tables.records.UpTimeRecord;
 import com.go2wheel.mysqlbackup.model.UpTime;
 
-public interface UpTimeRepository extends RepositoryBase<UpTimeRecord, UpTime, Integer>{
+public interface UpTimeRepository extends RepositoryBase<UpTimeRecord, UpTime>{
 
 	List<UpTime> getItemsInDays(Integer serverId, int days);
 

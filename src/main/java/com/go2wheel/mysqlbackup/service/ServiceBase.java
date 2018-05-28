@@ -11,9 +11,9 @@ import com.go2wheel.mysqlbackup.repository.RepositoryBase;
 
 public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> {
 	
-	protected RepositoryBase<R, P, Integer> repo;
+	protected RepositoryBase<R, P> repo;
 	
-	public ServiceBase(RepositoryBase<R, P, Integer> repo) {
+	public ServiceBase(RepositoryBase<R, P> repo) {
 		this.repo = repo;
 	}
 	
@@ -33,7 +33,7 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 		return repo.count();
 	}
 	
-	public void deteteAll() {
+	public void deleteAll() {
 		findAll().forEach(item -> delete(item));
 	}
 

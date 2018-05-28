@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.model;
 import java.util.Date;
 
 public class UserServerGrp extends BaseModel {
+	
 	private Integer userAccountId;
 	private Integer serverGrpId;
 	private String cronExpression;
@@ -31,5 +32,37 @@ public class UserServerGrp extends BaseModel {
 	}
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+	
+	public static class UserServerGrpBuilder {
+		
+		private final Integer userAccountId;
+		private final Integer serverGrpId;
+		private String cronExpression;
+		
+		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId) {
+			super();
+			this.userAccountId = userAccountId;
+			this.serverGrpId = serverGrpId;
+		}
+		
+		public UserServerGrpBuilder withCronExpression(String cronExpression) {
+			this.cronExpression = cronExpression;
+			return this;
+		}
+		
+		public UserServerGrp build() {
+			UserServerGrp usg = new UserServerGrp();
+			usg.setCreatedAt(new Date());
+			usg.setCronExpression(cronExpression);
+			usg.setServerGrpId(serverGrpId);
+			usg.setUserAccountId(userAccountId);
+			return usg;
+		}
+		
+		
+		
+		
+		
 	}
 }

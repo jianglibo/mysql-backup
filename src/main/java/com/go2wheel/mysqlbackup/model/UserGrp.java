@@ -5,6 +5,7 @@ public class UserGrp extends BaseModel {
 	private String ename;
 	private String msgkey;
 	private String createdAt;
+	
 	public String getEname() {
 		return ename;
 	}

@@ -4,24 +4,35 @@ import java.util.Date;
 
 public class ServerGrp extends BaseModel {
 	
-	private String name;
+	private String ename;
+	private String msgkey;
 	private Date createdAt;
 	
 	public ServerGrp() {
 		this.createdAt = new Date();
 	}
 	
-	public ServerGrp(String name) {
-		this.name = name;
+	public ServerGrp(String ename) {
+		this.ename = ename;
 		this.createdAt = new Date();
 	}
-	
-	public String getName() {
-		return name;
+
+	public String getEname() {
+		return ename;
 	}
-	public void setName(String name) {
-		this.name = name;
+
+	public void setEname(String ename) {
+		this.ename = ename;
 	}
+
+	public String getMsgkey() {
+		return msgkey;
+	}
+
+	public void setMsgkey(String msgkey) {
+		this.msgkey = msgkey;
+	}
+
 	public Date getCreatedAt() {
 		return createdAt;
 	}

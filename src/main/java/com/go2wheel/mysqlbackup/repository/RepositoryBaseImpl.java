@@ -7,7 +7,7 @@ import org.jooq.impl.DAOImpl;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 
-public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends BaseModel> extends DAOImpl<R, P, Integer> implements RepositoryBase<R, P, Integer>{
+public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends BaseModel> extends DAOImpl<R, P, Integer> implements RepositoryBase<R, P>{
 	
 	protected DSLContext jooq;
 

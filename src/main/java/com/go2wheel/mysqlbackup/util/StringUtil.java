@@ -59,8 +59,8 @@ public class StringUtil {
 		return s != null && !(s.trim().isEmpty());
 	}
 	
-	public static String[] matchGroupReplace(Matcher m, String...replaces) {
-		String[] oo = matchGroupValues(m);
+	public static Object[] matchGroupReplace(Matcher m, Object...replaces) {
+		Object[] oo = matchGroupValues(m);
 		int l = oo.length;
 		for(int i = 0; i< l; i++) {
 			if (replaces[i] == null) {
@@ -72,9 +72,9 @@ public class StringUtil {
 		return oo;
 	}
 	
-	private static String placeHoderPtn = "\\(.*?\\)";
+//	private static String placeHoderPtn = "\\(.*?\\)";
 	
-	public static String replacePattern(String origin, String pattern,String fmt, String...replaces) throws StringReplaceException {
+	public static String replacePattern(String origin, String pattern,String fmt, Object...replaces) throws StringReplaceException {
 		Pattern ptn = Pattern.compile(pattern); // 
 		Matcher m = ptn.matcher(origin);
 		if (!m.matches()) {

@@ -9,9 +9,9 @@ public class StringReplaceException extends Exception {
 	private String origin;
 	private String pattern;
 	
-	private String[] replacements;
+	private Object[] replacements;
 	
-	public StringReplaceException(String origin, String pattern, String...replacements) {
+	public StringReplaceException(String origin, String pattern, Object...replacements) {
 		super(String.format("%s cannot match %s", pattern, origin));
 		this.setOrigin(origin);
 		this.pattern = pattern;
@@ -38,12 +38,12 @@ public class StringReplaceException extends Exception {
 	}
 
 
-	public String[] getReplacements() {
+	public Object[] getReplacements() {
 		return replacements;
 	}
 
 
-	public void setReplacements(String[] replacements) {
+	public void setReplacements(Object[] replacements) {
 		this.replacements = replacements;
 	}
 	
