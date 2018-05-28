@@ -49,12 +49,10 @@ import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.model.MailAddress;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
-import com.go2wheel.mysqlbackup.service.MailAddressService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
@@ -120,9 +118,6 @@ public class BackupCommand {
 
 	@Autowired
 	private ReusableCronService reusableCronService;
-
-	@Autowired
-	private MailAddressService mailAddressService;
 
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
@@ -656,17 +651,17 @@ public class BackupCommand {
 
 	}
 
-	@ShellMethod(value = "添加通知邮件地址。")
-	public String emailAdd(@ShellOption(help = "email地址") String email,
-			@ShellOption(help = "描述", defaultValue = "") String description) {
-		mailAddressService.save(new MailAddress(email, description));
-		return "Added.";
-	}
+//	@ShellMethod(value = "添加通知邮件地址。")
+//	public String emailAdd(@ShellOption(help = "email地址") String email,
+//			@ShellOption(help = "描述", defaultValue = "") String description) {
+//		mailAddressService.save(new MailAddress(email, description));
+//		return "Added.";
+//	}
 
-	@ShellMethod(value = "列出通知邮件地址。")
-	public List<String> emailList() {
-		return mailAddressService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
-	}
+//	@ShellMethod(value = "列出通知邮件地址。")
+//	public List<String> emailList() {
+//		return mailAddressService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
+//	}
 
 	/**
 	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
