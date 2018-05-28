@@ -48,4 +48,15 @@ public class JOOQServerGrpRepository extends RepositoryBaseImpl<ServerGrpRecord,
 				.and(SERVERGRP_AND_SERVER.SERVER_ID.eq(serverId))).execute();
 	}
 
+	@Override
+	public List<ServerGrp> findLikeEname(String input) {
+		String likeStr = input.indexOf('%') == -1 ? '%' + input + '%' : input;
+		return jooq.selectFrom(SERVER_GRP).where(SERVER_GRP.ENAME.likeIgnoreCase(likeStr)).fetchInto(ServerGrp.class);
+	}
+
+	@Override
+	public ServerGrp findByEname(String ename) {
+		return jooq.selectFrom(SERVER_GRP).where(SERVER_GRP.ENAME.eq(ename)).fetchAnyInto(ServerGrp.class);
+	}
+
 }

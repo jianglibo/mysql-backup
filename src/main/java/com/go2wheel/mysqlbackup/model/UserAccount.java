@@ -3,11 +3,18 @@ package com.go2wheel.mysqlbackup.model;
 import java.util.Date;
 import java.util.UUID;
 
+import javax.validation.constraints.NotEmpty;
+
 public class UserAccount extends BaseModel {
 	
+	@NotEmpty
 	private String name;
+	
+	@NotEmpty
 	private String mobile;
 	private String description;
+	
+	@NotEmpty
 	private String email;
 	private Date createdAt;
 	

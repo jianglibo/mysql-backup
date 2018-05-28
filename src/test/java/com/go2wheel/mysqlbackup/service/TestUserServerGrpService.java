@@ -32,8 +32,13 @@ public class TestUserServerGrpService extends ServiceTbase {
 				.build();
 		usg = userServerGrpService.save(usg);
 		
+		ServerGrp sg1 = createAServerGrp("kku");
+		usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg1.getId()).withCronExpression("zbc")
+				.build();
+		usg = userServerGrpService.save(usg);
+		
 		List<UserServerGrp> usgs = userServerGrpService.findByUser(ua);
-		assertThat(usgs.size(), equalTo(1));
+		assertThat(usgs.size(), equalTo(2));
 
 	}
 

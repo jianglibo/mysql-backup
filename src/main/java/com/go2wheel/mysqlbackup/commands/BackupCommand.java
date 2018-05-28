@@ -52,11 +52,16 @@ import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ReusableCronService;
+import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.UserAccountService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
@@ -104,6 +109,9 @@ public class BackupCommand {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private UserAccountService userAccountService;
 
 	@Autowired
 	private MysqlService mysqlService;
@@ -115,6 +123,9 @@ public class BackupCommand {
 
 	@Autowired @Lazy
 	private SchedulerService schedulerService;
+	
+	@Autowired
+	private ServerGrpService serverGrpService;
 
 	@Autowired
 	private ReusableCronService reusableCronService;
@@ -651,17 +662,54 @@ public class BackupCommand {
 
 	}
 
-//	@ShellMethod(value = "添加通知邮件地址。")
-//	public String emailAdd(@ShellOption(help = "email地址") String email,
-//			@ShellOption(help = "描述", defaultValue = "") String description) {
-//		mailAddressService.save(new MailAddress(email, description));
-//		return "Added.";
-//	}
+	@ShellMethod(value = "添加用户。")
+	public FacadeResult<?> userAdd(
+			@ShellOption(help = "用户名") String name,
+			@ShellOption(help = "email地址") String email,
+			@ShellOption(help = "手机号码", defaultValue=ShellOption.NULL) String mobile,
+			@ShellOption(help = "描述", defaultValue = "") String description) {
+		UserAccount ua = new UserAccount.UserAccountBuilder(name, email).withMobile(mobile).withDescription(description).build();
+		return FacadeResult.doneExpectedResult(userAccountService.save(ua), CommonActionResult.DONE);
+	}
+	
+	
+	@ShellMethod(value = "添加服务器组。")
+	public FacadeResult<?> ServerGroupAdd(
+			@ShellOption(help = "组的英文名称") String ename,
+			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue=ShellOption.NULL) String msgkey) {
+		ServerGrp sg = new ServerGrp(ename);
+		sg.setMsgkey(msgkey);
+		sg = serverGrpService.save(sg);
+		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
+	}
+	
+	@ShellMethod(value = "管理服务器组的主机")
+	public FacadeResult<?> ServerGroupMembers(
+			@ShellOption(help = "The server group to manage.") ServerGrp serverGroup,
+			@ShowPossibleValue({"ADD", "REMOVE"})
+			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE") String action,
+			@ShellOption(help = "The server to manage.") Server server
+			) {
+		switch (action) {
+		case "ADD":
+			serverGrpService.addServer(serverGroup, server);
+			break;
+		default:
+			serverGrpService.removeServer(serverGroup, server);
+			break;
+		}
+		return FacadeResult.doneExpectedResult(serverGrpService.getServers(serverGroup), CommonActionResult.DONE);
+	}
 
-//	@ShellMethod(value = "列出通知邮件地址。")
-//	public List<String> emailList() {
-//		return mailAddressService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
-//	}
+
+	@ShellMethod(value = "添加用户组。")
+	public FacadeResult<?> groupAdd(
+			@ShellOption(help = "组的英文名称") String ename,
+			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue=ShellOption.NULL) String msgkey) {
+		UserGrp ug = new UserGrp(ename, msgkey);
+		return null;
+	}
+
 
 	/**
 	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。

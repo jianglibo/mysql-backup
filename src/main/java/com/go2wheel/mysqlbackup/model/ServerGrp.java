@@ -2,9 +2,13 @@ package com.go2wheel.mysqlbackup.model;
 
 import java.util.Date;
 
+import javax.validation.constraints.NotEmpty;
+
 public class ServerGrp extends BaseModel {
 	
+	@NotEmpty
 	private String ename;
+	
 	private String msgkey;
 	private Date createdAt;
 	

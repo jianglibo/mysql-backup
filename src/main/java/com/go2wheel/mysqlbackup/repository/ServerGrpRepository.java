@@ -16,4 +16,8 @@ public interface ServerGrpRepository extends RepositoryBase<ServerGrpRecord, Ser
 
 	void removeServer(ServerGrp serverGrp, int serverId);
 
+	List<ServerGrp> findLikeEname(String input);
+
+	ServerGrp findByEname(String ename);
+
 }

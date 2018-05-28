@@ -1,7 +1,8 @@
 package com.go2wheel.mysqlbackup.repository;
 
-
 import static com.go2wheel.mysqlbackup.jooqschema.tables.Server.SERVER;
+
+import java.util.List;
 
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +20,12 @@ public class JOOQServerRepository extends RepositoryBaseImpl<ServerRecord, Serve
 
 	@Override
 	public Server findByHost(String host) {
-		ServerRecord sr = jooq.selectFrom(SERVER).where(SERVER.HOST.eq(host)).fetchOne();
-		if (sr != null) {
-			return sr.into(Server.class);
-		}
-		return  null;
+		return jooq.selectFrom(SERVER).where(SERVER.HOST.eq(host)).fetchAnyInto(Server.class);
+	}
+
+	@Override
+	public List<Server> findLikeHost(String partOfHostName) {
+		String likeStr = partOfHostName.indexOf('%') == -1 ? '%' + partOfHostName + '%' : partOfHostName;
+		return jooq.selectFrom(SERVER).where(SERVER.HOST.likeIgnoreCase(likeStr)).fetchInto(Server.class);
 	}
 }

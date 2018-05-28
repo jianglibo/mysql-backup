@@ -61,6 +61,28 @@ public class TestServerGrpService extends ServiceTbase {
 		assertThat(servers.size(), equalTo(0));
 
 	}
+	
+	
+	public void tFindLikeEname() {
+		ServerGrp serverGrp = new ServerGrp("abc1");
+		serverGrp = serverGrpService.save(serverGrp);
+		
+		List<ServerGrp> sgps = serverGrpService.findLikeEname("a");
+		assertThat(sgps.size(), equalTo(1));
+		
+		sgps = serverGrpService.findLikeEname("b");
+		assertThat(sgps.size(), equalTo(1));
+		
+		sgps = serverGrpService.findLikeEname("c");
+		assertThat(sgps.size(), equalTo(1));
+		
+		sgps = serverGrpService.findLikeEname("1");
+		assertThat(sgps.size(), equalTo(1));
+
+
+
+
+	}
 
 
 }

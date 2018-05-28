@@ -28,7 +28,11 @@ public class ServiceTbase extends SpringBaseFort {
 	}
 	
 	protected ServerGrp createAServerGrp() {
-		ServerGrp serverGrp = new ServerGrp("abc1");
+		return createAServerGrp("abc1");
+	}
+	
+	protected ServerGrp createAServerGrp(String gname) {
+		ServerGrp serverGrp = new ServerGrp(gname);
 		return serverGrpService.save(serverGrp);
 	}
 }

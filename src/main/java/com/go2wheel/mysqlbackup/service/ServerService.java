@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -19,5 +21,9 @@ public class ServerService extends ServiceBase<ServerRecord, Server> {
 	
 	public Server findByHost(String host) {
 		return ((ServerRepository)repo).findByHost(host);
+	}
+
+	public List<Server> findLikeHost(String partOfHostName) {
+		return ((ServerRepository)repo).findLikeHost(partOfHostName);
 	}
 }

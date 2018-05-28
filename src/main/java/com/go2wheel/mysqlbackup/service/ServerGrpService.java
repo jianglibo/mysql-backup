@@ -37,5 +37,13 @@ public class ServerGrpService extends ServiceBase<ServerGrpRecord, ServerGrp> {
 	public List<Server> getServers(ServerGrp serverGrp) {
 		return ((ServerGrpRepository)repo).getServers(serverGrp);
 	}
+
+	public List<ServerGrp> findLikeEname(String input) {
+		return ((ServerGrpRepository)repo).findLikeEname(input);
+	}
+
+	public ServerGrp findByEname(String ename) {
+		return ((ServerGrpRepository)repo).findByEname(ename);
+	}
 	
 }
