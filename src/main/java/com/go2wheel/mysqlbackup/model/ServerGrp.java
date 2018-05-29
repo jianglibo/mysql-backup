@@ -4,6 +4,8 @@ import java.util.Date;
 
 import javax.validation.constraints.NotEmpty;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
+
 public class ServerGrp extends BaseModel {
 	
 	@NotEmpty
@@ -42,5 +44,10 @@ public class ServerGrp extends BaseModel {
 	}
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
+	}
+
+	@Override
+	public String toListRepresentation() {
+		return ObjectUtil.toListRepresentation(this, "id", "ename", "msgkey");
 	}
 }

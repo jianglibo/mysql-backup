@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -27,5 +29,9 @@ public class UserAccountService extends ServiceBase<UserAccountRecord, UserAccou
 
 	public UserAccount findByName(String name) {
 		return ((UserAccountRepository)repo).findByName(name);
+	}
+
+	public List<UserAccount> findLikeName(String partOfName) {
+		return ((UserAccountRepository)repo).findLikeName(partOfName);
 	}
 }

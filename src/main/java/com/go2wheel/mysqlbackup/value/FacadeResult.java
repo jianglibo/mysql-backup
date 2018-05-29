@@ -213,7 +213,13 @@ public class FacadeResult<T> implements TimeCost {
 	private String handleCollection(Collection<?> result) {
 		String msg = "";
 		if (result.size() > 0) {
-			List<String> ls = (List<String>) result.stream().map(o -> o.toString()).collect(Collectors.toList());
+			List<String> ls;
+			if (ToListRepresentation.class.isAssignableFrom(result.iterator().next().getClass())) {
+				ls = (List<String>) result.stream().map(o -> ((ToListRepresentation)o).toListRepresentation()).collect(Collectors.toList());
+			} else {
+				ls = (List<String>) result.stream().map(o -> o.toString()).collect(Collectors.toList());
+			}
+			
 			msg = String.join("\n", ls);
 		}
 		return msg;

@@ -45,4 +45,10 @@ public class UserGrp extends BaseModel {
 		this.createdAt = createdAt;
 	}
 
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.repository;
 
 import static com.go2wheel.mysqlbackup.jooqschema.tables.UserAccount.USER_ACCOUNT;
 
+import java.util.List;
+
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -30,5 +32,11 @@ public class JOOQUserAccountRepository extends RepositoryBaseImpl<UserAccountRec
 	@Override
 	public UserAccount findByName(String name) {
 		return jooq.selectFrom(USER_ACCOUNT).where(USER_ACCOUNT.NAME.eq(name)).fetchAnyInto(UserAccount.class);
+	}
+
+	@Override
+	public List<UserAccount> findLikeName(String partOfName) {
+		String likeStr = partOfName.indexOf('%') == -1 ? '%' + partOfName + '%' : partOfName;
+		return jooq.selectFrom(USER_ACCOUNT).where(USER_ACCOUNT.NAME.like(likeStr)).fetchInto(UserAccount.class);
 	}
 }

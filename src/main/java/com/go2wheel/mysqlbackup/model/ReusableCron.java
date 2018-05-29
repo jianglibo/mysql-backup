@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 
 public class ReusableCron extends BaseModel {
@@ -8,11 +9,6 @@ public class ReusableCron extends BaseModel {
 	private String expression;
 	
 	private String description;
-	
-	@Override
-	public String toString() {
-		return String.format("[%s, %s]", expression, description);
-	}
 	
 	public ReusableCron() {
 	}
@@ -37,5 +33,10 @@ public class ReusableCron extends BaseModel {
 
 	public void setDescription(String description) {
 		this.description = description;
+	}
+
+	@Override
+	public String toListRepresentation() {
+		return ObjectUtil.toListRepresentation(this, "expression", "description");
 	}
 }

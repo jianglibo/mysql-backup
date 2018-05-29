@@ -44,5 +44,10 @@ public class MysqlDump extends BaseModel {
 	public void setResult(ResultEnum result) {
 		this.result = result;
 	}
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }

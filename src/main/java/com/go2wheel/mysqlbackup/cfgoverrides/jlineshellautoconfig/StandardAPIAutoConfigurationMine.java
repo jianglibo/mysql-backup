@@ -18,11 +18,15 @@ import org.springframework.shell.standard.ValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BorgDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BoxDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BoxTriggerProvider;
+import com.go2wheel.mysqlbackup.valueprovider.CronStringValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.MysqlDescriptionProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
+import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.UserAccountValueProvider;
 
 /**
  * copy from {@link StandardAPIAutoConfiguration}
@@ -43,9 +47,31 @@ public class StandardAPIAutoConfigurationMine {
 		return new EnumValueProvider();
 	}
 	
+	@Bean
 	public ValueProvider hostValueProvider() {
 		return new ServerInfoProvider();
 	}
+
+	@Bean
+	public ValueProvider serverValueProvider() {
+		return new ServerValueProvider();
+	}
+	
+	@Bean
+	public ValueProvider cronStringValueProvider() {
+		return new CronStringValueProvider();
+	}
+
+	@Bean
+	public ValueProvider serverGrpValueProvider() {
+		return new ServerGrpValueProvider();
+	}
+
+	@Bean
+	public ValueProvider userAccountValueProvider() {
+		return new UserAccountValueProvider();
+	}
+
 
 	@Bean
 	public ValueProvider fileValueProvider() {

@@ -2,17 +2,14 @@ package com.go2wheel.mysqlbackup.model;
 
 import javax.validation.constraints.NotNull;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
+
 public class Server extends BaseModel {
 	
 	@NotNull
 	private String host;
 	
 	private int coreNumber;
-	
-	@Override
-	public String toString() {
-		return String.format("[%s, %s]", getId(), host);
-	}
 	
 	public Server() {}
 	
@@ -34,6 +31,11 @@ public class Server extends BaseModel {
 
 	public void setCoreNumber(int coreNumber) {
 		this.coreNumber = coreNumber;
+	}
+
+	@Override
+	public String toListRepresentation() {
+		return ObjectUtil.toListRepresentation(this, "id", "host");
 	}
 	
 }

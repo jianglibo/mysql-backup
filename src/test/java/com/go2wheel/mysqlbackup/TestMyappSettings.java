@@ -28,5 +28,11 @@ public class TestMyappSettings  extends SpringBaseFort {
 		assertThat(profiles.length, equalTo(1));
 		assertTrue("should in dev profile.", Arrays.stream(env.getActiveProfiles()).anyMatch(p -> "dev".equals(p)));
 	}
+	
+	@Test
+	public void tList() {
+		String[] ss = env.getProperty("ppp.aslist", String[].class);
+		assertThat(ss.length, equalTo(3));
+	}
 
 }

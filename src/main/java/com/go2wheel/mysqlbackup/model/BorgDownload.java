@@ -84,4 +84,10 @@ public class BorgDownload extends BaseModel {
 	public void setTimeCost(long timeCost) {
 		this.timeCost = timeCost;
 	}
+
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

@@ -33,6 +33,11 @@ public class MailServerGrp extends BaseModel {
 	public void setCreatedAt(Date createdAt) {
 		this.createdAt = createdAt;
 	}
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 	
 	
 }

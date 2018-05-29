@@ -5,6 +5,8 @@ import java.util.UUID;
 
 import javax.validation.constraints.NotEmpty;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
+
 public class UserAccount extends BaseModel {
 	
 	@NotEmpty
@@ -85,6 +87,11 @@ public class UserAccount extends BaseModel {
 			return ua; 
 		}
 		
+	}
+
+	@Override
+	public String toListRepresentation() {
+		return ObjectUtil.toListRepresentation(this, "name", "email", "mobile");
 	}
 
 }

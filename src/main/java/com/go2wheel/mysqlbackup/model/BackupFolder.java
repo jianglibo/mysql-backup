@@ -29,4 +29,10 @@ public class BackupFolder extends BaseModel {
 		this.folder = folder;
 	}
 
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

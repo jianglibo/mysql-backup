@@ -70,4 +70,10 @@ public class Diskfree extends BaseModel {
 		this.available = available;
 	}
 
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

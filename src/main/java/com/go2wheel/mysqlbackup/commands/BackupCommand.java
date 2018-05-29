@@ -12,10 +12,10 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
@@ -38,6 +38,7 @@ import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.annotation.CronString;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.borg.BorgService;
@@ -55,13 +56,15 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
+import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
-import com.go2wheel.mysqlbackup.service.ReusableCronService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UserAccountService;
+import com.go2wheel.mysqlbackup.service.UserServerGrpService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
@@ -126,9 +129,12 @@ public class BackupCommand {
 	
 	@Autowired
 	private ServerGrpService serverGrpService;
+	
+	@Autowired
+	private UserServerGrpService userServerGrpService;
 
 	@Autowired
-	private ReusableCronService reusableCronService;
+	private ReuseableCronService reusableCronService;
 
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
@@ -657,9 +663,8 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出常用的CRON表达式")
-	public List<String> cronExpressionList() {
-		return reusableCronService.findAll().stream().map(Objects::toString).collect(Collectors.toList());
-
+	public FacadeResult<?> cronExpressionList() {
+		return FacadeResult.doneExpectedResult(reusableCronService.findAll(), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "添加用户。")
@@ -672,6 +677,36 @@ public class BackupCommand {
 		return FacadeResult.doneExpectedResult(userAccountService.save(ua), CommonActionResult.DONE);
 	}
 	
+	@ShellMethod(value = "用户列表。")
+	public FacadeResult<?> userList() {
+		return FacadeResult.doneExpectedResult(userAccountService.findAll(), CommonActionResult.DONE);
+	}
+	
+	@ShellMethod(value = "管理用户和服务器组的关系。")
+	public FacadeResult<?> userAndServerGroup(
+			@ShowPossibleValue({"LIST", "ADD", "REMOVE"})
+			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE|LIST") String action,
+			@ShellOption(help = "用户名") @NotNull UserAccount user,
+			@ShellOption(help = "服务器组") ServerGrp serverGroup,
+			@CronString
+			@ShellOption(help = "任务计划") String cron) {
+		UserServerGrp usg;
+		switch (action) {
+		case "ADD":
+			usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId()).withCronExpression(cron).build();
+			usg = userServerGrpService.save(usg);
+			return FacadeResult.doneExpectedResult(usg, CommonActionResult.DONE);
+		case "REMOVE":
+			usg = userServerGrpService.findByUserAndServerGrp(user, serverGroup);
+			userServerGrpService.delete(usg);
+			return FacadeResult.doneExpectedResult(usg, CommonActionResult.DONE);
+		default:
+			break;
+		}
+		return FacadeResult.doneExpectedResult(userServerGrpService.findAll(), CommonActionResult.DONE);
+	}
+
+	
 	
 	@ShellMethod(value = "添加服务器组。")
 	public FacadeResult<?> ServerGroupAdd(
@@ -682,20 +717,34 @@ public class BackupCommand {
 		sg = serverGrpService.save(sg);
 		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
 	}
+
+	@ShellMethod(value = "列出服务器组。")
+	public FacadeResult<?> ServerGroupList() {
+		List<ServerGrp> sgs = serverGrpService.findAll();
+		return FacadeResult.doneExpectedResult(sgs, CommonActionResult.DONE);
+	}
 	
 	@ShellMethod(value = "管理服务器组的主机")
 	public FacadeResult<?> ServerGroupMembers(
-			@ShellOption(help = "The server group to manage.") ServerGrp serverGroup,
-			@ShowPossibleValue({"ADD", "REMOVE"})
-			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE") String action,
-			@ShellOption(help = "The server to manage.") Server server
+			@ShowPossibleValue({"LIST", "ADD", "REMOVE"})
+			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE|LIST") String action,
+			@ShellOption(help = "The server group to manage.") @NotNull ServerGrp serverGroup,
+			@ShellOption(help = "The server to manage.", defaultValue=ShellOption.NULL) Server server
 			) {
 		switch (action) {
 		case "ADD":
+			if (server == null) {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
+			}
 			serverGrpService.addServer(serverGroup, server);
 			break;
-		default:
+		case "REMOVE":
+			if (server == null) {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
+			}
 			serverGrpService.removeServer(serverGroup, server);
+			break;
+		default:
 			break;
 		}
 		return FacadeResult.doneExpectedResult(serverGrpService.getServers(serverGroup), CommonActionResult.DONE);
@@ -703,7 +752,7 @@ public class BackupCommand {
 
 
 	@ShellMethod(value = "添加用户组。")
-	public FacadeResult<?> groupAdd(
+	public FacadeResult<?> userGroupAdd(
 			@ShellOption(help = "组的英文名称") String ename,
 			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue=ShellOption.NULL) String msgkey) {
 		UserGrp ug = new UserGrp(ename, msgkey);

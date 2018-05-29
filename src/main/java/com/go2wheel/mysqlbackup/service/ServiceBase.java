@@ -25,6 +25,10 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 		return repo.findAll();
 	}
 	
+	public P findById(Integer id) {
+		return repo.findById(id);
+	}
+	
 	public void delete(P pojo) {
 		repo.delete(pojo);
 	}

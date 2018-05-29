@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.model;
 
 import java.util.Date;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
+
 public class UserServerGrp extends BaseModel {
 	
 	private Integer userAccountId;
@@ -64,5 +66,10 @@ public class UserServerGrp extends BaseModel {
 		
 		
 		
+	}
+
+	@Override
+	public String toListRepresentation() {
+		return ObjectUtil.toListRepresentation(this, "userAccountId", "serverGrpId");
 	}
 }

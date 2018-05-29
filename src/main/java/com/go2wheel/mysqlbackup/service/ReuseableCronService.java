@@ -9,9 +9,9 @@ import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
 
 @Service
 @Validated
-public class ReusableCronService extends ServiceBase<ReuseableCronRecord, ReusableCron> {
+public class ReuseableCronService extends ServiceBase<ReuseableCronRecord, ReusableCron> {
 
-	public ReusableCronService(ReusableCronRepository reusableCronRepository) {
+	public ReuseableCronService(ReusableCronRepository reusableCronRepository) {
 		super(reusableCronRepository);
 	}
 	

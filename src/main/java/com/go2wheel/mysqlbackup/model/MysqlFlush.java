@@ -53,5 +53,10 @@ public class MysqlFlush extends BaseModel {
 	public void setFileNumber(Integer fileNumber) {
 		this.fileNumber = fileNumber;
 	}
+	@Override
+	public String toListRepresentation() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 }
