@@ -51,3 +51,6 @@ dv.cron.diskfree= 0 0/2 * * * ?
 dv.cron.borg_archive= 0 0/2 * * * ?
 dv.cron.borg_prune= 0 0/2 * * * ?
 dv.cron.mysql_flush= 0 0/2 * * * ?
+
+ppp.aslist[0]=abc
+ppp.aslist[1]=ccd
