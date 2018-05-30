@@ -1,21 +1,27 @@
 package com.go2wheel.mysqlbackup.resulthandler;
 
+import java.util.stream.Collectors;
+
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStringBuilder;
 import org.jline.utils.AttributedStyle;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.shell.CommandRegistry;
+import org.springframework.shell.ParameterMissingResolutionException;
+import org.springframework.shell.UnfinishedParameterResolutionException;
 import org.springframework.shell.result.ThrowableResultHandler;
 import org.springframework.util.StringUtils;
 
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 
 public class ThrowableResultHandlerMine extends ThrowableResultHandler implements ApplicationContextAware {
 
@@ -33,7 +39,7 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 
 	@SuppressWarnings("unused")
 	private ApplicationContext applicationContext;
-	
+
 	@Autowired
 	private LocaledMessageService messageService;
 
@@ -41,10 +47,13 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 	@Lazy
 	private InteractiveShellApplicationRunnerMine interactiveRunner;
 
+	@Value("line.separator")
+	private String lineSeparator;
+
 	@Override
 	protected void doHandleResult(Throwable result) {
 		lastError = result;
-		if ( ShowToUserException.class.isAssignableFrom(result.getClass())) {
+		if (ShowToUserException.class.isAssignableFrom(result.getClass())) {
 			String s;
 			try {
 				ShowToUserException stue = (ShowToUserException) result;
@@ -52,6 +61,26 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 			} catch (Exception e) {
 				s = result.getMessage();
 			}
+			terminal.writer().println(new AttributedStringBuilder()
+					.append(s, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
+			return;
+		} else if (result instanceof UnfinishedParameterResolutionException) {
+			String s = ((UnfinishedParameterResolutionException) result).getParameterDescription().keys().stream()
+					.map(k -> messageService.getMessage(CommonMessageKeys.PARAMETER_REQUIRED, k))
+					.collect(Collectors.joining(lineSeparator));
+			terminal.writer().println(new AttributedStringBuilder()
+					.append(s, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
+			return;
+		} else if (result instanceof ParameterMissingResolutionException) {
+			String s = ((ParameterMissingResolutionException) result).getParameterDescription().keys().stream()
+					.map(k -> messageService.getMessage(CommonMessageKeys.PARAMETER_REQUIRED, k))
+					.collect(Collectors.joining(lineSeparator));
+			terminal.writer().println(new AttributedStringBuilder()
+					.append(s, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
+			return;
+		} else if (result instanceof DuplicateKeyException) {
+			DuplicateKeyException dke = (DuplicateKeyException) result;
+			String s = messageService.getMessage(CommonMessageKeys.DB_DUPLICATE_KEY);
 			terminal.writer().println(new AttributedStringBuilder()
 					.append(s, AttributedStyle.DEFAULT.foreground(AttributedStyle.WHITE)).toAnsi());
 			return;

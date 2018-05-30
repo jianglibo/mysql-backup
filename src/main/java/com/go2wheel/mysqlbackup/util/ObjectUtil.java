@@ -78,9 +78,9 @@ public class ObjectUtil {
 				} catch (IllegalArgumentException | IllegalAccessException e) {
 					ExceptionUtil.logErrorException(logger, e);
 				} catch (NoSuchFieldException e) {
-					e.printStackTrace();
+					ExceptionUtil.logErrorException(logger, e);
 				} catch (SecurityException e) {
-					e.printStackTrace();
+					ExceptionUtil.logErrorException(logger, e);
 				}
 			}
 		}

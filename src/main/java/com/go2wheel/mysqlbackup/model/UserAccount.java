@@ -90,8 +90,11 @@ public class UserAccount extends BaseModel {
 	}
 
 	@Override
-	public String toListRepresentation() {
-		return ObjectUtil.toListRepresentation(this, "name", "email", "mobile");
+	public String toListRepresentation(String... fields) {
+		if (fields.length == 0) {
+			fields = new String[]{"name", "email", "mobile"};
+		}
+		return ObjectUtil.toListRepresentation(this, fields);
 	}
 
 }

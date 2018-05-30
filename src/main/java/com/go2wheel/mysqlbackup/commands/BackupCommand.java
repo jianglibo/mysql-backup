@@ -79,6 +79,7 @@ import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
@@ -682,28 +683,56 @@ public class BackupCommand {
 		return FacadeResult.doneExpectedResult(userAccountService.findAll(), CommonActionResult.DONE);
 	}
 	
+	private FacadeResult<?> parameterRequired(String pn) {
+		if(!pn.startsWith("--")) {
+			pn = "--" + pn;
+		}
+		return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
+	}
+	
+	private UserServerGrpVo getusgvo(UserServerGrp usgl) {
+		return new UserServerGrpVo(usgl.getId(), userAccountService.findById(usgl.getUserAccountId()),
+				serverGrpService.findById(usgl.getServerGrpId()));
+	}
+	
 	@ShellMethod(value = "管理用户和服务器组的关系。")
 	public FacadeResult<?> userAndServerGroup(
 			@ShowPossibleValue({"LIST", "ADD", "REMOVE"})
 			@ShellOption(help = "The action to take.") @Pattern(regexp="ADD|REMOVE|LIST") String action,
-			@ShellOption(help = "用户名") @NotNull UserAccount user,
-			@ShellOption(help = "服务器组") ServerGrp serverGroup,
+			@ShellOption(help = "用户名", defaultValue=ShellOption.NULL) UserAccount user,
+			@ShellOption(help = "服务器组", defaultValue=ShellOption.NULL) ServerGrp serverGroup,
+			@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue=ShellOption.NULL) String id,
 			@CronString
-			@ShellOption(help = "任务计划") String cron) {
+			@ShellOption(help = "任务计划", defaultValue=ShellOption.NULL) String cron) {
 		UserServerGrp usg;
 		switch (action) {
 		case "ADD":
+			if (user == null) {
+				return parameterRequired("user");
+			}
+			if (serverGroup == null) {
+				return parameterRequired("server-group");
+			}
 			usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId()).withCronExpression(cron).build();
 			usg = userServerGrpService.save(usg);
-			return FacadeResult.doneExpectedResult(usg, CommonActionResult.DONE);
+			return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 		case "REMOVE":
-			usg = userServerGrpService.findByUserAndServerGrp(user, serverGroup);
+			if (id == null) {
+				return parameterRequired("id");
+			}
+			usg = userServerGrpService.findById(id);
+			if (usg == null) {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.DB_ITEMNOTEXISTS, id);
+			}
 			userServerGrpService.delete(usg);
-			return FacadeResult.doneExpectedResult(usg, CommonActionResult.DONE);
+			return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 		default:
 			break;
 		}
-		return FacadeResult.doneExpectedResult(userServerGrpService.findAll(), CommonActionResult.DONE);
+		List<UserServerGrpVo> vos = userServerGrpService.findAll().stream()
+				.map(usgl -> getusgvo(usgl)).collect(Collectors.toList());
+		
+		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
 	}
 
 	

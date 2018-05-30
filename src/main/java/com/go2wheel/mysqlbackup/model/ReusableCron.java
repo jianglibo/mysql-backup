@@ -36,7 +36,7 @@ public class ReusableCron extends BaseModel {
 	}
 
 	@Override
-	public String toListRepresentation() {
+	public String toListRepresentation(String... fields) {
 		return ObjectUtil.toListRepresentation(this, "expression", "description");
 	}
 }

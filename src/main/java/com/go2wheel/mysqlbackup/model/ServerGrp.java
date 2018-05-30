@@ -47,7 +47,10 @@ public class ServerGrp extends BaseModel {
 	}
 
 	@Override
-	public String toListRepresentation() {
-		return ObjectUtil.toListRepresentation(this, "id", "ename", "msgkey");
+	public String toListRepresentation(String... fields) {
+		if (fields.length == 0) {
+			fields = new String[]{"id", "ename", "msgkey"};
+		}
+		return ObjectUtil.toListRepresentation(this, fields);
 	}
 }

@@ -34,7 +34,7 @@ public class MailServerGrp extends BaseModel {
 		this.createdAt = createdAt;
 	}
 	@Override
-	public String toListRepresentation() {
+	public String toListRepresentation(String... fields) {
 		// TODO Auto-generated method stub
 		return null;
 	}

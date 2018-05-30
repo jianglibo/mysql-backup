@@ -69,7 +69,7 @@ public class UserServerGrp extends BaseModel {
 	}
 
 	@Override
-	public String toListRepresentation() {
+	public String toListRepresentation(String... fields) {
 		return ObjectUtil.toListRepresentation(this, "userAccountId", "serverGrpId");
 	}
 }

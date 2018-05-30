@@ -14,4 +14,8 @@ public class CommonMessageKeys {
 	
 	public static final String PARAMETER_REQUIRED = "parameter.required";
 
+	public static final String DB_DUPLICATE_KEY = "db.duplicatekey";
+
+	public static final String DB_ITEMNOTEXISTS = "db.itemnotexists";
+
 }

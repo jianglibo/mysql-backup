@@ -31,4 +31,5 @@ public class UserServerGrpService extends ServiceBase<UserAndServerGrpRecord, Us
 		return ((UserServerGrpRepository)repo).findByUserAndServerGrp(user, serverGroup);
 	}
 
+
 }

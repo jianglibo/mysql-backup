@@ -86,7 +86,7 @@ public class BorgDownload extends BaseModel {
 	}
 
 	@Override
-	public String toListRepresentation() {
+	public String toListRepresentation(String... fields) {
 		// TODO Auto-generated method stub
 		return null;
 	}

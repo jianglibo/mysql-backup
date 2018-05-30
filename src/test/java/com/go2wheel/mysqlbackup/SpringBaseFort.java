@@ -37,6 +37,7 @@ import com.go2wheel.mysqlbackup.service.DiskfreeService;
 import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UpTimeService;
@@ -96,6 +97,9 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected BackupFolderStateService backupFolderStateService;
+	
+	@Autowired
+	protected ReuseableCronService reuseableCronService;
 	
 	@Autowired
 	protected DiskfreeService diskfreeService;
@@ -175,6 +179,7 @@ public class SpringBaseFort {
 		upTimeService.deleteAll();
 		borgDownloadService.deleteAll();
 		jobErrorService.deleteAll();
+		reuseableCronService.deleteAll();
 		
 		userServerGrpService.deleteAll();
 		userAccountService.deleteAll();
