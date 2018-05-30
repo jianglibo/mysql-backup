@@ -1,11 +1,8 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
 public class Diskfree extends BaseModel {
 	
 	private Integer serverId;
-	private Date createdAt;
 	
 	private String fileSystem;
 	private Integer blocks;
@@ -13,11 +10,6 @@ public class Diskfree extends BaseModel {
 	private Integer usePercent;
 	private String mountedOn;
 	private Integer available;
-	
-	
-	public Diskfree() {
-		this.createdAt = new Date();
-	}
 	
 	public Integer getServerId() {
 		return serverId;
@@ -54,12 +46,6 @@ public class Diskfree extends BaseModel {
 	}
 	public void setMountedOn(String mountedOn) {
 		this.mountedOn = mountedOn;
-	}
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 
 	public Integer getAvailable() {

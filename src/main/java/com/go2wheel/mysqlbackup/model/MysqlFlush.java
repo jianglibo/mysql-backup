@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class MysqlFlush extends BaseModel {
@@ -12,7 +10,6 @@ public class MysqlFlush extends BaseModel {
 
 	private ResultEnum result;
 	private Long timeCost;
-	private Date createdAt;
 	
 	
 	public Integer getServerId() {
@@ -39,12 +36,6 @@ public class MysqlFlush extends BaseModel {
 	}
 	public void setTimeCost(Long timeCost) {
 		this.timeCost = timeCost;
-	}
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 	
 	public Integer getFileNumber() {

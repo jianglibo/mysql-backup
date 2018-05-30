@@ -31,6 +31,9 @@ public class TestUpTimeService extends ServiceTbase {
 		sz = upTimes.size();
 
 		assertThat(sz, equalTo(2));
+		
+		upTimes = upTimeService.getRecentItems(30);
+		assertThat(sz, equalTo(2));
 
 	}
 

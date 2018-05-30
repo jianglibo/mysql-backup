@@ -9,6 +9,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -27,6 +28,9 @@ public class Mailer {
 	
 	@Autowired
 	private TemplateEngine emailTemplateEngine;
+	
+	@Value("${spring.mail.username}")
+	private String mailFrom;
 
 	
 	public void sendMailWithInline(final String recipientName, final String recipientEmail,
@@ -61,6 +65,18 @@ public class Mailer {
 		// Send mail
 		 this.javaMailSender.send(mimeMessage);
 
+	}
+
+
+	public void sendMailWithInline(ServerGroupContext rc) throws MessagingException {
+		final Context ctx = new Context();
+		
+		final MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
+		final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
+		message.setSubject("服务器备份报表。");
+		message.setFrom(mailFrom);
+		message.setTo(rc.getUser().getEmail());
+		
 	}
 
 }

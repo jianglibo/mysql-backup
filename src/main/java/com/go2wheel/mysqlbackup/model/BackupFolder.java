@@ -31,7 +31,6 @@ public class BackupFolder extends BaseModel {
 
 	@Override
 	public String toListRepresentation(String... fields) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 

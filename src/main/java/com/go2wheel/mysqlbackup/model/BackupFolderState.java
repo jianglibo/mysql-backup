@@ -1,17 +1,10 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
 public class BackupFolderState extends BaseModel {
 	
 	private Integer backupFolderId;
 	private Integer howMany;
 	private Integer totalSizeInKb;
-	private Date createdAt;
-	
-	public BackupFolderState() {
-		this.createdAt = new Date();
-	}
 	
 	public Integer getBackupFolderId() {
 		return backupFolderId;
@@ -30,14 +23,6 @@ public class BackupFolderState extends BaseModel {
 	}
 	public void setTotalSizeInKb(Integer totalSizeInKb) {
 		this.totalSizeInKb = totalSizeInKb;
-	}
-
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 
 	@Override

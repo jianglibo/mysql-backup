@@ -75,6 +75,11 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 		findAll().forEach(item -> delete(item));
 	}
 	
+	public List<P> getRecentItems(int number) {
+		return repo.getRecentItems(number);
+	}
+
+	
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;

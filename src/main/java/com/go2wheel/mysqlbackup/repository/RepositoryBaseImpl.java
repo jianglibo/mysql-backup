@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.repository;
 
+import java.util.List;
+
 import org.jooq.DSLContext;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
@@ -19,6 +21,10 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	@Override
 	protected Integer getId(P object) {
 		return object.getId();
+	}
+	
+	public List<P> getRecentItems(int number) {
+		return jooq.selectFrom(getTable()).orderBy(getTable().field("CREATED_AT").desc()).limit(number).fetchInto(getType());
 	}
 	
 	@Override

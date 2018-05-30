@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
 public class UpTime extends BaseModel {
 	
 	private Integer serverId;
@@ -9,7 +7,6 @@ public class UpTime extends BaseModel {
 	private Integer loadFive;
 	private Integer loadFifteen;
 	private Integer uptimeMinutes;
-	private Date createdAt;
 	
 	public Integer getServerId() {
 		return serverId;
@@ -44,12 +41,6 @@ public class UpTime extends BaseModel {
 	}
 	public void setLoadFive(Integer loadFive) {
 		this.loadFive = loadFive;
-	}
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 	@Override
 	public String toListRepresentation(String... fields) {

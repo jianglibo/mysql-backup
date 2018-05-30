@@ -18,7 +18,6 @@ public class UserAccount extends BaseModel {
 	
 	@NotEmpty
 	private String email;
-	private Date createdAt;
 	
 	public String getName() {
 		return name;
@@ -43,12 +42,6 @@ public class UserAccount extends BaseModel {
 	}
 	public void setEmail(String email) {
 		this.email = email;
-	}
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 	
 	public static class UserAccountBuilder {

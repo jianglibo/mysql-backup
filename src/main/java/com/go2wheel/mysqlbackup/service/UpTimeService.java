@@ -27,6 +27,7 @@ public class UpTimeService extends ServiceBase<UpTimeRecord, UpTime> {
 		Server server = serverService.findByHost(box.getHost());
 		return  ((UpTimeRepository)repo).getItemsInDays(server.getId(), days);
 	}
+
 	
 	
 }

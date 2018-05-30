@@ -1,14 +1,11 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class BorgDownload extends BaseModel {
 	
 	private Integer serverId;
-	private Date createdAt;
 	private ResultEnum result;
 	private long timeCost;
 	private int totalFiles;
@@ -59,14 +56,6 @@ public class BorgDownload extends BaseModel {
 
 	public void setServerId(Integer serverId) {
 		this.serverId = serverId;
-	}
-
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 
 	public ResultEnum getResult() {

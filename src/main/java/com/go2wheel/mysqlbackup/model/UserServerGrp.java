@@ -9,7 +9,6 @@ public class UserServerGrp extends BaseModel {
 	private Integer userAccountId;
 	private Integer serverGrpId;
 	private String cronExpression;
-	private Date createdAt;
 	
 	public Integer getUserAccountId() {
 		return userAccountId;
@@ -28,12 +27,6 @@ public class UserServerGrp extends BaseModel {
 	}
 	public void setCronExpression(String cronExpression) {
 		this.cronExpression = cronExpression;
-	}
-	public Date getCreatedAt() {
-		return createdAt;
-	}
-	public void setCreatedAt(Date createdAt) {
-		this.createdAt = createdAt;
 	}
 	
 	public static class UserServerGrpBuilder {
