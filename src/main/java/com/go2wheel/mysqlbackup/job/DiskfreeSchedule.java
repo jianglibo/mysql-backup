@@ -23,11 +23,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.DefaultValues;
 import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
 public class DiskfreeSchedule {
@@ -59,8 +59,8 @@ public class DiskfreeSchedule {
 	}
 
 	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
-		JobKey jk = BoxUtil.getUpTimeJobKey(box);
-		TriggerKey tk = BoxUtil.getUpTimeTriggerKey(box);
+		JobKey jk = BoxUtil.getDiskfreeJobKey(box);
+		TriggerKey tk = BoxUtil.getDiskfreeTriggerKey(box);
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {

@@ -3,11 +3,15 @@ package com.go2wheel.mysqlbackup.model;
 import java.util.Date;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
+import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 
 public class UserServerGrp extends BaseModel {
 	
 	private Integer userAccountId;
 	private Integer serverGrpId;
+	
+	
+	@CronExpressionConstraint
 	private String cronExpression;
 	
 	public Integer getUserAccountId() {

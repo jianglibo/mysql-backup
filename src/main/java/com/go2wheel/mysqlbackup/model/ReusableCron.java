@@ -34,6 +34,10 @@ public class ReusableCron extends BaseModel {
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
+	public static String getExpressionFromToListRepresentation(String maybeToListRepresentation) {
+		return ObjectUtil.getValueWetherIsToListRepresentationOrNot(maybeToListRepresentation, "expression");
+	}
 
 	@Override
 	public String toListRepresentation(String... fields) {

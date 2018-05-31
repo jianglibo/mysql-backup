@@ -1,11 +1,14 @@
 package com.go2wheel.mysqlbackup.job;
 
+import static org.quartz.TriggerKey.triggerKey;
+
 import java.util.Date;
 
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +52,9 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private ServerService serverService;
+	
+	@Autowired
+	private SchedulerService schedulerService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -58,6 +64,13 @@ public class BorgArchiveJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
+			
+			if (box == null) { //the box is somehow already removed.
+				logger.error("The Box is somehow had removed. {}", host);
+				schedulerService.unscheduleJob(triggerKey(host, BorgBackupSchedule.BORG_ARCHIVE_GROUP));
+				return;
+			}
+			
 			Server sv = serverService.findByHost(host);
 			
 			JobError je = new JobError();
@@ -103,12 +116,13 @@ public class BorgArchiveJob implements Job {
 			} else {
 				bd.setResult(ResultEnum.SUCCESS);
 			}
-
 			
 			bd.setServerId(sv.getId());
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);
 			borgDownloadService.save(bd);
+		} catch (SchedulerException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

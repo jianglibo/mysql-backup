@@ -233,4 +233,13 @@ public class MysqlService {
 		return updateMysqlDescription(box);
 	}
 
+	public FacadeResult<String> getMyCnfFile(Session session, Box box) {
+		try {
+			return FacadeResult.doneExpectedResult(mysqlUtil.getEffectiveMyCnf(session, box), CommonActionResult.DONE);
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
+	}
+
 }

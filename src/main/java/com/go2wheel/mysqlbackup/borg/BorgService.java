@@ -138,7 +138,7 @@ public class BorgService {
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
 			if (!StringUtil.hasAnyNonBlankWord(repoPath)) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_PATH, repoPath);
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
 			}
 			String command = String.format("borg init --encryption=none %s", repoPath);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
@@ -157,7 +157,7 @@ public class BorgService {
 				
 				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
 				if (iserrorPath) {
-					return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_PATH, repoPath);
+					return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
 				}
 				
 				//Repository /abc already exists.

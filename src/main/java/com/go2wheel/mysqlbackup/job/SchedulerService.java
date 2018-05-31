@@ -89,5 +89,15 @@ public class SchedulerService {
 				.filter(jk -> jk.getName().equals(box.getHost())).map(jk -> jk.toString())
 				.collect(Collectors.toList());
 	}
+	
+	public List<String> getAllSchedulerJobList() throws SchedulerException {
+		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
+				.map(jk -> jk.toString())
+				.collect(Collectors.toList());
+	}
+
+	public void unscheduleJob(TriggerKey triggerKey) throws SchedulerException {
+		this.scheduler.unscheduleJob(triggerKey);
+	}
 
 }

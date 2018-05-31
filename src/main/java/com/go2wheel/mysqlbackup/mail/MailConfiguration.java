@@ -72,6 +72,7 @@ public class MailConfiguration implements ApplicationContextAware, EnvironmentAw
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);
         templateResolver.setCacheable(false);
+        templateResolver.setCheckExistence(true); // pass the next resolver if not exists here.
         return templateResolver;
     }
 

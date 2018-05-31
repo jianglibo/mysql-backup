@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import static org.quartz.TriggerKey.triggerKey;
+
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,6 +10,7 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,7 @@ import com.go2wheel.mysqlbackup.model.Diskfree;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.DiskfreeService;
 import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -41,6 +45,9 @@ public class DiskfreeJob implements Job {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private SchedulerService schedulerService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -49,6 +56,12 @@ public class DiskfreeJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
 			Box box = applicationState.getServerByHost(host);
+			
+			if (box == null) { //the box is somehow already removed.
+				logger.error("The Box is somehow had removed. {}", host);
+				schedulerService.unscheduleJob(triggerKey(host, DiskfreeSchedule.DISKFREE_GROUP));
+				return;
+			}
 			FacadeResult<Session> fr = sshSessionFactory.getConnectedSession(box); 
 			session = fr.getResult();
 			if (session == null) {
@@ -66,6 +79,8 @@ public class DiskfreeJob implements Job {
 					diskfreeService.save(df);
 				});
 			}
+		} catch (SchedulerException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

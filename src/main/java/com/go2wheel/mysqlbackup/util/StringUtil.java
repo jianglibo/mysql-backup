@@ -105,5 +105,9 @@ public class StringUtil {
 		return "";
 	}
 
+	public static boolean isNullString(String str) {
+		return "null".equalsIgnoreCase(str);
+	}
+
 
 }

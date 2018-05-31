@@ -51,6 +51,11 @@ dv.cron.diskfree= 0 0/2 * * * ?
 dv.cron.borg_archive= 0 0/2 * * * ?
 dv.cron.borg_prune= 0 0/2 * * * ?
 dv.cron.mysql_flush= 0 0/2 * * * ?
+dv.cron.common[0]=0 33 0/1 * * ?|\u5728\u6BCF\u5C0F\u65F6\u768433\u5206\u949F\u65F6
+dv.cron.common[1]=0 0/30 * * * ?|\u6BCF\u534A\u4E2A\u5C0F\u65F6
+dv.cron.common[2]=0 30 12,18 * * ?|\u6BCF\u5929\u4E2D\u534812\u70B9\u534A\u548C\u4E0B\u53486\u70B9\u534A
+dv.cron.common[3]=0 15 10 ? * MON-FRI|\u5468\u4E00\u5230\u5468\u4E94\u768410\u70B915\u5206
+dv.cron.common[4]=0 15 0 13 * ?|\u6BCF\u4E2A\u670813\u65E5\u96F6\u70B915\u5206
 
 ppp.aslist[0]=abc
 ppp.aslist[1]=ccd

@@ -5,4 +5,6 @@ import com.go2wheel.mysqlbackup.model.ReusableCron;
 
 public interface ReusableCronRepository extends RepositoryBase<ReuseableCronRecord, ReusableCron>{
 
+	ReusableCron findByExpression(String expression);
+
 }

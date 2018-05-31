@@ -1,7 +1,7 @@
-package com.go2wheel.mysqlbackup;
+package com.go2wheel.mysqlbackup.value;
 
-import java.io.IOException;
 import java.text.ParseException;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -18,7 +18,6 @@ public class DefaultValues {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private Cron cron;
-
 	
 	@PostConstruct
 	public void post() throws ParseException {
@@ -43,6 +42,9 @@ public class DefaultValues {
 		private String borgArchive;
 		private String borgPrune;
 		private String mysqlFlush;
+		
+		private List<String> common;
+		
 		public String getUptime() {
 			return uptime;
 		}
@@ -72,6 +74,12 @@ public class DefaultValues {
 		}
 		public void setMysqlFlush(String mysqlFlush) {
 			this.mysqlFlush = mysqlFlush;
+		}
+		public List<String> getCommon() {
+			return common;
+		}
+		public void setCommon(List<String> common) {
+			this.common = common;
 		}
 
 

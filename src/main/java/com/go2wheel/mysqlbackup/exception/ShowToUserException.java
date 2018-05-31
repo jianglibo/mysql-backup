@@ -12,7 +12,7 @@ public class ShowToUserException extends RuntimeException {
 	private Object[] messagePlaceHolders;
 	
 	public ShowToUserException(String messageKey, Object...messagePlaceHolders) {
-		super(messageKey + ", placeholders: " + messagePlaceHolders.length);
+		super(messageKey + ", placeholders: " + (messagePlaceHolders == null ? 0 : messagePlaceHolders.length));
 		this.messageKey = messageKey;
 		this.setMessagePlaceHolders(messagePlaceHolders);
 	}

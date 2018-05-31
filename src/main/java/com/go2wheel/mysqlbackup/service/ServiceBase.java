@@ -5,6 +5,8 @@ import java.util.List;
 import javax.validation.Valid;
 
 import org.jooq.UpdatableRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
@@ -14,10 +16,13 @@ import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 
 public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
 	
 	private ApplicationEventPublisher applicationEventPublisher;
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected RepositoryBase<R, P> repo;
 	
@@ -33,7 +38,7 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 			origin = (P) pojo.getClass().newInstance();
 			BeanUtils.copyProperties(pojo, origin);
 		} catch (InstantiationException | IllegalAccessException e) {
-			e.printStackTrace();
+			ExceptionUtil.logErrorException(logger, e);
 		}
 		
 		P saved = repo.insertAndReturn(pojo);

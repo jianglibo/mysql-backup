@@ -43,11 +43,11 @@ public class TestBorgService extends SpringBaseFort {
 		
 		FacadeResult<?> fr = borgService.initRepo(session, "");
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_PATH));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_VALUE));
 		
 		fr = borgService.initRepo(session, null);
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_PATH));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.MALFORMED_VALUE));
 
 		fr = borgService.initRepo(session, "/abc");
 		assertTrue(fr.isExpected());

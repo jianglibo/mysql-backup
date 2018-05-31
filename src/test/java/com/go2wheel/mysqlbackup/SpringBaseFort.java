@@ -48,6 +48,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MysqlInstance;
@@ -61,6 +62,9 @@ import com.jcraft.jsch.Session;
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
+	
+	
+	protected static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	
 	@MockBean
 	protected JobExecutionContext context;

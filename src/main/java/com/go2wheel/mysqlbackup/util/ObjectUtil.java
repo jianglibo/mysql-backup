@@ -45,7 +45,21 @@ public class ObjectUtil {
 		} else {
 			return Optional.empty();
 		}
-		
+	}
+	
+	public static String getValueWetherIsToListRepresentationOrNot(String toListRepresentation, String fieldName) {
+		if (toListRepresentation.startsWith("[") && toListRepresentation.endsWith("]")) {
+			String s = toListRepresentation.substring(1, toListRepresentation.length() - 2);
+			String[] ss = s.split(", ");
+			for(String par: ss) {
+				String[] kv = par.split(": ", 2);
+				return kv[1];
+
+			}
+			return "";
+		} else {
+			return toListRepresentation;
+		}
 	}
 
 	public static String toListRepresentation(Object o, String... fields) {

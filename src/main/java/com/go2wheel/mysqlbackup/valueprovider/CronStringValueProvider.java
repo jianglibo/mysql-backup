@@ -49,7 +49,7 @@ public class CronStringValueProvider implements ValueProvider {
 		}
 		int id = StringUtil.parseInt(input);
 		if (id > 0) {
-			return Stream.of(reusableCronService.findById(id)).filter(Objects::nonNull).map(o -> o.getExpression())
+			return Stream.of(reusableCronService.findById(id)).filter(Objects::nonNull).map(o -> o.toListRepresentation())
 					.map(CompletionProposal::new).collect(Collectors.toList());
 		}
 		return new ArrayList<>();

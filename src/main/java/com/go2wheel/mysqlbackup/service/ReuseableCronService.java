@@ -14,5 +14,9 @@ public class ReuseableCronService extends ServiceBase<ReuseableCronRecord, Reusa
 	public ReuseableCronService(ReusableCronRepository reusableCronRepository) {
 		super(reusableCronRepository);
 	}
+
+	public ReusableCron findByExpression(String expression) {
+		return ((ReusableCronRepository)repo).findByExpression(expression);
+	}
 	
 }

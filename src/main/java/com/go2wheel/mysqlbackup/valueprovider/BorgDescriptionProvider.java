@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.valueprovider;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
@@ -11,7 +12,7 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronService;
 import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 
 public class BorgDescriptionProvider implements ValueProvider {
@@ -20,7 +21,7 @@ public class BorgDescriptionProvider implements ValueProvider {
 	private ApplicationState applicationState;
 
 	@Autowired
-	private SchedulerService schedulerTaskFacade;
+	private ReuseableCronService reusableCronService;
 
 
 	@Override
@@ -47,9 +48,19 @@ public class BorgDescriptionProvider implements ValueProvider {
 		case "archiveNamePrefix":
 			return Arrays.asList(new CompletionProposal(bbd.getArchiveNamePrefix()));
 		case "archiveCron":
-			return Arrays.asList(new CompletionProposal(bbd.getArchiveCron()));
+			if (bbd.getArchiveCron() == null || bbd.getArchiveCron().trim().isEmpty()) {
+				return reusableCronService.findAll().stream().map(o -> o.toListRepresentation())
+						.map(CompletionProposal::new).collect(Collectors.toList());
+			} else {
+				return Arrays.asList(new CompletionProposal(bbd.getArchiveCron()));
+			}
 		case "pruneCron":
-			return Arrays.asList(new CompletionProposal(bbd.getPruneCron()));
+			if (bbd.getPruneCron() == null || bbd.getPruneCron().trim().isEmpty()) {
+				return reusableCronService.findAll().stream().map(o -> o.toListRepresentation())
+						.map(CompletionProposal::new).collect(Collectors.toList());
+			} else {
+				return Arrays.asList(new CompletionProposal(bbd.getPruneCron()));
+			}
 		default:
 			break;
 		}

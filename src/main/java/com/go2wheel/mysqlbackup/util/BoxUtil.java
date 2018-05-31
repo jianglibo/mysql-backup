@@ -7,6 +7,7 @@ import org.quartz.JobKey;
 import org.quartz.TriggerKey;
 
 import com.go2wheel.mysqlbackup.job.BorgBackupSchedule;
+import com.go2wheel.mysqlbackup.job.DiskfreeSchedule;
 import com.go2wheel.mysqlbackup.job.MysqlBackupSchedule;
 import com.go2wheel.mysqlbackup.job.UpTimeSchedule;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -44,6 +45,14 @@ public class BoxUtil {
 
 	public static TriggerKey getUpTimeTriggerKey(Box box) {
 		return triggerKey(box.getHost(), UpTimeSchedule.UPTIME_GROUP);
+	}
+
+	public static JobKey getDiskfreeJobKey(Box box) {
+		return jobKey(box.getHost(), DiskfreeSchedule.DISKFREE_GROUP);
+	}
+
+	public static TriggerKey getDiskfreeTriggerKey(Box box) {
+		return triggerKey(box.getHost(), DiskfreeSchedule.DISKFREE_GROUP);
 	}
 
 

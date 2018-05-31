@@ -45,7 +45,7 @@ public class MysqlUtil {
 	public MycnfFileHolder getMyCnfFile(Session session, Box box)
 			throws RunRemoteCommandException, IOException, JSchException, ScpException {
 		String cnfFile = box.getMysqlInstance().getMycnfFile();
-		if (!StringUtil.hasAnyNonBlankWord(cnfFile)) {
+		if (!StringUtil.hasAnyNonBlankWord(cnfFile) || StringUtil.isNullString(cnfFile)) {
 			box.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, box));
 			boxService.writeDescription(box);
 		}

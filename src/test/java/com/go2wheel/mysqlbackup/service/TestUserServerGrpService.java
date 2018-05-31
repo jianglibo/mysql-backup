@@ -18,7 +18,7 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tCreate() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId()).withCronExpression("zbc")
+		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId()).withCronExpression(A_VALID_CRON_EXPRESSION)
 				.build();
 		usg = userServerGrpService.save(usg);
 		assertThat(usg.getId(), greaterThan(99));
@@ -28,12 +28,12 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tFindByUser() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId()).withCronExpression("zbc")
+		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId()).withCronExpression(A_VALID_CRON_EXPRESSION)
 				.build();
 		usg = userServerGrpService.save(usg);
 		
 		ServerGrp sg1 = createAServerGrp("kku");
-		usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg1.getId()).withCronExpression("zbc")
+		usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg1.getId()).withCronExpression(A_VALID_CRON_EXPRESSION)
 				.build();
 		usg = userServerGrpService.save(usg);
 		
