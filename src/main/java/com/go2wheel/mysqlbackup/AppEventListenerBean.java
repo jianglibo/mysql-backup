@@ -2,8 +2,7 @@ package com.go2wheel.mysqlbackup;
 
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.List;
+import java.util.Arrays;
 
 import org.quartz.CronExpression;
 import org.slf4j.Logger;
@@ -11,8 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.ReusableCron;
@@ -22,7 +23,7 @@ import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
-public class AppEventListenerBean {
+public class AppEventListenerBean implements EnvironmentAware {
 	
 	@Autowired
 	private ReuseableCronService reuseableCronService;
@@ -32,6 +33,8 @@ public class AppEventListenerBean {
 	
 	@Autowired
 	private DefaultValues defaultValues;
+	
+	private Environment environment;
 
     private static final Logger logger = LoggerFactory.getLogger(AppEventListenerBean.class);
     
@@ -64,6 +67,7 @@ public class AppEventListenerBean {
     				}
     			});
     	createDefaultServerGrp();
+    	ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
     	logger.info("onApplicationStartedEvent be called.");
     }
     
@@ -75,6 +79,11 @@ public class AppEventListenerBean {
     		serverGrpService.save(sg);
     	}
     }
+
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
     
 //    @EventListener
 //    public void onApplicationReadyEvent(ApplicationReadyEvent applicationReadyEvent) {
