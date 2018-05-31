@@ -44,7 +44,7 @@ import com.go2wheel.mysqlbackup.value.Box;
 public class MailerJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
+	
 	@Autowired
 	private UpTimeService upTimeService;
 	
@@ -75,13 +75,12 @@ public class MailerJob implements Job {
 	@Autowired
 	private BorgDownloadService borgDownloadService;
 	
-	@Autowired
 	private Mailer mailer;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
-		int userServerGrpId = data.getInt("id");
+		int userServerGrpId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 		UserServerGrp usg = userServerGrpService.findById(userServerGrpId);
 		
 		if (usg == null) {
@@ -116,6 +115,12 @@ public class MailerJob implements Job {
 		} catch (MessagingException e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}
+	}
+	
+	@Autowired
+	public void setMailer(Mailer mailer) {
+		this.mailer = mailer;
+		
 	}
 
 }

@@ -55,7 +55,7 @@ public class MailConfiguration implements ApplicationContextAware, EnvironmentAw
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setOrder(Integer.valueOf(1));
         templateResolver.setResolvablePatterns(Collections.singleton("text/*"));
-        templateResolver.setPrefix("/mail/");
+        templateResolver.setPrefix("/mail/thymeleaf/");
         templateResolver.setSuffix(".txt");
         templateResolver.setTemplateMode(TemplateMode.TEXT);
         templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);
@@ -67,7 +67,7 @@ public class MailConfiguration implements ApplicationContextAware, EnvironmentAw
         final FileTemplateResolver templateResolver = new FileTemplateResolver();
         templateResolver.setOrder(Integer.valueOf(2));
         templateResolver.setResolvablePatterns(Collections.singleton("html/*"));
-        templateResolver.setPrefix("mail/");
+        templateResolver.setPrefix("mail/thymeleaf/");
         templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);
@@ -80,7 +80,7 @@ public class MailConfiguration implements ApplicationContextAware, EnvironmentAw
         final ClassLoaderTemplateResolver templateResolver = new ClassLoaderTemplateResolver();
         templateResolver.setOrder(Integer.valueOf(3));
         templateResolver.setResolvablePatterns(Collections.singleton("html/*"));
-        templateResolver.setPrefix("/mail/");
+        templateResolver.setPrefix("/mail/thymeleaf/");
         templateResolver.setSuffix(".html");
         templateResolver.setTemplateMode(TemplateMode.HTML);
         templateResolver.setCharacterEncoding(EMAIL_TEMPLATE_ENCODING);

@@ -23,7 +23,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
@@ -40,18 +41,20 @@ public class UpTimeSchedule {
 
 	@Autowired
 	private ApplicationState applicationState;
-	
+
 	@Autowired
 	private DefaultValues dvs;
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
-		List<Box> mysqlBoxes = applicationState.getServers();
+		List<Box> mysqlBoxes = applicationState.getBoxes();
 		for (Box box : mysqlBoxes) {
 			scheduleTrigger(box);
 		}
 		;
 	}
+
+	//@formatter:off
 
 	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
 		JobKey jk = BoxUtil.getUpTimeJobKey(box);
@@ -59,7 +62,10 @@ public class UpTimeSchedule {
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
-			job = newJob(UpTimeJob.class).withIdentity(jk).usingJobData("host", box.getHost()).storeDurably()
+			job = newJob(UpTimeJob.class)
+					.withIdentity(jk)
+					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_HOST, box.getHost())
+					.storeDurably()
 					.build();
 			scheduler.addJob(job, false);
 
@@ -69,10 +75,11 @@ public class UpTimeSchedule {
 			scheduler.scheduleJob(trigger);
 		}
 	}
-
+	
 	@EventListener
-	public void whenServerCreated(ServerCreateEvent sce) throws SchedulerException, ParseException {
-		scheduleTrigger(sce.getBox());
+	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
+		scheduleTrigger(box);
 	}
 
 }

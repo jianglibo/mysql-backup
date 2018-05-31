@@ -40,7 +40,7 @@ public class UpTimeJob implements Job {
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
-		String host = data.getString("host");
+		String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
 		Box box = applicationState.getServerByHost(host);
 		Session session = null;
 		try {

@@ -59,7 +59,7 @@ public class MailerSchedule {
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
-			job = newJob(MailerJob.class).withIdentity(jk).usingJobData("id", usg.getId()).storeDurably()
+			job = newJob(MailerJob.class).withIdentity(jk).usingJobData(CommonJobDataKey.JOB_DATA_KEY_ID, usg.getId()).storeDurably()
 					.build();
 			scheduler.addJob(job, false);
 

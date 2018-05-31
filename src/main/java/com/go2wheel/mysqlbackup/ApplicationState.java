@@ -25,7 +25,6 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.BackupFolder;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -58,7 +57,7 @@ public class ApplicationState implements EnvironmentAware {
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
 	
-	private List<Box> servers = new ArrayList<>();
+	private List<Box> boxes = new ArrayList<>();
 	
 	private Environment environment;
 
@@ -89,7 +88,7 @@ public class ApplicationState implements EnvironmentAware {
 	public void post() throws IOException {
 		Path dr = appSettings.getDataRoot();
 		try (Stream<Path> vs = Files.list(dr)){
-			servers = vs.filter(Files::isDirectory)
+			boxes = vs.filter(Files::isDirectory)
 					.map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME))
 					.filter(f -> {
 						if (Files.exists(f)) {
@@ -124,7 +123,7 @@ public class ApplicationState implements EnvironmentAware {
 		}
 		
 		try {
-			servers.stream().forEach(box -> {
+			boxes.stream().forEach(box -> {
 				Server sv = serverService.findByHost(box.getHost());
 				if (sv == null) {
 					sv = new Server(box.getHost());
@@ -150,12 +149,12 @@ public class ApplicationState implements EnvironmentAware {
 		loadState();
 	}
 
-	public synchronized List<Box> getServers() {
-		return servers;
+	public synchronized List<Box> getBoxes() {
+		return boxes;
 	}
 
-	public void setServers(List<Box> servers) {
-		this.servers = servers;
+	public void setBoxes(List<Box> boxes) {
+		this.boxes = boxes;
 	}
 
 	
@@ -166,8 +165,8 @@ public class ApplicationState implements EnvironmentAware {
 
 	public Optional<Box> currentBoxOptional() {
 		if (currentBox == null) {
-			if (getServers().size() > 0) {
-				currentBox = getServers().get(0);
+			if (getBoxes().size() > 0) {
+				currentBox = getBoxes().get(0);
 			} else {
 				return Optional.empty();
 			}
@@ -231,11 +230,10 @@ public class ApplicationState implements EnvironmentAware {
 		if (box == null) {
 			return false;
 		}
-		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
+		boolean exists = getBoxes().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
 		if (!exists) {
-			this.servers.add(box);
-			ServerCreateEvent sce = new ServerCreateEvent(this, box);
-			applicationEventPublisher.publishEvent(sce);
+			this.boxes.add(box);
+			serverService.save(new Server(box.getHost()));
 			return true;
 		} else {
 			return false;
@@ -243,7 +241,7 @@ public class ApplicationState implements EnvironmentAware {
 	}
 
 	public Box getServerByHost(String host) {
-		return this.servers.stream().filter(s -> host.equals(s.getHost())).findAny().orElse(null);
+		return this.boxes.stream().filter(s -> host.equals(s.getHost())).findAny().orElse(null);
 	}
 
 	public CommandStepState getStep() {

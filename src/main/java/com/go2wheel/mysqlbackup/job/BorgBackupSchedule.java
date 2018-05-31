@@ -27,7 +27,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -37,9 +38,9 @@ public class BorgBackupSchedule {
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String BORG_ARCHIVE_GROUP = "BORG_ARCHIVE";
-	
+
 	public static final String BORG_PRUNE_GROUP = "BORG_PRUNE";
-	
+
 	@Autowired
 	private Scheduler scheduler;
 
@@ -49,16 +50,19 @@ public class BorgBackupSchedule {
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
 
-		List<Box> borgBoxes = applicationState.getServers().stream()
+		List<Box> borgBoxes = applicationState.getBoxes().stream()
 				.filter(box -> box.getBorgBackup() != null
 						&& StringUtil.hasAnyNonBlankWord(box.getBorgBackup().getArchiveCron()))
 				.collect(Collectors.toList());
 
 		for (Box box : borgBoxes) {
-			schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(), BORG_ARCHIVE_GROUP);
+			schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(),
+					BORG_ARCHIVE_GROUP);
 			schudelerArchiveTrigger(box, BorgPruneJob.class, box.getBorgBackup().getPruneCron(), BORG_PRUNE_GROUP);
 		}
 	}
+
+	//@formatter:off
 
 	private void schudelerArchiveTrigger(Box box, Class<? extends Job> jobClass, String cronExp, String group) throws SchedulerException, ParseException {
 		JobKey jk = jobKey(box.getHost(), group);
@@ -66,7 +70,10 @@ public class BorgBackupSchedule {
 		
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
-			job = newJob(jobClass).withIdentity(jk).usingJobData("host", box.getHost()).storeDurably()
+			job = newJob(jobClass)
+					.withIdentity(jk)
+					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_HOST, box.getHost())
+					.storeDurably()
 					.build();
 			scheduler.addJob(job, false);
 			CronExpression ce = new CronExpression(cronExp);
@@ -76,9 +83,13 @@ public class BorgBackupSchedule {
 		}
 	}
 	
+
 	@EventListener
-	public void whenServerCreated(ServerCreateEvent sce) throws SchedulerException, ParseException {
-		Box box = sce.getBox();
+	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
+		schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(), BORG_ARCHIVE_GROUP);
+		schudelerArchiveTrigger(box, BorgPruneJob.class, box.getBorgBackup().getPruneCron(), BORG_PRUNE_GROUP);
 	}
+	
 
 }

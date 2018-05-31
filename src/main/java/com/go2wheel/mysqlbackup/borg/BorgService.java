@@ -400,7 +400,6 @@ public class BorgService {
 					BoxUtil.getBorgPruneTriggerKey(box), pruneCron);
 			applicationEventPublisher.publishEvent(cece);
 		}
-
 		box.setBorgBackup(bbdi);
 		return saveBox(box);
 	}

@@ -1,9 +1,9 @@
 package com.go2wheel.mysqlbackup;
 
+import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
-import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +27,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -62,8 +63,6 @@ import com.jcraft.jsch.Session;
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
-	
-	
 	protected static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	
 	@MockBean
@@ -120,6 +119,8 @@ public class SpringBaseFort {
 	@Autowired
 	protected ServerGrpService serverGrpService;
 
+	@Autowired
+	private BoxService boxService;
 	
 	protected Box box;
 	
@@ -172,8 +173,8 @@ public class SpringBaseFort {
 				session = frs.getResult();
 			}
 		}
-		applicationState.setServers(new ArrayList<>());
-		applicationState.getServers().add(box);
+		applicationState.setBoxes(new ArrayList<>());
+		applicationState.getBoxes().add(box);
 		
 		mysqlDumpService.deleteAll();
 		mysqlFlushService.deleteAll();

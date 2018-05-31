@@ -50,7 +50,7 @@ public class ServerInfoProvider implements ValueProvider {
 		Optional<Box> cb = applicationState.currentBoxOptional();
 		switch (parameter.getParameterName()) {
 		case "host":
-			return applicationState.getServers().stream().map(box -> box.getHost()).filter(h -> h.contains(input))
+			return applicationState.getBoxes().stream().map(box -> box.getHost()).filter(h -> h.contains(input))
 					.map(CompletionProposal::new).collect(Collectors.toList());
 		case "triggerName":
 			if (cb.isPresent()) {

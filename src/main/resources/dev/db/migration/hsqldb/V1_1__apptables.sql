@@ -4,6 +4,10 @@ CREATE TABLE server
   name VARChAR(256),
   core_number INTEGER,
   host VARCHAR(200) NOT NULL,
+  port INTEGER NOT NULL,
+  username VARCHAR(64) NOT NULL,
+  password VARCHAR(64),
+  ssh_key_file VARCHAR(256),
   created_at TIMESTAMP(2),
   CONSTRAINT unique_server_host UNIQUE (host)
 );

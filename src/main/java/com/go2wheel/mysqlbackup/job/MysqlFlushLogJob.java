@@ -39,7 +39,7 @@ public class MysqlFlushLogJob implements Job {
 		Session session = null;
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
-			String host = data.getString("host");
+			String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
 			Box box = applicationState.getServerByHost(host);
 			if (mysqlTaskFacade.isMysqlNotReadyForBackup(box)) {
 				logger.info("Box {} is not ready for Backup.", host);

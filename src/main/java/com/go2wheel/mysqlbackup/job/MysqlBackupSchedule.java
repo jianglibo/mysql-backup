@@ -24,7 +24,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.event.ServerCreateEvent;
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -44,7 +45,7 @@ public class MysqlBackupSchedule {
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
-		List<Box> mysqlBoxes = applicationState.getServers().stream()
+		List<Box> mysqlBoxes = applicationState.getBoxes().stream()
 				.filter(box -> box.getMysqlInstance() != null
 						&& StringUtil.hasAnyNonBlankWord(box.getMysqlInstance().getFlushLogCron()))
 				.collect(Collectors.toList());
@@ -61,7 +62,7 @@ public class MysqlBackupSchedule {
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
-			job = newJob(MysqlFlushLogJob.class).withIdentity(jk).usingJobData("host", box.getHost()).storeDurably()
+			job = newJob(MysqlFlushLogJob.class).withIdentity(jk).usingJobData(CommonJobDataKey.JOB_DATA_KEY_HOST, box.getHost()).storeDurably()
 					.build();
 			scheduler.addJob(job, false);
 
@@ -71,10 +72,11 @@ public class MysqlBackupSchedule {
 			scheduler.scheduleJob(trigger);
 		}
 	}
-
+	
 	@EventListener
-	public void whenServerCreated(ServerCreateEvent sce) throws SchedulerException, ParseException {
-//		scheduleTrigger(sce.getBox());
+	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
+		scheduleTrigger(box);
 	}
 
 }

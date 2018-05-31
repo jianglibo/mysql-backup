@@ -26,10 +26,10 @@ public class CommandNotFoundResultHandler  extends TerminalAwareResultHandler<Co
 			Matcher m = ptn.matcher(msg);
 			if (m.matches()) {
 				int i = Integer.valueOf(m.group(1));
-				if (i >= appState.getServers().size()) {
+				if (i >= appState.getBoxes().size()) {
 					msg = "No server at index: " + i;
 				} else {
-					Box box = appState.getServers().get(i);
+					Box box = appState.getBoxes().get(i);
 					if (!box.equals(appState.currentBoxOptional().orElse(null))) {
 						appState.setCurrentBox(box);
 						appState.setStep(CommandStepState.BOX_SELECTED);

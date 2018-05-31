@@ -58,11 +58,6 @@ public class UserServerGrp extends BaseModel {
 			usg.setUserAccountId(userAccountId);
 			return usg;
 		}
-		
-		
-		
-		
-		
 	}
 
 	@Override
