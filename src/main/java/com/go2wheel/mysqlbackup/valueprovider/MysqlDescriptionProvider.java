@@ -12,7 +12,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 
 public class MysqlDescriptionProvider implements ValueProvider {
 
@@ -38,7 +38,7 @@ public class MysqlDescriptionProvider implements ValueProvider {
 		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		MysqlInstance mysqlq = applicationState.currentBoxOptional().get().getMysqlInstance();
+		MysqlInstanceYml mysqlq = applicationState.currentBoxOptional().get().getMysqlInstance();
 		switch (parameter.getParameterName()) {
 		case "username":
 			return Arrays.asList(new CompletionProposal(mysqlq.getUsername()));

@@ -33,11 +33,14 @@ import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
 import com.go2wheel.mysqlbackup.service.BackupFolderStateService;
+import com.go2wheel.mysqlbackup.service.BorgDescriptionService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadService;
 import com.go2wheel.mysqlbackup.service.DiskfreeService;
 import com.go2wheel.mysqlbackup.service.JobErrorService;
+import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
@@ -52,7 +55,7 @@ import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -85,6 +88,15 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected UserServerGrpService userServerGrpService;
+	
+	@Autowired
+	protected KeyValueInDbService keyValueInDbService;
+	
+	@Autowired
+	protected MysqlInstanceService mysqlInstanceService;
+	
+	@Autowired
+	protected BorgDescriptionService borgDescriptionService;
 	
 	@Autowired
 	protected UserAccountService userAccountService;
@@ -176,6 +188,9 @@ public class SpringBaseFort {
 		applicationState.setBoxes(new ArrayList<>());
 		applicationState.getBoxes().add(box);
 		
+		keyValueInDbService.deleteAll();
+		mysqlInstanceService.deleteAll();
+		borgDescriptionService.deleteAll();
 		mysqlDumpService.deleteAll();
 		mysqlFlushService.deleteAll();
 		backupFolderStateService.deleteAll();
@@ -225,7 +240,7 @@ public class SpringBaseFort {
 		box = new Box();
 		box.setHost(HOST_DEFAULT);
 		box.setBorgBackup(new BorgBackupDescription());
-		box.setMysqlInstance(new MysqlInstance());
+		box.setMysqlInstance(new MysqlInstanceYml());
 		
 		box.getMysqlInstance().setPassword("123456");
 		

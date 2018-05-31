@@ -3,7 +3,7 @@ package com.go2wheel.mysqlbackup.value;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
-public class MysqlInstance {
+public class MysqlInstanceYml {
 	
 	public static final String VAR_DATADIR = "datadir";
 	

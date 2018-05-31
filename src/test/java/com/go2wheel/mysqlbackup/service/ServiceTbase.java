@@ -6,12 +6,13 @@ import org.jooq.UpdatableRecord;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 
 public class ServiceTbase extends SpringBaseFort {
 	
-	protected String serverHost = "abc";
+	protected String serverHost = "192.168.33.110";
 	
 	public ServiceTbase() {
 		super(false);
@@ -34,5 +35,14 @@ public class ServiceTbase extends SpringBaseFort {
 	protected ServerGrp createAServerGrp(String gname) {
 		ServerGrp serverGrp = new ServerGrp(gname);
 		return serverGrpService.save(serverGrp);
+	}
+	
+	protected Server createAServer() {
+		Server s = serverService.findByHost(serverHost);
+		if (s != null) {
+			return s;
+		}
+		s = new Server(serverHost);
+		return serverService.save(s);
 	}
 }

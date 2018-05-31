@@ -26,7 +26,7 @@ import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
@@ -161,7 +161,7 @@ public class MySqlInstaller {
 			cmd = String.format("yum -y remove %s", info.getPackageName());
 			SSHcommonUtil.runRemoteCommand(session, cmd);
 
-			String datadir = info.getVariables().get(MysqlInstance.VAR_DATADIR);
+			String datadir = info.getVariables().get(MysqlInstanceYml.VAR_DATADIR);
 			SSHcommonUtil.backupFileByMove(session, datadir);
 			if (datadir != null) {
 				cmd = String.format("rm -rf %s", datadir);

@@ -26,7 +26,7 @@ public class Box {
 	
 	private String sshKeyFile;
 	
-	private MysqlInstance mysqlInstance;
+	private MysqlInstanceYml mysqlInstance;
 	
 	private BorgBackupDescription borgBackup;
 	
@@ -66,11 +66,11 @@ public class Box {
 		this.port = port;
 	}
 
-	public MysqlInstance getMysqlInstance() {
+	public MysqlInstanceYml getMysqlInstance() {
 		return mysqlInstance;
 	}
 
-	public void setMysqlInstance(MysqlInstance mysqlInstance) {
+	public void setMysqlInstance(MysqlInstanceYml mysqlInstance) {
 		this.mysqlInstance = mysqlInstance;
 	}
 
@@ -130,7 +130,4 @@ public class Box {
 	public void setBorgBackup(BorgBackupDescription borgBackup) {
 		this.borgBackup = borgBackup;
 	}
-	
-	
-
 }

@@ -21,7 +21,7 @@ import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlUtilSpring extends SpringBaseFort {
@@ -80,8 +80,8 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	public void testVariables()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		Map<String, String> map = mysqlUtil.getVariables(session, box.getMysqlInstance().getUsername("root"),
-				box.getMysqlInstance().getPassword(), MysqlInstance.VAR_DATADIR);
-		assertTrue("contains datadir", map.containsKey(MysqlInstance.VAR_DATADIR));
+				box.getMysqlInstance().getPassword(), MysqlInstanceYml.VAR_DATADIR);
+		assertTrue("contains datadir", map.containsKey(MysqlInstanceYml.VAR_DATADIR));
 	}
 
 	@Test

@@ -87,6 +87,9 @@ public class BorgBackupSchedule {
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
+		if (box == null) {
+			return;
+		}
 		schudelerArchiveTrigger(box, BorgArchiveJob.class, box.getBorgBackup().getArchiveCron(), BORG_ARCHIVE_GROUP);
 		schudelerArchiveTrigger(box, BorgPruneJob.class, box.getBorgBackup().getPruneCron(), BORG_PRUNE_GROUP);
 	}

@@ -11,15 +11,41 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 
 public class TestServerService extends ServiceTbase {
+	
+	
+	@Test
+	public void tWithMysqlInstanceAndBorgDescription() {
+		Server server = new Server("abc");
+		server = serverService.save(server);
+		
+		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").build();
+		mi = mysqlInstanceService.save(mi);
+		
+		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).build();
+		bd = borgDescriptionService.save(bd);
+		
+		server = serverService.loadFull(server);
+		
+		assertNull(server.getMysqlInstance());
+		assertNull(server.getBorgDescription());
+	}
 	
 	@Test
 	public void tCreate() {
 		Server server = new Server("abc");
 		server = serverService.save(server);
+		
 		assertThat(server.getId(), greaterThan(99));
+		
+		server = serverService.loadFull(server);
+		
+		assertNull(server.getMysqlInstance());
+		assertNull(server.getBorgDescription());
 	}
 	
 	@Test

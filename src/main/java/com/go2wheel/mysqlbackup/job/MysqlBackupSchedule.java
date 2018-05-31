@@ -76,7 +76,7 @@ public class MysqlBackupSchedule {
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
-		scheduleTrigger(box);
+		if(box != null)scheduleTrigger(box);
 	}
 
 }

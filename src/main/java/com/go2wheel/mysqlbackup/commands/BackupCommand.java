@@ -81,7 +81,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -592,11 +592,11 @@ public class BackupCommand {
 			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException {
 		sureBoxSelected();
 		Box box = appState.currentBoxOptional().get();
-		MysqlInstance mi = box.getMysqlInstance();
+		MysqlInstanceYml mi = box.getMysqlInstance();
 		if (mi != null) {
 			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
 		}
-		mi = new MysqlInstance();
+		mi = new MysqlInstanceYml();
 		mi.setUsername(username);
 		mi.setPassword(password);
 		mi.setFlushLogCron(dvs.getCron().getMysqlFlush());

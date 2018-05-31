@@ -38,7 +38,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstance;
+import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -217,7 +217,7 @@ public class MysqlService {
 
 	public FacadeResult<?> updateMysqlDescription(Box box, String username, String password, int port,
 			String flushLogCron) {
-		MysqlInstance mi = box.getMysqlInstance();
+		MysqlInstanceYml mi = box.getMysqlInstance();
 
 		mi.setUsername(username);
 		mi.setPassword(password);

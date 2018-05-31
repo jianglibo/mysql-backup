@@ -7,12 +7,20 @@ import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
 import com.go2wheel.mysqlbackup.jooqschema.tables.records.ServerRecord;
+import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.ServerRepository;
 
 @Service
 @Validated
 public class ServerService extends ServiceBase<ServerRecord, Server> {
+	
+	@Autowired
+	private MysqlInstanceService mysqlInstanceService;
+	
+	@Autowired
+	private BorgDescriptionService borgDescriptionService;
 
 	@Autowired
 	public ServerService(ServerRepository serverRepository) {
@@ -25,5 +33,13 @@ public class ServerService extends ServiceBase<ServerRecord, Server> {
 
 	public List<Server> findLikeHost(String partOfHostName) {
 		return ((ServerRepository)repo).findLikeHost(partOfHostName);
+	}
+
+	public Server loadFull(Server server) {
+		MysqlInstance mi  = mysqlInstanceService.findByServerId(server.getId());
+		BorgDescription bd = borgDescriptionService.findByServerId(server.getId());
+		server.setMysqlInstance(mi);
+		server.setBorgDescription(bd);
+		return server;
 	}
 }
