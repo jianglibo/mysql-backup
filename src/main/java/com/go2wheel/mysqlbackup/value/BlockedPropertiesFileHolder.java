@@ -4,7 +4,11 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
+
 public class BlockedPropertiesFileHolder {
+	
+	public static final String COMMENT_OUT_CHAR = ";";
 	
 	private List<String> lines;
 	
@@ -19,7 +23,20 @@ public class BlockedPropertiesFileHolder {
 		return String.format("%s=%s", cv.getKey(), v);
 	}
 	
-	public void setConfigValue(ConfigValue cv, Object value) {
+	
+	public boolean commentOutConfigValue(ConfigValue cv) {
+		if (cv.getState() == ConfigValueState.COMMENT_OUTED || cv.getState() == ConfigValueState.NOT_EXIST) {
+			return false;
+		}
+		String c = COMMENT_OUT_CHAR + lines.get(cv.getLineIndex());
+		lines.set(cv.getLineIndex(), c);
+		return true;
+	}
+	
+	public boolean setConfigValue(ConfigValue cv, Object value) {
+		if (value.equals(cv.getValue()) && cv.getState() == ConfigValueState.EXIST) {
+			return false;
+		}
 		switch (cv.getState()) {
 		case COMMENT_OUTED:
 		case EXIST:
@@ -31,13 +48,14 @@ public class BlockedPropertiesFileHolder {
 			} else {
 				int bp = findBlockPosition(cv.getBlock()); 
 				if (bp != -1) {
-					lines.set(bp + 1, getKvLine(cv, value));
+					lines.add(bp + 1, getKvLine(cv, value));
 				} else {
 					lines.add(String.format("[%s]", cv.getBlock()));
 					lines.add(getKvLine(cv, value));
 				}
 			}
 		}
+		return true;
 	}
 	
 	public int findBlockPosition(String blockName) {

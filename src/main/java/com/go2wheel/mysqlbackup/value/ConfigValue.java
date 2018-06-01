@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
+
 public class ConfigValue {
 	
 	public static enum ConfigValueState {
@@ -17,6 +19,7 @@ public class ConfigValue {
 		cv.state = ConfigValueState.EXIST;
 		cv.value = value;
 		cv.key = key;
+		cv.setBlock(blockName);
 		cv.setLineIndex(lineIndex);
 		return cv;
 	}
@@ -26,12 +29,14 @@ public class ConfigValue {
 		cv.state = ConfigValueState.COMMENT_OUTED;
 		cv.value = value;
 		cv.key = key;
+		cv.setBlock(blockName);
 		cv.setLineIndex(lineIndex);
 		return cv;
 	}
 	
 	public static ConfigValue getNotExistValue(String blockName, String key) {
 		ConfigValue cv = new ConfigValue();
+		cv.block = blockName;
 		cv.state = ConfigValueState.NOT_EXIST;
 		cv.key = key;
 		return cv;
@@ -39,7 +44,7 @@ public class ConfigValue {
 	
 	@Override
 	public String toString() {
-		return String.format("[key: %s, value: %s, lineIndex: %s, state: %s]", getKey(), getValue(), getLineIndex(), getState());
+		return ObjectUtil.dumpObjectAsMap(this);
 	}
 	
 	private ConfigValue() {

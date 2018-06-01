@@ -31,6 +31,10 @@ public class LogBinSetting {
 		this.map = map;
 	}
 	
+	public boolean isEmpty() {
+		return map.isEmpty();
+	}
+	
 	public LogBinSetting(List<String> lines) {
 		super();
 		lines.stream().map(line -> line.split("\\|", 2)).filter(ss -> ss.length == 2).forEach(ss -> {

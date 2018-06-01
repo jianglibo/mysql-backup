@@ -26,6 +26,7 @@ import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -45,7 +46,7 @@ import com.jcraft.jsch.Session;
 
 @Service
 public class MysqlService {
-	
+
 	public static final String ALREADY_DUMP = "mysql.dump.already";
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -53,12 +54,15 @@ public class MysqlService {
 	private MysqlUtil mysqlUtil;
 
 	private MyAppSettings appSettings;
-	
+
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
-	
+
 	@Autowired
 	private BoxService boxService;
+
+	@Autowired
+	private MysqlInstanceService mysqlInstanceService;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
@@ -77,10 +81,11 @@ public class MysqlService {
 	private Path getDumpFile(Path dumpDir) {
 		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 	}
-	
+
 	public boolean isMysqlNotReadyForBackup(Server server) {
 		return false;
-//		return server == null || server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null;
+		// return server == null || server.getMysqlInstance() == null ||
+		// server.getMysqlInstance().getLogBinSetting() == null;
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
@@ -171,40 +176,37 @@ public class MysqlService {
 	}
 	
 	
-	public FacadeResult<?> disableLogbin(Session session, Server server, String logBinValue) {
+	public FacadeResult<?> disableLogbin(Session session, Server server) {
 		try {
-			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();
-			if (lbs != null && lbs.isEnabled()) {
-				return FacadeResult.doneExpectedResult(server, CommonActionResult.PREVIOUSLY_DONE);
-			} else {
-				try {
-					lbs = mysqlUtil.getLogbinState(session, server);
-				} catch (MysqlNotStartedException e) {
-					mysqlUtil.restartMysql(session);
-					lbs = mysqlUtil.getLogbinState(session, server);
-				}
-				if (lbs.isEnabled()) {
-					server.getMysqlInstance().setLogBinSetting(lbs);
-					boxService.writeDescription(server);
-					return FacadeResult.doneExpectedResult(server, CommonActionResult.PREVIOUSLY_DONE);
-				} else {
-					MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
-					String mycnfFile = server.getMysqlInstance().getMycnfFile();
-					mfh.enableBinLog(logBinValue); // 修改logbin的值
-					SSHcommonUtil.backupFile(session, mycnfFile); // 先备份配置文件， my.cnf -> my.cnf.1
 
-					ScpUtil.to(session, mycnfFile, mfh.toByteArray());
-					mysqlUtil.restartMysql(session); // 重启Mysql
-					lbs = mysqlUtil.getLogbinState(session, server); // 获取最新的logbin状态。
-					if (!lbs.isEnabled()) {
-						return FacadeResult.unexpectedResult("mysql.enablelogbin.failed");
-					}
-					server.getMysqlInstance().setLogBinSetting(lbs);
-//					server.getMysqlInstance().setReadyForBackup(true);
-					boxService.writeDescription(server); // 保存
-					return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-				}
+			MysqlInstance mi = server.getMysqlInstance();
+			LogBinSetting lbs = mi.getLogBinSetting();
+			try {
+				lbs = mysqlUtil.getLogbinState(session, server);
+			} catch (MysqlNotStartedException e) {
+				mysqlUtil.restartMysql(session);
+				lbs = mysqlUtil.getLogbinState(session, server);
 			}
+			
+			MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
+			String mycnfFile = mfh.getMyCnfFile();
+			
+			if (lbs.isEnabled()) {
+				mfh.disableBinLog();
+				SSHcommonUtil.backupFile(session, mycnfFile); // 先备份配置文件， my.cnf -> my.cnf.1
+				ScpUtil.to(session, mycnfFile, mfh.toByteArray());
+				mysqlUtil.restartMysql(session); // 重启Mysql
+				lbs = mysqlUtil.getLogbinState(session, server); // 获取最新的logbin状态。
+			}
+			
+			if (lbs.isEnabled()) {
+				return FacadeResult.unexpectedResult("mysql.disablelogbin.failed");
+			}
+			mi.setMycnfFile(mycnfFile);
+			mi.setLogBinSetting(lbs);
+			mi = mysqlInstanceService.save(mi);
+			server.setMysqlInstance(mi);
+			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -213,38 +215,35 @@ public class MysqlService {
 
 	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) {
 		try {
-			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();
-			if (lbs != null && lbs.isEnabled()) {
-				return FacadeResult.doneExpectedResult(server, CommonActionResult.PREVIOUSLY_DONE);
-			} else {
-				try {
-					lbs = mysqlUtil.getLogbinState(session, server);
-				} catch (MysqlNotStartedException e) {
-					mysqlUtil.restartMysql(session);
-					lbs = mysqlUtil.getLogbinState(session, server);
-				}
-				if (lbs.isEnabled()) {
-					server.getMysqlInstance().setLogBinSetting(lbs);
-					boxService.writeDescription(server);
-					return FacadeResult.doneExpectedResult(server, CommonActionResult.PREVIOUSLY_DONE);
-				} else {
-					MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
-					String mycnfFile = server.getMysqlInstance().getMycnfFile();
-					mfh.enableBinLog(logBinValue); // 修改logbin的值
-					SSHcommonUtil.backupFile(session, mycnfFile); // 先备份配置文件， my.cnf -> my.cnf.1
-
-					ScpUtil.to(session, mycnfFile, mfh.toByteArray());
-					mysqlUtil.restartMysql(session); // 重启Mysql
-					lbs = mysqlUtil.getLogbinState(session, server); // 获取最新的logbin状态。
-					if (!lbs.isEnabled()) {
-						return FacadeResult.unexpectedResult("mysql.enablelogbin.failed");
-					}
-					server.getMysqlInstance().setLogBinSetting(lbs);
-//					server.getMysqlInstance().setReadyForBackup(true);
-					boxService.writeDescription(server); // 保存
-					return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-				}
+			MysqlInstance mi = server.getMysqlInstance();
+			LogBinSetting lbs = mi.getLogBinSetting();
+			// always check the server for sure.
+			try {
+				lbs = mysqlUtil.getLogbinState(session, server);
+			} catch (MysqlNotStartedException e) {
+				mysqlUtil.restartMysql(session);
+				lbs = mysqlUtil.getLogbinState(session, server);
 			}
+			
+			MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
+			String mycnfFile = mfh.getMyCnfFile();
+			
+			if (!lbs.isEnabled()) {
+				mfh.enableBinLog(logBinValue); // 修改logbin的值
+				SSHcommonUtil.backupFile(session, mycnfFile); // 先备份配置文件， my.cnf -> my.cnf.1
+				ScpUtil.to(session, mycnfFile, mfh.toByteArray());
+				mysqlUtil.restartMysql(session); // 重启Mysql
+				lbs = mysqlUtil.getLogbinState(session, server); // 获取最新的logbin状态。
+			}
+
+			if (!lbs.isEnabled()) {
+				return FacadeResult.unexpectedResult("mysql.enablelogbin.failed");
+			}
+			mi.setMycnfFile(mycnfFile);
+			mi.setLogBinSetting(lbs);
+			mi = mysqlInstanceService.save(mi);
+			server.setMysqlInstance(mi);
+			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);

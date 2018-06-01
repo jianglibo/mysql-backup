@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -15,6 +16,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
+import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlService extends SpringBaseFort {
@@ -26,6 +28,7 @@ public class TestMysqlService extends SpringBaseFort {
 	@Test
 	public void testMysqldump()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(session, server);
 		assertTrue(fr.isExpected());
 	}
@@ -36,6 +39,19 @@ public class TestMysqlService extends SpringBaseFort {
 		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(session, server);
 		assertTrue(fr.isExpected());
 		assertTrue(Files.exists(Paths.get(fr.getResult())));
+	}
+	
+	
+	@Test
+	public void testEnableBinLog() {
+		FacadeResult<?> fr = mysqlService.disableLogbin(session, server);
+		assertTrue(fr.isExpected());
+		assertFalse(server.getMysqlInstance().getLogBinSetting().isEnabled());
+
+		
+		fr = mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
+		assertTrue(fr.isExpected());
+		assertTrue(server.getMysqlInstance().getLogBinSetting().isEnabled());
 	}
 
 }

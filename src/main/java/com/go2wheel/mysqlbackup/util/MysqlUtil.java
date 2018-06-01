@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -40,18 +39,12 @@ public class MysqlUtil {
 
 	private MyAppSettings appSettings;
 	
-	@Autowired
-	private BoxService boxService;
-
 	public MycnfFileHolder getMyCnfFile(Session session, Server server)
 			throws RunRemoteCommandException, IOException, JSchException, ScpException {
-		String cnfFile = server.getMysqlInstance().getMycnfFile();
-		if (!StringUtil.hasAnyNonBlankWord(cnfFile) || StringUtil.isNullString(cnfFile)) {
-			server.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, server));
-			boxService.writeDescription(server);
-		}
-		String content = ScpUtil.from(session, server.getMysqlInstance().getMycnfFile()).toString();
+		String cnfFile = getEffectiveMyCnf(session, server);
+		String content = ScpUtil.from(session, cnfFile).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
+		mfh.setMyCnfFile(cnfFile);
 		return mfh;
 	}
 

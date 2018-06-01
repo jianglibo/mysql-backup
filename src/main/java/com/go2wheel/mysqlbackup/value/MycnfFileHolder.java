@@ -1,9 +1,8 @@
 package com.go2wheel.mysqlbackup.value;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.go2wheel.mysqlbackup.value.ConfigValue.ConfigValueState;
+import org.springframework.util.Assert;
 
 public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	
@@ -12,6 +11,8 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	public static final String MYSQLD_BLOCK = "mysqld";
 	
 	public static final String MYSQLD_LOG_BIN_KEY = "log-bin";
+	
+	private String myCnfFile;
 
 	public MycnfFileHolder(List<String> lines) {
 		super(lines);
@@ -30,37 +31,22 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	 * @return true if changed or else false.
 	 */
 	public boolean enableBinLog(String filename) {
-		Optional<String> fnOp = filename == null || filename.trim().isEmpty() ? Optional.empty() : Optional.of(filename.trim()); 
-		ConfigValue cv = getConfigValue(MYSQLD_BLOCK, LogBinSetting.LOG_BIN_VARIABLE);
-		if (cv.getState() == ConfigValueState.EXIST) {
-			if (fnOp.isPresent()) {
-				if (cv.getValue().equals(fnOp.get())) {
-					return false;
-				}
-			}
-		}
-		boolean changed = false;
-		switch (cv.getState()) {
-		case EXIST: // set new value.
-		case COMMENT_OUTED:
-			if (fnOp.isPresent()) {
-				getLines().set(cv.getLineIndex(), cv.getKey() + "=" + fnOp.get());
-			} else {
-				getLines().set(cv.getLineIndex(), cv.getKey() + "=" + cv.getValue());
-			}
-			changed = true;
-			break;
-		case NOT_EXIST:
-			int i = findBlockPosition("mysqld");
-			if (i > 0) {
-				getLines().add(i + 1, MYSQLD_LOG_BIN_KEY + "=" + fnOp.orElse(DEFAULT_LOG_BIN_BASE_NAME));
-				changed = true;
-			}
-			break;
-		default:
-			break;
-		}
-		return changed;
+		Assert.hasText(filename, "log-bin value is a must.");
+		ConfigValue cv = getConfigValue(MYSQLD_BLOCK, MYSQLD_LOG_BIN_KEY);
+		return setConfigValue(cv, filename);
+	}
+
+	public boolean disableBinLog() {
+		ConfigValue cv = getConfigValue(MYSQLD_BLOCK, MYSQLD_LOG_BIN_KEY);
+		return commentOutConfigValue(cv);
+	}
+
+	public String getMyCnfFile() {
+		return myCnfFile;
+	}
+
+	public void setMyCnfFile(String myCnfFile) {
+		this.myCnfFile = myCnfFile;
 	}
 	
 }
