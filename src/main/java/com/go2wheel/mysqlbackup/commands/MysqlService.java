@@ -250,33 +250,33 @@ public class MysqlService {
 		}
 	}
 
-	public FacadeResult<?> updateMysqlDescription(Server server) {
-		try {
-			boxService.writeDescription(server);
-		} catch (IOException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			FacadeResult.unexpectedResult(e);
-		}
-		return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-	}
+//	public FacadeResult<?> updateMysqlDescription(Server server) {
+//		try {
+//			boxService.writeDescription(server);
+//		} catch (IOException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			FacadeResult.unexpectedResult(e);
+//		}
+//		return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
+//	}
 
-	public FacadeResult<?> updateMysqlDescription(Server server, String username, String password, int port,
-			String flushLogCron) {
-		MysqlInstance mi = server.getMysqlInstance();
-
-		mi.setUsername(username);
-		mi.setPassword(password);
-		mi.setPort(port);
-		if (!flushLogCron.equals(mi.getFlushLogCron())) {
-			mi.setFlushLogCron(flushLogCron);
-			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(server),
-					BoxUtil.getBorgPruneTriggerKey(server), flushLogCron);
-			applicationEventPublisher.publishEvent(cece);
-		}
-		
-		server.setMysqlInstance(mi);
-		return updateMysqlDescription(server);
-	}
+//	public FacadeResult<?> updateMysqlDescription(Server server, String username, String password, int port,
+//			String flushLogCron) {
+//		MysqlInstance mi = server.getMysqlInstance();
+//
+//		mi.setUsername(username);
+//		mi.setPassword(password);
+//		mi.setPort(port);
+//		if (!flushLogCron.equals(mi.getFlushLogCron())) {
+//			mi.setFlushLogCron(flushLogCron);
+//			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(server),
+//					BoxUtil.getBorgPruneTriggerKey(server), flushLogCron);
+//			applicationEventPublisher.publishEvent(cece);
+//		}
+//		
+//		server.setMysqlInstance(mi);
+//		return updateMysqlDescription(server);
+//	}
 
 	public FacadeResult<String> getMyCnfFile(Session session, Server server) {
 		try {

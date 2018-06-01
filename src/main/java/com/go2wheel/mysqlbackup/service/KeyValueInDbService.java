@@ -14,4 +14,9 @@ public class KeyValueInDbService extends ServiceBase<KeyValueRecord, KeyValueInD
 	public KeyValueInDbService(KeyValueInDbRepository repo) {
 		super(repo);
 	}
+
+	public KeyValueInDb findByIdNameKey(int appStateId, String appStateName, String appStateLastServerId) {
+		return ((KeyValueInDbRepository)repo).findByIdNameKey(appStateId, appStateName, appStateLastServerId);
+		
+	}
 }

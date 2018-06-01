@@ -33,17 +33,17 @@ public class BoxService {
 		this.appSettings = appSettings;
 	}
 	
-	public void writeDescription(Server server) throws IOException {
-		Path dstFile = null;
-		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(server);
-		Path dstDir = appSettings.getDataRoot().resolve(server.getHost());
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			Files.createDirectories(dstDir);
-		}
-		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
-		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
-
-	}
+//	public void writeDescription(Server server) throws IOException {
+//		Path dstFile = null;
+//		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(server);
+//		Path dstDir = appSettings.getDataRoot().resolve(server.getHost());
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			Files.createDirectories(dstDir);
+//		}
+//		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
+//		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
+//
+//	}
 
 
 //	public FacadeResult<Box> serverCreate(String host) {
@@ -70,8 +70,8 @@ public class BoxService {
 		this.applicationState = applicationState;
 	}
 
-	public FacadeResult<Box> serverCreate(String host) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	public FacadeResult<Box> serverCreate(String host) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 }

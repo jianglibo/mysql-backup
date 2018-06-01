@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.commands;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,8 +58,10 @@ import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
+import com.go2wheel.mysqlbackup.service.BorgDescriptionService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
 import com.go2wheel.mysqlbackup.service.ServerService;
@@ -74,7 +75,6 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
-import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
@@ -83,10 +83,8 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -120,6 +118,9 @@ public class BackupCommand {
 	private UserAccountService userAccountService;
 
 	@Autowired
+	private MysqlInstanceService mysqlInstanceService;
+
+	@Autowired
 	private MysqlService mysqlService;
 
 	private Session _session;
@@ -133,6 +134,9 @@ public class BackupCommand {
 
 	@Autowired
 	private ServerGrpService serverGrpService;
+
+	@Autowired
+	private BorgDescriptionService borgDescriptionService;
 
 	@Autowired
 	private UserServerGrpService userServerGrpService;
@@ -155,16 +159,12 @@ public class BackupCommand {
 	@Autowired
 	private LocaledMessageService localedMessageService;
 
-	@Autowired
-	private BoxService boxService;
-
 	@PostConstruct
 	public void post() {
 
 	}
 
 	// @formatter: off
-
 	private Session getSession() {
 		sureBoxSelected();
 		Server server = appState.currentServerOptional().get();
@@ -231,11 +231,12 @@ public class BackupCommand {
 
 	@ShellMethod(value = "新建一个服务器.")
 	public FacadeResult<?> serverCreate(@ShellOption(help = "服务器主机名或者IP") String host) throws IOException {
-		FacadeResult<Box> fr = boxService.serverCreate(host);
-//		if (fr.isExpected()) {
-//			appState.addServer(fr.getResult());
-//		}
-		return fr;
+		Server server = serverService.findByHost(host);
+		if (server == null) {
+			server = new Server(host);
+			server = serverService.save(server);
+		}
+		return FacadeResult.doneExpectedResultDone(server);
 	}
 
 	@ShellMethod(value = "显示服务器描述")
@@ -254,8 +255,8 @@ public class BackupCommand {
 		server.setPassword(password);
 		server.setServerRole(boxRole);
 		server.setPort(port);
-		boxService.writeDescription(server);
-		return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
+		server = serverService.save(server);
+		return FacadeResult.doneExpectedResultDone(server);
 	}
 
 	@ShellMethod(value = "显示配置相关信息。")
@@ -305,15 +306,16 @@ public class BackupCommand {
 		return null;
 	}
 
-//	@ShellMethod(value = "加载示例服务器。")
-//	public String loadDemoServer() throws IOException {
-//		try (InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml")) {
-//			Server server = YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
-//			if (appState.addServer(box)) {
-//			}
-//			return String.format("Demo server %s loaded.", box.getHost());
-//		}
-//	}
+	// @ShellMethod(value = "加载示例服务器。")
+	// public String loadDemoServer() throws IOException {
+	// try (InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml"))
+	// {
+	// Server server = YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
+	// if (appState.addServer(box)) {
+	// }
+	// return String.format("Demo server %s loaded.", box.getHost());
+	// }
+	// }
 
 	private String formatKeyVal(String k, String v) {
 		return String.format("%s: %s", k, v);
@@ -364,7 +366,7 @@ public class BackupCommand {
 			break;
 		}
 		sureBorgConfigurated();
-		return FacadeResult.doneExpectedResult(appState.currentServerOptional().get(), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResultDone(appState.currentServerOptional().get());
 	}
 
 	public FacadeResult<?> borgDescriptionCreate() throws JSchException, IOException {
@@ -374,11 +376,10 @@ public class BackupCommand {
 		if (bbd != null) {
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		}
-		bbd = new BorgDescription();
-		bbd.setArchiveCron(dvs.getCron().getBorgArchive());
-		bbd.setPruneCron(dvs.getCron().getBorgPrune());
-		server.setBorgDescription(bbd);
-		return borgService.saveBox(server);
+		bbd = new BorgDescription.BorgDescriptionBuilder(server.getId()).withArchiveCron(dvs.getCron().getBorgArchive())
+				.withPruneCron(dvs.getCron().getBorgPrune()).build();
+		bbd = borgDescriptionService.save(bbd);
+		return FacadeResult.doneExpectedResultDone(bbd);
 	}
 
 	@ShellMethod(value = "更新Borg的描述")
@@ -389,9 +390,14 @@ public class BackupCommand {
 			@ShellOption(help = "borg prune cron expression.") String pruneCron) throws JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.currentServerOptional().get();
-		return borgService.updateBorgDescription(server, repo, archiveFormat, archiveNamePrefix,
-				ReusableCron.getExpressionFromToListRepresentation(archiveCron),
-				ReusableCron.getExpressionFromToListRepresentation(pruneCron));
+		BorgDescription bd = server.getBorgDescription();
+		bd.setArchiveCron(archiveCron);
+		bd.setArchiveFormat(archiveFormat);
+		bd.setArchiveNamePrefix(archiveNamePrefix);
+		bd.setPruneCron(pruneCron);
+		bd.setRepo(repo);
+		bd = borgDescriptionService.save(bd);
+		return FacadeResult.doneExpectedResultDone(bd);
 	}
 
 	@ShellMethod(value = "管理Borg的includes条目")
@@ -401,37 +407,56 @@ public class BackupCommand {
 			throws JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.currentServerOptional().get();
-		BorgDescription bbdi = server.getBorgDescription();
-		if (bbdi.getIncludes() == null)
-			bbdi.setIncludes(new ArrayList<>());
-		FacadeResult<?> fr = baddremove(action, remoteDirectory, bbdi.getIncludes());
-		if (fr.isExpected()) {
-			return borgService.saveBox(server);
+		BorgDescription bd = server.getBorgDescription();
+
+		if (bd.getIncludes() == null)
+			bd.setIncludes(new ArrayList<>());
+
+		boolean changed = false;
+
+		switch (action) {
+		case "ADD":
+			if (!bd.getIncludes().contains(remoteDirectory)) {
+				bd.getIncludes().add(remoteDirectory);
+				changed = true;
+			}
+			break;
+		default:
+			if (bd.getIncludes().contains(remoteDirectory)) {
+				bd.getIncludes().remove(remoteDirectory);
+				changed = true;
+			}
+			break;
 		}
-		return fr;
+		if (changed) {
+			bd = borgDescriptionService.save(bd);
+		}
+		return FacadeResult.doneExpectedResultDone(bd);
 	}
 
-	private FacadeResult<?> baddremove(String action, String remoteDirectory, List<String> directories) {
-		if ("ADD".equals(action)) {
-			if (!directories.contains(remoteDirectory)) {
-				try {
-					boolean direxists = SSHcommonUtil.fileExists(getSession(), remoteDirectory);
-					if (!direxists) {
-						return FacadeResult.showMessageUnExpected("rfile.nonexists", remoteDirectory);
-					}
-					directories.add(remoteDirectory);
-				} catch (RunRemoteCommandException e) {
-					return FacadeResult.unexpectedResult(e);
-				}
-			}
-		} else {
-			if (directories.contains(remoteDirectory)) {
-				directories.remove(remoteDirectory);
-			}
-		}
-		return FacadeResult.doneExpectedResult();
-
-	}
+	// private FacadeResult<?> baddremove(String action, String remoteDirectory,
+	// List<String> directories) {
+	// if ("ADD".equals(action)) {
+	// if (!directories.contains(remoteDirectory)) {
+	// try {
+	// boolean direxists = SSHcommonUtil.fileExists(getSession(), remoteDirectory);
+	// if (!direxists) {
+	// return FacadeResult.showMessageUnExpected("rfile.nonexists",
+	// remoteDirectory);
+	// }
+	// directories.add(remoteDirectory);
+	// } catch (RunRemoteCommandException e) {
+	// return FacadeResult.unexpectedResult(e);
+	// }
+	// }
+	// } else {
+	// if (directories.contains(remoteDirectory)) {
+	// directories.remove(remoteDirectory);
+	// }
+	// }
+	// return FacadeResult.doneExpectedResult();
+	//
+	// }
 
 	@ShellMethod(value = "管理Borg的excludes条目")
 	public FacadeResult<?> borgDescriptionExcludes(@ShowPossibleValue({ "ADD",
@@ -440,14 +465,30 @@ public class BackupCommand {
 			throws JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.currentServerOptional().get();
-		BorgDescription bbdi = server.getBorgDescription();
-		if (bbdi.getExcludes() == null)
-			bbdi.setExcludes(new ArrayList<>());
-		FacadeResult<?> fr = baddremove(action, remoteDirectory, bbdi.getExcludes());
-		if (fr.isExpected()) {
-			return borgService.saveBox(server);
+		BorgDescription bd = server.getBorgDescription();
+		if (bd.getExcludes() == null)
+			bd.setExcludes(new ArrayList<>());
+
+		boolean changed = false;
+
+		switch (action) {
+		case "ADD":
+			if (!bd.getExcludes().contains(remoteDirectory)) {
+				bd.getExcludes().add(remoteDirectory);
+				changed = true;
+			}
+			break;
+		default:
+			if (bd.getExcludes().contains(remoteDirectory)) {
+				bd.getExcludes().remove(remoteDirectory);
+				changed = true;
+			}
+			break;
 		}
-		return fr;
+		if (changed) {
+			bd = borgDescriptionService.save(bd);
+		}
+		return FacadeResult.doneExpectedResultDone(bd);
 	}
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
@@ -577,6 +618,8 @@ public class BackupCommand {
 		return fr;
 	}
 
+	// @formatter: off
+
 	@ShellMethod(value = "添加或更改Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionUpdate(@ShellOption(help = "mysql username.") String username,
 			@ShellOption(help = "mysql password.") String password, @ShellOption(help = "mysql port.") int port,
@@ -584,8 +627,14 @@ public class BackupCommand {
 			throws JSchException, IOException {
 		sureMysqlConfigurated();
 		Server server = appState.currentServerOptional().get();
-		return mysqlService.updateMysqlDescription(server, username, password, port,
-				ReusableCron.getExpressionFromToListRepresentation(flushLogCron));
+		MysqlInstance mi = server.getMysqlInstance();
+
+		mi.setUsername(username);
+		mi.setPassword(password);
+		mi.setPort(port);
+		mi.setFlushLogCron(flushLogCron);
+		mi = mysqlInstanceService.save(mi);
+		return FacadeResult.doneExpectedResultDone(mi);
 	}
 
 	@ShellMethod(value = "创建Mysql的描述")
@@ -598,22 +647,18 @@ public class BackupCommand {
 		if (mi != null) {
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		}
-		mi = new MysqlInstance();
-		mi.setUsername(username);
-		mi.setPassword(password);
-		mi.setFlushLogCron(dvs.getCron().getMysqlFlush());
-		FacadeResult<String> fr = mysqlService.getMyCnfFile(getSession(), server);
-		if (fr.isExpected()) {
-			mi.setMycnfFile(fr.getResult());
-		}
-		server.setMysqlInstance(mi);
-		return mysqlService.updateMysqlDescription(server);
+
+		mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), password)
+				.withFlushLogCron(dvs.getCron().getMysqlFlush()).withUsername(username).build();
+		mi = mysqlInstanceService.save(mi);
+		return FacadeResult.doneExpectedResultDone(mi);
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
 		sureMysqlReadyForBackup();
 		Server server = appState.currentServerOptional().get();
+
 		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(getSession(), server);
 		mysqlFlushService.processFlushResult(server, fr);
 		return fr;

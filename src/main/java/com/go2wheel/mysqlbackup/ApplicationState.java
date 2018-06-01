@@ -1,17 +1,11 @@
 package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.annotation.PostConstruct;
 
@@ -24,17 +18,14 @@ import org.springframework.context.EnvironmentAware;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
-import com.go2wheel.mysqlbackup.model.BackupFolder;
+import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
+import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.ServerService;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 //import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Component
 public class ApplicationState implements EnvironmentAware {
@@ -42,6 +33,10 @@ public class ApplicationState implements EnvironmentAware {
 	public static final String APPLICATION_STATE_PERSIST_FILE = "application-state.yml";
 	
 	public static boolean IS_PROD_MODE = false;
+	
+	private static final Integer APP_STATE_ID = 0;
+	private static final String APP_STATE_NAME = "APP_STATE_NAME";
+	private static final String APP_STATE_LAST_SERVER_ID = "LAST_SERVER_ID";
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
@@ -53,6 +48,9 @@ public class ApplicationState implements EnvironmentAware {
 
 	@Autowired
 	private MyAppSettings appSettings;
+	
+	@Autowired
+	private KeyValueInDbService keyValueInDbService;
 
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -64,16 +62,6 @@ public class ApplicationState implements EnvironmentAware {
 	private Locale local = Locale.CHINESE;
 	
 	private Server currentServer;
-	
-//	private Box currentBox;
-//
-//	public Box getCurrentBox() {
-//		return currentBox;
-//	}
-//
-//	public void setCurrentBox(Box currentBox) {
-//		this.currentBox = currentBox;
-//	}
 
 	private FacadeResult<?> facadeResult;
 
@@ -88,6 +76,7 @@ public class ApplicationState implements EnvironmentAware {
 
 	@PostConstruct
 	public void post() throws IOException {
+		servers = serverService.findAll().stream().map(s -> serverService.loadFull(s)).collect(Collectors.toList());
 //		Path dr = appSettings.getDataRoot();
 //		try (Stream<Path> vs = Files.list(dr)){
 //			boxes = vs.filter(Files::isDirectory)
@@ -150,15 +139,6 @@ public class ApplicationState implements EnvironmentAware {
 //		ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
 //		loadState();
 	}
-
-//	public synchronized List<Box> getBoxes() {
-//		return boxes;
-//	}
-//
-//	public void setBoxes(List<Box> boxes) {
-//		this.boxes = boxes;
-//	}
-
 	
 	public void fireSwitchEvent() {
 		ServerSwitchEvent sce = new ServerSwitchEvent(this);
@@ -176,14 +156,19 @@ public class ApplicationState implements EnvironmentAware {
 		return Optional.of(currentServer);
 	}
 
-//	public void persistState() {
-//		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(new PersistState(this));
-//		try {
-//			Files.write(appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE), s.getBytes());
-//		} catch (IOException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//		}
-//	}
+	public void persistState() {
+		if (getCurrentServer() != null) {
+			KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
+			if (kv == null) {
+				kv = new KeyValueInDb();
+				kv.setObjectId(APP_STATE_ID);
+				kv.setObjectName(APP_STATE_NAME);
+				kv.setTheKey(APP_STATE_LAST_SERVER_ID);
+			}
+			kv.setTheValue(getCurrentServer().getId() + "");
+			keyValueInDbService.save(kv);
+		}
+	}
 
 //	public void loadState() throws IOException {
 //		try {

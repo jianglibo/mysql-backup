@@ -5,4 +5,6 @@ import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 
 public interface KeyValueInDbRepository extends RepositoryBase<KeyValueRecord, KeyValueInDb>{
 
+	KeyValueInDb findByIdNameKey(int appStateId, String appStateName, String appStateLastServerId);
+
 }

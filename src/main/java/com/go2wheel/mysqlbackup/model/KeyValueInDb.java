@@ -8,16 +8,16 @@ public class KeyValueInDb extends BaseModel {
 	
 	public static final String OBNAME_MYSQL = "mysql";
 	
-	private String objectId;
+	private Integer objectId;
 	private String objectName;
 	private String theKey;
 	private String theValue;
 
-	public String getObjectId() {
+	public Integer getObjectId() {
 		return objectId;
 	}
 
-	public void setObjectId(String objectId) {
+	public void setObjectId(Integer objectId) {
 		this.objectId = objectId;
 	}
 
@@ -53,7 +53,7 @@ public class KeyValueInDb extends BaseModel {
 	public static KeyValueInDb newMysqlKv(int obid, String key, String value) {
 		KeyValueInDb kv = new KeyValueInDb();
 		kv.setCreatedAt(new Date());
-		kv.setObjectId(obid + "");
+		kv.setObjectId(obid);
 		kv.setObjectName(OBNAME_MYSQL);
 		kv.setTheKey(key);
 		kv.setTheValue(value);

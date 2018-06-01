@@ -127,6 +127,15 @@ public class FacadeResult<T> implements TimeCost {
 		FacadeResult<T> r = new FacadeResult<T>();
 		r.expected = true;
 		r.setResult(value);
+		r.setCommonActionResult(commonActionResult);
+		return r;
+	}
+	
+	public static <T> FacadeResult<T> doneExpectedResultDone(T value) {
+		FacadeResult<T> r = new FacadeResult<T>();
+		r.expected = true;
+		r.setResult(value);
+		r.setCommonActionResult(CommonActionResult.DONE);
 		return r;
 	}
 	
