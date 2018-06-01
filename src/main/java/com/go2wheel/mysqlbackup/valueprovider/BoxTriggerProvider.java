@@ -15,6 +15,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 
@@ -41,10 +42,10 @@ public class BoxTriggerProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentServerOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		Box box = applicationState.currentBoxOptional().get();
+		Server box = applicationState.currentServerOptional().get();
 		
 		switch (parameter.getParameterName()) {
 		case "triggerKey":

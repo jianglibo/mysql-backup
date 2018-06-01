@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -58,12 +59,12 @@ public class MyAppSettings {
 		}
 	}
 	
-	private Path getHostDir(Box box) {
-		return getDataRoot().resolve(box.getHost());
+	private Path getHostDir(Server server) {
+		return getDataRoot().resolve(server.getHost());
 	}
 
-	public Path getLogBinDir(Box box) {
-		Path dstDir = getHostDir(box).resolve("logbin");
+	public Path getLogBinDir(Server server) {
+		Path dstDir = getHostDir(server).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			try {
 				Files.createDirectories(dstDir);
@@ -74,8 +75,8 @@ public class MyAppSettings {
 		return dstDir;
 	}
 	
-	public Path getBorgRepoDir(Box box) {
-		Path dstDir = getHostDir(box).resolve("repo");
+	public Path getBorgRepoDir(Server server) {
+		Path dstDir = getHostDir(server).resolve("repo");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			try {
 				Files.createDirectories(dstDir);
@@ -87,15 +88,15 @@ public class MyAppSettings {
 	}
 
 	
-	public Path getDumpDir(Box box) {
+	public Path getDumpDir(Server server) {
 		try {
-			Path dstDir = getHostDir(box).resolve("dump");
+			Path dstDir = getHostDir(server).resolve("dump");
 			if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 				Files.createDirectories(dstDir);
 			}
 			return dstDir;
 		} catch (IOException e) {
-			throw new MysqlDumpException(box, "create dump folder failed.");
+			throw new MysqlDumpException(server, "create dump folder failed.");
 		}
 	}
 	

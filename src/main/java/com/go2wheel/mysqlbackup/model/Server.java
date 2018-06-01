@@ -1,8 +1,12 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class Server extends BaseModel {
 	
@@ -29,6 +33,8 @@ public class Server extends BaseModel {
 	private MysqlInstance mysqlInstance;
 	
 	private BorgDescription borgDescription;
+	
+	private String serverRole;
 	
 	public Server() {}
 	
@@ -105,5 +111,24 @@ public class Server extends BaseModel {
 	public void setBorgDescription(BorgDescription borgDescription) {
 		this.borgDescription = borgDescription;
 	}
+
+	public boolean canSShKeyAuth() {
+		boolean b =  sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile.trim()));
+		return b;
+	}
+	
+	public boolean canPasswordAuth() {
+		return StringUtil.hasAnyNonBlankWord(getPassword()) && !NO_PASSWORD.equals(getPassword());
+	}
+
+	public String getServerRole() {
+		return serverRole;
+	}
+
+	public void setServerRole(String serverRole) {
+		this.serverRole = serverRole;
+	}
+
+	
 	
 }

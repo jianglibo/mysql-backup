@@ -10,7 +10,6 @@ import com.go2wheel.mysqlbackup.jooqschema.tables.records.UpTimeRecord;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UpTime;
 import com.go2wheel.mysqlbackup.repository.UpTimeRepository;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Service
 @Validated
@@ -23,7 +22,7 @@ public class UpTimeService extends ServiceBase<UpTimeRecord, UpTime> {
 		super(repo);
 	}
 
-	public List<UpTime> getItemsInDays(Box box, int days) {
+	public List<UpTime> getItemsInDays(Server box, int days) {
 		Server server = serverService.findByHost(box.getHost());
 		return  ((UpTimeRepository)repo).getItemsInDays(server.getId(), days);
 	}

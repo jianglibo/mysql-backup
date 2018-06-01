@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -48,7 +49,7 @@ public class SchedulerService {
 		scheduler.rescheduleJob(tk, trigger);
 	}
 
-	public List<Trigger> getBoxTriggers(Box box) throws SchedulerException {
+	public List<Trigger> getBoxTriggers(Server box) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
 				.filter(jk -> jk.getName().equals(box.getHost()))
 				.flatMap(jk -> {
@@ -68,7 +69,7 @@ public class SchedulerService {
 		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
 	}
 
-	public FacadeResult<?> delteBoxTriggers(Box box, String triggerKey) {
+	public FacadeResult<?> delteBoxTriggers(Server box, String triggerKey) {
 		String[] ss = triggerKey.split("\\.", 2);
 		if (ss.length != 2) {
 			throw new ShowToUserException("scheduler.key.malformed", "");
@@ -84,7 +85,7 @@ public class SchedulerService {
 		return FacadeResult.doneExpectedResult();
 	}
 
-	public List<String> getBoxSchedulerJobList(Box box) throws SchedulerException {
+	public List<String> getBoxSchedulerJobList(Server box) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
 				.filter(jk -> jk.getName().equals(box.getHost())).map(jk -> jk.toString())
 				.collect(Collectors.toList());

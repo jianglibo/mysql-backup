@@ -24,7 +24,6 @@ import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
@@ -63,7 +62,7 @@ public class BorgArchiveJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString("host");
-			Box box = applicationState.getServerByHost(host);
+			Server box = applicationState.getServerByHost(host);
 			
 			if (box == null) { //the box is somehow already removed.
 				logger.error("The Box is somehow had removed. {}", host);

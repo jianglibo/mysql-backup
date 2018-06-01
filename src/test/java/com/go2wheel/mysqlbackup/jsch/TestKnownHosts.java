@@ -49,7 +49,7 @@ public class TestKnownHosts extends SpringBaseFort {
 			System.out.println("Host keys in " + hkr.getKnownHostsRepositoryID());
 			for (int i = 0; i < hks.length; i++) {
 				HostKey hk = hks[i];
-				if (hk.getHost().equals(box.getHost())) {
+				if (hk.getHost().equals(server.getHost())) {
 					demoKey = hk;
 				}
 			}
@@ -57,7 +57,7 @@ public class TestKnownHosts extends SpringBaseFort {
 		assertNotNull(demoKey);
 		System.out.println(demoKey.getType());
 		System.out.println(demoKey.getFingerPrint(jsch));
-		Session session=jsch.getSession(box.getUsername(), box.getHost(), box.getPort());
+		Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
 		session.setPassword("vagrant");
 		session.connect();
 		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();

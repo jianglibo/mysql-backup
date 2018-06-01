@@ -19,7 +19,7 @@ public class TestMysqlLogin extends SpringBaseFort {
 			protected String afterLogin() {
 				return "";
 			}
-		}.start(box);
+		}.start(server);
 	}
 
 }

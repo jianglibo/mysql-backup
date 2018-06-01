@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.BorgService.InstallationInfo;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -63,14 +64,14 @@ public class TestBorgService extends SpringBaseFort {
 	@Test
 	public void testArchive() {
 		borgService.unInstall(session);
-		FacadeResult<?> fr = borgService.archive(session, box);
+		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
 		assertThat(fr.getMessage(), equalTo("common.application.notinstalled"));
 
 		fr = borgService.install(session);
 		assertTrue(fr.isExpected());
 
-		fr = borgService.archive(session, box);
+		fr = borgService.archive(session, server);
 		assertTrue(fr.isExpected());
 
 	}
@@ -78,48 +79,49 @@ public class TestBorgService extends SpringBaseFort {
 	@Test
 	public void tArchive() throws RunRemoteCommandException, InterruptedException {
 		borgService.install(session);
-		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", box.getBorgBackup().getRepo()));
-		RemoteCommandResult rcr1 = borgService.initRepo(session, box.getBorgBackup().getRepo()).getResult();
+		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));
+		RemoteCommandResult rcr1 = borgService.initRepo(session, server.getBorgDescription().getRepo()).getResult();
 		assertThat(rcr1.getExitValue(), equalTo(0));
-		FacadeResult<?> fr = borgService.archive(session, box);
+		FacadeResult<?> fr = borgService.archive(session, server);
 		assertTrue(fr.isExpected());
 
-		borgService.downloadRepo(session, box);
+		borgService.downloadRepo(session, server);
 
 		for (int i = 0; i < 2; i++) {
 			archive();
 		}
 
-		BorgListResult blr = borgService.listArchives(session, box).getResult();
+		BorgListResult blr = borgService.listArchives(session, server).getResult();
 		assertThat(blr.getArchives().size(), equalTo(3));
 
-		BorgPruneResult bpr = borgService.pruneRepo(session, box).getResult();
+		BorgPruneResult bpr = borgService.pruneRepo(session, server).getResult();
 		assertTrue(bpr.isSuccess());
 		assertThat(bpr.prunedArchiveNumbers(), equalTo(2L));
 		assertThat(bpr.keepedArchiveNumbers(), equalTo(1L));
 
-		blr = borgService.listArchives(session, box).getResult();
+		blr = borgService.listArchives(session, server).getResult();
 		assertThat(blr.getArchives().size(), equalTo(1));
 
-		int c = SSHcommonUtil.countFiles(session, box.getBorgBackup().getRepo());
+		int c = SSHcommonUtil.countFiles(session, server.getBorgDescription().getRepo());
 		assertThat(c, greaterThan(3));
 	}
 
 	@Test
 	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException {
 		borgService.install(session);
-		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", box.getBorgBackup().getRepo()));
-		RemoteCommandResult rcr1 = borgService.initRepo(session, box.getBorgBackup().getRepo()).getResult();
+		BorgDescription bd = server.getBorgDescription();
+		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", bd.getRepo()));
+		RemoteCommandResult rcr1 = borgService.initRepo(session, bd.getRepo()).getResult();
 		assertThat(rcr1.getExitValue(), equalTo(0));
-		box.getBorgBackup().setIncludes(new ArrayList<>());
-		box.getBorgBackup().setExcludes(new ArrayList<>());
-		FacadeResult<?> fr = borgService.archive(session, box);
+		bd.setIncludes(new ArrayList<>());
+		bd.setExcludes(new ArrayList<>());
+		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse("result should fail.", fr.isExpected());
 		assertThat(fr.getMessage(), equalTo("borg.archive.noincludes"));
 	}
 
 	private void archive() throws RunRemoteCommandException, InterruptedException {
-		borgService.archive(session, box);
+		borgService.archive(session, server);
 		Thread.sleep(1000);
 	}
 

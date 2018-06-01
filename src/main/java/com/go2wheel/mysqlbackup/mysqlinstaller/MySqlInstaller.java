@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -52,7 +53,7 @@ public class MySqlInstaller {
 
 	private MysqlUtil mysqlUtil;
 
-	public FacadeResult<MysqlInstallInfo> install(Session session, Box box, String twoDigitVersion, String initPassword) {
+	public FacadeResult<MysqlInstallInfo> install(Session session, Server box, String twoDigitVersion, String initPassword) {
 		try {
 			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(twoDigitVersion))) {
 				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", twoDigitVersion));
@@ -149,7 +150,7 @@ public class MySqlInstaller {
 		}
 	}
 
-	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Box box) {
+	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server box) {
 		try {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
 			if (!info.isInstalled()) {

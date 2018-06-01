@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.exception;
 
-import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.model.Server;
 
 public class MysqlDumpException extends RuntimeException {
 
@@ -19,8 +19,8 @@ public class MysqlDumpException extends RuntimeException {
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	public MysqlDumpException(Box box, String reason) {
-		super(String.format("Server %s's, %s.", box.getHost(), reason));
+	public MysqlDumpException(Server server, String reason) {
+		super(String.format("Server %s's, %s.", server.getHost(), reason));
 		this.reason = reason;
 	}
 

@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.JSchException;
@@ -17,7 +18,7 @@ import com.jcraft.jsch.Session;
 public class TestSshSessionFactory {
 	
 	private MyAppSettings appSettings;
-	private Box box;
+	private Server box;
 	private SshSessionFactory scf;
 	
 	
@@ -62,7 +63,7 @@ public class TestSshSessionFactory {
 	public void tGlobalKnownHostsSuccess() throws IOException, JSchException {
 		box.setSshKeyFile(null);
 		box.setPassword(null);
-		box.setFingerprint(null);
+//		box.setFingerprint(null);
 		Session sshSession = scf.getConnectedSession(box).getResult();
 		UtilForTe.sshEcho(sshSession, "abc");
 	}

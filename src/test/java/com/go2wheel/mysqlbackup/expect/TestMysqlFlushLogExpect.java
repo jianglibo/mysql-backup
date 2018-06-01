@@ -22,19 +22,19 @@ public class TestMysqlFlushLogExpect extends SpringBaseFort {
 	
 	@Before
 	public void b() throws IOException, SchedulerException {
-		oriPwd = box.getMysqlInstance().getPassword();
+		oriPwd = server.getMysqlInstance().getPassword();
 	}
 	
 	@After
 	public void after() throws IOException, JSchException, RunRemoteCommandException {
-		box.getMysqlInstance().setPassword(oriPwd);
+		server.getMysqlInstance().setPassword(oriPwd);
 	}
 	
 	@Test
 	public void t() throws Exception {
 		MysqlUtil mysqlUtil = new MysqlUtil();
 		mysqlUtil.setAppSettings(myAppSettings);
-		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, box);
+		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, server);
 		assertTrue(mfe.start().size() == 2);
 	}
 	
@@ -42,9 +42,9 @@ public class TestMysqlFlushLogExpect extends SpringBaseFort {
 	public void tWrongPassword() throws Exception {
 		MysqlUtil mysqlUtil = new MysqlUtil();
 		mysqlUtil.setAppSettings(myAppSettings);
-		box.getMysqlInstance().setPassword("wrongpassword");
+		server.getMysqlInstance().setPassword("wrongpassword");
 		createALocalFile(" ");
-		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, box);
+		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, server);
 		
 		assertFalse(mfe.start().size() == 1);
 		

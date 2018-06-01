@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.value.Box;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.jcraft.jsch.JSch;
@@ -27,13 +27,13 @@ public class SshSessionFactory {
 
 	private Logger logger = LoggerFactory.getLogger(SshSessionFactory.class);
 
-	public FacadeResult<Session> getConnectedSession(Box box) {
+	public FacadeResult<Session> getConnectedSession(Server server) {
 		JSch jsch=new JSch();
 		Session session = null;
 		try {
-			String userName = box.getUsername();
-			String host = box.getHost();
-			int port = box.getPort();
+			String userName = server.getUsername();
+			String host = server.getHost();
+			int port = server.getPort();
 			session=jsch.getSession(userName, host, port);
 			String knownHosts = appSettings.getSsh().getKnownHosts();
 			String idrsaFile = appSettings.getSsh().getSshIdrsa();
@@ -45,11 +45,11 @@ public class SshSessionFactory {
 			}
 			jsch.setKnownHosts(Paths.get(knownHosts.trim()).toAbsolutePath().toString());
 		
-			if (box.canSShKeyAuth()) {
-				jsch.addIdentity(Paths.get(box.getSshKeyFile().trim()).toAbsolutePath().toString());
+			if (server.canSShKeyAuth()) {
+				jsch.addIdentity(Paths.get(server.getSshKeyFile().trim()).toAbsolutePath().toString());
 				session.connect();
-			} else if (box.canPasswordAuth()) {
-				session.setPassword(box.getPassword());
+			} else if (server.canPasswordAuth()) {
+				session.setPassword(server.getPassword());
 				session.connect();
 			} else if(appSettings.getSsh().sshIdrsaExists()) {
 				jsch.addIdentity(Paths.get(idrsaFile.trim()).toAbsolutePath().toString());

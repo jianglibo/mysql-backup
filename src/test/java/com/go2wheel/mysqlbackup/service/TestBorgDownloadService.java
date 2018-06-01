@@ -34,7 +34,7 @@ public class TestBorgDownloadService extends ServiceTbase {
 	public void tNoBorgInstalled() throws JobExecutionException {
 		borgArchiveJob.execute(context);
 
-		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(box, 3);
+		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(server, 3);
 
 		assertThat(downloads.size(), equalTo(1));
 		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.FAIL));
@@ -48,7 +48,7 @@ public class TestBorgDownloadService extends ServiceTbase {
 	public void tBorgInstalled() throws JobExecutionException {
 		borgService.install(session);
 		borgArchiveJob.execute(context);
-		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(box, 3);
+		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(server, 3);
 
 		assertThat(downloads.size(), equalTo(1));
 		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.SUCCESS));

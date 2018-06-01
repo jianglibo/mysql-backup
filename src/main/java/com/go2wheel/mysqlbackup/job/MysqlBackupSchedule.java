@@ -4,8 +4,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.text.ParseException;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -27,8 +25,6 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
-import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
 public class MysqlBackupSchedule {
@@ -45,18 +41,18 @@ public class MysqlBackupSchedule {
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
-		List<Box> mysqlBoxes = applicationState.getBoxes().stream()
-				.filter(box -> box.getMysqlInstance() != null
-						&& StringUtil.hasAnyNonBlankWord(box.getMysqlInstance().getFlushLogCron()))
-				.collect(Collectors.toList());
-
-		for (Box box : mysqlBoxes) {
-			scheduleTrigger(box);
-		}
-		;
+//		List<Box> mysqlBoxes = applicationState.getBoxes().stream()
+//				.filter(box -> box.getMysqlInstance() != null
+//						&& StringUtil.hasAnyNonBlankWord(box.getMysqlInstance().getFlushLogCron()))
+//				.collect(Collectors.toList());
+//
+//		for (Box box : mysqlBoxes) {
+//			scheduleTrigger(box);
+//		}
+//		;
 	}
 
-	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
+	private void scheduleTrigger(Server box) throws SchedulerException, ParseException {
 		JobKey jk = BoxUtil.getMysqlFlushLogJobKey(box);
 		TriggerKey tk = BoxUtil.getMysqlFlushLogTriggerKey(box);
 
@@ -75,8 +71,9 @@ public class MysqlBackupSchedule {
 	
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
-		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
-		if(box != null)scheduleTrigger(box);
+		if (serverCreatedEvent.getModel().getMysqlInstance() != null) {
+			scheduleTrigger(serverCreatedEvent.getModel());
+		}
 	}
 
 }

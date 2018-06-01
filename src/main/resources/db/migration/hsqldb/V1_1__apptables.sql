@@ -8,6 +8,7 @@ CREATE TABLE server
   username VARCHAR(64) NOT NULL,
   password VARCHAR(64),
   ssh_key_file VARCHAR(256),
+  server_role VARCHAR(32) DEFAULT 'GET',
   created_at TIMESTAMP(2),
   CONSTRAINT unique_server_host UNIQUE (host)
 );

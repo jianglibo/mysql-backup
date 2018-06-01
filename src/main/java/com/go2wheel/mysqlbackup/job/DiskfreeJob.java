@@ -55,7 +55,7 @@ public class DiskfreeJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
-			Box box = applicationState.getServerByHost(host);
+			Server box = applicationState.getServerByHost(host);
 			
 			if (box == null) { //the box is somehow already removed.
 				logger.error("The Box is somehow had removed. {}", host);

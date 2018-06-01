@@ -10,7 +10,6 @@ import com.go2wheel.mysqlbackup.jooqschema.tables.records.DiskfreeRecord;
 import com.go2wheel.mysqlbackup.model.Diskfree;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.DiskfreeRepository;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Service
 @Validated
@@ -23,7 +22,7 @@ public class DiskfreeService extends ServiceBase<DiskfreeRecord, Diskfree> {
 		super(repo);
 	}
 
-	public List<Diskfree> getItemsInDays(Box box, int days) {
+	public List<Diskfree> getItemsInDays(Server box, int days) {
 		Server server = serverService.findByHost(box.getHost());
 		return  ((DiskfreeRepository)repo).getItemsInDays(server.getId(), days);
 	}

@@ -33,28 +33,28 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	@Test
 	public void testMysqlVariable()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		LogBinSetting lbs = mysqlUtil.getLogbinState(session, box);
+		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
 		assertThat(lbs.getMap().size(), equalTo(3));
 	}
 
 	@Test
 	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException {
-		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
+		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server);
 		mfh.enableBinLog();
 		ConfigValue cv = mfh.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
 		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
 		assertTrue("mycnf field should be set.",
-				box.getMysqlInstance().getMycnfFile() != null && box.getMysqlInstance().getMycnfFile().length() > 3);
+				server.getMysqlInstance().getMycnfFile() != null && server.getMysqlInstance().getMycnfFile().length() > 3);
 
-		String remoteFile = box.getMysqlInstance().getMycnfFile();
+		String remoteFile = server.getMysqlInstance().getMycnfFile();
 
 		BackupedFiles backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		int flsi = backupedFiles.getBackups().size();
-		SSHcommonUtil.backupFile(session, box.getMysqlInstance().getMycnfFile());
+		SSHcommonUtil.backupFile(session, server.getMysqlInstance().getMycnfFile());
 		byte[] bytes = String.join("\n", mfh.getLines()).getBytes();
-		ScpUtil.to(session, box.getMysqlInstance().getMycnfFile(), bytes);
+		ScpUtil.to(session, server.getMysqlInstance().getMycnfFile(), bytes);
 
-		String s = ScpUtil.from(session, box.getMysqlInstance().getMycnfFile()).toString();
+		String s = ScpUtil.from(session, server.getMysqlInstance().getMycnfFile()).toString();
 		mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(s)));
 		cv = mfh.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
 		assertThat(cv.getValue(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME));
@@ -69,24 +69,24 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException {
-		String s = mysqlUtil.getEffectiveMyCnf(session, box);
+		String s = mysqlUtil.getEffectiveMyCnf(session, server);
 		assertThat(s, equalTo("/etc/my.cnf"));
 
-		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, box);
+		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server);
 		assertTrue(mfh.getLines().size() > 0);
 	}
 
 	@Test
 	public void testVariables()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		Map<String, String> map = mysqlUtil.getVariables(session, box.getMysqlInstance().getUsername("root"),
-				box.getMysqlInstance().getPassword(), MysqlInstanceYml.VAR_DATADIR);
+		Map<String, String> map = mysqlUtil.getVariables(session, server.getMysqlInstance().getUsername("root"),
+				server.getMysqlInstance().getPassword(), MysqlInstanceYml.VAR_DATADIR);
 		assertTrue("contains datadir", map.containsKey(MysqlInstanceYml.VAR_DATADIR));
 	}
 
 	@Test
 	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException {
-		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
+		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 		System.out.println(info);
 	}
 }

@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.IOExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.JSchExceptionWrapper;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -24,12 +24,12 @@ public abstract class MysqlPasswordReadyExpect {
 	public static final String BASH_PROMPT = "]#";
 
 	protected final Session session;
-	protected final Box box;
+	protected final Server server;
 	protected Expect expect;
 	
-	public MysqlPasswordReadyExpect(Session session, Box box) {
+	public MysqlPasswordReadyExpect(Session session, Server server) {
 		this.session = session;
-		this.box = box;
+		this.server = server;
 	}
 	
 	private Channel getConnectedChannel() {
@@ -51,7 +51,7 @@ public abstract class MysqlPasswordReadyExpect {
 			expect = ExpectitUtil.getExpectBuilder(channel, !ApplicationState.IS_PROD_MODE).build();			
 				tillPasswordRequired();
 				expect.expect(contains("password: "));
-				expect.sendLine(box.getMysqlInstance().getPassword());
+				expect.sendLine(server.getMysqlInstance().getPassword());
 				return afterLogin();
 			} catch (IOException e) {
 				throw new IOExceptionWrapper(e);

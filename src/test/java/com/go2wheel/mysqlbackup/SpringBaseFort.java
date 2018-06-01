@@ -10,8 +10,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.jooq.DSLContext;
 import org.junit.After;
@@ -30,6 +28,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
 import com.go2wheel.mysqlbackup.service.BackupFolderStateService;
@@ -50,12 +50,8 @@ import com.go2wheel.mysqlbackup.service.UserServerGrpService;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
-import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -134,7 +130,7 @@ public class SpringBaseFort {
 	@Autowired
 	private BoxService boxService;
 	
-	protected Box box;
+	protected Server server;
 	
 	@Autowired
 	private DefaultValues dvs;
@@ -178,15 +174,8 @@ public class SpringBaseFort {
 	@Before
 	public void beforeBase() throws SchedulerException {
 		UtilForTe.deleteAllJobs(scheduler);
-		box = createBox();
-		if (needSession) {
-			FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(box);
-			if (frs.isExpected()) {
-				session = frs.getResult();
-			}
-		}
-		applicationState.setBoxes(new ArrayList<>());
-		applicationState.getBoxes().add(box);
+		applicationState.setServers(new ArrayList<>());
+		applicationState.getServers().add(server);
 		
 		keyValueInDbService.deleteAll();
 		mysqlInstanceService.deleteAll();
@@ -206,13 +195,18 @@ public class SpringBaseFort {
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		serverService.deleteAll();
 		serverGrpService.deleteAll();
-		
-		Server sv = new Server(box.getHost());
-		serverService.save(sv);
-		
 		JobDataMap jdm = new JobDataMap();
 		jdm.put("host", HOST_DEFAULT);
 		given(context.getMergedJobDataMap()).willReturn(jdm);
+		
+		server = createServer();
+		if (needSession) {
+			FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
+			if (frs.isExpected()) {
+				session = frs.getResult();
+			}
+		}
+
 	}
 	
 	
@@ -236,32 +230,48 @@ public class SpringBaseFort {
 		}
 	}
 	
-	private Box createBox() {
-		box = new Box();
-		box.setHost(HOST_DEFAULT);
-		box.setBorgBackup(new BorgBackupDescription());
-		box.setMysqlInstance(new MysqlInstanceYml());
+	private Server createServer() {
+		server = new Server(HOST_DEFAULT);
 		
-		box.getMysqlInstance().setPassword("123456");
+		server = serverService.save(server);
 		
-		box.getBorgBackup().setArchiveCron(dvs.getCron().getBorgArchive());
-		box.getBorgBackup().setPruneCron(dvs.getCron().getBorgPrune());
+		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456")
+				.addSetting("log_bin", "ON")
+				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
+				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
+				.build();
 		
-		box.getBorgBackup().getIncludes().add("/etc");
-		box.getMysqlInstance().setFlushLogCron(dvs.getCron().getMysqlFlush());
+		mysqlInstanceService.save(mi);
 		
+		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
+				.addInclude("/etc").build();
 		
-		Map<String, String> map = new HashMap<>();
-		map.put("log_bin", "ON");
-		map.put("log_bin_basename", "/var/lib/mysql/hm-log-bin");
-		map.put("log_bin_index", "/var/lib/mysql/hm-log-bin.index");
-		LogBinSetting lbs = new LogBinSetting(map);
-		box.getMysqlInstance().setLogBinSetting(lbs);
-		return box;
+		borgDescriptionService.save(bd);
+		
+//		server.setBorgDescription(borgDescription);(new BorgBackupDescription());
+//		box.setMysqlInstance(new MysqlInstanceYml());
+//		
+//		box.getMysqlInstance().setPassword("123456");
+//		
+//		box.getBorgBackup().setArchiveCron(dvs.getCron().getBorgArchive());
+//		box.getBorgBackup().setPruneCron(dvs.getCron().getBorgPrune());
+//		
+//		box.getBorgBackup().getIncludes().add("/etc");
+//		box.getMysqlInstance().setFlushLogCron(dvs.getCron().getMysqlFlush());
+//		
+//		
+//		Map<String, String> map = new HashMap<>();
+//		map.put("log_bin", "ON");
+//		map.put("log_bin_basename", "/var/lib/mysql/hm-log-bin");
+//		map.put("log_bin_index", "/var/lib/mysql/hm-log-bin.index");
+//		LogBinSetting lbs = new LogBinSetting(map);
+//		box.getMysqlInstance().setLogBinSetting(lbs);
+		return serverService.loadFull(server);
+
 	}
 	
 	protected void boxDeleteLogBinSetting() {
-		box.getMysqlInstance().setLogBinSetting(null);
+		server.getMysqlInstance().setLogBinSetting(null);
 	}
 	
 	protected void time() {

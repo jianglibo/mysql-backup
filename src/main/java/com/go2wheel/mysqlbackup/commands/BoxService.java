@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -32,10 +33,10 @@ public class BoxService {
 		this.appSettings = appSettings;
 	}
 	
-	public void writeDescription(Box box) throws IOException {
+	public void writeDescription(Server server) throws IOException {
 		Path dstFile = null;
-		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(box);
-		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
+		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(server);
+		Path dstDir = appSettings.getDataRoot().resolve(server.getHost());
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
 		}
@@ -45,27 +46,32 @@ public class BoxService {
 	}
 
 
-	public FacadeResult<Box> serverCreate(String host) {
-		Box box = null;
-		try {
-			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
-				box = applicationState.getServerByHost(host);
-				if (box != null) {
-					return FacadeResult.doneExpectedResult(box, CommonActionResult.PREVIOUSLY_DONE);
-				}
-			}
-			box = new Box();
-			box.setHost(host);
-			writeDescription(box);
-			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
-		} catch (IOException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
+//	public FacadeResult<Box> serverCreate(String host) {
+//		Box box = null;
+//		try {
+//			if (Files.exists(appSettings.getDataRoot().resolve(host))) {
+//				box = applicationState.getServerByHost(host);
+//				if (box != null) {
+//					return FacadeResult.doneExpectedResult(box, CommonActionResult.PREVIOUSLY_DONE);
+//				}
+//			}
+//			box = new Box();
+//			box.setHost(host);
+//			writeDescription(box);
+//			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
+//		} catch (IOException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			return FacadeResult.unexpectedResult(e);
+//		}
+//	}
 
 	@Autowired
 	public void setApplicationState(ApplicationState applicationState) {
 		this.applicationState = applicationState;
+	}
+
+	public FacadeResult<Box> serverCreate(String host) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

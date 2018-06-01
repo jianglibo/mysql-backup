@@ -22,24 +22,24 @@ public class CommandNotFoundResultHandler  extends TerminalAwareResultHandler<Co
 	@Override
 	protected void doHandleResult(CommandNotFound result) {
 		String msg = result.getMessage();
-		if (appState.getStep() == CommandStepState.WAITING_SELECT) {
-			Matcher m = ptn.matcher(msg);
-			if (m.matches()) {
-				int i = Integer.valueOf(m.group(1));
-				if (i >= appState.getBoxes().size()) {
-					msg = "No server at index: " + i;
-				} else {
-					Box box = appState.getBoxes().get(i);
-					if (!box.equals(appState.currentBoxOptional().orElse(null))) {
-						appState.setCurrentBox(box);
-						appState.setStep(CommandStepState.BOX_SELECTED);
-						appState.persistState();
-						appState.fireSwitchEvent();
-						msg = String.format("切换到新的服务器： %s", box.getHost());
-					}
-				}
-			}
-		}
+//		if (appState.getStep() == CommandStepState.WAITING_SELECT) {
+//			Matcher m = ptn.matcher(msg);
+//			if (m.matches()) {
+//				int i = Integer.valueOf(m.group(1));
+//				if (i >= appState.getBoxes().size()) {
+//					msg = "No server at index: " + i;
+//				} else {
+//					Box box = appState.getBoxes().get(i);
+//					if (!box.equals(appState.currentBoxOptional().orElse(null))) {
+//						appState.setCurrentBox(box);
+//						appState.setStep(CommandStepState.BOX_SELECTED);
+//						appState.persistState();
+//						appState.fireSwitchEvent();
+//						msg = String.format("切换到新的服务器： %s", box.getHost());
+//					}
+//				}
+//			}
+//		}
 
 		terminal.writer().println(msg);
 		terminal.writer().flush();

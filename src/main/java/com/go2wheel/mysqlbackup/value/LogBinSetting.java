@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,23 @@ public class LogBinSetting {
 	}
 	
 	public LogBinSetting() {
+	}
+	
+	public LogBinSetting(Map<String, String> map) {
+		super();
+		this.map = map;
+	}
+	
+	public LogBinSetting(List<String> lines) {
+		super();
+		lines.stream().map(line -> line.split("\\|", 2)).filter(ss -> ss.length == 2).forEach(ss -> {
+			map.put(ss[0].trim(), ss[1].trim());
+		});
+	}
+
+	
+	public List<String> toLines() {
+		return this.map.entrySet().stream().map(es -> es.getKey() + "|" + es.getValue()).collect(Collectors.toList());
 	}
 	
 	public String getLogBinDirWithEndingSlash() {
@@ -50,10 +68,7 @@ public class LogBinSetting {
 		return map.getOrDefault(LOG_BIN_INDEX, "");
 	}
 
-	public LogBinSetting(Map<String, String> map) {
-		super();
-		this.map = map;
-	}
+
 
 	public Map<String, String> getMap() {
 		return map;

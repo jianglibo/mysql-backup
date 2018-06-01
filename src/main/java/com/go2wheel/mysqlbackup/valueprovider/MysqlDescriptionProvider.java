@@ -12,7 +12,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 
 public class MysqlDescriptionProvider implements ValueProvider {
 
@@ -35,10 +35,10 @@ public class MysqlDescriptionProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentServerOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		MysqlInstanceYml mysqlq = applicationState.currentBoxOptional().get().getMysqlInstance();
+		MysqlInstance mysqlq = applicationState.currentServerOptional().get().getMysqlInstance();
 		switch (parameter.getParameterName()) {
 		case "username":
 			return Arrays.asList(new CompletionProposal(mysqlq.getUsername()));

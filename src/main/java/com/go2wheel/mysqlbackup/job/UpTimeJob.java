@@ -41,7 +41,7 @@ public class UpTimeJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
-		Box box = applicationState.getServerByHost(host);
+		Server box = applicationState.getServerByHost(host);
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(box).getResult();

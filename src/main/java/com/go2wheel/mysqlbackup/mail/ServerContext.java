@@ -21,8 +21,6 @@ public class ServerContext {
 	private final List<MysqlDump> mysqlDumps;
 	private final List<BorgDownload> borgDownloads;
 	
-	private Box box;
-	
 	private Server server;
 	
 	public ServerContext(List<UpTime> upTimes, List<MysqlFlush> mysqlFlushs, List<Diskfree> diskfrees,
@@ -64,13 +62,6 @@ public class ServerContext {
 		return borgDownloads;
 	}
 
-	public Box getBox() {
-		return box;
-	}
-
-	public void setBox(Box box) {
-		this.box = box;
-	}
 
 	public Server getServer() {
 		return server;

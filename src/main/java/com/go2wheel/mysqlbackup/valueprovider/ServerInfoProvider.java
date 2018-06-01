@@ -16,6 +16,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Box;
 
 public class ServerInfoProvider implements ValueProvider {
@@ -47,11 +48,12 @@ public class ServerInfoProvider implements ValueProvider {
 		if (input.startsWith("-")) {
 			return new ArrayList<>();
 		}
-		Optional<Box> cb = applicationState.currentBoxOptional();
+		Optional<Server> cb = applicationState.currentServerOptional();
 		switch (parameter.getParameterName()) {
 		case "host":
-			return applicationState.getBoxes().stream().map(box -> box.getHost()).filter(h -> h.contains(input))
-					.map(CompletionProposal::new).collect(Collectors.toList());
+			return new ArrayList<>();
+//			return applicationState.getBoxes().stream().map(box -> box.getHost()).filter(h -> h.contains(input))
+//					.map(CompletionProposal::new).collect(Collectors.toList());
 		case "triggerName":
 			if (cb.isPresent()) {
 				try {

@@ -21,13 +21,13 @@ public class TestUpTimeService extends ServiceTbase {
 	public void t() throws JobExecutionException {
 		upTimeJob.execute(context);
 
-		List<UpTime> upTimes = upTimeService.getItemsInDays(box, 3);
+		List<UpTime> upTimes = upTimeService.getItemsInDays(server, 3);
 		int sz = upTimes.size();
 
 		assertThat(sz, equalTo(1));
 
 		upTimeJob.execute(context);
-		upTimes = upTimeService.getItemsInDays(box, 3);
+		upTimes = upTimeService.getItemsInDays(server, 3);
 		sz = upTimes.size();
 
 		assertThat(sz, equalTo(2));

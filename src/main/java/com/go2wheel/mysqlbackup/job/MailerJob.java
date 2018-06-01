@@ -96,7 +96,7 @@ public class MailerJob implements Job {
 		List<ServerContext> oscs = new ArrayList<>();
 		
 		for (Server server : servers) {
-			Box box = applicationState.getServerByHost(server.getHost());
+			Server box = applicationState.getServerByHost(server.getHost());
 			
 			List<UpTime> upTimes = upTimeService.getRecentItems(10);
 			List<MysqlFlush> mysqlFlushs = mysqlFlushService.getRecentItems(5);
@@ -106,7 +106,6 @@ public class MailerJob implements Job {
 			List<BorgDownload> borgDownloads = borgDownloadService.getRecentItems(5);
 			ServerContext osc = new ServerContext(upTimes, mysqlFlushs, diskfrees, jobErrors, mysqlDumps, borgDownloads);
 			osc.setServer(server);
-			osc.setBox(box);
 			oscs.add(osc);
 		}
 		ServerGroupContext rc = new ServerGroupContext(oscs, ua, sg);

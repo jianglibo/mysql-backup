@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -32,7 +32,7 @@ public abstract class MysqlInteractiveExpect<T> {
 		this.session = session;
 	}
 	
-	public T start(Box box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+	public T start(Server box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		return start(box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword());
 	}
 	

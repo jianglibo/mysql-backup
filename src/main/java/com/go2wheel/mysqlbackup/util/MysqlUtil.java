@@ -22,11 +22,12 @@ import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -42,14 +43,14 @@ public class MysqlUtil {
 	@Autowired
 	private BoxService boxService;
 
-	public MycnfFileHolder getMyCnfFile(Session session, Box box)
+	public MycnfFileHolder getMyCnfFile(Session session, Server server)
 			throws RunRemoteCommandException, IOException, JSchException, ScpException {
-		String cnfFile = box.getMysqlInstance().getMycnfFile();
+		String cnfFile = server.getMysqlInstance().getMycnfFile();
 		if (!StringUtil.hasAnyNonBlankWord(cnfFile) || StringUtil.isNullString(cnfFile)) {
-			box.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, box));
-			boxService.writeDescription(box);
+			server.getMysqlInstance().setMycnfFile(getEffectiveMyCnf(session, server));
+			boxService.writeDescription(server);
 		}
-		String content = ScpUtil.from(session, box.getMysqlInstance().getMycnfFile()).toString();
+		String content = ScpUtil.from(session, server.getMysqlInstance().getMycnfFile()).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
 		return mfh;
 	}
@@ -63,7 +64,7 @@ public class MysqlUtil {
 	}
 
 
-	public String getEffectiveMyCnf(Session session, Box box) throws RunRemoteCommandException {
+	public String getEffectiveMyCnf(Session session, Server server) throws RunRemoteCommandException {
 		String matcherline = ".*Default options are read from the following.*";
 		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, "mysql --help --verbose");
 		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
@@ -95,8 +96,8 @@ public class MysqlUtil {
 		}.start(username, password);
 	}
 
-	public LogBinSetting getLogbinState(Session session, Box box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		return getLogbinState(session, box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword());
+	public LogBinSetting getLogbinState(Session session, Server server) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return getLogbinState(session, server.getMysqlInstance().getUsername("root"), server.getMysqlInstance().getPassword());
 	}
 	
 	public Map<String, String> getVariables(Session session, String username, String password, String...vnames) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
@@ -122,12 +123,12 @@ public class MysqlUtil {
 		}.start(username, password);
 	}
 	
-	public Map<String, String> getVariables(Session session, Box box, String...vnames) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		return getVariables(session, box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword(), vnames);
+	public Map<String, String> getVariables(Session session, Server server, String...vnames) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		return getVariables(session, server.getMysqlInstance().getUsername("root"), server.getMysqlInstance().getPassword(), vnames);
 	}
 	
 
-//	public void writeDescription(Box box) throws IOException {
+//	public void writeDescription(Server server) throws IOException {
 //		Path dstFile = null;
 //		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(box);
 //		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
@@ -139,8 +140,8 @@ public class MysqlUtil {
 //
 //	}
 
-	public void writeBinLog(Session session, Box box, String rfile) throws IOException, ScpException {
-		Path dstDir = appSettings.getDataRoot().resolve(box.getHost()).resolve("logbin");
+	public void writeBinLog(Session session, Server server, String rfile) throws IOException, ScpException {
+		Path dstDir = appSettings.getDataRoot().resolve(server.getHost()).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
 		}
@@ -161,7 +162,7 @@ public class MysqlUtil {
 		return false;
 	}
 	
-	public MysqlInstallInfo getInstallInfo(Session session, Box box) throws RunRemoteCommandException, JSchException, IOException {
+	public MysqlInstallInfo getInstallInfo(Session session, Server server) throws RunRemoteCommandException, JSchException, IOException {
 		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
 		String cmd = "rpm -qa | grep mysql";
 		
@@ -193,7 +194,7 @@ public class MysqlUtil {
 			// this command need mysqld to be started, and know the password of the root.
 			Map<String, String> variables = new HashMap<>();
 			try {
-				variables = getVariables(session, box, MysqlInstanceYml.VAR_DATADIR);
+				variables = getVariables(session, server, MysqlInstance.VAR_DATADIR);
 				mysqlInstallInfo.setVariables(variables);
 			} catch (MysqlAccessDeniedException | MysqlNotStartedException e) {
 				e.printStackTrace();

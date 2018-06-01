@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -42,7 +43,7 @@ public class BorgPruneJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
-			Box box = applicationState.getServerByHost(host);
+			Server box = applicationState.getServerByHost(host);
 			
 			if (box == null) { //the box is somehow already removed.
 				logger.error("The Box is somehow had removed. {}", host);

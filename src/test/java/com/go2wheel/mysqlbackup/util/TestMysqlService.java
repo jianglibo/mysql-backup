@@ -26,14 +26,14 @@ public class TestMysqlService extends SpringBaseFort {
 	@Test
 	public void testMysqldump()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(session, box);
+		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(session, server);
 		assertTrue(fr.isExpected());
 	}
 	
 	@Test
 	public void testMysqlFlush()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(session, box);
+		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(session, server);
 		assertTrue(fr.isExpected());
 		assertTrue(Files.exists(Paths.get(fr.getResult())));
 	}

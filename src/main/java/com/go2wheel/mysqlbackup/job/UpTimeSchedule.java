@@ -4,7 +4,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.text.ParseException;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -26,7 +25,6 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
@@ -47,16 +45,16 @@ public class UpTimeSchedule {
 
 	@PostConstruct
 	public void post() throws SchedulerException, ParseException {
-		List<Box> mysqlBoxes = applicationState.getBoxes();
-		for (Box box : mysqlBoxes) {
-			scheduleTrigger(box);
-		}
-		;
+//		List<Box> mysqlBoxes = applicationState.getBoxes();
+//		for (Box box : mysqlBoxes) {
+//			scheduleTrigger(box);
+//		}
+//		;
 	}
 
 	//@formatter:off
 
-	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
+	private void scheduleTrigger(Server box) throws SchedulerException, ParseException {
 		JobKey jk = BoxUtil.getUpTimeJobKey(box);
 		TriggerKey tk = BoxUtil.getUpTimeTriggerKey(box);
 
@@ -78,8 +76,7 @@ public class UpTimeSchedule {
 	
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
-		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
-		if(box != null)scheduleTrigger(box);
+		scheduleTrigger(serverCreatedEvent.getModel());
 	}
 
 }

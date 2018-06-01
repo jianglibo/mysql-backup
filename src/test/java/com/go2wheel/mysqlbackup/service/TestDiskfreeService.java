@@ -24,7 +24,7 @@ public class TestDiskfreeService extends ServiceTbase {
 	public void t() throws JobExecutionException {
 		diskfreeJob.execute(context);
 
-		List<Diskfree> diskfrees = diskfreeService.getItemsInDays(box, 3);
+		List<Diskfree> diskfrees = diskfreeService.getItemsInDays(server, 3);
 		int sz = diskfrees.size();
 
 		assertThat(sz, greaterThan(1));
@@ -35,7 +35,7 @@ public class TestDiskfreeService extends ServiceTbase {
 		
 		diskfreeJob.execute(context);
 		
-		diskfrees = diskfreeService.getItemsInDays(box, 3);
+		diskfrees = diskfreeService.getItemsInDays(server, 3);
 		assertTrue(diskfrees.size() == sz * 2);
 
 	}

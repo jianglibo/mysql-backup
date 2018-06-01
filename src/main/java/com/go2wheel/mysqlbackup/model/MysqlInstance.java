@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class MysqlInstance extends BaseModel {
@@ -19,7 +20,6 @@ public class MysqlInstance extends BaseModel {
 	private String password;
 	private String mycnfFile;
 	private String flushLogCron;
-	private boolean readyForBackup;
 	
 	private int serverId;
 	
@@ -71,11 +71,7 @@ public class MysqlInstance extends BaseModel {
 
 
 	public boolean isReadyForBackup() {
-		return readyForBackup;
-	}
-
-	public void setReadyForBackup(boolean readyForBackup) {
-		this.readyForBackup = readyForBackup;
+		return getMysqlSettings().size() > 0;
 	}
 
 	public String getFlushLogCron() {
@@ -122,7 +118,6 @@ public class MysqlInstance extends BaseModel {
 		private final String password;
 		private String mycnfFile;
 		private String flushLogCron;
-		private boolean readyForBackup;
 		
 		private Set<String> mysqlSettings = new HashSet<>();
 		
@@ -168,15 +163,20 @@ public class MysqlInstance extends BaseModel {
 			mi.setMycnfFile(mycnfFile);
 			mi.setPassword(password);
 			mi.setPort(port);
-			mi.setReadyForBackup(readyForBackup);
 			mi.setServerId(serverId);
 			mi.setUsername(username);
 			mi.setMysqlSettings(new ArrayList<>(mysqlSettings));
 			mi.setHost(host);
 			return mi;
 		}
+	}
 
-		
+	public LogBinSetting getLogBinSetting() {
+		return new LogBinSetting(mysqlSettings);
+	}
+
+	public void setLogBinSetting(LogBinSetting logBinSetting) {
+		this.mysqlSettings = logBinSetting.toLines();
 	}
 
 }

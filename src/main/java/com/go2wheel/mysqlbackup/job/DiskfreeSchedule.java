@@ -48,19 +48,19 @@ public class DiskfreeSchedule {
 
 	@PostConstruct
 	public void post() {
-		try {
-			List<Box> mysqlBoxes = applicationState.getBoxes();
-			for (Box box : mysqlBoxes) {
-				scheduleTrigger(box);
-			}
-			;
-		} catch (Exception e) {
-			ExceptionUtil.logErrorException(logger, e);
-		}
+//		try {
+//			List<Box> mysqlBoxes = applicationState.getBoxes();
+//			for (Box box : mysqlBoxes) {
+//				scheduleTrigger(box);
+//			}
+//			;
+//		} catch (Exception e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//		}
 	}
 
 	//@formatter:off
-	private void scheduleTrigger(Box box) throws SchedulerException, ParseException {
+	private void scheduleTrigger(Server box) throws SchedulerException, ParseException {
 		JobKey jk = BoxUtil.getDiskfreeJobKey(box);
 		TriggerKey tk = BoxUtil.getDiskfreeTriggerKey(box);
 
@@ -81,7 +81,6 @@ public class DiskfreeSchedule {
 
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
-		Box box = applicationState.getServerByHost(serverCreatedEvent.getModel().getHost());
-		if (box != null)scheduleTrigger(box);
+		scheduleTrigger(serverCreatedEvent.getModel());
 	}
 }

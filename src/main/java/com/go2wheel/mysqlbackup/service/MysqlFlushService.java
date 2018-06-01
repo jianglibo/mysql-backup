@@ -35,7 +35,7 @@ public class MysqlFlushService extends ServiceBase<MysqlFlushRecord, MysqlFlush>
 		super(repo);
 	}
 	
-	public void processFlushResult(Box box, FacadeResult<String> fr) {
+	public void processFlushResult(Server box, FacadeResult<String> fr) {
 		Server sv = serverService.findByHost(box.getHost());
 		MysqlFlush mf = new MysqlFlush();
 		mf.setServerId(sv.getId());

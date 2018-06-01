@@ -12,8 +12,8 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.service.ReuseableCronService;
-import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 
 public class BorgDescriptionProvider implements ValueProvider {
 
@@ -36,10 +36,10 @@ public class BorgDescriptionProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-") || !applicationState.currentBoxOptional().isPresent()) {
+		if (input.startsWith("-") || !applicationState.currentServerOptional().isPresent()) {
 			return new ArrayList<>();
 		}
-		BorgBackupDescription bbd = applicationState.currentBoxOptional().get().getBorgBackup();
+		BorgDescription bbd = applicationState.currentServerOptional().get().getBorgDescription();
 		switch (parameter.getParameterName()) {
 		case "repo":
 			return Arrays.asList(new CompletionProposal(bbd.getRepo()));

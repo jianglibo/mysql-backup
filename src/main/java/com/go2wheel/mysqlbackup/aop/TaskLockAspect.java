@@ -8,8 +8,8 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.JobOnGoingException;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Aspect
 @Component
@@ -25,8 +25,8 @@ public class TaskLockAspect {
 	
 	@Around("execution(@com.go2wheel.mysqlbackup.aop.Exclusive * *(..)) && @annotation(exclusive)")
 	public Object myAdvice(ProceedingJoinPoint proceedingJoinPoint, Exclusive exclusive) throws Throwable{
-		Box box = (Box) proceedingJoinPoint.getArgs()[1];
-		Lock lock = TaskLocks.getBoxLock(box.getHost(), exclusive.value());
+		Server server = (Server) proceedingJoinPoint.getArgs()[1];
+		Lock lock = TaskLocks.getBoxLock(server.getHost(), exclusive.value());
 		if (lock.tryLock()) {
 			try {
 				return proceedingJoinPoint.proceed();

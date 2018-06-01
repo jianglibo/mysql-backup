@@ -10,7 +10,6 @@ import com.go2wheel.mysqlbackup.jooqschema.tables.records.BorgDownloadRecord;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.BorgDownloadRepository;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Service
 @Validated
@@ -23,7 +22,7 @@ public class BorgDownloadService extends ServiceBase<BorgDownloadRecord, BorgDow
 		super(repo);
 	}
 
-	public List<BorgDownload> getItemsInDays(Box box, int days) {
+	public List<BorgDownload> getItemsInDays(Server box, int days) {
 		Server sv = serverService.findByHost(box.getHost());
 		return ((BorgDownloadRepository)repo).getItemsInDays(sv.getId(), days);
 	}

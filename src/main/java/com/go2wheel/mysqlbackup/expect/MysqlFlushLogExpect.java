@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.exception.MysqlWrongPasswordException;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Session;
 
 /**
@@ -23,14 +24,15 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	
 	private List<String> bf;
 
-	public MysqlFlushLogExpect(Session session, Box box) {
-		super(session, box);
+	public MysqlFlushLogExpect(Session session, Server server) {
+		super(session, server);
 	}
 
 
 	protected String getCmd() {
-		String cmd = "cat " + box.getMysqlInstance().getLogBinSetting().getLogBinIndex() + ";" + "mysqladmin -u%s -p flush-logs";
-		cmd = String.format(cmd, StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"));
+		MysqlInstance mi = server.getMysqlInstance();
+		String cmd = "cat " + mi.getLogBinSetting().getLogBinIndex() + ";" + "mysqladmin -u%s -p flush-logs";
+		cmd = String.format(cmd, StringUtil.notEmptyValue(mi.getUsername()).orElse("root"));
 		return cmd;
 	}
 
@@ -38,7 +40,7 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	protected List<String> afterLogin() throws IOException {
 		String s = expectBashPromptAndReturnRaw(1);
 		if (s.indexOf("Access denied") != -1) {
-			throw new MysqlWrongPasswordException(box.getHost());
+			throw new MysqlWrongPasswordException(server.getHost());
 		}
 		List<String> r = new ArrayList<>(Arrays.asList(s));
 		if(catIndex().size() == bf.size() + 1) {
@@ -48,7 +50,7 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	}
 	
 	private List<String> catIndex() throws IOException {
-		String bidx = box.getMysqlInstance().getLogBinSetting().getLogBinIndex();
+		String bidx = server.getMysqlInstance().getLogBinSetting().getLogBinIndex();
 		expect.sendLine(String.format("cat %s", bidx));
 		String s = expectBashPromptAndReturnRaw(1);
 		if (s.indexOf("Last login:") != -1) {
@@ -61,7 +63,7 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	protected void tillPasswordRequired() throws IOException {
 		bf = catIndex();
 		String cmd = "mysqladmin -u%s -p flush-logs";
-		cmd = String.format(cmd, StringUtil.notEmptyValue(box.getMysqlInstance().getUsername()).orElse("root"));
+		cmd = String.format(cmd, StringUtil.notEmptyValue(server.getMysqlInstance().getUsername()).orElse("root"));
 		expect.sendLine(cmd);
 	}
 }

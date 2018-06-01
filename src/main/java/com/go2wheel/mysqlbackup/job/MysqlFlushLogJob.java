@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -40,7 +41,7 @@ public class MysqlFlushLogJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
-			Box box = applicationState.getServerByHost(host);
+			Server box = applicationState.getServerByHost(host);
 			if (mysqlTaskFacade.isMysqlNotReadyForBackup(box)) {
 				logger.info("Box {} is not ready for Backup.", host);
 			}

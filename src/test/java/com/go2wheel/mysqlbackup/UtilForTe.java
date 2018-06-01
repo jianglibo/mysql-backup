@@ -21,9 +21,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.Channel;
@@ -98,9 +98,9 @@ public class UtilForTe {
 		}
 	}
 	
-	public static Box loadDemoBox() throws IOException {
+	public static Server loadDemoBox() throws IOException {
 		InputStream is =ClassLoader.class.getResourceAsStream("/demobox.yml");
-		return YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
+		return YamlInstance.INSTANCE.yaml.loadAs(is, Server.class);
 	}
 	
 	public static Path getMysqlInstanceDescription(String hostname) {
