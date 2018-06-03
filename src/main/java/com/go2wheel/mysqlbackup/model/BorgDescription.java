@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class BorgDescription extends BaseModel {
@@ -17,9 +18,13 @@ public class BorgDescription extends BaseModel {
 	private String repo = BORG_REPO_DEFAULT;
 	private List<String> includes = new ArrayList<>();
 	private List<String> excludes = new ArrayList<>();
+
 	private String archiveFormat = BORG_ARCHIVE_FORMAT_DEFAULT;
+	@CronExpressionConstraint(allowEmpty=true)
 	private String archiveCron;
+	@CronExpressionConstraint(allowEmpty=true)
 	private String pruneCron;
+	
 	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 	
 	private Integer serverId;
@@ -94,7 +99,6 @@ public class BorgDescription extends BaseModel {
 	public void setServerId(Integer serverId) {
 		this.serverId = serverId;
 	}
-	
 	
 	public static class BorgDescriptionBuilder {
 		private final Integer serverId;

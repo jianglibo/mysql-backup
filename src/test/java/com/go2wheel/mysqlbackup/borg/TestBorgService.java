@@ -55,7 +55,7 @@ public class TestBorgService extends SpringBaseFort {
 
 		fr = borgService.initRepo(session, "/abc");
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.FILE_EXISTS));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.OBJECT_ALREADY_EXISTS));
 
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 

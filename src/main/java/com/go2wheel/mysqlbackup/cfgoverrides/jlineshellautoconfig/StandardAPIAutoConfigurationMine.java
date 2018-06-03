@@ -16,12 +16,13 @@ import org.springframework.shell.standard.StandardParameterResolver;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.valueprovider.BorgDescriptionProvider;
-import com.go2wheel.mysqlbackup.valueprovider.BoxDescriptionProvider;
+import com.go2wheel.mysqlbackup.valueprovider.ServerUpdateParameterProvider;
 import com.go2wheel.mysqlbackup.valueprovider.BoxTriggerProvider;
 import com.go2wheel.mysqlbackup.valueprovider.CronStringValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.MysqlDescriptionProvider;
+import com.go2wheel.mysqlbackup.valueprovider.ObjectFieldValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
@@ -78,14 +79,19 @@ public class StandardAPIAutoConfigurationMine {
 		return new FileValueProviderMine();
 	}
 
-	@Bean
-	public ValueProvider mysqlDescriptionProvider() {
-		return new MysqlDescriptionProvider();
-	}
+//	@Bean
+//	public ValueProvider mysqlDescriptionProvider() {
+//		return new MysqlDescriptionProvider();
+//	}
+	
+//	@Bean
+//	public ValueProvider boxDescriptionProvider() {
+//		return new ServerUpdateParameterProvider();
+//	}
 	
 	@Bean
-	public ValueProvider boxDescriptionProvider() {
-		return new BoxDescriptionProvider();
+	public ValueProvider objectFieldValueProvider() {
+		return new ObjectFieldValueProvider();
 	}
 
 	@Bean
@@ -98,12 +104,10 @@ public class StandardAPIAutoConfigurationMine {
 		return new PossibleValueProvider();
 	}
 	
-
-	
-	@Bean
-	public ValueProvider borgDescriptionProvider() {
-		return new BorgDescriptionProvider();
-	}
+//	@Bean
+//	public ValueProvider borgDescriptionProvider() {
+//		return new BorgDescriptionProvider();
+//	}
 
 	@Bean
 	public ValueProvider boxTriggerProvider() {

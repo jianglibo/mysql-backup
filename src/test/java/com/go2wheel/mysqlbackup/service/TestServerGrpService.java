@@ -43,7 +43,7 @@ public class TestServerGrpService extends ServiceTbase {
 		ServerGrp serverGrp = new ServerGrp("abc1");
 		serverGrp = serverGrpService.save(serverGrp);
 		
-		Server server = new Server("abc");
+		Server server = new Server("abc", "bbc");
 		server = serverService.save(server);
 		
 		List<Server> servers = serverGrpService.getServers(serverGrp);

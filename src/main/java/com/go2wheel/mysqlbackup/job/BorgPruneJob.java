@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.Box;
@@ -36,27 +37,29 @@ public class BorgPruneJob implements Job {
 	
 	@Autowired
 	private SchedulerService schedulerService;
+	
+	@Autowired
+	private ServerService serverService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		Session session = null;
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
-			String host = data.getString(CommonJobDataKey.JOB_DATA_KEY_HOST);
-			Server box = applicationState.getServerByHost(host);
+			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
+			Server server = serverService.findById(sid);
 			
-			if (box == null) { //the box is somehow already removed.
-				logger.error("The Box is somehow had removed. {}", host);
-				schedulerService.unscheduleJob(triggerKey(host, BorgBackupSchedule.BORG_PRUNE_GROUP));
+			if (server == null) { //the box is somehow already removed.
+				logger.error("The Box is somehow had removed. {}", server.getHost());
+				schedulerService.unscheduleJob(triggerKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP));
 				return;
 			}
-
-			if (borgTaskFacade.isBorgNotReady(box)) {
-				logger.error("Box {} is not ready for Prune.", host);
+			if (borgTaskFacade.isBorgNotReady(server)) {
+				logger.error("Box {} is not ready for Prune.", server.getHost());
 				return;
 			}
-			session = sshSessionFactory.getConnectedSession(box).getResult();
-			borgTaskFacade.pruneRepo(session, box);
+			session = sshSessionFactory.getConnectedSession(server).getResult();
+			borgTaskFacade.pruneRepo(session, server);
 		} catch (SchedulerException e) {
 			ExceptionUtil.logErrorException(logger, e);
 		} finally {

@@ -40,13 +40,13 @@ public class BoxUtil {
 		return triggerKey(server.getHost(), MysqlBackupSchedule.MYSQL_FLUSH_LOG_GROUP);
 	}
 
-	public static JobKey getUpTimeJobKey(Server server) {
-		return jobKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP);
-	}
-
-	public static TriggerKey getUpTimeTriggerKey(Server server) {
-		return triggerKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP);
-	}
+//	public static JobKey getUpTimeJobKey(Server server) {
+//		return jobKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP);
+//	}
+//
+//	public static TriggerKey getUpTimeTriggerKey(Server server) {
+//		return triggerKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP);
+//	}
 
 	public static JobKey getDiskfreeJobKey(Server server) {
 		return jobKey(server.getHost(), DiskfreeSchedule.DISKFREE_GROUP);

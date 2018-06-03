@@ -35,7 +35,12 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 			T resultValue = result.getResult();
 			try {
 				if (result.getException() != null) {
-					msg = ExceptionUtil.stackTraceToString(result.getException());
+					boolean unHandled = SharedHandleMethods.handleCommonException(messageService, terminal, result.getException());
+					if (unHandled) {
+						msg = ExceptionUtil.stackTraceToString(result.getException());
+					} else {
+						return;
+					}
 				} else if(resultValue != null) {
 					msg = result.resultToString();
 				} else if (result.getMessage() != null && !result.getMessage().isEmpty()) {

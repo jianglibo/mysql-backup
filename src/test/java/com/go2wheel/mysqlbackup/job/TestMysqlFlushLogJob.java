@@ -9,10 +9,9 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 
-public class TestMysqlFlushLogJob extends SpringBaseFort {
+public class TestMysqlFlushLogJob extends JobBaseFort {
 	
 	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;

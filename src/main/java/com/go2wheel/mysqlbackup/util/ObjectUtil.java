@@ -1,12 +1,14 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,19 +18,37 @@ import com.go2wheel.mysqlbackup.model.BaseModel;
 public class ObjectUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(ObjectUtil.class);
+	
+	public static List<Field> getFields(Class<?> c) {
+		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
+			f.setAccessible(true);
+			int m = f.getModifiers();
+			return !Modifier.isStatic(m);
+		}).collect(Collectors.toList());
+	}
+	
+	public static Optional<Field> getField(Class<?> c, String fieldName) {
+		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
+			f.setAccessible(true);
+			int m = f.getModifiers();
+			return !Modifier.isStatic(m);
+		}).filter(f -> fieldName.equals(f.getName())).findAny();
+	}
 
 	public static String dumpObjectAsMap(Object o) {
 		Class<?> c = o.getClass();
-		List<String> lines = new ArrayList<>();
-		for (Field f : c.getDeclaredFields()) {
+		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
+			f.setAccessible(true);
+			int m = f.getModifiers();
+			return !Modifier.isStatic(m);
+		}).map(f -> {
 			try {
-				f.setAccessible(true);
-				lines.add(String.format("%s: %s", f.getName(), f.get(o)));
+				return String.format("%s: %s", f.getName(), f.get(o));
 			} catch (IllegalArgumentException | IllegalAccessException e) {
-				ExceptionUtil.logErrorException(logger, e);
+				return null;
 			}
-		}
-		return String.join("\n", lines);
+		}).filter(Objects::nonNull).collect(Collectors.joining("\n"));
+		
 	}
 	
 	public static Optional<String> getValueIfIsToListRepresentation(String toListRepresentation, String fieldName) {
@@ -102,6 +122,14 @@ public class ObjectUtil {
 			sb.append(", id: ").append(((BaseModel)o).getId());
 		}
 		return sb.append("]").toString();
+	}
+
+	public static void setValue(Field field, Object o, String value) throws NumberFormatException, IllegalArgumentException, IllegalAccessException {
+		if (field.getType() == int.class || field.getType() == Integer.class) {
+			field.set(o, Integer.valueOf(value));
+		} else {
+			field.set(o, value);
+		}
 	}
 
 }

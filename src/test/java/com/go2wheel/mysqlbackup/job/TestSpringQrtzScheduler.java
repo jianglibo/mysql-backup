@@ -1,29 +1,11 @@
 package com.go2wheel.mysqlbackup.job;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.when;
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.JobKey.jobKey;
 import static org.quartz.TriggerBuilder.newTrigger;
-import static org.quartz.impl.matchers.EverythingMatcher.allJobs;
 import static org.quartz.impl.matchers.GroupMatcher.anyGroup;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-
-//import static org.quartz.JobKey.*;
-//import static org.quartz.impl.matchers.KeyMatcher.*;
-//import static org.quartz.impl.matchers.GroupMatcher.*;
-//import static org.quartz.impl.matchers.AndMatcher.*;
-//import static org.quartz.impl.matchers.OrMatcher.*;
-//import static org.quartz.impl.matchers.EverythingMatcher.*;
-
-import java.util.List;
-import java.util.Set;
 
 import javax.annotation.PostConstruct;
 
@@ -40,7 +22,6 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.SimpleTrigger;
 import org.quartz.Trigger;
-import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

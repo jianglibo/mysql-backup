@@ -9,10 +9,11 @@ import org.junit.Test;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.job.UpTimeJob;
 import com.go2wheel.mysqlbackup.model.UpTime;
 
-public class TestUpTimeService extends ServiceTbase {
+public class TestUpTimeService extends JobBaseFort {
 
 	@Autowired
 	private UpTimeJob upTimeJob;

@@ -13,9 +13,10 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.job.DiskfreeJob;
+import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.Diskfree;
 
-public class TestDiskfreeService extends ServiceTbase {
+public class TestDiskfreeService extends JobBaseFort {
 
 	@Autowired
 	private DiskfreeJob diskfreeJob;

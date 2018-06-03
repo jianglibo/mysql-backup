@@ -166,7 +166,7 @@ public class BorgService {
 				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.trim().matches("Repository .* already exists\\.") || line.contains("A repository already exists at"));
 				
 				if (alreadyExists) {
-					return FacadeResult.showMessageUnExpected(CommonMessageKeys.FILE_EXISTS, repoPath);
+					return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_ALREADY_EXISTS, repoPath);
 				}
 				
 				logger.error(command);

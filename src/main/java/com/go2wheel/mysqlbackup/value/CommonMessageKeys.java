@@ -8,11 +8,12 @@ public class CommonMessageKeys {
 	
 	public static final String MALFORMED_VALUE = "common.value.malformed";
 	
-	public static final String FILE_EXISTS = "common.file.exists";
+	public static final String OBJECT_ALREADY_EXISTS = "common.object.exists";
 	
-	public static final String FILE_NOT_EXISTS = "common.file.notexists";
+	public static final String OBJECT_NOT_EXISTS = "common.object.notexists";
 	
 	public static final String PARAMETER_REQUIRED = "parameter.required";
+	public static final String PARAMETER_UNFINISHED = "parameter.unfinished";
 
 	public static final String DB_DUPLICATE_KEY = "db.duplicatekey";
 

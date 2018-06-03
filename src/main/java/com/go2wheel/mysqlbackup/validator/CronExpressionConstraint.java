@@ -8,16 +8,13 @@ import java.lang.annotation.Target;
 
 import javax.validation.Constraint;
 import javax.validation.Payload;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
 
 @Documented
 @Constraint(validatedBy = CronExpressionValidator.class)
 @Target( { ElementType.METHOD, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
-@NotNull
-@NotEmpty
 public @interface CronExpressionConstraint {
+	boolean allowEmpty() default false;
     String message() default "Invalid cron expression";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

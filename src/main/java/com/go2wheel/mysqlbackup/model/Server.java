@@ -7,6 +7,7 @@ import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 
 public class Server extends BaseModel {
 	
@@ -14,12 +15,14 @@ public class Server extends BaseModel {
 	
 	public static final String NO_SSHKEY_FILE="i_have_no_sshkey_file";
 	
-	public static final String ROLE_SOURCE="SOURCE";
+	public static final String ROLE_GET="GET";
 	
-	public static final String ROLE_DEST="DEST";
+	public static final String ROLE_SET="SET";
 	
 	@NotNull
 	private String host;
+	
+	private String name;
 	
 	private int coreNumber;
 	
@@ -36,10 +39,17 @@ public class Server extends BaseModel {
 	
 	private String serverRole;
 	
+	@CronExpressionConstraint(allowEmpty=true)
+	private String uptimeCron;
+	
+	@CronExpressionConstraint(allowEmpty=true)
+	private String diskfreeCron;
+	
 	public Server() {}
 	
-	public Server(String host) {
+	public Server(String host, String name) {
 		this.host = host;
+		this.name = name;
 	}
 
 	public String getHost() {
@@ -90,10 +100,9 @@ public class Server extends BaseModel {
 		this.sshKeyFile = sshKeyFile;
 	}
 
-
 	@Override
 	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this, "id", "host");
+		return ObjectUtil.toListRepresentation(this, "id","name", "host");
 	}
 
 	public MysqlInstance getMysqlInstance() {
@@ -129,6 +138,28 @@ public class Server extends BaseModel {
 		this.serverRole = serverRole;
 	}
 
-	
-	
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getUptimeCron() {
+		return uptimeCron;
+	}
+
+	public void setUptimeCron(String uptimeCron) {
+		this.uptimeCron = uptimeCron;
+	}
+
+	public String getDiskfreeCron() {
+		return diskfreeCron;
+	}
+
+	public void setDiskfreeCron(String diskfreeCron) {
+		this.diskfreeCron = diskfreeCron;
+	}
+
 }

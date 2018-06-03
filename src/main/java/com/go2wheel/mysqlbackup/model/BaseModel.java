@@ -2,8 +2,8 @@ package com.go2wheel.mysqlbackup.model;
 
 import java.util.Date;
 
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.value.ToListRepresentation;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public abstract class BaseModel implements ToListRepresentation{
 	
@@ -26,7 +26,7 @@ public abstract class BaseModel implements ToListRepresentation{
 	
 	@Override
 	public String toString() {
-		return ObjectUtil.dumpObjectAsMap(this);
+		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
 	}
 
 	public Date getCreatedAt() {

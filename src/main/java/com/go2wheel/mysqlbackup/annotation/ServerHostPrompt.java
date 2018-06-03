@@ -8,6 +8,6 @@ import java.lang.annotation.Target;
 
 @Target(PARAMETER)
 @Retention(RUNTIME)
-public @interface CronString {
+public @interface ServerHostPrompt {
 
 }

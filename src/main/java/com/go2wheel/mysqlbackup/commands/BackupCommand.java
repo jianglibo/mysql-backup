@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +12,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -33,10 +35,11 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.ApplicationState.CommandStepState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.annotation.CronString;
+import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
+import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
+import com.go2wheel.mysqlbackup.annotation.ServerHostPrompt;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.borg.BorgService;
@@ -68,6 +71,7 @@ import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UserAccountService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ShellCommonParameterValue;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -164,7 +168,7 @@ public class BackupCommand {
 
 	}
 
-	// @formatter: off
+	// @formatter:off
 	private Session getSession() {
 		sureBoxSelected();
 		Server server = appState.currentServerOptional().get();
@@ -219,24 +223,40 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "List all managed servers.")
-	public ApplicationState serverList() throws IOException {
-		return appState;
+	public FacadeResult<?> serverList() throws IOException {
+		return FacadeResult.doneExpectedResultDone(appState.getServers());
 	}
 
 	@ShellMethod(value = "Pickup a server to work on.")
-	public ApplicationState serverSelect() throws IOException {
-		this.appState.setStep(CommandStepState.WAITING_SELECT);
-		return appState;
+	public FacadeResult<?> serverSelect(@ShellOption(help = "服务器主机名或者IP") Server server) throws IOException {
+		appState.setCurrentServer(server);
+		return null;
 	}
 
 	@ShellMethod(value = "新建一个服务器.")
-	public FacadeResult<?> serverCreate(@ShellOption(help = "服务器主机名或者IP") String host) throws IOException {
+	public FacadeResult<?> serverCreate(
+			@ShellOption(help = "服务器主机名或者IP") String host,
+			@ShellOption(help = "服务器的名称") String name) throws IOException {
 		Server server = serverService.findByHost(host);
 		if (server == null) {
-			server = new Server(host);
+			server = new Server(host, name);
 			server = serverService.save(server);
 		}
 		return FacadeResult.doneExpectedResultDone(server);
+	}
+	
+	@ShellMethod(value = "删除一个服务器.")
+	public FacadeResult<?> serverDelete(
+			@ServerHostPrompt @ShellOption(help = "服务器主机名或者IP") Server server,
+			@ShellOption(defaultValue = "") String iknow) throws IOException {
+		if (!DANGEROUS_ALERT.equals(iknow)) {
+			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
+		}
+		if (server == null) {
+			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, "");
+		}
+		serverService.delete(server);
+		return FacadeResult.doneExpectedResult();
 	}
 
 	@ShellMethod(value = "显示服务器描述")
@@ -246,16 +266,36 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "和修改服务器描述")
-	public FacadeResult<?> serverUpdate(@ShellOption(help = "用户名") String username,
-			@ShellOption(help = "密码") String password, @ShellOption(help = "服务器角色") String boxRole,
-			@ShellOption(help = "SSH端口") int port) throws JSchException, IOException {
+	public FacadeResult<?> serverUpdate(
+			@ShowPossibleValue({"host", "name" ,"port", "username", "password" ,"sshKeyFile", "serverRole", "uptimeCron", "diskfreeCron"})
+			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|name|port|username|password|sshKeyFile|serverRole|uptimeCron|diskfreeCron") String field,
+			@ObjectFieldIndicator(objectClass=Server.class)
+			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
+			) throws JSchException, IOException {
 		sureBoxSelected();
 		Server server = appState.currentServerOptional().get();
-		server.setUsername(username);
-		server.setPassword(password);
-		server.setServerRole(boxRole);
-		server.setPort(port);
-		server = serverService.save(server);
+		Optional<Field> fo = ObjectUtil.getField(Server.class, field);
+		Optional<Object> originOp = Optional.empty();
+		
+		value = ObjectUtil.getValueWetherIsToListRepresentationOrNot(value, field);
+		try {
+			if (fo.isPresent()) {
+				originOp = Optional.ofNullable(fo.get().get(server));
+				ObjectUtil.setValue(fo.get(), server, value);
+				server = serverService.save(server);
+			} else {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
+			}
+		} catch (Exception e) {
+			if (originOp.isPresent()) {
+				try {
+					fo.get().set(server, originOp.get());
+				} catch (IllegalArgumentException | IllegalAccessException e1) {
+					e1.printStackTrace();
+				}
+			}
+			return FacadeResult.unexpectedResult(e);
+		}
 		return FacadeResult.doneExpectedResultDone(server);
 	}
 
@@ -289,7 +329,7 @@ public class BackupCommand {
 	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) {
 		Path zp = zipFile.toPath();
 		if (!Files.exists(zp)) {
-			return FacadeResult.showMessageExpected(CommonMessageKeys.FILE_NOT_EXISTS, zipFile);
+			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, zipFile);
 		}
 		try {
 			UpgradeUtil uu = new UpgradeUtil(zp);
@@ -305,17 +345,6 @@ public class BackupCommand {
 		quit(0, true);
 		return null;
 	}
-
-	// @ShellMethod(value = "加载示例服务器。")
-	// public String loadDemoServer() throws IOException {
-	// try (InputStream is = ClassLoader.class.getResourceAsStream("/demobox.yml"))
-	// {
-	// Server server = YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
-	// if (appState.addServer(box)) {
-	// }
-	// return String.format("Demo server %s loaded.", box.getHost());
-	// }
-	// }
 
 	private String formatKeyVal(String k, String v) {
 		return String.format("%s: %s", k, v);
@@ -354,22 +383,9 @@ public class BackupCommand {
 		return borgService.install(getSession());
 	}
 
-	@ShellMethod(value = "管理Borg的描述")
-	public FacadeResult<?> borgDescription(
-			@ShowPossibleValue({
-					"CREATE" }) @ShellOption(help = "The action to take.", defaultValue = "") String action)
+	@ShellMethod(value = "创建Borg的描述")
+	public FacadeResult<?> borgDescriptionCreate()
 			throws JSchException, IOException {
-		switch (action) {
-		case "CREATE":
-			return borgDescriptionCreate();
-		default:
-			break;
-		}
-		sureBorgConfigurated();
-		return FacadeResult.doneExpectedResultDone(appState.currentServerOptional().get());
-	}
-
-	public FacadeResult<?> borgDescriptionCreate() throws JSchException, IOException {
 		sureBoxSelected();
 		Server server = appState.currentServerOptional().get();
 		BorgDescription bbd = server.getBorgDescription();
@@ -379,114 +395,54 @@ public class BackupCommand {
 		bbd = new BorgDescription.BorgDescriptionBuilder(server.getId()).withArchiveCron(dvs.getCron().getBorgArchive())
 				.withPruneCron(dvs.getCron().getBorgPrune()).build();
 		bbd = borgDescriptionService.save(bbd);
+		server.setBorgDescription(bbd);
 		return FacadeResult.doneExpectedResultDone(bbd);
 	}
-
+	
+	
 	@ShellMethod(value = "更新Borg的描述")
-	public FacadeResult<?> borgDescriptionUpdate(@ShellOption(help = "borg repo.") String repo,
-			@ShellOption(help = "borg archive format.") String archiveFormat,
-			@ShellOption(help = "borg archive prefix.") String archiveNamePrefix,
-			@ShellOption(help = "borg archive cron expression.") String archiveCron,
-			@ShellOption(help = "borg prune cron expression.") String pruneCron) throws JSchException, IOException {
+	public FacadeResult<?> borgDescriptionUpdate(
+			@ShowPossibleValue({"repo", "archiveCron", "pruneCron", "includes","excludes"})
+			@ShellOption(help = "需要改变的属性, 其中includes和exludes使用:符号分割") @Pattern(regexp = "repo|archiveCron|pruneCron|includes|excludes") String field,
+			@ObjectFieldIndicator(objectClass=BorgDescription.class)
+			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
+			) throws JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.currentServerOptional().get();
 		BorgDescription bd = server.getBorgDescription();
-		bd.setArchiveCron(archiveCron);
-		bd.setArchiveFormat(archiveFormat);
-		bd.setArchiveNamePrefix(archiveNamePrefix);
-		bd.setPruneCron(pruneCron);
-		bd.setRepo(repo);
-		bd = borgDescriptionService.save(bd);
-		return FacadeResult.doneExpectedResultDone(bd);
-	}
-
-	@ShellMethod(value = "管理Borg的includes条目")
-	public FacadeResult<?> borgDescriptionIncludes(@ShowPossibleValue({ "ADD",
-			"REMOVE" }) @ShellOption(help = "The action to take.") @Pattern(regexp = "ADD|REMOVE") String action,
-			@ShellOption(help = "The directory to operate on.") String remoteDirectory)
-			throws JSchException, IOException {
-		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
-		BorgDescription bd = server.getBorgDescription();
-
-		if (bd.getIncludes() == null)
-			bd.setIncludes(new ArrayList<>());
-
-		boolean changed = false;
-
-		switch (action) {
-		case "ADD":
-			if (!bd.getIncludes().contains(remoteDirectory)) {
-				bd.getIncludes().add(remoteDirectory);
-				changed = true;
+		
+		Optional<Field> fo = ObjectUtil.getField(BorgDescription.class, field);
+		Optional<Object> originOp = Optional.empty();
+		try {
+			if (fo.isPresent()) {
+				originOp = Optional.ofNullable(fo.get().get(bd));
+				switch (field) {
+				case "includes":
+				case "excludes":
+					if (value == null) {
+						fo.get().set(bd, new ArrayList<>());
+					} else {
+						fo.get().set(bd, Arrays.stream(value.split(":")).filter(s -> !s.trim().isEmpty()).collect(Collectors.toList()));
+					}
+					break;
+				default:
+					ObjectUtil.setValue(fo.get(), bd, value);
+					break;
+				}
+				bd = borgDescriptionService.save(bd);
+				server.setBorgDescription(bd);
+			} else {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
 			}
-			break;
-		default:
-			if (bd.getIncludes().contains(remoteDirectory)) {
-				bd.getIncludes().remove(remoteDirectory);
-				changed = true;
+		} catch (Exception e) {
+			if (originOp.isPresent()) {
+				try {
+					fo.get().set(bd, originOp.get());
+				} catch (IllegalArgumentException | IllegalAccessException e1) {
+					e1.printStackTrace();
+				}
 			}
-			break;
-		}
-		if (changed) {
-			bd = borgDescriptionService.save(bd);
-		}
-		return FacadeResult.doneExpectedResultDone(bd);
-	}
-
-	// private FacadeResult<?> baddremove(String action, String remoteDirectory,
-	// List<String> directories) {
-	// if ("ADD".equals(action)) {
-	// if (!directories.contains(remoteDirectory)) {
-	// try {
-	// boolean direxists = SSHcommonUtil.fileExists(getSession(), remoteDirectory);
-	// if (!direxists) {
-	// return FacadeResult.showMessageUnExpected("rfile.nonexists",
-	// remoteDirectory);
-	// }
-	// directories.add(remoteDirectory);
-	// } catch (RunRemoteCommandException e) {
-	// return FacadeResult.unexpectedResult(e);
-	// }
-	// }
-	// } else {
-	// if (directories.contains(remoteDirectory)) {
-	// directories.remove(remoteDirectory);
-	// }
-	// }
-	// return FacadeResult.doneExpectedResult();
-	//
-	// }
-
-	@ShellMethod(value = "管理Borg的excludes条目")
-	public FacadeResult<?> borgDescriptionExcludes(@ShowPossibleValue({ "ADD",
-			"REMOVE" }) @ShellOption(help = "The action to take.") @Pattern(regexp = "ADD|REMOVE") String action,
-			@ShellOption(help = "The directory to operate on.") String remoteDirectory)
-			throws JSchException, IOException {
-		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
-		BorgDescription bd = server.getBorgDescription();
-		if (bd.getExcludes() == null)
-			bd.setExcludes(new ArrayList<>());
-
-		boolean changed = false;
-
-		switch (action) {
-		case "ADD":
-			if (!bd.getExcludes().contains(remoteDirectory)) {
-				bd.getExcludes().add(remoteDirectory);
-				changed = true;
-			}
-			break;
-		default:
-			if (bd.getExcludes().contains(remoteDirectory)) {
-				bd.getExcludes().remove(remoteDirectory);
-				changed = true;
-			}
-			break;
-		}
-		if (changed) {
-			bd = borgDescriptionService.save(bd);
+			return FacadeResult.unexpectedResult(e);
 		}
 		return FacadeResult.doneExpectedResultDone(bd);
 	}
@@ -619,21 +575,39 @@ public class BackupCommand {
 	}
 
 	// @formatter: off
-
+	
 	@ShellMethod(value = "添加或更改Mysql的描述")
-	public FacadeResult<?> mysqlDescriptionUpdate(@ShellOption(help = "mysql username.") String username,
-			@ShellOption(help = "mysql password.") String password, @ShellOption(help = "mysql port.") int port,
-			@CronString @ShellOption(help = "mysql flush log cron expresion.") String flushLogCron)
-			throws JSchException, IOException {
+	public FacadeResult<?> mysqlDescriptionUpdate(
+			@ShowPossibleValue({"host", "port", "username", "password","flushLogCron"})
+			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|port|username|password|flushLogCron") String field,
+			@ObjectFieldIndicator(objectClass=MysqlInstance.class)
+			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
+			) throws JSchException, IOException {
 		sureMysqlConfigurated();
 		Server server = appState.currentServerOptional().get();
 		MysqlInstance mi = server.getMysqlInstance();
-
-		mi.setUsername(username);
-		mi.setPassword(password);
-		mi.setPort(port);
-		mi.setFlushLogCron(flushLogCron);
-		mi = mysqlInstanceService.save(mi);
+		
+		Optional<Field> fo = ObjectUtil.getField(MysqlInstance.class, field);
+		Optional<Object> originOp = Optional.empty();
+		try {
+			if (fo.isPresent()) {
+				originOp = Optional.ofNullable(fo.get().get(mi));
+				ObjectUtil.setValue(fo.get(), mi, value);
+				mi = mysqlInstanceService.save(mi);
+				server.setMysqlInstance(mi);
+			} else {
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
+			}
+		} catch (Exception e) {
+			if (originOp.isPresent()) {
+				try {
+					fo.get().set(mi, originOp.get());
+				} catch (IllegalArgumentException | IllegalAccessException e1) {
+					e1.printStackTrace();
+				}
+			}
+			return FacadeResult.unexpectedResult(e);
+		}
 		return FacadeResult.doneExpectedResultDone(mi);
 	}
 
@@ -651,6 +625,7 @@ public class BackupCommand {
 		mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), password)
 				.withFlushLogCron(dvs.getCron().getMysqlFlush()).withUsername(username).build();
 		mi = mysqlInstanceService.save(mi);
+		server.setMysqlInstance(mi);
 		return FacadeResult.doneExpectedResultDone(mi);
 	}
 
@@ -746,46 +721,46 @@ public class BackupCommand {
 				serverGrpService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
 	}
 
-	@ShellMethod(value = "管理用户和服务器组的关系。")
-	public FacadeResult<?> userAndServerGroup(@ShowPossibleValue({ "LIST", "ADD",
-			"REMOVE" }) @ShellOption(help = "The action to take.") @Pattern(regexp = "ADD|REMOVE|LIST") String action,
-			@ShellOption(help = "用户名", defaultValue = ShellOption.NULL) UserAccount user,
-			@ShellOption(help = "服务器组", defaultValue = ShellOption.NULL) ServerGrp serverGroup,
-			@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue = ShellOption.NULL) String id,
-			@CronString @ShellOption(help = "任务计划", defaultValue = ShellOption.NULL) String cron) {
-		UserServerGrp usg;
-		switch (action) {
-		case "ADD":
-			if (user == null) {
-				return parameterRequired("user");
-			}
-			if (serverGroup == null) {
-				return parameterRequired("server-group");
-			}
-			usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId())
-					.withCronExpression(ReusableCron.getExpressionFromToListRepresentation(cron)).build();
-			usg = userServerGrpService.save(usg);
-			return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-		case "REMOVE":
-			if (id == null) {
-				return parameterRequired("id");
-			}
-			usg = userServerGrpService.findById(id);
-			if (usg == null) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.DB_ITEMNOTEXISTS, id);
-			}
-			userServerGrpService.delete(usg);
-			return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-		default:
-			if (id != null) {
-				// return FacadeResult.doneExpectedResult(, CommonActionResult.DONE);
-			}
-			break;
-		}
+	@ShellMethod(value = "列出用户和服务器组的关系。")
+	public FacadeResult<?> userAndServerGroupList() {
 		List<UserServerGrpVo> vos = userServerGrpService.findAll().stream().map(usgl -> getusgvo(usgl))
 				.collect(Collectors.toList());
 
 		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
+	}
+	
+	
+	@ShellMethod(value = "添加用户和服务器组的关系。")
+	public FacadeResult<?> userAndServerGroupCreate(
+			@ShellOption(help = "用户名", defaultValue = ShellOption.NULL) UserAccount user,
+			@ShellOption(help = "服务器组", defaultValue = ShellOption.NULL) ServerGrp serverGroup,
+			@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue = ShellOption.NULL) String id,
+			@CronStringIndicator @ShellOption(help = "任务计划", defaultValue = ShellOption.NULL) String cron) {
+		UserServerGrp usg;
+		if (user == null) {
+			return parameterRequired("user");
+		}
+		if (serverGroup == null) {
+			return parameterRequired("server-group");
+		}
+		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId())
+				.withCronExpression(ReusableCron.getExpressionFromToListRepresentation(cron)).build();
+		usg = userServerGrpService.save(usg);
+		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
+	}
+	
+	@ShellMethod(value = "删除用户和服务器组的关系。")
+	public FacadeResult<?> userAndServerGroupDelete(@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue = ShellOption.NULL) String id) {
+		UserServerGrp usg;
+		if (id == null) {
+			return parameterRequired("id");
+		}
+		usg = userServerGrpService.findById(id);
+		if (usg == null) {
+			return FacadeResult.showMessageUnExpected(CommonMessageKeys.DB_ITEMNOTEXISTS, id);
+		}
+		userServerGrpService.delete(usg);
+		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "添加服务器组。")
@@ -842,7 +817,7 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = "") String iknow)
+	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = ShellOption.NULL) String iknow)
 			throws JSchException, IOException {
 		sureMysqlReadyForBackup();
 		Server server = appState.currentServerOptional().get();
@@ -851,6 +826,7 @@ public class BackupCommand {
 		}
 		return mysqlService.mysqlDump(getSession(), server, true);
 	}
+	
 
 	private String getPromptString() {
 		switch (appState.getStep()) {
@@ -933,64 +909,6 @@ public class BackupCommand {
 			}
 		}
 	}
-
-	// @ShellMethod(value = "Quartz 显示任务")
-	// public List<String> quartzListJobs(@ShellOption(help = "任务组的名称", defaultValue
-	// = "") String groupName)
-	// throws SchedulerException {
-	// if (groupName == null || groupName.trim().isEmpty()) {
-	// return scheduler.getJobGroupNames().stream().flatMap(grn -> {
-	// try {
-	// return scheduler.getJobKeys(groupEquals(grn)).stream();
-	// } catch (SchedulerException e) {
-	// return Stream.empty();
-	// }
-	// }).map(jk -> jk.toString()).collect(Collectors.toList());
-	// } else {
-	// return scheduler.getJobKeys(groupEquals(groupName)).stream().map(jk ->
-	// jk.toString())
-	// .collect(Collectors.toList());
-	// }
-
-	// scheduler.standby();
-	// shutdown() does not return until executing Jobs complete execution
-	// scheduler.shutdown(true);
-	// shutdown() returns immediately, but executing Jobs continue running to
-	// completion
-	// scheduler.shutdown();
-	// or
-	// scheduler.shutdown(false);
-
-	// scheduler.unscheduleJob(triggerKey("trigger1", "group1"));
-
-	// scheduler.deleteJob(jobKey("job1", "group1"));
-
-	// // Define a durable job instance (durable jobs can exist without triggers)
-	// JobDetail job1 = newJob(MyJobClass.class)
-	// .withIdentity("job1", "group1")
-	// .storeDurably()
-	// .build();
-	//
-	// // Add the the job to the scheduler's store
-	// sched.addJob(job, false);
-
-	// // Define a Trigger that will fire "now" and associate it with the existing
-	// job
-	// Trigger trigger = newTrigger()
-	// .withIdentity("trigger1", "group1")
-	// .startNow()
-	// .forJob(jobKey("job1", "group1"))
-	// .build();
-	//
-	// // Schedule the trigger
-	// sched.scheduleJob(trigger);
-
-	// }
-	// @ShellMethod(value = "Quartz 删除任务")
-	// public void quartzDeleteJob(String triggerName, String triggerGroup) throws
-	// SchedulerException {
-	// scheduler.deleteJob(jobKey(triggerName, triggerGroup));
-	// }
 
 	@Bean
 	public PromptProvider myPromptProvider() {

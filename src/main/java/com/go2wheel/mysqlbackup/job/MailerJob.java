@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
@@ -38,7 +37,6 @@ import com.go2wheel.mysqlbackup.service.UpTimeService;
 import com.go2wheel.mysqlbackup.service.UserAccountService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @Component
 public class MailerJob implements Job {
@@ -56,9 +54,6 @@ public class MailerJob implements Job {
 	
 	@Autowired
 	private ServerGrpService serverGrpService;
-	
-	@Autowired
-	private ApplicationState applicationState;
 	
 	@Autowired
 	private MysqlFlushService mysqlFlushService;
@@ -96,8 +91,6 @@ public class MailerJob implements Job {
 		List<ServerContext> oscs = new ArrayList<>();
 		
 		for (Server server : servers) {
-			Server box = applicationState.getServerByHost(server.getHost());
-			
 			List<UpTime> upTimes = upTimeService.getRecentItems(10);
 			List<MysqlFlush> mysqlFlushs = mysqlFlushService.getRecentItems(5);
 			List<Diskfree> diskfrees = diskfreeService.getRecentItems(5);

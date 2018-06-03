@@ -3,29 +3,23 @@ package com.go2wheel.mysqlbackup;
 import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.BDDMockito.given;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 
 import org.jooq.DSLContext;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.runner.RunWith;
-import org.quartz.JobDataMap;
-import org.quartz.JobExecutionContext;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import com.go2wheel.mysqlbackup.commands.BoxService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
@@ -64,9 +58,6 @@ public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
 	protected static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	
-	@MockBean
-	protected JobExecutionContext context;
-
 	@Autowired
 	protected MyAppSettings myAppSettings;
 	
@@ -77,7 +68,7 @@ public class SpringBaseFort {
 	protected Environment env;
 
 	@Autowired
-	private Scheduler scheduler;
+	protected Scheduler scheduler;
 	
 	@Autowired
 	protected ServerService serverService;
@@ -127,9 +118,6 @@ public class SpringBaseFort {
 	@Autowired
 	protected ServerGrpService serverGrpService;
 
-	@Autowired
-	private BoxService boxService;
-	
 	protected Server server;
 	
 	@Autowired
@@ -137,9 +125,6 @@ public class SpringBaseFort {
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
-	@Autowired
-	private ApplicationState applicationState;
 	
 	protected Session session;
 	
@@ -160,22 +145,10 @@ public class SpringBaseFort {
 
 	private long startTime;
 	
-	private boolean needSession;
-	
-	public SpringBaseFort() {
-		this.needSession = true;
-	}
-
-	
-	public SpringBaseFort(boolean needSession) {
-		this.needSession = needSession;
-	}
-	
+	// this before run first.
 	@Before
 	public void beforeBase() throws SchedulerException {
-		UtilForTe.deleteAllJobs(scheduler);
-		applicationState.setServers(new ArrayList<>());
-		applicationState.getServers().add(server);
+//		UtilForTe.deleteAllJobs(scheduler);
 		
 		keyValueInDbService.deleteAll();
 		mysqlInstanceService.deleteAll();
@@ -195,18 +168,16 @@ public class SpringBaseFort {
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		serverService.deleteAll();
 		serverGrpService.deleteAll();
-		JobDataMap jdm = new JobDataMap();
-		jdm.put("host", HOST_DEFAULT);
-		given(context.getMergedJobDataMap()).willReturn(jdm);
-		
-		server = createServer();
-		if (needSession) {
-			FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
-			if (frs.isExpected()) {
-				session = frs.getResult();
-			}
+	}
+	
+	protected void createSession() {
+		if (server == null) {
+			createServer();
 		}
-
+		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
+		if (frs.isExpected()) {
+			session = frs.getResult();
+		}
 	}
 	
 	
@@ -230,44 +201,24 @@ public class SpringBaseFort {
 		}
 	}
 	
-	private Server createServer() {
-		server = new Server(HOST_DEFAULT);
-		
+	protected void createServer() {
+		server = new Server(HOST_DEFAULT, "a server.");
 		server = serverService.save(server);
-		
+	}
+	
+	protected void createMysqlIntance() {
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456")
 				.addSetting("log_bin", "ON")
 				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
 				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
 				.build();
-		
-		mysqlInstanceService.save(mi);
-		
+		server.setMysqlInstance(mysqlInstanceService.save(mi));
+	}
+	
+	protected void createBorgDescription() {
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
 				.addInclude("/etc").build();
-		
-		borgDescriptionService.save(bd);
-		
-//		server.setBorgDescription(borgDescription);(new BorgBackupDescription());
-//		box.setMysqlInstance(new MysqlInstanceYml());
-//		
-//		box.getMysqlInstance().setPassword("123456");
-//		
-//		box.getBorgBackup().setArchiveCron(dvs.getCron().getBorgArchive());
-//		box.getBorgBackup().setPruneCron(dvs.getCron().getBorgPrune());
-//		
-//		box.getBorgBackup().getIncludes().add("/etc");
-//		box.getMysqlInstance().setFlushLogCron(dvs.getCron().getMysqlFlush());
-//		
-//		
-//		Map<String, String> map = new HashMap<>();
-//		map.put("log_bin", "ON");
-//		map.put("log_bin_basename", "/var/lib/mysql/hm-log-bin");
-//		map.put("log_bin_index", "/var/lib/mysql/hm-log-bin.index");
-//		LogBinSetting lbs = new LogBinSetting(map);
-//		box.getMysqlInstance().setLogBinSetting(lbs);
-		return serverService.loadFull(server);
-
+		server.setBorgDescription(borgDescriptionService.save(bd));
 	}
 	
 	protected void boxDeleteLogBinSetting() {

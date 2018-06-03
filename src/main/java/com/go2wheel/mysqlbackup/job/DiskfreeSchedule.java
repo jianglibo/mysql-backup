@@ -4,7 +4,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 import java.text.ParseException;
-import java.util.List;
 
 import javax.annotation.PostConstruct;
 
@@ -22,12 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.BoxUtil;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
@@ -39,9 +35,6 @@ public class DiskfreeSchedule {
 
 	@Autowired
 	private Scheduler scheduler;
-
-	@Autowired
-	private ApplicationState applicationState;
 
 	@Autowired
 	private DefaultValues dvs;
@@ -60,14 +53,14 @@ public class DiskfreeSchedule {
 	}
 
 	//@formatter:off
-	private void scheduleTrigger(Server box) throws SchedulerException, ParseException {
-		JobKey jk = BoxUtil.getDiskfreeJobKey(box);
-		TriggerKey tk = BoxUtil.getDiskfreeTriggerKey(box);
+	private void scheduleTrigger(Server server) throws SchedulerException, ParseException {
+		JobKey jk = BoxUtil.getDiskfreeJobKey(server);
+		TriggerKey tk = BoxUtil.getDiskfreeTriggerKey(server);
 
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
 			job = newJob(DiskfreeJob.class).withIdentity(jk)
-					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_HOST, box.getHost())
+					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId())
 					.storeDurably()
 					.build();
 			scheduler.addJob(job, false);

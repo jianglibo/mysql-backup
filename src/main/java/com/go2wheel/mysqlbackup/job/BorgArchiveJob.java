@@ -1,20 +1,16 @@
 package com.go2wheel.mysqlbackup.job;
 
-import static org.quartz.TriggerKey.triggerKey;
-
 import java.util.Date;
 
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.JobError;
@@ -35,9 +31,6 @@ public class BorgArchiveJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ApplicationState applicationState;
-
-	@Autowired
 	private BorgService borgTaskFacade;
 
 	@Autowired
@@ -52,40 +45,30 @@ public class BorgArchiveJob implements Job {
 	@Autowired
 	private ServerService serverService;
 	
-	@Autowired
-	private SchedulerService schedulerService;
-
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 
 		Session session = null;
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
-			String host = data.getString("host");
-			Server box = applicationState.getServerByHost(host);
+			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 			
-			if (box == null) { //the box is somehow already removed.
-				logger.error("The Box is somehow had removed. {}", host);
-				schedulerService.unscheduleJob(triggerKey(host, BorgBackupSchedule.BORG_ARCHIVE_GROUP));
-				return;
-			}
-			
-			Server sv = serverService.findByHost(host);
+			Server sv = serverService.findById(sid);
+			sv = serverService.loadFull(sv);
 			
 			JobError je = new JobError();
 			je.setServerId(sv.getId());
-
 			
-			if (borgTaskFacade.isBorgNotReady(box)) {
-				logger.error("Box {} is not ready for Archive.", host);
+			if (borgTaskFacade.isBorgNotReady(sv)) {
+				logger.error("Box {} is not ready for Archive.", sv.getHost());
 				je.setMessageDetail("borg not ready for backup.");
 				jobErrorService.save(je);
 				return;
 			}
 			
-			session = sshSessionFactory.getConnectedSession(box).getResult();
+			session = sshSessionFactory.getConnectedSession(sv).getResult();
 
-			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, box, false);
+			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, sv, false);
 
 			long ts = fr.getEndTime() - fr.getStartTime();
 			
@@ -100,7 +83,7 @@ public class BorgArchiveJob implements Job {
 				je.setMessageDetail(fr.resultToString());
 				jobErrorService.save(je);
 			} else {
-				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, box);
+				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, sv);
 				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
 				if (frBorgDownload.isExpected()) {
 					if (frBorgDownload.getResult() != null) {
@@ -120,8 +103,6 @@ public class BorgArchiveJob implements Job {
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);
 			borgDownloadService.save(bd);
-		} catch (SchedulerException e) {
-			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

@@ -12,12 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
+import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
-public class TestBorgDownloadService extends ServiceTbase {
+public class TestBorgDownloadService extends JobBaseFort {
 
 	@Autowired
 	private BorgArchiveJob borgArchiveJob;

@@ -34,11 +34,6 @@ public class ResultHandlerConfigMine {
 	}
 	
 	@Bean
-	public AppStateResultHandler listInstanceResultHandler() {
-		return new AppStateResultHandler();
-	}
-
-	@Bean
 	public IterableResultHandlerMine iterableResultHandler() {
 		return new IterableResultHandlerMine();
 	}

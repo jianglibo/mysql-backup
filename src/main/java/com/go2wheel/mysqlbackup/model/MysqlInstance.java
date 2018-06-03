@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -19,6 +20,8 @@ public class MysqlInstance extends BaseModel {
 	private String username;
 	private String password;
 	private String mycnfFile;
+	
+	@CronExpressionConstraint(allowEmpty=true)
 	private String flushLogCron;
 	
 	private int serverId;

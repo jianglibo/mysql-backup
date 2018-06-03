@@ -20,7 +20,7 @@ public class TestServerService extends ServiceTbase {
 	
 	@Test
 	public void tWithMysqlInstanceAndBorgDescription() {
-		Server server = new Server("abc");
+		Server server = new Server("abc", "bbc");
 		server = serverService.save(server);
 		
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").build();
@@ -37,7 +37,7 @@ public class TestServerService extends ServiceTbase {
 	
 	@Test
 	public void tCreate() {
-		Server server = new Server("abc");
+		Server server = ca();
 		server = serverService.save(server);
 		
 		assertThat(server.getId(), greaterThan(99));
@@ -50,10 +50,8 @@ public class TestServerService extends ServiceTbase {
 	
 	@Test
 	public void tFindByHost() {
-		Server server = new Server("abc");
-		server = serverService.save(server);
+		Server server = ca();
 		assertThat(server.getId(), greaterThan(99));
-		
 		server = serverService.findByHost("abc");
 		assertNotNull(server);
 		
@@ -61,12 +59,14 @@ public class TestServerService extends ServiceTbase {
 		assertNull(server);
 	}
 	
+	private Server ca() {
+		Server server = new Server("abc", "bbc");
+		return serverService.save(server);
+	}
+	
 	@Test
 	public void tFindLikeHost() {
-		Server server = new Server("abc");
-		server = serverService.save(server);
-
-		
+		ca();
 		List<Server> servers = serverService.findLikeHost("abc");
 		assertThat(servers.size(), equalTo(1));
 		

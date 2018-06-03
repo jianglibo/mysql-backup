@@ -5,13 +5,29 @@ import javax.validation.ConstraintValidatorContext;
 
 import org.quartz.CronExpression;
 
-public class CronExpressionValidator implements
-ConstraintValidator<CronExpressionConstraint, String>{
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
+public class CronExpressionValidator implements ConstraintValidator<CronExpressionConstraint, String> {
+	
+	private CronExpressionConstraint constraintAnnotation;
+	
+	
+	@Override
+	public void initialize(CronExpressionConstraint constraintAnnotation) {
+		ConstraintValidator.super.initialize(constraintAnnotation);
+		this.constraintAnnotation = constraintAnnotation;
+	}
 
 	@Override
 	public boolean isValid(String value, ConstraintValidatorContext context) {
 		try {
-			new CronExpression(value);
+			if (constraintAnnotation.allowEmpty() && !StringUtil.hasAnyNonBlankWord(value)) {
+				return true;
+			} else if(!StringUtil.hasAnyNonBlankWord(value)) {
+				return false;
+			} else {
+				new CronExpression(value);
+			}
 			return true;
 		} catch (Exception e) {
 			return false;

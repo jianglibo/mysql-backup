@@ -28,7 +28,7 @@ public class TestBackupFolderService extends ServiceTbase {
 	}
 	
 	private BackupFolder createOne(String folderName) {
-		Server server = new Server(serverHost);
+		Server server = new Server(serverHost, "a server");
 		server = sservice.save(server);
 		
 		BackupFolder bf = new BackupFolder(server.getId(), folderName);

@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -9,22 +10,25 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.EnvironmentAware;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.ServerService;
-//import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 @Component
@@ -77,67 +81,7 @@ public class ApplicationState implements EnvironmentAware {
 	@PostConstruct
 	public void post() throws IOException {
 		servers = serverService.findAll().stream().map(s -> serverService.loadFull(s)).collect(Collectors.toList());
-//		Path dr = appSettings.getDataRoot();
-//		try (Stream<Path> vs = Files.list(dr)){
-//			boxes = vs.filter(Files::isDirectory)
-//					.map(p -> p.resolve(BackupCommand.DESCRIPTION_FILENAME))
-//					.filter(f -> {
-//						if (Files.exists(f)) {
-//							return true;
-//						} else {
-//							Path wf = f.getParent().resolve(BackupCommand.DESCRIPTION_FILENAME + ".writing");
-//							if (Files.exists(wf)) {
-//								try {
-//									Files.move(wf, f);
-//								} catch (IOException e) {
-//									ExceptionUtil.logErrorException(logger, e);
-//									return false;
-//								}
-//								return true;
-//							} else {
-//								return false;
-//							}
-//							
-//						}
-//					})
-//					.map(p -> {
-//						
-//						try (InputStream is = Files.newInputStream(p)) {
-//							return YamlInstance.INSTANCE.yaml.loadAs(is, Box.class);
-//						} catch (IOException e) {
-//							ExceptionUtil.logErrorException(logger, e);
-//							return null;
-//						}
-//					}).filter(Objects::nonNull).collect(Collectors.toList());
-//		} catch (Exception e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//		}
-//		
-//		try {
-//			boxes.stream().forEach(box -> {
-//				Server sv = serverService.findByHost(box.getHost());
-//				if (sv == null) {
-//					sv = new Server(box.getHost());
-//					sv = serverService.save(sv);
-//				}
-//				
-//				final Server svfinal = sv;
-//				
-//				if (box.getBorgBackup() != null && box.getBorgBackup().getIncludes() != null) {
-//					box.getBorgBackup().getIncludes().stream().forEach(fo -> {
-//						BackupFolder bf = bfService.findByServerHostAndFolder(box.getHost(), fo);
-//						if (bf == null) {
-//							bf = new BackupFolder(svfinal.getId(), fo);
-//							bfService.save(bf);
-//						}
-//					});
-//				}
-//			});
-//		} catch (Exception e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//		}
-//		ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
-//		loadState();
+		logger.info("load {} servers.", servers.size());
 	}
 	
 	public void fireSwitchEvent() {
@@ -170,65 +114,31 @@ public class ApplicationState implements EnvironmentAware {
 		}
 	}
 
-//	public void loadState() throws IOException {
-//		try {
-//			Path p = appSettings.getDataRoot().resolve(APPLICATION_STATE_PERSIST_FILE);
-//			if (Files.exists(p)) {
-//				PersistState as = YamlInstance.INSTANCE.yaml.loadAs(Files.newInputStream(p),
-//						PersistState.class);
-//				if (StringUtil.hasAnyNonBlankWord(as.getHost())) {
-//					Box box = getServerByHost(as.getHost());
-//					if (box != null) {
-//						setCurrentBox(box);
-//						fireSwitchEvent();
-//					}
-//								
-//				}
-//
-//			}
-//		} catch (Exception e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//		}
-//	}
+	private boolean addServer(Server server) {
+		if (server == null) {
+			return false;
+		}
+		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(server.getHost()));
+		if (!exists) {
+			this.servers.add(server);
+			return true;
+		} else {
+			return false;
+		}
+	}
 	
-//	public static class PersistState {
-//		private String host;
-//		
-//		public PersistState() {
-//		}
-//		
-//		public PersistState(ApplicationState appState) {
-//			if (appState.currentBoxOptional().isPresent()) {
-//				this.host = appState.currentBoxOptional().get().getHost();
-//			}
-//		}
-//
-//		public String getHost() {
-//			return host;
-//		}
-//
-//		public void setHost(String host) {
-//			this.host = host;
-//		}
-//	}
-
-//	public boolean addServer(Box box) {
-//		if (box == null) {
-//			return false;
-//		}
-//		boolean exists = getBoxes().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(box.getHost()));
-//		if (!exists) {
-//			this.boxes.add(box);
-//			serverService.save(new Server(box.getHost()));
-//			return true;
-//		} else {
-//			return false;
-//		}
-//	}
-
-//	public Box getServerByHost(String host) {
-//		return this.boxes.stream().filter(s -> host.equals(s.getHost())).findAny().orElse(null);
-//	}
+	private boolean removeServer(Server server) {
+		if (server == null) {
+			return false;
+		}
+		Optional<Server> svOp = getServers().stream().filter(b -> b.getHost().equalsIgnoreCase(server.getHost())).findAny();
+		if (svOp.isPresent()) {
+			this.servers.remove(svOp.get());
+			return true;
+		} else {
+			return false;
+		}
+	}
 
 	public CommandStepState getStep() {
 		return step;
@@ -263,8 +173,16 @@ public class ApplicationState implements EnvironmentAware {
 		return currentServer;
 	}
 
-	public void setCurrentServer(Server currentServer) {
-		this.currentServer = currentServer;
+	public void setCurrentServer(Server cs) {
+		if (cs != null) {
+			if (currentServer == null || (int)cs.getId() != (int)currentServer.getId() ) {
+				currentServer = cs;
+				fireSwitchEvent();
+			}
+		} else {
+			currentServer = null;
+			fireSwitchEvent();
+		}
 	}
 
 	public List<Server> getServers() {
@@ -274,10 +192,21 @@ public class ApplicationState implements EnvironmentAware {
 	public void setServers(List<Server> servers) {
 		this.servers = servers;
 	}
-
-	public Server getServerByHost(String host) {
-		// TODO Auto-generated method stub
-		return null;
+	
+	@EventListener
+	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+		Server sv = serverCreatedEvent.getModel();
+		addServer(sv);
+	}
+	
+	@EventListener
+	public void whenServerDeleted(ModelDeletedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+		Server sv = serverCreatedEvent.getModel();
+		removeServer(sv);
+		
+		if (currentServer != null && sv.getId().equals(currentServer.getId())) {
+			setCurrentServer(null);
+		}
 	}
 
 }

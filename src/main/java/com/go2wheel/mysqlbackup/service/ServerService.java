@@ -34,6 +34,23 @@ public class ServerService extends ServiceBase<ServerRecord, Server> {
 	public List<Server> findLikeHost(String partOfHostName) {
 		return ((ServerRepository)repo).findLikeHost(partOfHostName);
 	}
+	
+	@Override
+	public void delete(Server server) {
+		// get lastest version of server.
+		MysqlInstance mi = mysqlInstanceService.findByServerId(server.getId());
+		if (mi != null) {
+			mysqlInstanceService.delete(mi);
+		}
+		
+		BorgDescription bd = borgDescriptionService.findByServerId(server.getId());
+		
+		if (bd != null) {
+			borgDescriptionService.delete(bd);
+		}
+		
+		super.delete(server);
+	}
 
 	public Server loadFull(Server server) {
 		MysqlInstance mi  = mysqlInstanceService.findByServerId(server.getId());
