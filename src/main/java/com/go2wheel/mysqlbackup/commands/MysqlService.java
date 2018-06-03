@@ -16,7 +16,6 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
-import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlUnreadyException;
@@ -27,7 +26,6 @@ import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
-import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -83,9 +81,7 @@ public class MysqlService {
 	}
 
 	public boolean isMysqlNotReadyForBackup(Server server) {
-		return false;
-		// return server == null || server.getMysqlInstance() == null ||
-		// server.getMysqlInstance().getLogBinSetting() == null;
+		 return server == null || server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null || server.getMysqlInstance().getLogBinSetting().isEmpty();
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)

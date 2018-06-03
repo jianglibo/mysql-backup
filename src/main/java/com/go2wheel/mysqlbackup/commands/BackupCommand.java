@@ -53,6 +53,7 @@ import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
+import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -553,6 +554,32 @@ public class BackupCommand {
 		sureMysqlReadyForBackup();
 		Server server = appState.currentServerOptional().get();
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
+		saveDumpResult(server, fr);
+		return fr;
+	}
+	
+	/**
+	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
+	 * 
+	 * @return
+	 * @throws JSchException
+	 * @throws IOException
+	 */
+	@ShellMethod(value = "再次执行Mysqldump命令")
+	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = ShellOption.NULL) String iknow)
+			throws JSchException, IOException {
+		sureMysqlReadyForBackup();
+		Server server = appState.currentServerOptional().get();
+		if (!DANGEROUS_ALERT.equals(iknow)) {
+			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
+		}
+		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
+		saveDumpResult(server, fr);
+		return fr;
+	}
+
+
+	private void saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
 		MysqlDump md = new MysqlDump();
 		md.setCreatedAt(new Date());
 		md.setTimeCost(fr.getEndTime() - fr.getStartTime());
@@ -571,11 +598,16 @@ public class BackupCommand {
 		Server sv = serverService.findByHost(server.getHost());
 		md.setServerId(sv.getId());
 		mysqlDumpService.save(md);
-		return fr;
+	}
+	
+	@ShellMethod(value = "列出Mysqldump历史纪录")
+	public FacadeResult<?> mysqlDumpList() throws JSchException, IOException {
+		Server server = appState.currentServerOptional().get();
+		List<MysqlDump> dumps = mysqlDumpService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
+		return FacadeResult.doneExpectedResultDone(dumps);
 	}
 
 	// @formatter: off
-	
 	@ShellMethod(value = "添加或更改Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionUpdate(
 			@ShowPossibleValue({"host", "port", "username", "password","flushLogCron"})
@@ -638,6 +670,15 @@ public class BackupCommand {
 		mysqlFlushService.processFlushResult(server, fr);
 		return fr;
 	}
+	
+	@ShellMethod(value = "列出flush Mysql的历史")
+	public FacadeResult<?> MysqlFlushLogList() {
+		sureMysqlReadyForBackup();
+		Server server = appState.currentServerOptional().get();
+		List<MysqlFlush> mfs = mysqlFlushService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
+		return FacadeResult.doneExpectedResultDone(mfs);
+	}
+
 
 	@ShellMethod(value = "添加常用的CRON表达式")
 	public FacadeResult<?> cronExpressionAdd(@ShellOption(help = "cron表达式") String expression,
@@ -722,20 +763,19 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出用户和服务器组的关系。")
-	public FacadeResult<?> userAndServerGroupList() {
+	public FacadeResult<?> userServerGroupList() {
 		List<UserServerGrpVo> vos = userServerGrpService.findAll().stream().map(usgl -> getusgvo(usgl))
 				.collect(Collectors.toList());
 
 		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
 	}
 	
-	
 	@ShellMethod(value = "添加用户和服务器组的关系。")
-	public FacadeResult<?> userAndServerGroupCreate(
-			@ShellOption(help = "用户名", defaultValue = ShellOption.NULL) UserAccount user,
-			@ShellOption(help = "服务器组", defaultValue = ShellOption.NULL) ServerGrp serverGroup,
-			@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue = ShellOption.NULL) String id,
-			@CronStringIndicator @ShellOption(help = "任务计划", defaultValue = ShellOption.NULL) String cron) {
+	public FacadeResult<?> userServerGroupCreate(
+			@ShellOption(help = "用户名") UserAccount user,
+			@ShellOption(help = "服务器组") ServerGrp serverGroup,
+			@ShellOption(help = "一个有意义的名称") String name,
+			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
 		UserServerGrp usg;
 		if (user == null) {
 			return parameterRequired("user");
@@ -743,22 +783,16 @@ public class BackupCommand {
 		if (serverGroup == null) {
 			return parameterRequired("server-group");
 		}
-		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId())
-				.withCronExpression(ReusableCron.getExpressionFromToListRepresentation(cron)).build();
+		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron))
+				.withName(name)
+				.build();
 		usg = userServerGrpService.save(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
 	
 	@ShellMethod(value = "删除用户和服务器组的关系。")
-	public FacadeResult<?> userAndServerGroupDelete(@ShellOption(help = "条目的ID，可以通过list查看。", defaultValue = ShellOption.NULL) String id) {
-		UserServerGrp usg;
-		if (id == null) {
-			return parameterRequired("id");
-		}
-		usg = userServerGrpService.findById(id);
-		if (usg == null) {
-			return FacadeResult.showMessageUnExpected(CommonMessageKeys.DB_ITEMNOTEXISTS, id);
-		}
+	public FacadeResult<?> userServerGroupDelete(
+			@ShellOption(help = "要删除的User和ServerGrp关系。") UserServerGrp usg) {
 		userServerGrpService.delete(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
@@ -808,25 +842,6 @@ public class BackupCommand {
 		UserGrp ug = new UserGrp(ename, msgkey);
 		return null;
 	}
-
-	/**
-	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
-	 * 
-	 * @return
-	 * @throws JSchException
-	 * @throws IOException
-	 */
-	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = ShellOption.NULL) String iknow)
-			throws JSchException, IOException {
-		sureMysqlReadyForBackup();
-		Server server = appState.currentServerOptional().get();
-		if (!DANGEROUS_ALERT.equals(iknow)) {
-			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
-		}
-		return mysqlService.mysqlDump(getSession(), server, true);
-	}
-	
 
 	private String getPromptString() {
 		switch (appState.getStep()) {

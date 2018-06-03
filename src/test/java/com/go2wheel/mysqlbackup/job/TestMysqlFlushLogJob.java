@@ -2,33 +2,39 @@ package com.go2wheel.mysqlbackup.job;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.mockito.BDDMockito.given;
 
 import org.junit.Test;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 
 public class TestMysqlFlushLogJob extends JobBaseFort {
 	
 	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;
 	
-	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	@Test
+	public void tNotReady() throws JobExecutionException {
+		createServer();
+		createContext();
+		mysqlFlushLogJob.execute(context); // cause server was not ready for mysqlbackup.
+		mysqlFlushService.count();
+		assertThat(mysqlFlushService.count(), equalTo(0L));
+	}
 	
 	@Test
-	public void t() throws JobExecutionException {
-		JobDataMap jdm = new JobDataMap();
-		jdm.put("host", HOST_DEFAULT);
-		given(context.getMergedJobDataMap()).willReturn(jdm);
-		mysqlFlushLogJob.execute(context);
+	public void tReady() throws SchedulerException {
+		createServer();
+		createContext();
+		createMysqlIntance();
+		assertThat(countJobs(), equalTo(1L)); // new add mysqlinstance job.
+		deleteAllJobs();
 		
+		mysqlFlushLogJob.execute(context);
 		mysqlFlushService.count();
 		assertThat(mysqlFlushService.count(), equalTo(1L));
 		
 	}
+
 
 }

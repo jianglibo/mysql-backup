@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.Server;
 
 @Component
@@ -30,8 +31,8 @@ public class UpTimeSchedule extends SchedulerBase {
 		createTrigger(server,
 				server.getUptimeCron(),
 				UpTimeJob.class,
-				jobKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP),
-				triggerKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP));
+				jobKey(server.getHost(), UPTIME_GROUP),
+				triggerKey(server.getHost(), UPTIME_GROUP));
 	}
 	
 	@EventListener
@@ -43,10 +44,15 @@ public class UpTimeSchedule extends SchedulerBase {
 				before.getUptimeCron(),
 				server.getUptimeCron(),
 				UpTimeJob.class,
-				jobKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP),
-				triggerKey(server.getHost(), UpTimeSchedule.UPTIME_GROUP));
-		
+				jobKey(server.getHost(), UPTIME_GROUP),
+				triggerKey(server.getHost(), UPTIME_GROUP));
 	}
+	
+	@EventListener
+	public void whenServerDeleted(ModelDeletedEvent<Server> serverDeletedEvent) throws SchedulerException, ParseException {
+		scheduler.unscheduleJob(triggerKey(serverDeletedEvent.getModel().getHost(), UPTIME_GROUP));
+	}
+
 
 
 }

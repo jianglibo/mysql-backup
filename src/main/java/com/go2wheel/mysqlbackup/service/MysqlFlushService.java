@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
 
+import org.jooq.Condition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,5 +67,5 @@ public class MysqlFlushService extends ServiceBase<MysqlFlushRecord, MysqlFlush>
 		}
 		save(mf);
 	}
-	
+
 }

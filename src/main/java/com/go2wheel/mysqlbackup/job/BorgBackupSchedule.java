@@ -29,47 +29,47 @@ public class BorgBackupSchedule extends SchedulerBase {
 	//@formatter:off
 	
 	@EventListener
-	public void whenBorgDescriptionCreated(ModelCreatedEvent<BorgDescription> serverCreatedEvent) throws SchedulerException, ParseException {
-		BorgDescription bd = serverCreatedEvent.getModel();
+	public void whenBorgDescriptionCreated(ModelCreatedEvent<BorgDescription> borgDescriptionCreatedEvent) throws SchedulerException, ParseException {
+		BorgDescription bd = borgDescriptionCreatedEvent.getModel();
 		Server server = serverService.findById(bd.getServerId());
 		createTrigger(server,
 				bd.getArchiveCron(),
 				BorgArchiveJob.class,
-				jobKey(server.getHost(), BorgBackupSchedule.BORG_ARCHIVE_GROUP),
-				triggerKey(server.getHost(), BorgBackupSchedule.BORG_ARCHIVE_GROUP));
+				jobKey(server.getHost(), BORG_ARCHIVE_GROUP),
+				triggerKey(server.getHost(), BORG_ARCHIVE_GROUP));
 
 		createTrigger(server,
 				bd.getPruneCron(),
 				BorgPruneJob.class,
-				jobKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP),
-				triggerKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP));
+				jobKey(server.getHost(), BORG_PRUNE_GROUP),
+				triggerKey(server.getHost(), BORG_PRUNE_GROUP));
 	}
 	
 	@EventListener
-	public void whenBorgDescriptionChanged(ModelChangedEvent<BorgDescription> serverChangedEvent) throws SchedulerException, ParseException {
-		BorgDescription before = serverChangedEvent.getBefore();
-		BorgDescription after = serverChangedEvent.getAfter();
+	public void whenBorgDescriptionChanged(ModelChangedEvent<BorgDescription> borgDescriptionChangedEvent) throws SchedulerException, ParseException {
+		BorgDescription before = borgDescriptionChangedEvent.getBefore();
+		BorgDescription after = borgDescriptionChangedEvent.getAfter();
 		Server server = serverService.findById(after.getServerId());
 		reschedule(server,
 				before.getArchiveCron(),
 				after.getArchiveCron(),
 				BorgArchiveJob.class,
-				jobKey(server.getHost(), BorgBackupSchedule.BORG_ARCHIVE_GROUP),
-				triggerKey(server.getHost(), BorgBackupSchedule.BORG_ARCHIVE_GROUP));
+				jobKey(server.getHost(), BORG_ARCHIVE_GROUP),
+				triggerKey(server.getHost(), BORG_ARCHIVE_GROUP));
 		
 		reschedule(server,
 				before.getPruneCron(),
 				after.getPruneCron(),
 				BorgPruneJob.class,
-				jobKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP),
-				triggerKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP));
+				jobKey(server.getHost(), BORG_PRUNE_GROUP),
+				triggerKey(server.getHost(), BORG_PRUNE_GROUP));
 	}
 	
 	@EventListener
-	public void whenBorgDescriptionDeleted(ModelDeletedEvent<BorgDescription> serverCreatedEvent) throws SchedulerException, ParseException {
-		BorgDescription bd = serverCreatedEvent.getModel();
+	public void whenBorgDescriptionDeleted(ModelDeletedEvent<BorgDescription> borgDescriptionDeletedEvent) throws SchedulerException, ParseException {
+		BorgDescription bd = borgDescriptionDeletedEvent.getModel();
 		Server server = serverService.findById(bd.getServerId());
-		scheduler.unscheduleJob(triggerKey(server.getHost(), BorgBackupSchedule.BORG_ARCHIVE_GROUP));
-		scheduler.unscheduleJob(triggerKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP));
+		scheduler.unscheduleJob(triggerKey(server.getHost(), BORG_ARCHIVE_GROUP));
+		scheduler.unscheduleJob(triggerKey(server.getHost(), BORG_PRUNE_GROUP));
 	}
 }

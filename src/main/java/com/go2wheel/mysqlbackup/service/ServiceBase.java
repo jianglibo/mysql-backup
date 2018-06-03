@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.jooq.Condition;
+import org.jooq.SortField;
 import org.jooq.UpdatableRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +16,7 @@ import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
 
 public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
@@ -44,6 +47,14 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 	
 	public List<P> findAll() {
 		return repo.findAll();
+	}
+
+	public List<P> findAll(int offset, int limit) {
+		return repo.findAll(offset, limit);
+	}
+	
+	public List<P> findAll(SortField<?> sf, int offset, int limit) {
+		return repo.findAll(sf, offset, limit);
 	}
 	
 	public P findById(Integer id) {
@@ -80,6 +91,10 @@ public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseMo
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
 		this.applicationEventPublisher = applicationEventPublisher;
+	}
+	
+	public List<P> findAll(Condition eq, int offset, int limit) {
+		return repo.findAll(eq, offset, limit);
 	}
 
 }

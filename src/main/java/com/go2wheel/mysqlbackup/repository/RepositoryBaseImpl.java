@@ -2,7 +2,9 @@ package com.go2wheel.mysqlbackup.repository;
 
 import java.util.List;
 
+import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
 import org.jooq.impl.DAOImpl;
@@ -25,6 +27,20 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	
 	public List<P> getRecentItems(int number) {
 		return jooq.selectFrom(getTable()).orderBy(getTable().field("CREATED_AT").desc()).limit(number).fetchInto(getType());
+	}
+	
+	@Override
+	public List<P> findAll(int offset, int limit) {
+		return jooq.selectFrom(getTable()).orderBy(getTable().field("CREATED_AT").desc()).offset(offset).limit(limit).fetchInto(getType());
+	}
+	
+	@Override
+	public List<P> findAll(SortField<?> sort, int offset, int limit) {
+		return jooq.selectFrom(getTable()).orderBy(sort).offset(offset).limit(limit).fetchInto(getType());
+	}
+	
+	public 	List<P> findAll(Condition eq, int offset, int limit) {
+		return jooq.selectFrom(getTable()).where(eq).orderBy(getTable().field("CREATED_AT").desc()).offset(offset).limit(limit).fetchInto(getType());
 	}
 	
 	@Override

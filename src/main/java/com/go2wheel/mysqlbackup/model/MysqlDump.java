@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class MysqlDump extends BaseModel {
@@ -8,7 +9,6 @@ public class MysqlDump extends BaseModel {
 	private Long fileSize;
 	private ResultEnum result;
 	private Long timeCost;
-	
 	
 	public Integer getServerId() {
 		return serverId;
@@ -37,8 +37,8 @@ public class MysqlDump extends BaseModel {
 	}
 	@Override
 	public String toListRepresentation(String... fields) {
-		// TODO Auto-generated method stub
-		return null;
+		return ObjectUtil.toListRepresentation(this);
+		
 	}
 
 }

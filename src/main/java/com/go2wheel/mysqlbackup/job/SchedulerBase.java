@@ -16,7 +16,7 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
@@ -28,13 +28,13 @@ public class SchedulerBase {
 	@Autowired
 	protected ServerService serverService;
 	
-	public void createTrigger(Server server, String cronExpression, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
+	public void createTrigger(BaseModel bm, String cronExpression, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
 		if (!StringUtil.hasAnyNonBlankWord(cronExpression)) return;
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
 			job = newJob(jobClass)
 					.withIdentity(jk)
-					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId())
+					.usingJobData(CommonJobDataKey.JOB_DATA_KEY_ID, bm.getId())
 					.storeDurably()
 					.build();
 			scheduler.addJob(job, false);
@@ -46,10 +46,10 @@ public class SchedulerBase {
 		}
 	}
 	
-	protected void reschedule(Server server, String cronExpBefore, String cronExpAfter, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
+	protected void reschedule(BaseModel bm, String cronExpBefore, String cronExpAfter, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
 		if(cronExpBefore == null && cronExpAfter == null)return;
 		if (cronExpBefore == null) { // cronExpAfter mustn't null.
-			createTrigger(server, cronExpAfter, jobClass, jk, tk);
+			createTrigger(bm, cronExpAfter, jobClass, jk, tk);
 		} else if (cronExpAfter == null) { // cronExpBefore mustn't null;
 			scheduler.unscheduleJob(tk);
 		} else if (!cronExpBefore.equals(cronExpAfter)) {

@@ -10,6 +10,7 @@ public class UserServerGrp extends BaseModel {
 	private Integer userAccountId;
 	private Integer serverGrpId;
 	
+	private String name;
 	
 	@CronExpressionConstraint
 	private String cronExpression;
@@ -33,22 +34,28 @@ public class UserServerGrp extends BaseModel {
 		this.cronExpression = cronExpression;
 	}
 	
+	
+	
 	public static class UserServerGrpBuilder {
 		
 		private final Integer userAccountId;
 		private final Integer serverGrpId;
-		private String cronExpression;
+		private final String cronExpression;
 		
-		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId) {
+		private String name;
+		
+		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression) {
 			super();
 			this.userAccountId = userAccountId;
 			this.serverGrpId = serverGrpId;
+			this.cronExpression = cronExpression;
 		}
 		
-		public UserServerGrpBuilder withCronExpression(String cronExpression) {
-			this.cronExpression = cronExpression;
+		public UserServerGrpBuilder withName(String name) {
+			this.name = name;
 			return this;
 		}
+		
 		
 		public UserServerGrp build() {
 			UserServerGrp usg = new UserServerGrp();
@@ -56,12 +63,19 @@ public class UserServerGrp extends BaseModel {
 			usg.setCronExpression(cronExpression);
 			usg.setServerGrpId(serverGrpId);
 			usg.setUserAccountId(userAccountId);
+			usg.setName(name);
 			return usg;
 		}
 	}
 
 	@Override
 	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this, "userAccountId", "serverGrpId");
+		return ObjectUtil.toListRepresentation(this, "name", "userAccountId", "serverGrpId");
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 }

@@ -41,9 +41,11 @@ public class MysqlFlushLogJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 			Server server = serverService.findById(sid);
+			server = serverService.loadFull(server);
 			
 			if (mysqlTaskFacade.isMysqlNotReadyForBackup(server)) {
 				logger.info("Box {} is not ready for Backup.", server.getHost());
+				return;
 			}
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, server);

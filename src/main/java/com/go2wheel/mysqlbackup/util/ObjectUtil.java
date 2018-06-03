@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -20,7 +21,13 @@ public class ObjectUtil {
 	private static Logger logger = LoggerFactory.getLogger(ObjectUtil.class);
 	
 	public static List<Field> getFields(Class<?> c) {
-		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
+		List<Class<?>> clazzList = new ArrayList<>();
+		clazzList.add(c);
+		while((c = c.getSuperclass()) != Object.class) {
+			clazzList.add(c);
+		}
+		
+		return clazzList.stream().flatMap(oc -> Arrays.stream(oc.getDeclaredFields())).filter(f -> {
 			f.setAccessible(true);
 			int m = f.getModifiers();
 			return !Modifier.isStatic(m);
@@ -28,7 +35,14 @@ public class ObjectUtil {
 	}
 	
 	public static Optional<Field> getField(Class<?> c, String fieldName) {
-		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
+		
+		List<Class<?>> clazzList = new ArrayList<>();
+		clazzList.add(c);
+		while((c = c.getSuperclass()) != null) {
+			clazzList.add(c);
+		}
+		
+		return clazzList.stream().flatMap(oc -> Arrays.stream(oc.getDeclaredFields())).filter(f -> {
 			f.setAccessible(true);
 			int m = f.getModifiers();
 			return !Modifier.isStatic(m);
@@ -37,18 +51,13 @@ public class ObjectUtil {
 
 	public static String dumpObjectAsMap(Object o) {
 		Class<?> c = o.getClass();
-		return Arrays.stream(c.getDeclaredFields()).filter(f -> {
-			f.setAccessible(true);
-			int m = f.getModifiers();
-			return !Modifier.isStatic(m);
-		}).map(f -> {
+		return getFields(c).stream().map(f -> {
 			try {
 				return String.format("%s: %s", f.getName(), f.get(o));
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				return null;
 			}
 		}).filter(Objects::nonNull).collect(Collectors.joining("\n"));
-		
 	}
 	
 	public static Optional<String> getValueIfIsToListRepresentation(String toListRepresentation, String fieldName) {
@@ -81,6 +90,20 @@ public class ObjectUtil {
 			return toListRepresentation;
 		}
 	}
+	
+	
+	private static Field findField(Class<?> c, String fn) {
+		Class<?> pc = c;
+		while(pc != Object.class) {
+			try {
+				Field f = pc.getDeclaredField(fn);
+				return f;
+			} catch (NoSuchFieldException | SecurityException e) {
+			}
+			pc = pc.getSuperclass();
+		}
+		return null;
+	}
 
 	public static String toListRepresentation(Object o, String... fields) {
 		Class<?> c = o.getClass();
@@ -91,7 +114,8 @@ public class ObjectUtil {
 		String delim = "";
 
 		if (fset.isEmpty()) {
-			for (Field f : c.getDeclaredFields()) {
+			List<Field> fds = getFields(c);
+			for (Field f : fds) {
 				try {
 					sb.append(delim);
 					f.setAccessible(true);
@@ -105,13 +129,13 @@ public class ObjectUtil {
 			for (String fs : fset) {
 				try {
 					sb.append(delim);
-					Field f = c.getDeclaredField(fs);
-					f.setAccessible(true);
-					sb.append(String.format("%s: %s", f.getName(), f.get(o)));
-					delim = ", ";
+					Field f = findField(c, fs);
+					if (f != null) {
+						f.setAccessible(true);
+						sb.append(String.format("%s: %s", f.getName(), f.get(o)));
+						delim = ", ";
+					}
 				} catch (IllegalArgumentException | IllegalAccessException e) {
-					ExceptionUtil.logErrorException(logger, e);
-				} catch (NoSuchFieldException e) {
 					ExceptionUtil.logErrorException(logger, e);
 				} catch (SecurityException e) {
 					ExceptionUtil.logErrorException(logger, e);

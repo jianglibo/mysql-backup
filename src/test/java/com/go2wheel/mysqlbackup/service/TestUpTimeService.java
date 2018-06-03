@@ -6,7 +6,7 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
-import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
@@ -19,12 +19,19 @@ public class TestUpTimeService extends JobBaseFort {
 	private UpTimeJob upTimeJob;
 
 	@Test
-	public void t() throws JobExecutionException {
+	public void t() throws SchedulerException {
+		createServer();
+		createContext();
+		deleteAllJobs();
+		
 		upTimeJob.execute(context);
 
 		List<UpTime> upTimes = upTimeService.getItemsInDays(server, 3);
 		int sz = upTimes.size();
-
+		assertThat(sz, equalTo(1));
+		
+		upTimes = upTimeService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.UpTime.UP_TIME.SERVER_ID.eq(server.getId()), 0, 10);
+		sz = upTimes.size();
 		assertThat(sz, equalTo(1));
 
 		upTimeJob.execute(context);

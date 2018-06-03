@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class MysqlFlush extends BaseModel {
@@ -46,8 +47,7 @@ public class MysqlFlush extends BaseModel {
 	}
 	@Override
 	public String toListRepresentation(String... fields) {
-		// TODO Auto-generated method stub
-		return null;
+		return ObjectUtil.toListRepresentation(this, fields);
 	}
 
 }

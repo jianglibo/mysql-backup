@@ -25,6 +25,7 @@ import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.service.BackupFolderService;
 import com.go2wheel.mysqlbackup.service.BackupFolderStateService;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionService;
@@ -206,11 +207,17 @@ public class SpringBaseFort {
 		server = serverService.save(server);
 	}
 	
+	protected UserAccount createUser() {
+		UserAccount ua = new UserAccount.UserAccountBuilder("江立波", "jianglibo@gmail.com").build();
+		return userAccountService.save(ua);
+	}
+	
 	protected void createMysqlIntance() {
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456")
 				.addSetting("log_bin", "ON")
 				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
 				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
+				.withFlushLogCron(A_VALID_CRON_EXPRESSION)
 				.build();
 		server.setMysqlInstance(mysqlInstanceService.save(mi));
 	}

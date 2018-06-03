@@ -39,11 +39,29 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
 		.withArchiveCron(A_VALID_CRON_EXPRESSION).build();
 		bd = borgDescriptionService.save(bd);
-		assertThat(countJobs(), equalTo(1L));
-		assertThat(countTriggers(), equalTo(1L));
+		assertThat(countJobs(), equalTo(1L)); // cause only set archiveCron.
+		assertThat(countTriggers(), equalTo(1L)); // cause only set archiveCron.
 		
 		borgDescriptionService.delete(bd);
 		assertThat(countJobs(), equalTo(1L));
+		assertThat(countTriggers(), equalTo(0L));
+	}
+	
+	@Test
+	public void testSchedulerBorg2() throws SchedulerException {
+		createServer();
+		deleteAllJobs();
+		
+		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
+		.withArchiveCron(A_VALID_CRON_EXPRESSION)
+		.withPruneCron(A_VALID_CRON_EXPRESSION)
+		.build();
+		bd = borgDescriptionService.save(bd);
+		assertThat(countJobs(), equalTo(2L)); // cause only set archiveCron.
+		assertThat(countTriggers(), equalTo(2L)); // cause only set archiveCron.
+		
+		borgDescriptionService.delete(bd);
+		assertThat(countJobs(), equalTo(2L));
 		assertThat(countTriggers(), equalTo(0L));
 	}
 	

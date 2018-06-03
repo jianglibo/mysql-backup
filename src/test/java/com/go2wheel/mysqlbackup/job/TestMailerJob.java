@@ -24,10 +24,13 @@ public class TestMailerJob extends JobBaseFort {
 	@Test
 	public void t() throws JobExecutionException, MessagingException {
 		UserAccount ua = new UserAccount.UserAccountBuilder("jianglibo", "jianglibo@hotmail.com").build();
-		ServerGrp sg = new ServerGrp("default");
 		ua = userAccountService.save(ua);
+		
+		
+		ServerGrp sg = new ServerGrp("default");
 		sg = serverGrpService.save(sg);
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId()).withCronExpression(A_VALID_CRON_EXPRESSION).build();
+		
+		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION).withName("aname").build();
 		usg = userServerGrpService.save(usg);
 		
 		
@@ -43,14 +46,13 @@ public class TestMailerJob extends JobBaseFort {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, usg.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
+		
 		mailerJob.setMailer(new Mailer() {
 			@Override
 			public void sendMailWithInline(ServerGroupContext rc) throws MessagingException {
 				System.out.println(rc);
-				
 			}
 		});
-		
 		mailerJob.execute(context);
 	}
 
