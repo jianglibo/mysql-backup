@@ -7,16 +7,18 @@ import com.go2wheel.mysqlbackup.model.UserAccount;
 
 public class ServerGroupContext {
 	
-	private final UserAccount user;
+	private UserAccount user;
 	
-	private final ServerGrp serverGrp;
+	private ServerGrp serverGrp;
 	
-	private final List<ServerContext> oscs;
+	private List<ServerContext> serverContexts;
 	
-	public ServerGroupContext(List<ServerContext> oscs, UserAccount user, ServerGrp serverGrp) {
+	public ServerGroupContext() {}
+	
+	public ServerGroupContext(List<ServerContext> serverContexts, UserAccount user, ServerGrp serverGrp) {
 		super();
-		this.oscs = oscs;
 		this.user = user;
+		this.serverContexts =serverContexts;
 		this.serverGrp = serverGrp;
 	}
 	
@@ -28,9 +30,20 @@ public class ServerGroupContext {
 		return user;
 	}
 
-	public List<ServerContext> getOscs() {
-		return oscs;
+	public List<ServerContext> getServerContexts() {
+		return serverContexts;
 	}
 
+	public void setServerContexts(List<ServerContext> serverContexts) {
+		this.serverContexts = serverContexts;
+	}
+
+	public void setUser(UserAccount user) {
+		this.user = user;
+	}
+
+	public void setServerGrp(ServerGrp serverGrp) {
+		this.serverGrp = serverGrp;
+	}
 
 }

@@ -4,13 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
@@ -23,8 +23,10 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
+import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -39,6 +41,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -52,12 +55,9 @@ public class MysqlService {
 	private MysqlUtil mysqlUtil;
 
 	private MyAppSettings appSettings;
-
+	
 	@Autowired
-	private ApplicationEventPublisher applicationEventPublisher;
-
-	@Autowired
-	private BoxService boxService;
+	private MysqlDumpService mysqlDumpService;
 
 	@Autowired
 	private MysqlInstanceService mysqlInstanceService;
@@ -92,7 +92,7 @@ public class MysqlService {
 			Path logbinDir = appSettings.getLogBinDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
-				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
+				return saveDumpResult(server, FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP));
 			}
 			if (force) {
 				FileUtil.backup(3, false, dumpDir, logbinDir);
@@ -103,14 +103,36 @@ public class MysqlService {
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
-				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
+				return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
 			} else {
-				return FacadeResult.unexpectedResult(r.get(0));
+				return saveDumpResult(server, FacadeResult.unexpectedResult(r.get(0)));
 			}
 		} catch (IOException | RunRemoteCommandException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
+			return saveDumpResult(server, FacadeResult.unexpectedResult(e));
 		}
+		
+	}
+	
+	private FacadeResult<LinuxLsl> saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
+		MysqlDump md = new MysqlDump();
+		md.setCreatedAt(new Date());
+		md.setTimeCost(fr.getEndTime() - fr.getStartTime());
+		if (fr.isExpected()) {
+			if (fr.getResult() != null) {
+				md.setFileSize(fr.getResult().getSize());
+				md.setResult(ResultEnum.SUCCESS);
+			} else if (MysqlService.ALREADY_DUMP.equals(fr.getMessage())) {
+				md.setResult(ResultEnum.SKIP);
+			} else {
+				md.setResult(ResultEnum.UNKNOWN);
+			}
+		} else {
+			md.setResult(ResultEnum.UNKNOWN);
+		}
+		md.setServerId(server.getId());
+		mysqlDumpService.save(md);
+		return fr;
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)

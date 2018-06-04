@@ -9,7 +9,6 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -88,7 +87,6 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -124,6 +122,9 @@ public class BackupCommand {
 
 	@Autowired
 	private MysqlInstanceService mysqlInstanceService;
+	
+	@Autowired
+	private MysqlDumpService mysqlDumpService;
 
 	@Autowired
 	private MysqlService mysqlService;
@@ -155,8 +156,6 @@ public class BackupCommand {
 	@Autowired
 	private ServerService serverService;
 
-	@Autowired
-	private MysqlDumpService mysqlDumpService;
 
 	@Autowired
 	private MysqlFlushService mysqlFlushService;
@@ -554,7 +553,6 @@ public class BackupCommand {
 		sureMysqlReadyForBackup();
 		Server server = appState.currentServerOptional().get();
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
-		saveDumpResult(server, fr);
 		return fr;
 	}
 	
@@ -574,31 +572,11 @@ public class BackupCommand {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
-		saveDumpResult(server, fr);
 		return fr;
 	}
 
 
-	private void saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
-		MysqlDump md = new MysqlDump();
-		md.setCreatedAt(new Date());
-		md.setTimeCost(fr.getEndTime() - fr.getStartTime());
-		if (fr.isExpected()) {
-			if (fr.getResult() != null) {
-				md.setFileSize(fr.getResult().getSize());
-				md.setResult(ResultEnum.SUCCESS);
-			} else if (MysqlService.ALREADY_DUMP.equals(fr.getMessage())) {
-				md.setResult(ResultEnum.SKIP);
-			} else {
-				md.setResult(ResultEnum.UNKNOWN);
-			}
-		} else {
-			md.setResult(ResultEnum.UNKNOWN);
-		}
-		Server sv = serverService.findByHost(server.getHost());
-		md.setServerId(sv.getId());
-		mysqlDumpService.save(md);
-	}
+
 	
 	@ShellMethod(value = "列出Mysqldump历史纪录")
 	public FacadeResult<?> mysqlDumpList() throws JSchException, IOException {
@@ -840,7 +818,7 @@ public class BackupCommand {
 	public FacadeResult<?> userGroupAdd(@ShellOption(help = "组的英文名称") String ename,
 			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
 		UserGrp ug = new UserGrp(ename, msgkey);
-		return null;
+		return FacadeResult.doneExpectedResultDone(ug);
 	}
 
 	private String getPromptString() {

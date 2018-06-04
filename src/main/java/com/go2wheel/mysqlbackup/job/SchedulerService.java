@@ -19,10 +19,8 @@ import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -60,13 +58,13 @@ public class SchedulerService {
 				}).collect(Collectors.toList());
 	}
 	
-	@EventListener
-	public void onCronExpressionChange(CronExpressionChangeEvent cece) throws ParseException, SchedulerException {
-		CronExpression ce = new CronExpression(cece.getCron());
-		Trigger trigger = newTrigger().withIdentity(cece.getTriggerkey())
-				.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(cece.getJobkey()).build();
-		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
-	}
+//	@EventListener
+//	public void onCronExpressionChange(CronExpressionChangeEvent cece) throws ParseException, SchedulerException {
+//		CronExpression ce = new CronExpression(cece.getCron());
+//		Trigger trigger = newTrigger().withIdentity(cece.getTriggerkey())
+//				.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(cece.getJobkey()).build();
+//		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
+//	}
 
 	public FacadeResult<?> delteBoxTriggers(Server box, String triggerKey) {
 		String[] ss = triggerKey.split("\\.", 2);

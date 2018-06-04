@@ -7,6 +7,9 @@ spring.datasource.password=
 spring.datasource.driver-class-name= org.hsqldb.jdbc.JDBCDriver
 spring.datasource.validation-query= select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
 spring.datasource.test-on-borrow= true
+
+# SerializationFeature.class
+spring.jackson.serialization.INDENT_OUTPUT=false
  
 spring.jooq.sql-dialect=HSQLDB
 # jdbc, memory
@@ -60,3 +63,10 @@ dv.cron.common[2]=0 30 12,18 * * ?|\u6BCF\u5929\u4E2D\u534812\u70B9\u534A\u548C\
 dv.cron.common[3]=0 15 10 ? * MON-FRI|\u5468\u4E00\u5230\u5468\u4E94\u768410\u70B915\u5206
 dv.cron.common[4]=0 15 0 13 * ?|\u6BCF\u4E2A\u670813\u65E5\u96F6\u70B915\u5206
 only.you=true
+
+spring.thymeleaf.prefix=file:templates/
+spring.thymeleaf.suffix=.html
+spring.freemarker.template-loader-path=file:templates/
+spring.freemarker.suffix=.ftl
+spring.freemarker.prefix=
+spring.freemarker.prefer-file-system-access=true

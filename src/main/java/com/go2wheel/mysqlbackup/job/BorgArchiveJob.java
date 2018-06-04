@@ -20,6 +20,7 @@ import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
@@ -31,7 +32,7 @@ public class BorgArchiveJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private BorgService borgTaskFacade;
+	private BorgService borgService;
 
 	@Autowired
 	private BorgDownloadService borgDownloadService;
@@ -59,7 +60,7 @@ public class BorgArchiveJob implements Job {
 			JobError je = new JobError();
 			je.setServerId(sv.getId());
 			
-			if (borgTaskFacade.isBorgNotReady(sv)) {
+			if (borgService.isBorgNotReady(sv)) {
 				logger.error("Box {} is not ready for Archive.", sv.getHost());
 				je.setMessageDetail("borg not ready for backup.");
 				jobErrorService.save(je);
@@ -68,7 +69,12 @@ public class BorgArchiveJob implements Job {
 			
 			session = sshSessionFactory.getConnectedSession(sv).getResult();
 
-			FacadeResult<RemoteCommandResult> fr = borgTaskFacade.archive(session, sv, false);
+			FacadeResult<RemoteCommandResult> fr = borgService.archive(session, sv, false);
+			
+			if (CommonMessageKeys.APPLICATION_NOTINSTALLED.equals(fr.getMessage())) {
+				borgService.install(session);
+				fr = borgService.archive(session, sv, false);
+			}
 
 			long ts = fr.getEndTime() - fr.getStartTime();
 			
@@ -83,7 +89,7 @@ public class BorgArchiveJob implements Job {
 				je.setMessageDetail(fr.resultToString());
 				jobErrorService.save(je);
 			} else {
-				FacadeResult<BorgDownload> frBorgDownload = borgTaskFacade.downloadRepo(session, sv);
+				FacadeResult<BorgDownload> frBorgDownload = borgService.downloadRepo(session, sv);
 				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
 				if (frBorgDownload.isExpected()) {
 					if (frBorgDownload.getResult() != null) {

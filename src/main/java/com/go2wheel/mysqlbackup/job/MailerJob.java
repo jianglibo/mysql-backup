@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.job;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.mail.MessagingException;
 
@@ -33,6 +34,7 @@ import com.go2wheel.mysqlbackup.service.JobErrorService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushService;
 import com.go2wheel.mysqlbackup.service.ServerGrpService;
+import com.go2wheel.mysqlbackup.service.ServerService;
 import com.go2wheel.mysqlbackup.service.UpTimeService;
 import com.go2wheel.mysqlbackup.service.UserAccountService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpService;
@@ -42,34 +44,37 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 public class MailerJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	@Autowired
 	private UpTimeService upTimeService;
-	
+
 	@Autowired
 	private UserServerGrpService userServerGrpService;
-	
+
 	@Autowired
 	private UserAccountService userAccountService;
-	
+
 	@Autowired
 	private ServerGrpService serverGrpService;
-	
+
+	@Autowired
+	private ServerService serverService;
+
 	@Autowired
 	private MysqlFlushService mysqlFlushService;
-	
+
 	@Autowired
 	private DiskfreeService diskfreeService;
-	
+
 	@Autowired
 	private JobErrorService jobErrorService;
-	
+
 	@Autowired
 	private MysqlDumpService mysqlDumpService;
-	
+
 	@Autowired
 	private BorgDownloadService borgDownloadService;
-	
+
 	private Mailer mailer;
 
 	@Override
@@ -77,27 +82,29 @@ public class MailerJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		int userServerGrpId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 		UserServerGrp usg = userServerGrpService.findById(userServerGrpId);
-		
+
 		if (usg == null) {
 			logger.error("Cannot find UserServerGrp with ID: {}", userServerGrpId);
 			return;
 		}
-		
+
 		ServerGrp sg = serverGrpService.findById(usg.getServerGrpId());
 		UserAccount ua = userAccountService.findById(usg.getUserAccountId());
-		
-		List<Server> servers = serverGrpService.getServers(sg);
-		
+
+		List<Server> servers = serverGrpService.getServers(sg).stream().map(sv -> serverService.loadFull(sv))
+				.collect(Collectors.toList());
+
 		List<ServerContext> oscs = new ArrayList<>();
-		
+
 		for (Server server : servers) {
 			List<UpTime> upTimes = upTimeService.getRecentItems(10);
 			List<MysqlFlush> mysqlFlushs = mysqlFlushService.getRecentItems(5);
 			List<Diskfree> diskfrees = diskfreeService.getRecentItems(5);
-			List<JobError> jobErrors =  jobErrorService.getRecentItems(5);
+			List<JobError> jobErrors = jobErrorService.getRecentItems(5);
 			List<MysqlDump> mysqlDumps = mysqlDumpService.getRecentItems(1);
 			List<BorgDownload> borgDownloads = borgDownloadService.getRecentItems(5);
-			ServerContext osc = new ServerContext(upTimes, mysqlFlushs, diskfrees, jobErrors, mysqlDumps, borgDownloads);
+			ServerContext osc = new ServerContext(upTimes, mysqlFlushs, diskfrees, jobErrors, mysqlDumps,
+					borgDownloads);
 			osc.setServer(server);
 			oscs.add(osc);
 		}
@@ -108,11 +115,11 @@ public class MailerJob implements Job {
 			ExceptionUtil.logErrorException(logger, e);
 		}
 	}
-	
+
 	@Autowired
 	public void setMailer(Mailer mailer) {
 		this.mailer = mailer;
-		
+
 	}
 
 }

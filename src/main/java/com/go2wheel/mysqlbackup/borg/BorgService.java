@@ -13,21 +13,17 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
-import com.go2wheel.mysqlbackup.commands.BoxService;
-import com.go2wheel.mysqlbackup.event.CronExpressionChangeEvent;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.util.BoxUtil;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
@@ -36,7 +32,6 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
-import com.go2wheel.mysqlbackup.value.BorgBackupDescription;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 //import com.go2wheel.mysqlbackup.value.Box;
@@ -74,12 +69,6 @@ public class BorgService {
 	private MyAppSettings appSettings;
 
 	private FileDownloader fileDownloader;
-
-	@Autowired
-	private ApplicationEventPublisher applicationEventPublisher;
-	
-	@Autowired
-	private BoxService boxService;
 
 	private InstallationInfo getInstallationInfo(Session session) throws RunRemoteCommandException {
 		InstallationInfo ii = new InstallationInfo();
@@ -385,56 +374,46 @@ public class BorgService {
 
 	}
 	//@formatter:on
-	public FacadeResult<?> updateBorgDescription(Server server, String repo, String archiveFormat,
-			String archiveNamePrefix, String archiveCron, String pruneCron) {
-		BorgDescription bbdi = server.getBorgDescription();
+//	public FacadeResult<?> updateBorgDescription(Server server, String repo, String archiveFormat,
+//			String archiveNamePrefix, String archiveCron, String pruneCron) {
+//		BorgDescription bbdi = server.getBorgDescription();
+//
+//		bbdi.setRepo(repo);
+//		bbdi.setArchiveFormat(archiveFormat);
+//		bbdi.setArchiveNamePrefix(archiveNamePrefix);
+//		bbdi.setArchiveCron(archiveCron);
+//			
+//		bbdi.setPruneCron(pruneCron);
+//		server.setBorgDescription(bbdi);
+//		return saveBox(server);
+//	}
 
-		bbdi.setRepo(repo);
-		bbdi.setArchiveFormat(archiveFormat);
-		bbdi.setArchiveNamePrefix(archiveNamePrefix);
-		if (!archiveCron.equals(bbdi.getArchiveCron())) {
-			bbdi.setArchiveCron(archiveCron);
-			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgArchiveJobKey(server),
-					BoxUtil.getBorgArchiveTriggerKey(server), archiveCron);
-			applicationEventPublisher.publishEvent(cece);
-		}
-			
-		if (!pruneCron.equals(bbdi.getPruneCron())) {
-			bbdi.setPruneCron(pruneCron);
-			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(server),
-					BoxUtil.getBorgPruneTriggerKey(server), pruneCron);
-			applicationEventPublisher.publishEvent(cece);
-		}
-		server.setBorgDescription(bbdi);
-		return saveBox(server);
-	}
+//	public FacadeResult<?> updateBorgDescription(Session session, Server server, String include, String exclude,
+//			boolean isadd) {
+//		BorgDescription bbdi = server.getBorgDescription();
+//		if (isadd) {
+//			if (!include.isEmpty())
+//				bbdi.getIncludes().add(include);
+//			if (!exclude.isEmpty())
+//				bbdi.getExcludes().add(exclude);
+//		} else {
+//			if (!include.isEmpty()) {
+//				bbdi.getIncludes().remove(include);
+//			}
+//			if (!exclude.isEmpty()) {
+//				bbdi.getExcludes().remove(exclude);
+//			}
+//		}
+//		FacadeResult<?> frb = saveBox(server);
+//		if (frb.getResult() != null) {
+//			return FacadeResult.doneExpectedResult(server.getBorgDescription(), CommonActionResult.DONE);
+//		} else {
+//			return frb;
+//		}
+//	}
 
-	public FacadeResult<?> updateBorgDescription(Session session, Server server, String include, String exclude,
-			boolean isadd) {
-		BorgDescription bbdi = server.getBorgDescription();
-		if (isadd) {
-			if (!include.isEmpty())
-				bbdi.getIncludes().add(include);
-			if (!exclude.isEmpty())
-				bbdi.getExcludes().add(exclude);
-		} else {
-			if (!include.isEmpty()) {
-				bbdi.getIncludes().remove(include);
-			}
-			if (!exclude.isEmpty()) {
-				bbdi.getExcludes().remove(exclude);
-			}
-		}
-		FacadeResult<?> frb = saveBox(server);
-		if (frb.getResult() != null) {
-			return FacadeResult.doneExpectedResult(server.getBorgDescription(), CommonActionResult.DONE);
-		} else {
-			return frb;
-		}
-	}
-
-	public FacadeResult<Server> saveBox(Server server) {
-		return null;
+//	public FacadeResult<Server> saveBox(Server server) {
+//		return null;
 //		try {
 //			boxService.writeDescription(box);
 //			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
@@ -442,7 +421,7 @@ public class BorgService {
 //			ExceptionUtil.logErrorException(logger, e);
 //			return FacadeResult.unexpectedResult(e);
 //		}
-	}
+//	}
 
 	public FacadeResult<?> archive(Session session, Server server) {
 		BorgDescription bd = server.getBorgDescription();

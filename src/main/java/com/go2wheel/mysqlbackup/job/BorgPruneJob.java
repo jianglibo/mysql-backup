@@ -1,24 +1,18 @@
 package com.go2wheel.mysqlbackup.job;
 
-import static org.quartz.TriggerKey.triggerKey;
-
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerService;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -27,16 +21,10 @@ public class BorgPruneJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ApplicationState applicationState;
-
-	@Autowired
 	private BorgService borgTaskFacade;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
-	@Autowired
-	private SchedulerService schedulerService;
 	
 	@Autowired
 	private ServerService serverService;
@@ -48,26 +36,18 @@ public class BorgPruneJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 			Server server = serverService.findById(sid);
-			
-			if (server == null) { //the box is somehow already removed.
-				logger.error("The Box is somehow had removed. {}", server.getHost());
-				schedulerService.unscheduleJob(triggerKey(server.getHost(), BorgBackupSchedule.BORG_PRUNE_GROUP));
-				return;
-			}
+			server = serverService.loadFull(server);
 			if (borgTaskFacade.isBorgNotReady(server)) {
 				logger.error("Box {} is not ready for Prune.", server.getHost());
 				return;
 			}
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			borgTaskFacade.pruneRepo(session, server);
-		} catch (SchedulerException e) {
-			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();
 			}
 		}
-
 	}
 
 }

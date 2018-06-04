@@ -9,19 +9,19 @@ import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UpTime;
-import com.go2wheel.mysqlbackup.value.Box;
 
 public class ServerContext {
 	
-	
 	private List<UpTime> upTimes;
-	private final List<MysqlFlush> mysqlFlushs;
-	private final List<Diskfree> diskfrees;
-	private final List<JobError> jobErrors;
-	private final List<MysqlDump> mysqlDumps;
-	private final List<BorgDownload> borgDownloads;
+	private List<MysqlFlush> mysqlFlushs;
+	private List<Diskfree> diskfrees;
+	private List<JobError> jobErrors;
+	private List<MysqlDump> mysqlDumps;
+	private List<BorgDownload> borgDownloads;
 	
 	private Server server;
+	
+	public ServerContext() {}
 	
 	public ServerContext(List<UpTime> upTimes, List<MysqlFlush> mysqlFlushs, List<Diskfree> diskfrees,
 			List<JobError> jobErrors, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
@@ -70,4 +70,26 @@ public class ServerContext {
 	public void setServer(Server server) {
 		this.server = server;
 	}
+
+	public void setMysqlFlushs(List<MysqlFlush> mysqlFlushs) {
+		this.mysqlFlushs = mysqlFlushs;
+	}
+
+	public void setDiskfrees(List<Diskfree> diskfrees) {
+		this.diskfrees = diskfrees;
+	}
+
+	public void setJobErrors(List<JobError> jobErrors) {
+		this.jobErrors = jobErrors;
+	}
+
+	public void setMysqlDumps(List<MysqlDump> mysqlDumps) {
+		this.mysqlDumps = mysqlDumps;
+	}
+
+	public void setBorgDownloads(List<BorgDownload> borgDownloads) {
+		this.borgDownloads = borgDownloads;
+	}
+	
+	
 }

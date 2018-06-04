@@ -17,9 +17,13 @@ import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
@@ -63,7 +67,14 @@ public class SpringBaseFort {
 	protected MyAppSettings myAppSettings;
 	
 	@Autowired
+	protected ObjectMapper objectMapper;
+	
+	@Autowired
 	protected DSLContext jooq;
+	
+	
+	@Autowired
+	protected ApplicationContext applicationContext;
 
 	@Autowired
 	protected Environment env;
@@ -125,7 +136,7 @@ public class SpringBaseFort {
 	private DefaultValues dvs;
 	
 	@Autowired
-	private SshSessionFactory sshSessionFactory;
+	protected SshSessionFactory sshSessionFactory;
 	
 	protected Session session;
 	
@@ -313,6 +324,16 @@ public class SpringBaseFort {
 		assertThat("files should right.", Files.list(topPath).filter(Files::isRegularFile).count(), equalTo(files));
 		assertThat("total should right.", Files.walk(topPath).count(), equalTo(total));
 
+	}
+	
+	@TestConfiguration
+	public static  class Tcc {
+		@Bean
+		public ObjectMapper prettyprintOm() {
+			ObjectMapper om = new ObjectMapper();
+			return null;
+		}
+		
 	}
 }
 

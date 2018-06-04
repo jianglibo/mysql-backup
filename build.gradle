@@ -96,10 +96,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-validation")
     compile("org.springframework.boot:spring-boot-starter-mail")
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
-    
-    
-    
-    
+    compile("org.springframework.boot:spring-boot-starter-freemarker")
     
 	compile('org.springframework.shell:spring-shell-starter:2.0.0.RELEASE')
 	// https://mvnrepository.com/artifact/com.hierynomus/sshj

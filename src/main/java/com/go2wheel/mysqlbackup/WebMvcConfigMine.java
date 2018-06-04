@@ -3,10 +3,14 @@ package com.go2wheel.mysqlbackup;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 @Configuration
-public class WebMvcConfigMine {
+@EnableWebMvc
+public class WebMvcConfigMine implements WebMvcConfigurer {
 	
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
@@ -17,6 +21,20 @@ public class WebMvcConfigMine {
 			}
 		};
 	}
+	
+	
+    @Override
+    public void configureViewResolvers(ViewResolverRegistry registry) {
+//        registry.enableContentNegotiation(new MappingJackson2JsonView());
+//        registry.freeMarker().cache(false);
+    }
+
+//    @Bean
+//    public FreeMarkerConfigurer freeMarkerConfigurer() {
+//        FreeMarkerConfigurer configurer = new FreeMarkerConfigurer();
+//        configurer.setTemplateLoaderPath("/freemarker");
+//        return configurer;
+//    }
 	
 //	@Bean(name="localeResolver")
 //	public LocaleResolver localMissingEndeResolver() {
