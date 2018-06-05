@@ -16,6 +16,10 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.web.servlet.ViewResolver;
+import org.thymeleaf.TemplateEngine;
+
+import freemarker.template.Configuration;
 
 @Import(com.go2wheel.mysqlbackup.TestMyappSettings.Tcc.class)
 public class TestMyappSettings  extends SpringBaseFort {
@@ -94,6 +98,24 @@ public class TestMyappSettings  extends SpringBaseFort {
 			this.oneStr = oneStr;
 		}
 		
+	}
+	
+	@Test
+	public void tObjectInstance() {
+		String[] cs = applicationContext.getBeanNamesForType(Configuration.class);
+		assertThat(cs.length, equalTo(1));
+		
+//		cs = applicationContext.getBeanNamesForType(TemplateEngine.class);
+//		assertThat(cs.length, equalTo(1));
+		
+		
+		cs = applicationContext.getBeanNamesForType(ViewResolver.class);
+		assertThat(cs.length, equalTo(3));
+		
+		for(String bn: cs) {
+			ViewResolver vr = (ViewResolver) applicationContext.getBean(bn);
+			System.out.println(vr);
+		}
 	}
 
 }

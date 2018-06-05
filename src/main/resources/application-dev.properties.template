@@ -62,8 +62,10 @@ dv.cron.common[4]=0 15 0 13 * ?|\u6BCF\u4E2A\u670813\u65E5\u96F6\u70B915\u5206
 
 ppp.aslist[0]=abc
 ppp.aslist[1]=ccd
+
 spring.thymeleaf.prefix=file:templates/
 spring.thymeleaf.suffix=.html
+
 spring.freemarker.template-loader-path=file:templates/
 spring.freemarker.suffix=.ftl
 spring.freemarker.prefix=

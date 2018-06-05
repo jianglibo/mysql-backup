@@ -753,6 +753,7 @@ public class BackupCommand {
 			@ShellOption(help = "用户名") UserAccount user,
 			@ShellOption(help = "服务器组") ServerGrp serverGroup,
 			@ShellOption(help = "一个有意义的名称") String name,
+			@ShellOption(help = "邮件的模板名称") String template,
 			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
 		UserServerGrp usg;
 		if (user == null) {
@@ -761,8 +762,8 @@ public class BackupCommand {
 		if (serverGroup == null) {
 			return parameterRequired("server-group");
 		}
-		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron))
-				.withName(name)
+		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
+				.withTemplate(template)
 				.build();
 		usg = userServerGrpService.save(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);

@@ -22,7 +22,6 @@ public class StartUpFailedReason extends AbstractFailureAnalyzer<Throwable> impl
 	
 	private Environment environment;
 	
-	@SuppressWarnings("unused")
 	private BeanFactory beanFactory;
 
 	@Override

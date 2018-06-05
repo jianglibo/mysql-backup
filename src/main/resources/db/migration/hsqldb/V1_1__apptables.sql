@@ -229,6 +229,7 @@ CREATE TABLE user_and_server_grp
   user_account_id INTEGER NOT NULL,
   server_grp_id INTEGER NOT NULL,
   name VARChAR(256) NOT NULL,
+  template VARCHAR(64),
   cron_expression VARChAR(256) NOT NULL,
   created_at TIMESTAMP(2),
   CONSTRAINT fk_user_servergrp_grp_id FOREIGN KEY (server_grp_id)  REFERENCES server_grp (id),

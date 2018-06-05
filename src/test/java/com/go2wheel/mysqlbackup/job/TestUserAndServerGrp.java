@@ -11,7 +11,7 @@ import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 
 public class TestUserAndServerGrp extends JobBaseFort {
-	
+
 	@Test
 	public void t() throws SchedulerException {
 		assertThat(serverGrpService.count(), equalTo(0L));
@@ -19,12 +19,13 @@ public class TestUserAndServerGrp extends JobBaseFort {
 		sg = serverGrpService.save(sg);
 		assertThat(serverGrpService.count(), equalTo(1L));
 		UserAccount ua = createUser();
-		
+
 		assertThat(countJobs(), equalTo(0L));
-		
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION).withName("aname").build(); // no cron expression.
+
+		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION,
+				"aname").build(); // no cron expression.
 		usg = userServerGrpService.save(usg);
 		assertThat(countJobs(), equalTo(1L));
 	}
-	
+
 }

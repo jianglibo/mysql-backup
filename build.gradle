@@ -140,7 +140,7 @@ task copyFilesToArchive(type: Copy) {
     from "${buildDir}/../explained.docx", "${buildDir}/../start.bat", "${buildDir}/../src/main/resources/application.properties"
     
     from("${buildDir}/../") {
-        include "notingit/**"
+        include "notingit/**", "templates/**", "static/**"
     }
     from "${buildDir}/libs/mysql-backup-" + project['version'] +  "-boot.jar"
     

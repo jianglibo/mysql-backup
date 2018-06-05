@@ -57,7 +57,11 @@ import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-@SpringBootTest(classes = StartPointer.class, value = { "spring.shell.interactive.enabled=false", "spring.shell.command.quit.enabled=false" , "spring.profiles.active=dev" })
+//@formatter:off
+@SpringBootTest(classes = StartPointer.class, 
+value = { "spring.shell.interactive.enabled=false",
+		"spring.shell.command.quit.enabled=false" ,
+		"spring.profiles.active=dev" })
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
@@ -331,7 +335,7 @@ public class SpringBaseFort {
 		@Bean
 		public ObjectMapper prettyprintOm() {
 			ObjectMapper om = new ObjectMapper();
-			return null;
+			return om;
 		}
 		
 	}

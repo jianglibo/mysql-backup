@@ -7,13 +7,11 @@ import static org.mockito.BDDMockito.given;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.stream.IntStream;
 
 import javax.mail.MessagingException;
 
 import org.junit.Test;
 import org.quartz.JobDataMap;
-import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
@@ -67,7 +64,7 @@ public class TestMailerJob extends JobBaseFort {
 		
 		serverGrpService.addServer(sg, server);
 		
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION).withName("aname").build();
+		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
 		usg = userServerGrpService.save(usg);
 		deleteAllJobs();
 		

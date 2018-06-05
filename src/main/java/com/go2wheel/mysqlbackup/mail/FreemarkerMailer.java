@@ -3,7 +3,6 @@ package com.go2wheel.mysqlbackup.mail;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Set;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
@@ -15,19 +14,13 @@ import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
-import org.thymeleaf.messageresolver.IMessageResolver;
-import org.thymeleaf.templateresolver.ITemplateResolver;
 
-//@Service
-public class ThymeLeafMailer implements Mailer {
+@Service
+public class FreemarkerMailer implements Mailer {
 
 	@Autowired
 	private JavaMailSender javaMailSender;
-	
-	@Autowired
-	private TemplateEngine emailTemplateEngine;
 	
 	@Value("${spring.mail.username}")
 	private String mailFrom;
@@ -51,10 +44,7 @@ public class ThymeLeafMailer implements Mailer {
 		message.setTo(recipientEmail);
 
 		// Create the HTML body using Thymeleaf
-		Set<IMessageResolver> mresolvers = this.emailTemplateEngine.getMessageResolvers();
-		Set<ITemplateResolver> tresolvers = this.emailTemplateEngine.getTemplateResolvers();
-		final String htmlContent = this.emailTemplateEngine.process("html/email-inlineimage.html", ctx);
-		message.setText(htmlContent, true); // true = isHtml
+
 
 		// Add the inline image, referenced from the HTML code as
 		// "cid:${imageResourceName}"

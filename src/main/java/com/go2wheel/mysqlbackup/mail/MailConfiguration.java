@@ -18,7 +18,7 @@ import org.thymeleaf.templateresolver.FileTemplateResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.StringTemplateResolver;
 
-@Configuration
+//@Configuration
 public class MailConfiguration implements ApplicationContextAware, EnvironmentAware {
 	
 	private Environment environment;

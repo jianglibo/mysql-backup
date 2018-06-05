@@ -12,6 +12,8 @@ public class UserServerGrp extends BaseModel {
 	
 	private String name;
 	
+	private String template;
+	
 	@CronExpressionConstraint
 	private String cronExpression;
 	
@@ -41,18 +43,20 @@ public class UserServerGrp extends BaseModel {
 		private final Integer userAccountId;
 		private final Integer serverGrpId;
 		private final String cronExpression;
+		private final String name;
 		
-		private String name;
+		private String template;
 		
-		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression) {
+		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression, String name) {
 			super();
 			this.userAccountId = userAccountId;
 			this.serverGrpId = serverGrpId;
 			this.cronExpression = cronExpression;
+			this.name = name;
 		}
 		
-		public UserServerGrpBuilder withName(String name) {
-			this.name = name;
+		public UserServerGrpBuilder withTemplate(String template) {
+			this.template = template;
 			return this;
 		}
 		
@@ -64,6 +68,7 @@ public class UserServerGrp extends BaseModel {
 			usg.setServerGrpId(serverGrpId);
 			usg.setUserAccountId(userAccountId);
 			usg.setName(name);
+			usg.setTemplate(template);
 			return usg;
 		}
 	}
@@ -77,5 +82,11 @@ public class UserServerGrp extends BaseModel {
 	}
 	public void setName(String name) {
 		this.name = name;
+	}
+	public String getTemplate() {
+		return template;
+	}
+	public void setTemplate(String template) {
+		this.template = template;
 	}
 }

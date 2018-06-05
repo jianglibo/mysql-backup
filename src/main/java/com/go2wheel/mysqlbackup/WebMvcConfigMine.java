@@ -1,9 +1,15 @@
 package com.go2wheel.mysqlbackup;
 
+import java.util.concurrent.TimeUnit;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.CacheControl;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
+import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
@@ -22,6 +28,17 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 		};
 	}
 	
+    @Override
+    public void configurePathMatch(PathMatchConfigurer configurer) {
+        configurer
+        	.setUseSuffixPatternMatch(false);
+    }
+	
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer.favorPathExtension(false);
+
+    }
 	
     @Override
     public void configureViewResolvers(ViewResolverRegistry registry) {
@@ -48,13 +65,13 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 //		return new LocaleChangeInterceptor();
 //	}
 //
-//	@Override
-//	public void addResourceHandlers(ResourceHandlerRegistry registry) {
-//        registry.addResourceHandler("/static/**")
-//        .addResourceLocations("classpath:/static/");
-////        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
-//	}
-//	
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/static/**")
+        .addResourceLocations("file:static/");
+//        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
+	}
+	
 //	@Override
 //	public void addInterceptors(InterceptorRegistry registry) {
 //		registry.addInterceptor(localeChangeInterceptor());
