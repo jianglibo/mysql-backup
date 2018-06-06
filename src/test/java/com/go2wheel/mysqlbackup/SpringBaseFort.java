@@ -15,6 +15,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
+import org.quartz.impl.matchers.GroupMatcher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -195,6 +196,18 @@ public class SpringBaseFort {
 			session = frs.getResult();
 		}
 	}
+	
+	
+	protected void deleteAllJobs() throws SchedulerException {
+		scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream().forEach(jk -> {
+			try {
+				scheduler.deleteJob(jk);
+			} catch (SchedulerException e) {
+				e.printStackTrace();
+			}
+		});
+	}
+	
 	
 	
 	@After

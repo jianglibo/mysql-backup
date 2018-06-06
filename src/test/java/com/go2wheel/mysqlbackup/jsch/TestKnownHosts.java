@@ -6,6 +6,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
@@ -17,6 +18,7 @@ import java.util.List;
 import javax.crypto.Cipher;
 
 import org.junit.Test;
+import org.quartz.SchedulerException;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -36,34 +38,102 @@ public class TestKnownHosts extends SpringBaseFort {
 
 
 	@Test()
-	public void testKnownHostFromFile() throws IOException, JSchException, RunRemoteCommandException {
+	public void testKnownHostFromFile() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
 		JSch jsch=new JSch();
+		createServer();
+		deleteAllJobs();
 		
 		jsch.setKnownHosts(myAppSettings.getSsh().getKnownHosts());
-		
 		assertTrue(".known hosts should be exists.", Files.exists(Paths.get(myAppSettings.getSsh().getKnownHosts())));
 		HostKeyRepository hkr = jsch.getHostKeyRepository();
 		HostKey[] hks = hkr.getHostKey();
-		HostKey demoKey = null;
-		if (hks != null) {
-			System.out.println("Host keys in " + hkr.getKnownHostsRepositoryID());
-			for (int i = 0; i < hks.length; i++) {
-				HostKey hk = hks[i];
-				if (hk.getHost().equals(server.getHost())) {
-					demoKey = hk;
-				}
-			}
-		}
-		assertNotNull(demoKey);
-		System.out.println(demoKey.getType());
-		System.out.println(demoKey.getFingerPrint(jsch));
+		
+		assertThat(hks.length, greaterThan(0));
+		assertNotNull(hks[0].getFingerPrint(jsch));
+		assertNotNull(hks[0].getHost());
+		assertNotNull(hks[0].getKey());
+		assertNotNull(hks[0].getMarker());
+		assertNotNull(hks[0].getType());
+
 		Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
 		session.setPassword("vagrant");
 		session.connect();
 		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
 		assertThat(sl.size(), greaterThan(2));
-		sl.stream().forEach(System.out::println);
+		session.disconnect();
 	}
+	
+	@Test()
+	public void testKnownHostFromInputStream() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
+		JSch jsch=new JSch();
+		createServer();
+		deleteAllJobs();
+		try (InputStream is = Files.newInputStream(Paths.get(myAppSettings.getSsh().getKnownHosts()))) {
+			jsch.setKnownHosts(is);
+			HostKeyRepository hkr = jsch.getHostKeyRepository();
+			HostKey[] hks = hkr.getHostKey();
+			
+			assertThat(hks.length, greaterThan(0));
+			assertNotNull(hks[0].getFingerPrint(jsch));
+			assertNotNull(hks[0].getHost());
+			assertNotNull(hks[0].getKey());
+			assertNotNull(hks[0].getMarker());
+			assertNotNull(hks[0].getType());
+
+			Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
+			session.setPassword("vagrant");
+			session.connect();
+			List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
+			assertThat(sl.size(), greaterThan(2));
+			session.disconnect();
+		}
+	}
+
+	
+	
+	@Test()
+	public void testPassword() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
+		JSch jsch=new JSch();
+		createServer();
+		deleteAllJobs();
+		jsch.setKnownHosts(myAppSettings.getSsh().getKnownHosts());
+		Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
+		session.setPassword("vagrant");
+		session.connect();
+		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
+		assertThat(sl.size(), greaterThan(2));
+		session.disconnect();
+	}
+	
+	@Test()
+	public void testIdentitifile() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
+		JSch jsch=new JSch();
+		createServer();
+		deleteAllJobs();
+		jsch.setKnownHosts(myAppSettings.getSsh().getKnownHosts());
+		Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
+		jsch.addIdentity(myAppSettings.getSsh().getSshIdrsa());
+		session.connect();
+		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
+		assertThat(sl.size(), greaterThan(2));
+		session.disconnect();
+	}
+	
+	@Test()
+	public void testIdentitiBytes() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
+		JSch jsch=new JSch();
+		createServer();
+		deleteAllJobs();
+		jsch.setKnownHosts(myAppSettings.getSsh().getKnownHosts());
+		Session session=jsch.getSession(server.getUsername(), server.getHost(), server.getPort());
+		byte[] bytes = Files.readAllBytes(Paths.get(myAppSettings.getSsh().getSshIdrsa()));
+		jsch.addIdentity(server.getHost(), bytes, (byte[])null, (byte[])null);
+		session.connect();
+		List<String> sl = SSHcommonUtil.runRemoteCommand(session, "ls -lh /tmp").getAllTrimedNotEmptyLines();
+		assertThat(sl.size(), greaterThan(2));
+		session.disconnect();
+	}
+	
 	
 	@Test
 	public void  tSecurityProvider() throws NoSuchAlgorithmException {
@@ -81,60 +151,10 @@ public class TestKnownHosts extends SpringBaseFort {
                 }
             }
         }
-        
         boolean unlimited =
         	      Cipher.getMaxAllowedKeyLength("RC5") >= 256;
         	    System.out.println("Unlimited cryptography enabled: " + unlimited);
 	}
 
-	// @Test
-	// public void testVerifier() throws IOException {
-	// final SSHClient ssh = new SSHClient();
-	// ssh.addHostKeyVerifier(new HostKeyVerifier() {
-	// @Override
-	// public boolean verify(String hostname, int port, PublicKey key) {
-	// Path knownHosts = Paths.get(appSettings.getSsh().getKnownHosts());
-	// assertTrue(Files.exists(knownHosts) && Files.isRegularFile(knownHosts));
-	// return true;
-	// }
-	// });
-	// ssh.connect(box.getHost());
-	// executeEcho(ssh);
-	// }
-	//
-	// // @Test
-	// // ssh-keygen -lf ~/.ssh/id_rsa.pub, fingerprint is md5 of host's public key.
-	// public void testFingerprint() throws IOException {
-	// final SSHClient ssh = new SSHClient();
-	// String fingerprintline =
-	// Files.lines(Paths.get(appSettings.getSsh().getKnownHosts())).filter(line ->
-	// line.indexOf(box.getHost()) != -1).findAny().get();
-	// String[] splited = fingerprintline.split("\\s+");
-	// assertThat("host fingerprint should has three columns.", splited.length,
-	// equalTo(3));
-	// ssh.addHostKeyVerifier("ecdsa-sha2-nistp256:" + splited[2]);
-	// ssh.connect(box.getHost());
-	// executeEcho(ssh);
-	// }
-	//
-	// private void executeEcho(final SSHClient ssh)
-	// throws UserAuthException, TransportException, ConnectionException,
-	// IOException {
-	// try {
-	// ssh.authPublickey("root", appSettings.getSsh().getSshIdrsa());
-	//
-	// final Session session = ssh.startSession();
-	// try {
-	// final Command cmd = session.exec("echo 'abc'");
-	// String cmdOut = IOUtils.readFully(cmd.getInputStream()).toString();
-	// assertThat(cmdOut.trim(), equalTo("abc"));
-	// cmd.join(5, TimeUnit.SECONDS);
-	// assertThat("exit code should be 0.", cmd.getExitStatus(), equalTo(0));
-	// } finally {
-	// session.close();
-	// }
-	// } finally {
-	// ssh.disconnect();
-	// }
-	// }
+
 }

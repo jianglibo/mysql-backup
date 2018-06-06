@@ -23,16 +23,7 @@ public class JobBaseFort extends SpringBaseFort {
 		deleteAllJobs();
 	}
 	
-	protected void deleteAllJobs() throws SchedulerException {
-		scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream().forEach(jk -> {
-			try {
-				scheduler.deleteJob(jk);
-			} catch (SchedulerException e) {
-				e.printStackTrace();
-			}
-		});
-	}
-	
+
 	
 	protected void assertJc(long before, int delta) throws SchedulerException {
 		long now = countJobs();
