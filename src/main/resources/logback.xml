@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-<!-- in spring-boot-1.2.3.jar -->
+<!-- in spring-boot-2.0.1.jar -->
 
 	<include resource="org/springframework/boot/logging/logback/defaults.xml" />
 	<property name="LOG_FILE" value="${LOG_FILE:-${LOG_PATH:-${LOG_TEMP:-${java.io.tmpdir:-/tmp}}}/spring.log}"/>
-	
+	<property name="ROOT_CONSOLE_LEVEL" value="${root.level.console:-OFF}"/>
 	<!-- 
 	<included>
 	<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
@@ -36,8 +36,13 @@
 	 
 	 
 	<root level="INFO">
-<!-- <appender-ref ref="CONSOLE" />  --> 
 		<appender-ref ref="FILE" />
 	</root>
+	
+	<!-- 
+		<root level= "ERROR">
+ 			<appender-ref ref="CONSOLE" />   
+		</root>
+ 	 -->
 
 </configuration>

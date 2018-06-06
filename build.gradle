@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.1.RELEASE'
+        springBootVersion = '2.0.2.RELEASE'
     }
     repositories {
         jcenter()
@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("io.spring.gradle:dependency-management-plugin:1.0.4.RELEASE")
+        classpath("io.spring.gradle:dependency-management-plugin:1.0.5.RELEASE")
     }
 }
 
@@ -57,7 +57,7 @@ flyway {
 }
 
 archivesBaseName = 'mysql-backup'
-version = '1.0.1'
+version = '1.0.2'
 
 sourceSets {
     main {

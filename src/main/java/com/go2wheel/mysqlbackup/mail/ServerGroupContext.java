@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.mail;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
@@ -12,6 +14,14 @@ public class ServerGroupContext {
 	private ServerGrp serverGroup;
 	
 	private List<ServerContext> servers;
+	
+	public Map<String, Object> toMap() {
+		Map<String, Object> map = new HashMap<>();
+		map.put("user", user);
+		map.put("servers", servers);
+		map.put("serverGroup", serverGroup);
+		return map;
+	}
 	
 	public ServerGroupContext() {}
 	

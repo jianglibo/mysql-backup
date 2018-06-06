@@ -109,7 +109,7 @@ public class TestMailerJob extends JobBaseFort {
 		
 		mailerJob.setMailer(new Mailer() {
 			@Override
-			public void sendMailWithInline(ServerGroupContext rc) throws MessagingException {
+			public void sendMailWithInline(String template, ServerGroupContext rc) throws MessagingException {
 				System.out.println(rc);
 				try {
 					Path pa = Paths.get("templates", "tplcontext.yml");

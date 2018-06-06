@@ -65,7 +65,7 @@ SET jarfile=%~1%jarfile%
 IF EXIST %jarfile% (
 	ECHO found %jarfile%, and start it......
 	ECHO ...................................
-	ECHO jave -jar %jarfile% %springParams% 
+	ECHO java -jar %jarfile% %springParams% 
 	java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar %jarfile% %springParams%
 	EXIT /B !ERRORLEVEL!
 ) ELSE (

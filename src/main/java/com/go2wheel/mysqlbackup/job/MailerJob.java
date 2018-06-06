@@ -110,7 +110,7 @@ public class MailerJob implements Job {
 		}
 		ServerGroupContext rc = new ServerGroupContext(oscs, ua, sg);
 		try {
-			mailer.sendMailWithInline(rc);
+			mailer.sendMailWithInline(usg.getTemplate(), rc);
 		} catch (MessagingException e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}

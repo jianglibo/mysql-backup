@@ -24,6 +24,7 @@ import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.TemplateValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.UserAccountValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.UserServerGrpValueProvider;
 
@@ -81,16 +82,13 @@ public class StandardAPIAutoConfigurationMine {
 	public ValueProvider fileValueProvider() {
 		return new FileValueProviderMine();
 	}
-
-//	@Bean
-//	public ValueProvider mysqlDescriptionProvider() {
-//		return new MysqlDescriptionProvider();
-//	}
 	
-//	@Bean
-//	public ValueProvider boxDescriptionProvider() {
-//		return new ServerUpdateParameterProvider();
-//	}
+	
+	@Bean
+	public ValueProvider TemplateProvider() {
+		return new TemplateValueProvider();
+	}
+
 	
 	@Bean
 	public ValueProvider objectFieldValueProvider() {
@@ -107,10 +105,6 @@ public class StandardAPIAutoConfigurationMine {
 		return new PossibleValueProvider();
 	}
 	
-//	@Bean
-//	public ValueProvider borgDescriptionProvider() {
-//		return new BorgDescriptionProvider();
-//	}
 
 	@Bean
 	public ValueProvider boxTriggerProvider() {

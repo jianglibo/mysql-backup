@@ -41,6 +41,7 @@ import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ServerHostPrompt;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
+import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
@@ -753,6 +754,7 @@ public class BackupCommand {
 			@ShellOption(help = "用户名") UserAccount user,
 			@ShellOption(help = "服务器组") ServerGrp serverGroup,
 			@ShellOption(help = "一个有意义的名称") String name,
+			@TemplateIndicator
 			@ShellOption(help = "邮件的模板名称") String template,
 			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
 		UserServerGrp usg;

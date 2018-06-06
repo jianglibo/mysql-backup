@@ -9,5 +9,5 @@ public interface Mailer {
 	public static final String THYMELEAF = "THYMELEAF";
 	public static final String FREEMARKER = "FREEMARKER";
 	
-	void sendMailWithInline(ServerGroupContext rc) throws MessagingException;
+	void sendMailWithInline(String template, ServerGroupContext rc) throws MessagingException;
 }

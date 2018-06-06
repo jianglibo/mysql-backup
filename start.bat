@@ -21,10 +21,19 @@ IF EXIST %_up% (
 
 SET _db=%wdirslash%dbdata/db
 
+:: In addition to application.properties files, profile-specific properties can also be defined by using the following naming convention: application-{profile}.properties. The Environment has a set of default profiles (by default, [default]) that are used if no active profiles are set. In other words, if no profiles are explicitly activated, then properties from application-default.properties are loaded.
+
+:: Profile-specific properties are loaded from the same locations as standard application.properties, with profile-specific files always overriding the non-specific ones, whether or not the profile-specific files are inside or outside your packaged jar.
+
+:: If several profiles are specified, a last-wins strategy applies. For example, profiles specified by the spring.profiles.active property are added after those configured through the SpringApplication API and therefore take precedence.
+
+:: [Note]
+:: If you have specified any files in spring.config.location, profile-specific variants of those files are not considered. Use directories in spring.config.location if you want to also use profile-specific properties.
+
 SET springParams=--spring.config.location=classpath:/application.properties,file:./application.properties
 
 :: IF DEFINED upgrade-jar SET _db=%wdirslash%dbdata.prev/db
-
+:: SET springParams=%springParams% ----spring.profiles.active=prod
 SET springParams=%springParams% --spring.datasource.url=jdbc:hsqldb:file:%_db%;shutdown=true
 
 SETLOCAL EnableDelayedExpansion
@@ -65,7 +74,7 @@ SET jarfile=%~1%jarfile%
 IF EXIST %jarfile% (
 	ECHO found %jarfile%, and start it......
 	ECHO ...................................
-	ECHO jave -jar %jarfile% %springParams% 
+	ECHO java -jar %jarfile% %springParams% 
 	java -jar %jarfile% %springParams%
 	EXIT /B !ERRORLEVEL!
 ) ELSE (

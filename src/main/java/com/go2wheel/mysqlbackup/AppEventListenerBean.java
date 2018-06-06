@@ -84,22 +84,4 @@ public class AppEventListenerBean implements EnvironmentAware {
 	public void setEnvironment(Environment environment) {
 		this.environment = environment;
 	}
-    
-//    @EventListener
-//    public void onApplicationReadyEvent(ApplicationReadyEvent applicationReadyEvent) {
-//    	Path upgrade = Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE);
-//    	
-//    	if (Files.exists(upgrade)) {
-//    		try {
-//				Files.delete(upgrade);
-//				System.exit(BackupCommand.RESTART_CODE);
-//			} catch (IOException e) {
-//				ExceptionUtil.logErrorException(logger, e);
-//			}
-//    	}
-//    	
-//    }
-    
-    
-    
 }
