@@ -1,0 +1,183 @@
+serverGroup:
+  createdAt: 2018-06-06T01:26:04.130Z
+  ename: default
+  id: 137
+  msgkey: null
+servers:
+- borgDownloads:
+  - createdAt: 2018-06-06T01:26:16.240Z
+    downloadBytes: 4647264
+    downloadFiles: 3
+    id: 117
+    result: SUCCESS
+    serverId: 112
+    timeCost: 299
+    totalBytes: 9904048
+    totalFiles: 6
+  - createdAt: 2018-06-06T01:26:13.860Z
+    downloadBytes: 4646635
+    downloadFiles: 3
+    id: 116
+    result: SUCCESS
+    serverId: 112
+    timeCost: 326
+    totalBytes: 9903419
+    totalFiles: 6
+  - createdAt: 2018-06-06T01:26:11.410Z
+    downloadBytes: 4646006
+    downloadFiles: 3
+    id: 115
+    result: SUCCESS
+    serverId: 112
+    timeCost: 356
+    totalBytes: 9902790
+    totalFiles: 6
+  diskfrees:
+  - available: 49
+    blocks: 49
+    createdAt: 2018-06-06T01:26:22.070Z
+    fileSystem: tmpfs
+    id: 288
+    mountedOn: /run/user/0
+    serverId: 112
+    usePercent: 0
+    used: 0
+  - available: 71682
+    blocks: 250004
+    createdAt: 2018-06-06T01:26:22.070Z
+    fileSystem: vagrant
+    id: 287
+    mountedOn: /vagrant
+    serverId: 112
+    usePercent: 72
+    used: 178323
+  - available: 349
+    blocks: 497
+    createdAt: 2018-06-06T01:26:22.070Z
+    fileSystem: /dev/sda1
+    id: 286
+    mountedOn: /boot
+    serverId: 112
+    usePercent: 30
+    used: 149
+  - available: 29082
+    blocks: 29114
+    createdAt: 2018-06-06T01:26:22.070Z
+    fileSystem: /dev/mapper/centos-home
+    id: 285
+    mountedOn: /home
+    serverId: 112
+    usePercent: 1
+    used: 33
+  - available: 245
+    blocks: 245
+    createdAt: 2018-06-06T01:26:22.070Z
+    fileSystem: tmpfs
+    id: 284
+    mountedOn: /sys/fs/cgroup
+    serverId: 112
+    usePercent: 0
+    used: 0
+  jobErrors: []
+  mysqlDumps:
+  - createdAt: 2018-06-06T01:26:05.400Z
+    fileSize: 658408
+    id: 108
+    result: SUCCESS
+    serverId: 112
+    timeCost: 0
+  mysqlFlushs:
+  - createdAt: 2018-06-06T01:26:08.920Z
+    fileNumber: 4
+    fileSize: 528
+    id: 121
+    result: null
+    serverId: 112
+    timeCost: 245
+  - createdAt: 2018-06-06T01:26:07.390Z
+    fileNumber: 3
+    fileSize: 408
+    id: 120
+    result: null
+    serverId: 112
+    timeCost: 208
+  - createdAt: 2018-06-06T01:26:05.980Z
+    fileNumber: 2
+    fileSize: 288
+    id: 119
+    result: null
+    serverId: 112
+    timeCost: 341
+  server:
+    borgDescription:
+      archiveCron: null
+      archiveFormat: yyyy-MM-dd-HH-mm-ss
+      archiveNamePrefix: ARCHIVE-
+      createdAt: 2018-06-06T01:26:04.120Z
+      excludes: []
+      id: 107
+      includes:
+      - /etc
+      pruneCron: null
+      repo: /opt/borgrepos/repo
+      serverId: 112
+    coreNumber: 2
+    createdAt: 2018-06-06T01:26:04.070Z
+    diskfreeCron: null
+    host: 192.168.33.110
+    id: 112
+    mysqlInstance:
+      createdAt: 2018-06-06T01:26:04.090Z
+      flushLogCron: 0 0 0 1/1 * ?
+      host: localhost
+      id: 108
+      logBinSetting:
+        map:
+          log_bin_basename: /var/lib/mysql/hm-log-bin
+          log_bin_index: /var/lib/mysql/hm-log-bin.index
+          log_bin: 'ON'
+      mycnfFile: null
+      mysqlSettings:
+      - log_bin_basename|/var/lib/mysql/hm-log-bin
+      - log_bin|ON
+      - log_bin_index|/var/lib/mysql/hm-log-bin.index
+      password: '123456'
+      port: 3306
+      serverId: 112
+      username: root
+    name: a server.
+    password: i_have_no_password
+    port: 22
+    serverRole: null
+    sshKeyFile: i_have_no_sshkey_file
+    uptimeCron: null
+    username: root
+  upTimes:
+  - createdAt: 2018-06-06T01:26:21.720Z
+    id: 120
+    loadFifteen: 5
+    loadFive: 3
+    loadOne: 8
+    serverId: 112
+    uptimeMinutes: 8136
+  - createdAt: 2018-06-06T01:26:20.150Z
+    id: 119
+    loadFifteen: 5
+    loadFive: 1
+    loadOne: 0
+    serverId: 112
+    uptimeMinutes: 8136
+  - createdAt: 2018-06-06T01:26:18.540Z
+    id: 118
+    loadFifteen: 5
+    loadFive: 1
+    loadOne: 0
+    serverId: 112
+    uptimeMinutes: 8136
+user:
+  createdAt: 2018-06-06T01:26:04.060Z
+  description: null
+  email: jianglibo@gmail.com
+  id: 112
+  mobile: 9566f823-0e27-4cfb-88e5-c4cb8a188343
+  name: 江立波

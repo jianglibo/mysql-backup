@@ -5,6 +5,8 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -22,6 +24,7 @@ import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.Session;
 
 public class TestMailerJob extends JobBaseFort {
@@ -109,9 +112,11 @@ public class TestMailerJob extends JobBaseFort {
 			public void sendMailWithInline(ServerGroupContext rc) throws MessagingException {
 				System.out.println(rc);
 				try {
-					Path pa = Paths.get("notingit", "tplcontext.json");
-					objectMapper.writeValue(pa.toFile(), rc);
-					ServerGroupContext sgc = objectMapper.readValue(pa.toFile(), ServerGroupContext.class);
+					Path pa = Paths.get("templates", "tplcontext.yml");
+					String s = YamlInstance.INSTANCE.yaml.dumpAsMap(rc);
+					Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
+//					objectMapper.writeValue(pa.toFile(), rc);
+//					ServerGroupContext sgc = objectMapper.readValue(pa.toFile(), ServerGroupContext.class);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}

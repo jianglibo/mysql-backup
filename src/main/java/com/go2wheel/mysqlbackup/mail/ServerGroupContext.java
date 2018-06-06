@@ -9,41 +9,42 @@ public class ServerGroupContext {
 	
 	private UserAccount user;
 	
-	private ServerGrp serverGrp;
+	private ServerGrp serverGroup;
 	
-	private List<ServerContext> serverContexts;
+	private List<ServerContext> servers;
 	
 	public ServerGroupContext() {}
 	
-	public ServerGroupContext(List<ServerContext> serverContexts, UserAccount user, ServerGrp serverGrp) {
+	public ServerGroupContext(List<ServerContext> servers, UserAccount user, ServerGrp serverGroup) {
 		super();
 		this.user = user;
-		this.serverContexts =serverContexts;
-		this.serverGrp = serverGrp;
+		this.servers =servers;
+		this.serverGroup = serverGroup;
 	}
-	
-	public ServerGrp getServerGrp() {
-		return serverGrp;
+
+
+	public ServerGrp getServerGroup() {
+		return serverGroup;
+	}
+
+	public void setServerGroup(ServerGrp serverGroup) {
+		this.serverGroup = serverGroup;
+	}
+
+	public List<ServerContext> getServers() {
+		return servers;
+	}
+
+	public void setServers(List<ServerContext> servers) {
+		this.servers = servers;
 	}
 
 	public UserAccount getUser() {
 		return user;
 	}
 
-	public List<ServerContext> getServerContexts() {
-		return serverContexts;
-	}
-
-	public void setServerContexts(List<ServerContext> serverContexts) {
-		this.serverContexts = serverContexts;
-	}
 
 	public void setUser(UserAccount user) {
 		this.user = user;
 	}
-
-	public void setServerGrp(ServerGrp serverGrp) {
-		this.serverGrp = serverGrp;
-	}
-
 }

@@ -19,7 +19,7 @@ public class TestServerGroupContext extends SpringBaseFort {
 	public void t() throws JsonParseException, JsonMappingException, IOException {
 		Path pa = Paths.get("notingit", "tplcontext.json");
 		ServerGroupContext sgc = objectMapper.readValue(pa.toFile(), ServerGroupContext.class);
-		assertNotNull(sgc.getServerGrp());
+		assertNotNull(sgc.getServerGroup());
 	}
 
 }
