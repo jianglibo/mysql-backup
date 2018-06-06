@@ -64,9 +64,9 @@ dv.cron.common[3]=0 15 10 ? * MON-FRI|\u5468\u4E00\u5230\u5468\u4E94\u768410\u70
 dv.cron.common[4]=0 15 0 13 * ?|\u6BCF\u4E2A\u670813\u65E5\u96F6\u70B915\u5206
 only.you=true
 
-spring.thymeleaf.prefix=file:templates/
-spring.thymeleaf.suffix=.html
-spring.freemarker.template-loader-path=file:templates/
-spring.freemarker.suffix=.ftl
+spring.thymeleaf.prefix=file:templates/thymeleaf/
+spring.thymeleaf.suffix=
+spring.freemarker.template-loader-path=file:templates/freemarker/
+spring.freemarker.suffix=
 spring.freemarker.prefix=
 spring.freemarker.prefer-file-system-access=true

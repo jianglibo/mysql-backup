@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.context.MessageSourceProperties;
 import org.springframework.boot.autoconfigure.flyway.FlywayMigrationInitializer;
-import org.springframework.boot.autoconfigure.thymeleaf.ThymeleafAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.ApplicationPidFileWriter;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
@@ -44,8 +43,7 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 
 @SpringBootApplication(exclude = { SpringShellAutoConfiguration.class,
 		JLineShellAutoConfiguration.class,
-		StandardAPIAutoConfiguration.class,
-		ThymeleafAutoConfiguration.class})
+		StandardAPIAutoConfiguration.class})
 @EnableAspectJAutoProxy
 @EnableAsync
 public class StartPointer {

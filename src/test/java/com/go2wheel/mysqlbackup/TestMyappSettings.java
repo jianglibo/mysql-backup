@@ -99,23 +99,4 @@ public class TestMyappSettings  extends SpringBaseFort {
 		}
 		
 	}
-	
-	@Test
-	public void tObjectInstance() {
-		String[] cs = applicationContext.getBeanNamesForType(Configuration.class);
-		assertThat(cs.length, equalTo(1));
-		
-//		cs = applicationContext.getBeanNamesForType(TemplateEngine.class);
-//		assertThat(cs.length, equalTo(1));
-		
-		
-		cs = applicationContext.getBeanNamesForType(ViewResolver.class);
-		assertThat(cs.length, equalTo(3));
-		
-		for(String bn: cs) {
-			ViewResolver vr = (ViewResolver) applicationContext.getBean(bn);
-			System.out.println(vr);
-		}
-	}
-
 }
