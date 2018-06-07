@@ -46,6 +46,10 @@ myapp.dataDir= boxes
 myapp.downloadFolder= notingit
 myapp.ssh.sshIdrsa= G:/cygwin64/home/Administrator/.ssh/id_rsa
 myapp.ssh.knownHosts= G:/cygwin64/home/Administrator/.ssh/known_hosts
+myapp.jp.maxThreads=3
+myapp.jp.waitPause=10
+myapp.jp.maxWait=10000
+myapp.jp.remoteMode=false
 
 using.spring.schedulerFactory= true
 expectit.echo= true

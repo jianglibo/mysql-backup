@@ -98,6 +98,10 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-thymeleaf")
     compile("org.springframework.boot:spring-boot-starter-freemarker")
     
+    // https://mvnrepository.com/artifact/com.profesorfalken/jPowerShell
+	compile group: 'com.profesorfalken', name: 'jPowerShell', version: '2.1'
+    
+    
 	compile('org.springframework.shell:spring-shell-starter:2.0.0.RELEASE')
 	// https://mvnrepository.com/artifact/com.hierynomus/sshj
 	// compile group: 'com.hierynomus', name: 'sshj', version: '0.24.0'

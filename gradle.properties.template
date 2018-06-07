@@ -1,7 +1,8 @@
 identityFile=C:/abc
 knownHosts=D:/cygwin64/home/admin/.ssh/known_hosts
 hostname=go2wheel.com
-org.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
+# org.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8000
+# org.gradle.console=(auto,plain,rich,verbose)
 flyway.user=SA
 flyway.password=
 flyway.locations=filesystem:src/main/resources/dev/db/migration/hsqldb
