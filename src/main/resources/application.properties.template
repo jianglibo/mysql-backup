@@ -1,12 +1,13 @@
 spring.shell.interactive.enabled=true
 spring.shell.script.enabled=true
 
-spring.datasource.url= jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true
-spring.datasource.username= SA
+# openssl enc -aes-128-cbc -k RANDOM_PASSPHRASE -P -md sha256
+spring.datasource.url=jdbc:hsqldb:file:c:/db/mysqlbackup/db;shutdown=true;crypt_key=3e0903ab7b2f500d805752efe94ed27c;crypt_type=AES;crypt_lobs=true
+spring.datasource.username=SA
 spring.datasource.password=
-spring.datasource.driver-class-name= org.hsqldb.jdbc.JDBCDriver
-spring.datasource.validation-query= select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
-spring.datasource.test-on-borrow= true
+spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
+spring.datasource.validation-query=select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
+spring.datasource.test-on-borrow=true
 
 # SerializationFeature.class
 spring.jackson.serialization.INDENT_OUTPUT=false

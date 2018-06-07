@@ -9,13 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
-import java.security.Security;
-import java.util.Arrays;
 import java.util.List;
-
-import javax.crypto.Cipher;
 
 import org.junit.Test;
 import org.quartz.SchedulerException;
@@ -134,27 +128,7 @@ public class TestKnownHosts extends SpringBaseFort {
 		session.disconnect();
 	}
 	
-	
-	@Test
-	public void  tSecurityProvider() throws NoSuchAlgorithmException {
-        final Provider[] providers = Security.getProviders();
-        final String EOL = System.getProperty("line.separator");
-        final Boolean verbose = Arrays.asList("").contains("-v");
-        for (final Provider p : providers)
-        {
-            System.out.format("%s %s%s", p.getName(), p.getVersion(), EOL);
-            for (final Object o : p.keySet())
-            {
-                if (verbose)
-                {
-                    System.out.format("\t%s : %s%s", o, p.getProperty((String)o), EOL);
-                }
-            }
-        }
-        boolean unlimited =
-        	      Cipher.getMaxAllowedKeyLength("RC5") >= 256;
-        	    System.out.println("Unlimited cryptography enabled: " + unlimited);
-	}
+
 
 
 }

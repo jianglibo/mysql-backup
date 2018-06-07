@@ -5,4 +5,5 @@ org.gradle.jvmargs=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address
 flyway.user=SA
 flyway.password=
 flyway.locations=filesystem:src/main/resources/dev/db/migration/hsqldb
-flyway.url=jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true
+flyway.url=jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true;crypt_key=3e0903ab7b2f500d805752efe94ed27c;crypt_type=AES;crypt_lobs=true
+

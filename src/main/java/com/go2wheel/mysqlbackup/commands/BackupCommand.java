@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import org.springframework.shell.standard.ShellOption;
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ServerHostPrompt;
@@ -100,6 +102,9 @@ public class BackupCommand {
 	public static final String DANGEROUS_ALERT = "I know what i am doing.";
 
 	public static final int RESTART_CODE = 101;
+	
+	@Autowired
+	private SecurityService securityService;
 
 	@Autowired
 	private DefaultValues dvs;
@@ -111,7 +116,7 @@ public class BackupCommand {
 
 	@Autowired
 	private Environment environment;
-
+	
 	@Autowired
 	private ApplicationState appState;
 
@@ -905,11 +910,26 @@ public class BackupCommand {
 			}
 		}
 	}
+	
+	@ShellMethod(value = "获取HSQLDB的CRYPT_KEY")
+	public FacadeResult<?> securityKeygen(@ShellOption(help = "编码方式", defaultValue="AES") String enc) throws ClassNotFoundException, SQLException {
+		return securityService.securityKeygen(enc);
+	}
+	
+	@ShellMethod(value = "将SSHkey从文件复制到数据库或反之。")
+	public FacadeResult<?> securityCopySshkey(@ShellOption(help = "db到文件") boolean toFile,
+			@ShellOption(help = "删除ssh文件") boolean deleteFile) throws ClassNotFoundException, IOException {
+		return securityService.securityCopySshkey(toFile, deleteFile);
+	}
+	
+	@ShellMethod(value = "将KnownHosts从文件复制到数据库或反之。")
+	public FacadeResult<?> securityCopyKnownHosts(@ShellOption(help = "db到文件") boolean toFile) throws ClassNotFoundException, IOException {
+		return securityService.securityCopyKnownHosts(toFile);
+	}
 
 	@Bean
 	public PromptProvider myPromptProvider() {
 		return () -> new AttributedString(getPromptString(),
 				AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 	}
-
 }
