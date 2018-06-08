@@ -151,6 +151,12 @@ public class MysqlService {
 	}
 
 	// @formatter:off
+	/**
+	 * 执行flush之后，将/var/lib/mysql/hm-log-bin.index下载下来，index文件里面没有的文件下载下来。
+	 * @param session
+	 * @param server
+	 * @return 本地index文件的路径。
+	 */
 	public FacadeResult<String> downloadBinLog(Session session, Server server) {
 		try {
 			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();

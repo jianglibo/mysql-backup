@@ -29,7 +29,11 @@ public class MysqlFlushService extends ServiceBase<MysqlFlushRecord, MysqlFlush>
 	public MysqlFlushService(MysqlFlushRepository repo) {
 		super(repo);
 	}
-	
+	/**
+	 * 接收到的是index文件的路径，将目前所有的bin日志统计出来。
+	 * @param server
+	 * @param fr
+	 */
 	public void processFlushResult(Server server, FacadeResult<String> fr) {
 		MysqlFlush mf = new MysqlFlush();
 		mf.setServerId(server.getId());

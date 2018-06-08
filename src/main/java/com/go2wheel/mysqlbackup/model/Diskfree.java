@@ -7,8 +7,14 @@ public class Diskfree extends BaseModel {
 	private String fileSystem;
 	private Integer blocks;
 	private Integer used;
+	
+	/* 使用百分比 */
 	private Integer usePercent;
+	
+	/* 加载的路径， 比如/home */
 	private String mountedOn;
+	
+	/* 可用容量 */
 	private Integer available;
 	
 	public Integer getServerId() {

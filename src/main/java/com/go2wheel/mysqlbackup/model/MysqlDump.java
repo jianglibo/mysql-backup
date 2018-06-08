@@ -6,8 +6,14 @@ import com.go2wheel.mysqlbackup.value.ResultEnum;
 public class MysqlDump extends BaseModel {
 	
 	private Integer serverId;
+	
+	/*文件长度*/
 	private Long fileSize;
+	
+	/*成功与否*/
 	private ResultEnum result;
+	
+	/*费时多少*/
 	private Long timeCost;
 	
 	public Integer getServerId() {

@@ -3,9 +3,17 @@ package com.go2wheel.mysqlbackup.model;
 public class UpTime extends BaseModel {
 	
 	private Integer serverId;
+	
+	/* 1分钟内的平均负载 */
 	private Integer loadOne;
+	
+	/* 5分钟内的平均负载 */
 	private Integer loadFive;
+	
+	/* 15分钟内的平均负载 */
 	private Integer loadFifteen;
+	
+	/* 服务器运行时长， 分钟为单位 */
 	private Integer uptimeMinutes;
 	
 	public Integer getServerId() {
@@ -20,8 +28,6 @@ public class UpTime extends BaseModel {
 	public void setLoadOne(Integer loadOne) {
 		this.loadOne = loadOne;
 	}
-	
-	
 
 	public Integer getLoadFifteen() {
 		return loadFifteen;

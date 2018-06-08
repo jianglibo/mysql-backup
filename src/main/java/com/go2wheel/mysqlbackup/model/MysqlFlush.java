@@ -6,7 +6,10 @@ import com.go2wheel.mysqlbackup.value.ResultEnum;
 public class MysqlFlush extends BaseModel {
 	
 	private Integer serverId;
+	/* 全部log文件的长度 */
 	private Long fileSize;
+	
+	/*log文件的数量*/
 	private Integer fileNumber;
 
 	private ResultEnum result;
