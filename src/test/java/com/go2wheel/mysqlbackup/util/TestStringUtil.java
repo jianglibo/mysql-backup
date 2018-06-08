@@ -84,10 +84,37 @@ public class TestStringUtil {
 		s = "a 01%";
 		i = StringUtil.parseInt(s);
 		assertThat(i, equalTo(0));
+	}
 
-
-
+	
+	@Test
+	public void testSize() {
 		
+	
+		String ss = StringUtil.formatSize(1024);
+		assertThat(ss, equalTo("1024B"));
+		
+		ss = StringUtil.formatSize(1025);
+		assertThat(ss, equalTo("1.00KB"));
+		
+		ss = StringUtil.formatSize(1185);
+		assertThat(ss, equalTo("1.16KB"));
+		
+		ss = StringUtil.formatSize(1024*1024);
+		assertThat(ss, equalTo("1024.00KB"));
+		
+		ss = StringUtil.formatSize(1024*1024* 2);
+		assertThat(ss, equalTo("2.00MB"));
+		
+		ss = StringUtil.formatSize(1024*1024* 2 + 1024*6);
+		assertThat(ss, equalTo("2.01MB"));
+
+		ss = StringUtil.formatSize(1024*1024* 2048L + 1024*1024* 50L);
+		assertThat(ss, equalTo("2.05GB"));
+		
+		ss = StringUtil.formatSize(1024*1024* 1024* 2048L + 1024*1024* 50L);
+		assertThat(ss, equalTo("2048.05GB"));
+
 	}
 
 }

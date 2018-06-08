@@ -19,6 +19,10 @@ public class StringUtil {
 	
 	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
 	
+	private static final long KB = 1024;
+	private static final long MB = KB * 1024;
+	private static final long GB = MB * 1024;
+	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
 	}
@@ -86,6 +90,31 @@ public class StringUtil {
 //		String fmt = pattern.replaceAll(placeHoderPtn, "%s");
 		return String.format(fmt, matchGroupReplace(m, replaces));
 		
+	}
+
+	
+	public static String formatSize(long size) {
+		return formatSize(size, 2);
+	}
+
+	
+	public static String formatSize(long size, int digits) {
+		String fs = "%." + digits + "f";
+		long unit = 1;
+		String ext = "B";
+		if (size <= KB) {
+			return size + "B";
+		} else if (size <= MB) {
+			unit = KB;
+			ext = "KB";
+		} else if (size <= GB) {
+			unit = MB;
+			ext = "MB";
+		} else {
+			unit = GB;
+			ext = "GB";
+		}
+		return String.format(fs, (double)size/ unit) + ext;
 	}
 	
 	
