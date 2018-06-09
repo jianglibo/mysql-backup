@@ -14,16 +14,16 @@ import com.go2wheel.mysqlbackup.repository.ServerRepository;
 
 @Service
 @Validated
-public class ServerService extends ServiceBase<ServerRecord, Server> {
+public class ServerDbService extends ServiceBase<ServerRecord, Server> {
 	
 	@Autowired
-	private MysqlInstanceService mysqlInstanceService;
+	private MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
-	private BorgDescriptionService borgDescriptionService;
+	private BorgDescriptionDbService borgDescriptionDbService;
 
 	@Autowired
-	public ServerService(ServerRepository serverRepository) {
+	public ServerDbService(ServerRepository serverRepository) {
 		super(serverRepository);
 	}
 	
@@ -38,25 +38,29 @@ public class ServerService extends ServiceBase<ServerRecord, Server> {
 	@Override
 	public void delete(Server server) {
 		// get lastest version of server.
-		MysqlInstance mi = mysqlInstanceService.findByServerId(server.getId());
+		MysqlInstance mi = mysqlInstanceDbService.findByServerId(server.getId());
 		if (mi != null) {
-			mysqlInstanceService.delete(mi);
+			mysqlInstanceDbService.delete(mi);
 		}
 		
-		BorgDescription bd = borgDescriptionService.findByServerId(server.getId());
+		BorgDescription bd = borgDescriptionDbService.findByServerId(server.getId());
 		
 		if (bd != null) {
-			borgDescriptionService.delete(bd);
+			borgDescriptionDbService.delete(bd);
 		}
 		
 		super.delete(server);
 	}
 
 	public Server loadFull(Server server) {
-		MysqlInstance mi  = mysqlInstanceService.findByServerId(server.getId());
-		BorgDescription bd = borgDescriptionService.findByServerId(server.getId());
+		MysqlInstance mi  = mysqlInstanceDbService.findByServerId(server.getId());
+		BorgDescription bd = borgDescriptionDbService.findByServerId(server.getId());
 		server.setMysqlInstance(mi);
 		server.setBorgDescription(bd);
 		return server;
+	}
+
+	public List<String> findDistinctOsType(String input) {
+		return ((ServerRepository)repo).findDistinctOsType(input);
 	}
 }

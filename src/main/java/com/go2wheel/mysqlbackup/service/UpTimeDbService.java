@@ -13,17 +13,17 @@ import com.go2wheel.mysqlbackup.repository.UpTimeRepository;
 
 @Service
 @Validated
-public class UpTimeService extends ServiceBase<UpTimeRecord, UpTime> {
+public class UpTimeDbService extends ServiceBase<UpTimeRecord, UpTime> {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
-	public UpTimeService(UpTimeRepository repo) {
+	public UpTimeDbService(UpTimeRepository repo) {
 		super(repo);
 	}
 
 	public List<UpTime> getItemsInDays(Server box, int days) {
-		Server server = serverService.findByHost(box.getHost());
+		Server server = serverDbService.findByHost(box.getHost());
 		return  ((UpTimeRepository)repo).getItemsInDays(server.getId(), days);
 	}
 

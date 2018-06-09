@@ -27,7 +27,7 @@ public class ServiceTbase extends SpringBaseFort {
 
 	protected UserAccount createAUser() {
 		UserAccount ua = new UserAccount.UserAccountBuilder("ab", "a@b.c").build();
-		return userAccountService.save(ua);
+		return userAccountDbService.save(ua);
 	}
 	
 	protected ServerGrp createAServerGrp() {
@@ -36,15 +36,15 @@ public class ServiceTbase extends SpringBaseFort {
 	
 	protected ServerGrp createAServerGrp(String gname) {
 		ServerGrp serverGrp = new ServerGrp(gname);
-		return serverGrpService.save(serverGrp);
+		return serverGrpDbService.save(serverGrp);
 	}
 	
 	protected Server createAServer() {
-		Server s = serverService.findByHost(serverHost);
+		Server s = serverDbService.findByHost(serverHost);
 		if (s != null) {
 			return s;
 		}
 		s = new Server(serverHost, "a server.");
-		return serverService.save(s);
+		return serverDbService.save(s);
 	}
 }

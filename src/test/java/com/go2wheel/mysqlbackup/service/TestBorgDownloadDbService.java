@@ -18,7 +18,7 @@ import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
 
-public class TestBorgDownloadService extends JobBaseFort {
+public class TestBorgDownloadDbService extends JobBaseFort {
 
 	@Autowired
 	private BorgArchiveJob borgArchiveJob;
@@ -35,12 +35,12 @@ public class TestBorgDownloadService extends JobBaseFort {
 	public void tNoBorgInstalled() throws JobExecutionException {
 		borgArchiveJob.execute(context);
 
-		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(server, 3);
+		List<BorgDownload> downloads = borgDownloadDbService.getItemsInDays(server, 3);
 
 		assertThat(downloads.size(), equalTo(1));
 		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.FAIL));
 		
-		List<JobError> jes = jobErrorService.findAll();
+		List<JobError> jes = jobErrorDbService.findAll();
 		assertThat(jes.get(0).getMessageKey(), equalTo(CommonMessageKeys.APPLICATION_NOTINSTALLED));
 
 	}
@@ -49,7 +49,7 @@ public class TestBorgDownloadService extends JobBaseFort {
 	public void tBorgInstalled() throws JobExecutionException {
 		borgService.install(session);
 		borgArchiveJob.execute(context);
-		List<BorgDownload> downloads = borgDownloadService.getItemsInDays(server, 3);
+		List<BorgDownload> downloads = borgDownloadDbService.getItemsInDays(server, 3);
 
 		assertThat(downloads.size(), equalTo(1));
 		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.SUCCESS));

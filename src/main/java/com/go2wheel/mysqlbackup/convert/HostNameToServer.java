@@ -5,17 +5,17 @@ import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 @Component
 public class HostNameToServer implements Converter<String, Server> {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
 	@Override
 	public Server convert(String source) {
-		return serverService.findByHost(source);
+		return serverDbService.findByHost(source);
 	}
 
 }

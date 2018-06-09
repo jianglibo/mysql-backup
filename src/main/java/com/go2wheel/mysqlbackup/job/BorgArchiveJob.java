@@ -15,9 +15,9 @@ import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.BorgDownloadService;
-import com.go2wheel.mysqlbackup.service.JobErrorService;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.JobErrorDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
@@ -35,16 +35,16 @@ public class BorgArchiveJob implements Job {
 	private BorgService borgService;
 
 	@Autowired
-	private BorgDownloadService borgDownloadService;
+	private BorgDownloadDbService borgDownloadDbService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 	
 	@Autowired
-	private JobErrorService jobErrorService;
+	private JobErrorDbService jobErrorDbService;
 
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 	
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -54,8 +54,8 @@ public class BorgArchiveJob implements Job {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 			
-			Server sv = serverService.findById(sid);
-			sv = serverService.loadFull(sv);
+			Server sv = serverDbService.findById(sid);
+			sv = serverDbService.loadFull(sv);
 			
 			JobError je = new JobError();
 			je.setServerId(sv.getId());
@@ -63,7 +63,7 @@ public class BorgArchiveJob implements Job {
 			if (borgService.isBorgNotReady(sv)) {
 				logger.error("Box {} is not ready for Archive.", sv.getHost());
 				je.setMessageDetail("borg not ready for backup.");
-				jobErrorService.save(je);
+				jobErrorDbService.save(je);
 				return;
 			}
 			
@@ -87,7 +87,7 @@ public class BorgArchiveJob implements Job {
 				}
 				je.setMessageKey(fr.getMessage());
 				je.setMessageDetail(fr.resultToString());
-				jobErrorService.save(je);
+				jobErrorDbService.save(je);
 			} else {
 				FacadeResult<BorgDownload> frBorgDownload = borgService.downloadRepo(session, sv);
 				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
@@ -108,7 +108,7 @@ public class BorgArchiveJob implements Job {
 			bd.setServerId(sv.getId());
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);
-			borgDownloadService.save(bd);
+			borgDownloadDbService.save(bd);
 		} finally {
 			if (session != null) {
 				session.disconnect();

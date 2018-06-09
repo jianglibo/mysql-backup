@@ -33,12 +33,12 @@ public class TestModelLifeCycleEvent  extends SpringBaseFort {
 	@Test
 	public void tCreateModel() {
 		ReusableCron rc = new ReusableCron("* * 7 * * ?", "ahel");
-		rc = reuseableCronService.save(rc);
+		rc = reuseableCronDbService.save(rc);
 		assertThat(countReu, equalTo(1));
 		assertThat(countTotal, equalTo(1));
 		assertThat(countcc, equalTo(0));
 		
-		reuseableCronService.save(rc);
+		reuseableCronDbService.save(rc);
 		assertThat(countReu, equalTo(1));
 		assertThat(countTotal, equalTo(1));
 		assertThat(countcc, equalTo(1));
@@ -47,9 +47,9 @@ public class TestModelLifeCycleEvent  extends SpringBaseFort {
 	@Test
 	public void tCreate2Model() {
 		ReusableCron rc = new ReusableCron("* * 7 * * ?", "ahel");
-		rc = reuseableCronService.save(rc);
+		rc = reuseableCronDbService.save(rc);
 		ServerGrp sg = new ServerGrp("hleol");
-		serverGrpService.save(sg);
+		serverGrpDbService.save(sg);
 		
 		assertThat(countReu, equalTo(1));
 		assertThat(countTotal, equalTo(2));

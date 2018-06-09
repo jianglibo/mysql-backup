@@ -11,12 +11,12 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 public class ServerValueProvider  implements ValueProvider {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
     @Override
     public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
@@ -31,7 +31,7 @@ public class ServerValueProvider  implements ValueProvider {
         if (input.startsWith("-")) {
         	return new ArrayList<>();
         }
-        List<Server> servers = serverService.findLikeHost(input); 
+        List<Server> servers = serverDbService.findLikeHost(input); 
         return servers.stream().map(sv -> sv.getHost()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     

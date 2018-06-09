@@ -13,10 +13,10 @@ import com.go2wheel.mysqlbackup.repository.ServerGrpRepository;
 
 @Service
 @Validated
-public class ServerGrpService extends ServiceBase<ServerGrpRecord, ServerGrp> {
+public class ServerGrpDbService extends ServiceBase<ServerGrpRecord, ServerGrp> {
 
 	@Autowired
-	public ServerGrpService(ServerGrpRepository serverGrpRepository) {
+	public ServerGrpDbService(ServerGrpRepository serverGrpRepository) {
 		super(serverGrpRepository);
 	}
 	

@@ -11,7 +11,6 @@ public class ToStringFormat {
 			tostr = tostr + ", cron: " + ((CronTrigger) trigger).getCronExpression();
 		}
 		return tostr;
-
 	}
 
 }

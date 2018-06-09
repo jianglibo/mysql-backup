@@ -46,7 +46,7 @@ public class SchedulerService {
 		scheduler.rescheduleJob(tk, trigger);
 	}
 
-	public List<Trigger> getBoxTriggers(Server box) throws SchedulerException {
+	public List<Trigger> getServerTriggers(Server box) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
 				.filter(jk -> jk.getName().equals(box.getHost()))
 				.flatMap(jk -> {
@@ -58,13 +58,6 @@ public class SchedulerService {
 				}).collect(Collectors.toList());
 	}
 	
-//	@EventListener
-//	public void onCronExpressionChange(CronExpressionChangeEvent cece) throws ParseException, SchedulerException {
-//		CronExpression ce = new CronExpression(cece.getCron());
-//		Trigger trigger = newTrigger().withIdentity(cece.getTriggerkey())
-//				.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(cece.getJobkey()).build();
-//		scheduler.rescheduleJob(cece.getTriggerkey(), trigger);
-//	}
 
 	public FacadeResult<?> delteBoxTriggers(Server box, String triggerKey) {
 		String[] ss = triggerKey.split("\\.", 2);

@@ -14,17 +14,17 @@ import com.go2wheel.mysqlbackup.value.Box;
 
 @Service
 @Validated
-public class JobErrorService extends ServiceBase<JobErrorRecord, JobError> {
+public class JobErrorDbService extends ServiceBase<JobErrorRecord, JobError> {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
-	public JobErrorService(JobErrorRepository repo) {
+	public JobErrorDbService(JobErrorRepository repo) {
 		super(repo);
 	}
 
 	public List<JobError> getItemsInDays(Box box, int days) {
-		Server server = serverService.findByHost(box.getHost());
+		Server server = serverDbService.findByHost(box.getHost());
 		return  ((JobErrorRepository)repo).getItemsInDays(server.getId(), days);
 	}
 	

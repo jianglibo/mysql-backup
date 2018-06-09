@@ -40,6 +40,7 @@ import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
+import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.annotation.ServerHostPrompt;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
@@ -64,15 +65,15 @@ import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
-import com.go2wheel.mysqlbackup.service.BorgDescriptionService;
-import com.go2wheel.mysqlbackup.service.MysqlDumpService;
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
-import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronService;
-import com.go2wheel.mysqlbackup.service.ServerGrpService;
-import com.go2wheel.mysqlbackup.service.ServerService;
-import com.go2wheel.mysqlbackup.service.UserAccountService;
-import com.go2wheel.mysqlbackup.service.UserServerGrpService;
+import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
+import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.UserAccountDbService;
+import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -124,13 +125,13 @@ public class BackupCommand {
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
-	private UserAccountService userAccountService;
+	private UserAccountDbService userAccountDbService;
 
 	@Autowired
-	private MysqlInstanceService mysqlInstanceService;
+	private MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
-	private MysqlDumpService mysqlDumpService;
+	private MysqlDumpDbService mysqlDumpDbService;
 
 	@Autowired
 	private MysqlService mysqlService;
@@ -145,26 +146,26 @@ public class BackupCommand {
 	private SchedulerService schedulerService;
 
 	@Autowired
-	private ServerGrpService serverGrpService;
+	private ServerGrpDbService serverGrpDbService;
 
 	@Autowired
-	private BorgDescriptionService borgDescriptionService;
+	private BorgDescriptionDbService borgDescriptionDbService;
 
 	@Autowired
-	private UserServerGrpService userServerGrpService;
+	private UserServerGrpDbService userServerGrpDbService;
 
 	@Autowired
-	private ReuseableCronService reusableCronService;
+	private ReuseableCronDbService reusableCronDbService;
 
 	@Autowired
 	private MySqlInstaller mySqlInstaller;
 
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
 
 	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	private MysqlFlushDbService mysqlFlushDbService;
 
 	@Autowired
 	private LocaledMessageService localedMessageService;
@@ -176,7 +177,7 @@ public class BackupCommand {
 
 	// @formatter:off
 	private Session getSession() {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		if (_session == null || !_session.isConnected()) {
 			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
@@ -242,11 +243,14 @@ public class BackupCommand {
 	@ShellMethod(value = "新建一个服务器.")
 	public FacadeResult<?> serverCreate(
 			@ShellOption(help = "服务器主机名或者IP") String host,
+			@OstypeIndicator
+			@ShellOption(help = "操作系统类型") String os,
 			@ShellOption(help = "服务器的名称") String name) throws IOException {
-		Server server = serverService.findByHost(host);
+		Server server = serverDbService.findByHost(host);
 		if (server == null) {
 			server = new Server(host, name);
-			server = serverService.save(server);
+			server.setOs(os);
+			server = serverDbService.save(server);
 		}
 		return FacadeResult.doneExpectedResultDone(server);
 	}
@@ -261,24 +265,24 @@ public class BackupCommand {
 		if (server == null) {
 			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, "");
 		}
-		serverService.delete(server);
+		serverDbService.delete(server);
 		return FacadeResult.doneExpectedResult();
 	}
 
 	@ShellMethod(value = "显示服务器描述")
 	public FacadeResult<?> serverDetail() throws JSchException, IOException {
-		sureBoxSelected();
+		sureServerSelected();
 		return FacadeResult.doneExpectedResult(appState.currentServerOptional().get(), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "和修改服务器描述")
 	public FacadeResult<?> serverUpdate(
-			@ShowPossibleValue({"host", "name" ,"port", "username", "password" ,"sshKeyFile", "serverRole", "uptimeCron", "diskfreeCron"})
-			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|name|port|username|password|sshKeyFile|serverRole|uptimeCron|diskfreeCron") String field,
+			@ShowPossibleValue({"host", "name" ,"port", "username", "password" ,"sshKeyFile", "serverRole", "uptimeCron", "diskfreeCron", "os"})
+			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|name|port|username|password|sshKeyFile|serverRole|uptimeCron|diskfreeCron|os") String field,
 			@ObjectFieldIndicator(objectClass=Server.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		Optional<Field> fo = ObjectUtil.getField(Server.class, field);
 		Optional<Object> originOp = Optional.empty();
@@ -288,7 +292,7 @@ public class BackupCommand {
 			if (fo.isPresent()) {
 				originOp = Optional.ofNullable(fo.get().get(server));
 				ObjectUtil.setValue(fo.get(), server, value);
-				server = serverService.save(server);
+				server = serverDbService.save(server);
 			} else {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
 			}
@@ -392,7 +396,7 @@ public class BackupCommand {
 	@ShellMethod(value = "创建Borg的描述")
 	public FacadeResult<?> borgDescriptionCreate()
 			throws JSchException, IOException {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		BorgDescription bbd = server.getBorgDescription();
 		if (bbd != null) {
@@ -400,7 +404,7 @@ public class BackupCommand {
 		}
 		bbd = new BorgDescription.BorgDescriptionBuilder(server.getId()).withArchiveCron(dvs.getCron().getBorgArchive())
 				.withPruneCron(dvs.getCron().getBorgPrune()).build();
-		bbd = borgDescriptionService.save(bbd);
+		bbd = borgDescriptionDbService.save(bbd);
 		server.setBorgDescription(bbd);
 		return FacadeResult.doneExpectedResultDone(bbd);
 	}
@@ -435,7 +439,7 @@ public class BackupCommand {
 					ObjectUtil.setValue(fo.get(), bd, value);
 					break;
 				}
-				bd = borgDescriptionService.save(bd);
+				bd = borgDescriptionDbService.save(bd);
 				server.setBorgDescription(bd);
 			} else {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
@@ -457,7 +461,7 @@ public class BackupCommand {
 	public String mysqlInstall(@ShowPossibleValue({ "55", "56", "57",
 			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, twoDigitVersion, initPassword);
 		if (!fr.isExpected()) {
@@ -475,7 +479,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
 	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		return mySqlInstaller.unInstall(getSession(), server);
 	}
@@ -525,7 +529,7 @@ public class BackupCommand {
 		return borgService.listRepoFiles(getSession(), server).getResult().getAllTrimedNotEmptyLines();
 	}
 
-	private void sureBoxSelected() {
+	private void sureServerSelected() {
 		if (!appState.currentServerOptional().isPresent()) {
 			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING,
 					"选择一个目标服务器先。 server-list, server-select.");
@@ -533,14 +537,14 @@ public class BackupCommand {
 	}
 
 	private void sureBorgConfigurated() {
-		sureBoxSelected();
+		sureServerSelected();
 		if (appState.currentServerOptional().get().getBorgDescription() == null) {
 			throw new ShowToUserException("borg.unconfigurated", "");
 		}
 	}
 
 	private void sureMysqlConfigurated() {
-		sureBoxSelected();
+		sureServerSelected();
 		if (appState.currentServerOptional().get().getMysqlInstance() == null) {
 			throw new ShowToUserException("mysql.unconfigurated", "");
 		}
@@ -587,7 +591,7 @@ public class BackupCommand {
 	@ShellMethod(value = "列出Mysqldump历史纪录")
 	public FacadeResult<?> mysqlDumpList() throws JSchException, IOException {
 		Server server = appState.currentServerOptional().get();
-		List<MysqlDump> dumps = mysqlDumpService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
+		List<MysqlDump> dumps = mysqlDumpDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
 		return FacadeResult.doneExpectedResultDone(dumps);
 	}
 
@@ -609,7 +613,7 @@ public class BackupCommand {
 			if (fo.isPresent()) {
 				originOp = Optional.ofNullable(fo.get().get(mi));
 				ObjectUtil.setValue(fo.get(), mi, value);
-				mi = mysqlInstanceService.save(mi);
+				mi = mysqlInstanceDbService.save(mi);
 				server.setMysqlInstance(mi);
 			} else {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
@@ -631,7 +635,7 @@ public class BackupCommand {
 	public FacadeResult<?> mysqlDescriptionCreate(
 			@ShowDefaultValue @ShellOption(help = "mysql username.", defaultValue = "root") String username,
 			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		MysqlInstance mi = server.getMysqlInstance();
 		if (mi != null) {
@@ -640,7 +644,7 @@ public class BackupCommand {
 
 		mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), password)
 				.withFlushLogCron(dvs.getCron().getMysqlFlush()).withUsername(username).build();
-		mi = mysqlInstanceService.save(mi);
+		mi = mysqlInstanceDbService.save(mi);
 		server.setMysqlInstance(mi);
 		return FacadeResult.doneExpectedResultDone(mi);
 	}
@@ -651,7 +655,7 @@ public class BackupCommand {
 		Server server = appState.currentServerOptional().get();
 
 		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(getSession(), server);
-		mysqlFlushService.processFlushResult(server, fr);
+		mysqlFlushDbService.processFlushResult(server, fr);
 		return fr;
 	}
 	
@@ -659,7 +663,7 @@ public class BackupCommand {
 	public FacadeResult<?> MysqlFlushLogList() {
 		sureMysqlReadyForBackup();
 		Server server = appState.currentServerOptional().get();
-		List<MysqlFlush> mfs = mysqlFlushService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
+		List<MysqlFlush> mfs = mysqlFlushDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
 		return FacadeResult.doneExpectedResultDone(mfs);
 	}
 
@@ -669,7 +673,7 @@ public class BackupCommand {
 			@ShellOption(help = "描述", defaultValue = "") String description) {
 		ReusableCron rc = new ReusableCron(expression, description);
 		try {
-			rc = reusableCronService.save(rc);
+			rc = reusableCronDbService.save(rc);
 			return FacadeResult.doneExpectedResult(rc, CommonActionResult.DONE);
 		} catch (Exception e) {
 			return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, rc.getExpression());
@@ -717,7 +721,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "列出常用的CRON表达式")
 	public FacadeResult<?> cronExpressionList() {
-		return FacadeResult.doneExpectedResult(reusableCronService.findAll(), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(reusableCronDbService.findAll(), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "添加用户。")
@@ -726,12 +730,12 @@ public class BackupCommand {
 			@ShellOption(help = "描述", defaultValue = "") String description) {
 		UserAccount ua = new UserAccount.UserAccountBuilder(name, email).withMobile(mobile).withDescription(description)
 				.build();
-		return FacadeResult.doneExpectedResult(userAccountService.save(ua), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(userAccountDbService.save(ua), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "用户列表。")
 	public FacadeResult<?> userList() {
-		return FacadeResult.doneExpectedResult(userAccountService.findAll(), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(userAccountDbService.findAll(), CommonActionResult.DONE);
 	}
 
 	private FacadeResult<?> parameterRequired(String pn) {
@@ -742,13 +746,13 @@ public class BackupCommand {
 	}
 
 	private UserServerGrpVo getusgvo(UserServerGrp usgl) {
-		return new UserServerGrpVo(usgl.getId(), userAccountService.findById(usgl.getUserAccountId()),
-				serverGrpService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
+		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),
+				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
 	}
 
 	@ShellMethod(value = "列出用户和服务器组的关系。")
 	public FacadeResult<?> userServerGroupList() {
-		List<UserServerGrpVo> vos = userServerGrpService.findAll().stream().map(usgl -> getusgvo(usgl))
+		List<UserServerGrpVo> vos = userServerGrpDbService.findAll().stream().map(usgl -> getusgvo(usgl))
 				.collect(Collectors.toList());
 
 		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
@@ -772,14 +776,14 @@ public class BackupCommand {
 		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
 				.withTemplate(template)
 				.build();
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
 	
 	@ShellMethod(value = "删除用户和服务器组的关系。")
 	public FacadeResult<?> userServerGroupDelete(
 			@ShellOption(help = "要删除的User和ServerGrp关系。") UserServerGrp usg) {
-		userServerGrpService.delete(usg);
+		userServerGrpDbService.delete(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
 
@@ -788,13 +792,13 @@ public class BackupCommand {
 			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
 		ServerGrp sg = new ServerGrp(ename);
 		sg.setMsgkey(msgkey);
-		sg = serverGrpService.save(sg);
+		sg = serverGrpDbService.save(sg);
 		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "列出服务器组。")
 	public FacadeResult<?> ServerGroupList() {
-		List<ServerGrp> sgs = serverGrpService.findAll();
+		List<ServerGrp> sgs = serverGrpDbService.findAll();
 		return FacadeResult.doneExpectedResult(sgs, CommonActionResult.DONE);
 	}
 
@@ -808,18 +812,18 @@ public class BackupCommand {
 			if (server == null) {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
 			}
-			serverGrpService.addServer(serverGroup, server);
+			serverGrpDbService.addServer(serverGroup, server);
 			break;
 		case "REMOVE":
 			if (server == null) {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
 			}
-			serverGrpService.removeServer(serverGroup, server);
+			serverGrpDbService.removeServer(serverGroup, server);
 			break;
 		default:
 			break;
 		}
-		return FacadeResult.doneExpectedResult(serverGrpService.getServers(serverGroup), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(serverGrpDbService.getServers(serverGroup), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "添加用户组。")
@@ -845,7 +849,7 @@ public class BackupCommand {
 	@ShellMethod(value = "重新设置出发器")
 	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
 			throws SchedulerException, ParseException {
-		sureBoxSelected();
+		sureServerSelected();
 		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
 
@@ -870,7 +874,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "列出当前主机的计划任务")
 	public List<String> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		if (all) {
 			return schedulerService.getAllSchedulerJobList();
@@ -881,14 +885,14 @@ public class BackupCommand {
 
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
 	public List<String> schedulerTriggerList() throws SchedulerException {
-		sureBoxSelected();
-		return schedulerService.getBoxTriggers(appState.currentServerOptional().get()).stream()
+		sureServerSelected();
+		return schedulerService.getServerTriggers(appState.currentServerOptional().get()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
 
 	@ShellMethod(value = "删除计划任务触发器")
 	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
-		sureBoxSelected();
+		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		return schedulerService.delteBoxTriggers(server, triggerKey);
 	}

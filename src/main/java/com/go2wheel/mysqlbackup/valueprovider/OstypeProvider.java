@@ -2,9 +2,6 @@ package com.go2wheel.mysqlbackup.valueprovider;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
@@ -12,21 +9,16 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
-import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
-import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 
-public class CronStringValueProvider implements ValueProvider {
+public class OstypeProvider implements ValueProvider {
 
-	@Autowired
-	private ReuseableCronDbService reusableCronDbService;
-	
 	@Autowired
 	private SharedValueProviderMethods svpm;
-
+	
 	@Override
 	public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
-		CronStringIndicator sv = parameter.getParameterAnnotation(CronStringIndicator.class);
+		OstypeIndicator sv = parameter.getParameterAnnotation(OstypeIndicator.class);
 		return sv != null;
 	}
 
@@ -39,16 +31,7 @@ public class CronStringValueProvider implements ValueProvider {
 		if (input.startsWith("-")) {
 			return new ArrayList<>();
 		}
-		if (input == null || input.isEmpty()) {
-			return svpm.getCronProposals();
-		}
-		int id = StringUtil.parseInt(input);
-		if (id > 0) {
-			return Stream.of(reusableCronDbService.findById(id)).filter(Objects::nonNull).map(o -> o.toListRepresentation())
-					.map(CompletionProposal::new).collect(Collectors.toList());
-		}
-		return new ArrayList<>();
-
+		return svpm.getOstypeProposals(input);
 	}
 
 }

@@ -13,17 +13,17 @@ import com.go2wheel.mysqlbackup.repository.BorgDownloadRepository;
 
 @Service
 @Validated
-public class BorgDownloadService extends ServiceBase<BorgDownloadRecord, BorgDownload> {
+public class BorgDownloadDbService extends ServiceBase<BorgDownloadRecord, BorgDownload> {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
-	public BorgDownloadService(BorgDownloadRepository repo) {
+	public BorgDownloadDbService(BorgDownloadRepository repo) {
 		super(repo);
 	}
 
 	public List<BorgDownload> getItemsInDays(Server box, int days) {
-		Server sv = serverService.findByHost(box.getHost());
+		Server sv = serverDbService.findByHost(box.getHost());
 		return ((BorgDownloadRepository)repo).getItemsInDays(sv.getId(), days);
 	}
 

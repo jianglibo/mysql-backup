@@ -20,7 +20,7 @@ public class TestUserServerGrpService extends ServiceTbase {
 		ServerGrp sg = createAServerGrp();
 		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId() , A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		assertThat(usg.getId(), greaterThan(99));
 	}
 	
@@ -30,14 +30,14 @@ public class TestUserServerGrpService extends ServiceTbase {
 		ServerGrp sg = createAServerGrp();
 		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		
 		ServerGrp sg1 = createAServerGrp("kku");
 		usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg1.getId(), A_VALID_CRON_EXPRESSION, "amenese")
 				.build();
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		
-		List<UserServerGrp> usgs = userServerGrpService.findByUser(ua);
+		List<UserServerGrp> usgs = userServerGrpDbService.findByUser(ua);
 		assertThat(usgs.size(), equalTo(2));
 
 	}

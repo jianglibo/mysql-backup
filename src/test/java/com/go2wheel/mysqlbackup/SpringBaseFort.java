@@ -31,22 +31,22 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.service.BackupFolderService;
-import com.go2wheel.mysqlbackup.service.BackupFolderStateService;
-import com.go2wheel.mysqlbackup.service.BorgDescriptionService;
-import com.go2wheel.mysqlbackup.service.BorgDownloadService;
-import com.go2wheel.mysqlbackup.service.DiskfreeService;
-import com.go2wheel.mysqlbackup.service.JobErrorService;
+import com.go2wheel.mysqlbackup.service.BackupFolderDbService;
+import com.go2wheel.mysqlbackup.service.BackupFolderStateDbService;
+import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
+import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
-import com.go2wheel.mysqlbackup.service.MysqlDumpService;
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
-import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronService;
-import com.go2wheel.mysqlbackup.service.ServerGrpService;
-import com.go2wheel.mysqlbackup.service.ServerService;
-import com.go2wheel.mysqlbackup.service.UpTimeService;
-import com.go2wheel.mysqlbackup.service.UserAccountService;
-import com.go2wheel.mysqlbackup.service.UserServerGrpService;
+import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
+import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.UpTimeDbService;
+import com.go2wheel.mysqlbackup.service.UserAccountDbService;
+import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -88,52 +88,52 @@ public class SpringBaseFort {
 	protected Scheduler scheduler;
 	
 	@Autowired
-	protected ServerService serverService;
+	protected ServerDbService serverDbService;
 	
 	@Autowired
-	protected UserServerGrpService userServerGrpService;
+	protected UserServerGrpDbService userServerGrpDbService;
 	
 	@Autowired
 	protected KeyValueInDbService keyValueInDbService;
 	
 	@Autowired
-	protected MysqlInstanceService mysqlInstanceService;
+	protected MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
-	protected BorgDescriptionService borgDescriptionService;
+	protected BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
-	protected UserAccountService userAccountService;
+	protected UserAccountDbService userAccountDbService;
 	
 	@Autowired
-	protected MysqlFlushService mysqlFlushService;
+	protected MysqlFlushDbService mysqlFlushDbService;
 	
 	@Autowired
-	protected MysqlDumpService mysqlDumpService;
+	protected MysqlDumpDbService mysqlDumpDbService;
 	
 	@Autowired
-	protected BackupFolderService backupFolderService;
+	protected BackupFolderDbService backupFolderDbService;
 	
 	@Autowired
-	protected BackupFolderStateService backupFolderStateService;
+	protected BackupFolderStateDbService backupFolderStateDbService;
 	
 	@Autowired
-	protected ReuseableCronService reuseableCronService;
+	protected ReuseableCronDbService reuseableCronDbService;
 	
 	@Autowired
-	protected DiskfreeService diskfreeService;
+	protected DiskfreeDbService diskfreeDbService;
 	
 	@Autowired
-	protected UpTimeService upTimeService;
+	protected UpTimeDbService upTimeDbService;
 
 	@Autowired
-	protected BorgDownloadService borgDownloadService;
+	protected BorgDownloadDbService borgDownloadDbService;
 	
 	@Autowired
-	protected JobErrorService jobErrorService;
+	protected JobErrorDbService jobErrorDbService;
 	
 	@Autowired
-	protected ServerGrpService serverGrpService;
+	protected ServerGrpDbService serverGrpDbService;
 
 	protected Server server;
 	
@@ -168,23 +168,23 @@ public class SpringBaseFort {
 //		UtilForTe.deleteAllJobs(scheduler);
 		
 		keyValueInDbService.deleteAll();
-		mysqlInstanceService.deleteAll();
-		borgDescriptionService.deleteAll();
-		mysqlDumpService.deleteAll();
-		mysqlFlushService.deleteAll();
-		backupFolderStateService.deleteAll();
-		backupFolderService.deleteAll();
-		diskfreeService.deleteAll();
-		upTimeService.deleteAll();
-		borgDownloadService.deleteAll();
-		jobErrorService.deleteAll();
-		reuseableCronService.deleteAll();
+		mysqlInstanceDbService.deleteAll();
+		borgDescriptionDbService.deleteAll();
+		mysqlDumpDbService.deleteAll();
+		mysqlFlushDbService.deleteAll();
+		backupFolderStateDbService.deleteAll();
+		backupFolderDbService.deleteAll();
+		diskfreeDbService.deleteAll();
+		upTimeDbService.deleteAll();
+		borgDownloadDbService.deleteAll();
+		jobErrorDbService.deleteAll();
+		reuseableCronDbService.deleteAll();
 		
-		userServerGrpService.deleteAll();
-		userAccountService.deleteAll();
+		userServerGrpDbService.deleteAll();
+		userAccountDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
-		serverService.deleteAll();
-		serverGrpService.deleteAll();
+		serverDbService.deleteAll();
+		serverGrpDbService.deleteAll();
 	}
 	
 	protected void createSession() {
@@ -232,12 +232,12 @@ public class SpringBaseFort {
 	
 	protected void createServer() {
 		server = new Server(HOST_DEFAULT, "a server.");
-		server = serverService.save(server);
+		server = serverDbService.save(server);
 	}
 	
 	protected UserAccount createUser() {
 		UserAccount ua = new UserAccount.UserAccountBuilder("江立波", "jianglibo@gmail.com").build();
-		return userAccountService.save(ua);
+		return userAccountDbService.save(ua);
 	}
 	
 	protected void createMysqlIntance() {
@@ -247,13 +247,13 @@ public class SpringBaseFort {
 				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
 				.withFlushLogCron(A_VALID_CRON_EXPRESSION)
 				.build();
-		server.setMysqlInstance(mysqlInstanceService.save(mi));
+		server.setMysqlInstance(mysqlInstanceDbService.save(mi));
 	}
 	
 	protected void createBorgDescription() {
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
 				.addInclude("/etc").build();
-		server.setBorgDescription(borgDescriptionService.save(bd));
+		server.setBorgDescription(borgDescriptionDbService.save(bd));
 	}
 	
 	protected void boxDeleteLogBinSetting() {

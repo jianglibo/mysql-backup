@@ -14,18 +14,18 @@ import com.go2wheel.mysqlbackup.model.BackupFolder;
 import com.go2wheel.mysqlbackup.model.BackupFolderState;
 import com.go2wheel.mysqlbackup.model.Server;
 
-public class TestBackupFolderStateService extends ServiceTbase {
+public class TestBackupFolderStateDbService extends ServiceTbase {
 	
 	
 	
 	@Autowired
-	private ServerService sservice;
+	private ServerDbService sservice;
 	
 	@Autowired
-	private BackupFolderService bfervice;
+	private BackupFolderDbService bfervice;
 	
 	@Autowired
-	private BackupFolderStateService bfstervice;
+	private BackupFolderStateDbService bfstervice;
 
 	
 	

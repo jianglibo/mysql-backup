@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.job.UpTimeJob;
 import com.go2wheel.mysqlbackup.model.UpTime;
 
-public class TestUpTimeService extends JobBaseFort {
+public class TestUpTimeDbService extends JobBaseFort {
 
 	@Autowired
 	private UpTimeJob upTimeJob;
@@ -26,21 +26,21 @@ public class TestUpTimeService extends JobBaseFort {
 		
 		upTimeJob.execute(context);
 
-		List<UpTime> upTimes = upTimeService.getItemsInDays(server, 3);
+		List<UpTime> upTimes = upTimeDbService.getItemsInDays(server, 3);
 		int sz = upTimes.size();
 		assertThat(sz, equalTo(1));
 		
-		upTimes = upTimeService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.UpTime.UP_TIME.SERVER_ID.eq(server.getId()), 0, 10);
+		upTimes = upTimeDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.UpTime.UP_TIME.SERVER_ID.eq(server.getId()), 0, 10);
 		sz = upTimes.size();
 		assertThat(sz, equalTo(1));
 
 		upTimeJob.execute(context);
-		upTimes = upTimeService.getItemsInDays(server, 3);
+		upTimes = upTimeDbService.getItemsInDays(server, 3);
 		sz = upTimes.size();
 
 		assertThat(sz, equalTo(2));
 		
-		upTimes = upTimeService.getRecentItems(30);
+		upTimes = upTimeDbService.getRecentItems(30);
 		assertThat(sz, equalTo(2));
 
 	}

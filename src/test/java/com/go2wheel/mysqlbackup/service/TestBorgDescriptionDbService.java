@@ -12,7 +12,7 @@ import org.quartz.JobExecutionException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 
-public class TestBorgDescriptionService extends ServiceTbase {
+public class TestBorgDescriptionDbService extends ServiceTbase {
 
 	@Test
 	public void t() throws JobExecutionException {
@@ -21,8 +21,8 @@ public class TestBorgDescriptionService extends ServiceTbase {
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).addInclude("/etc")
 				.addInclude("/kk").addExclude("/e1").addExclude("/e2").build();
 		
-		bd = borgDescriptionService.save(bd);
-		List<BorgDescription> bds = borgDescriptionService.findAll();
+		bd = borgDescriptionDbService.save(bd);
+		List<BorgDescription> bds = borgDescriptionDbService.findAll();
 		int sz = bds.size();
 		assertThat(sz, equalTo(1));
 

@@ -9,7 +9,7 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.service.DiskfreeService;
+import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
 
 public class TestDiskFreeJob extends JobBaseFort {
 	
@@ -17,7 +17,7 @@ public class TestDiskFreeJob extends JobBaseFort {
 	private DiskfreeJob diskfreeJob;
 	
 	@Autowired
-	private DiskfreeService diskfreeService;
+	private DiskfreeDbService diskfreeDbService;
 	
 	@Test
 	public void t() throws JobExecutionException {
@@ -26,8 +26,8 @@ public class TestDiskFreeJob extends JobBaseFort {
 		given(context.getMergedJobDataMap()).willReturn(jdm);
 		diskfreeJob.execute(context);
 		
-		diskfreeService.count();
-		assertThat(diskfreeService.count(), greaterThan(3L));
+		diskfreeDbService.count();
+		assertThat(diskfreeDbService.count(), greaterThan(3L));
 		
 	}
 

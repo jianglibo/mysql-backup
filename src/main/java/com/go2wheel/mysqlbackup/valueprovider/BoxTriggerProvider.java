@@ -17,7 +17,6 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 
 public class BoxTriggerProvider implements ValueProvider {
 
@@ -50,7 +49,7 @@ public class BoxTriggerProvider implements ValueProvider {
 		switch (parameter.getParameterName()) {
 		case "triggerKey":
 			try {
-				return schedulerService.getBoxTriggers(box).stream().map(tg -> tg.getKey().toString()).map(CompletionProposal::new).collect(Collectors.toList());
+				return schedulerService.getServerTriggers(box).stream().map(tg -> tg.getKey().toString()).map(CompletionProposal::new).collect(Collectors.toList());
 			} catch (SchedulerException e) {
 				ExceptionUtil.logErrorException(logger, e);
 			}

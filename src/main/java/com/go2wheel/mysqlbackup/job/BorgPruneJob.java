@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.jcraft.jsch.Session;
 
@@ -27,7 +27,7 @@ public class BorgPruneJob implements Job {
 	private SshSessionFactory sshSessionFactory;
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -35,8 +35,8 @@ public class BorgPruneJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-			Server server = serverService.findById(sid);
-			server = serverService.loadFull(server);
+			Server server = serverDbService.findById(sid);
+			server = serverDbService.loadFull(server);
 			if (borgTaskFacade.isBorgNotReady(server)) {
 				logger.error("Box {} is not ready for Prune.", server.getHost());
 				return;

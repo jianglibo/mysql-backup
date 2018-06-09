@@ -20,9 +20,9 @@ import com.go2wheel.mysqlbackup.valueprovider.CronStringValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.ObjectFieldValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.OstypeProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
-import com.go2wheel.mysqlbackup.valueprovider.ServerInfoProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TemplateValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.UserAccountValueProvider;
@@ -48,13 +48,14 @@ public class StandardAPIAutoConfigurationMine {
 	}
 	
 	@Bean
-	public ValueProvider hostValueProvider() {
-		return new ServerInfoProvider();
-	}
-
-	@Bean
 	public ValueProvider serverValueProvider() {
 		return new ServerValueProvider();
+	}
+	
+	
+	@Bean
+	public ValueProvider ostypeValueProvider() {
+		return new OstypeProvider();
 	}
 	
 	@Bean

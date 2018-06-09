@@ -5,6 +5,7 @@ import java.nio.file.Paths;
 
 import javax.validation.constraints.NotNull;
 
+import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
@@ -27,6 +28,17 @@ public class Server extends BaseModel {
 	private int coreNumber;
 	
 	private int port = 22;
+	
+	/**
+	 * os的格式。
+	 * linux_centos_7_xx
+	 * win_xp_
+	 * win_10_
+	 * win_2000_
+	 * 
+	 */
+	@OstypeIndicator
+	private String os;
 	
 	private String username = "root";
 	private String password = NO_PASSWORD;
@@ -160,6 +172,14 @@ public class Server extends BaseModel {
 
 	public void setDiskfreeCron(String diskfreeCron) {
 		this.diskfreeCron = diskfreeCron;
+	}
+
+	public String getOs() {
+		return os;
+	}
+
+	public void setOs(String os) {
+		this.os = os;
 	}
 
 }

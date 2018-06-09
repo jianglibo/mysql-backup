@@ -13,13 +13,13 @@ import org.springframework.dao.DataIntegrityViolationException;
 import com.go2wheel.mysqlbackup.model.BackupFolder;
 import com.go2wheel.mysqlbackup.model.Server;
 
-public class TestBackupFolderService extends ServiceTbase {
+public class TestBackupFolderDbService extends ServiceTbase {
 	
 	@Autowired
-	private ServerService sservice;
+	private ServerDbService sservice;
 	
 	@Autowired
-	private BackupFolderService service;
+	private BackupFolderDbService service;
 	
 	@Before
 	public void b() {

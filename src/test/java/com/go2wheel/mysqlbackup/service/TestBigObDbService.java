@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BigOb;
 
-public class TestBigObService extends JobBaseFort {
+public class TestBigObDbService extends JobBaseFort {
 
 	@Autowired
-	private BigObService bigObService;
+	private BigObDbService bigObDbService;
 
 	@Test
 	public void t() throws SchedulerException {
@@ -25,12 +25,12 @@ public class TestBigObService extends JobBaseFort {
 		bo.setCreatedAt(new Date());
 		bo.setDescription("description");
 		bo.setName("hello");
-		bo = bigObService.save(bo);
+		bo = bigObDbService.save(bo);
 		assertThat(bo.getId(), greaterThan(99));
 		
 		int oid = bo.getId();
 		
-		bo = bigObService.findByName(bo.getName());
+		bo = bigObDbService.findByName(bo.getName());
 		
 		assertThat(bo.getId(), equalTo(oid));
 		

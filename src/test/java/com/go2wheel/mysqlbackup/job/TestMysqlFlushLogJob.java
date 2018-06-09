@@ -18,8 +18,8 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 		createServer();
 		createContext();
 		mysqlFlushLogJob.execute(context); // cause server was not ready for mysqlbackup.
-		mysqlFlushService.count();
-		assertThat(mysqlFlushService.count(), equalTo(0L));
+		mysqlFlushDbService.count();
+		assertThat(mysqlFlushDbService.count(), equalTo(0L));
 	}
 	
 	@Test
@@ -31,8 +31,8 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 		deleteAllJobs();
 		
 		mysqlFlushLogJob.execute(context);
-		mysqlFlushService.count();
-		assertThat(mysqlFlushService.count(), equalTo(1L));
+		mysqlFlushDbService.count();
+		assertThat(mysqlFlushDbService.count(), equalTo(1L));
 		
 	}
 

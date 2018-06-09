@@ -9,9 +9,9 @@ import com.go2wheel.mysqlbackup.repository.MysqlDumpRepository;
 
 @Service
 @Validated
-public class MysqlDumpService extends ServiceBase<MysqlDumpRecord, MysqlDump> {
+public class MysqlDumpDbService extends ServiceBase<MysqlDumpRecord, MysqlDump> {
 
-	public MysqlDumpService(MysqlDumpRepository repo) {
+	public MysqlDumpDbService(MysqlDumpRepository repo) {
 		super(repo);
 	}
 	

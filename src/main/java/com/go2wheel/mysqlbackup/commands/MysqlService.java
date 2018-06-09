@@ -26,8 +26,8 @@ import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.MysqlDumpService;
-import com.go2wheel.mysqlbackup.service.MysqlInstanceService;
+import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -57,10 +57,10 @@ public class MysqlService {
 	private MyAppSettings appSettings;
 	
 	@Autowired
-	private MysqlDumpService mysqlDumpService;
+	private MysqlDumpDbService mysqlDumpDbService;
 
 	@Autowired
-	private MysqlInstanceService mysqlInstanceService;
+	private MysqlInstanceDbService mysqlInstanceDbService;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
@@ -131,7 +131,7 @@ public class MysqlService {
 			md.setResult(ResultEnum.UNKNOWN);
 		}
 		md.setServerId(server.getId());
-		mysqlDumpService.save(md);
+		mysqlDumpDbService.save(md);
 		return fr;
 	}
 
@@ -228,7 +228,7 @@ public class MysqlService {
 			}
 			mi.setMycnfFile(mycnfFile);
 			mi.setLogBinSetting(lbs);
-			mi = mysqlInstanceService.save(mi);
+			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
@@ -265,7 +265,7 @@ public class MysqlService {
 			}
 			mi.setMycnfFile(mycnfFile);
 			mi.setLogBinSetting(lbs);
-			mi = mysqlInstanceService.save(mi);
+			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {

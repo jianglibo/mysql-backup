@@ -11,8 +11,8 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.Session;
@@ -29,10 +29,10 @@ public class MysqlFlushLogJob implements Job {
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	private MysqlFlushDbService mysqlFlushDbService;
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
 	@Override
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -40,8 +40,8 @@ public class MysqlFlushLogJob implements Job {
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-			Server server = serverService.findById(sid);
-			server = serverService.loadFull(server);
+			Server server = serverDbService.findById(sid);
+			server = serverDbService.loadFull(server);
 			
 			if (mysqlTaskFacade.isMysqlNotReadyForBackup(server)) {
 				logger.info("Box {} is not ready for Backup.", server.getHost());
@@ -49,7 +49,7 @@ public class MysqlFlushLogJob implements Job {
 			}
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, server);
-			mysqlFlushService.processFlushResult(server, fr);
+			mysqlFlushDbService.processFlushResult(server, fr);
 		} finally {
 			if (session != null) {
 				session.disconnect();

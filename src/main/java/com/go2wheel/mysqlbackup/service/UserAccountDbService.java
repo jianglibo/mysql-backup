@@ -12,10 +12,10 @@ import com.go2wheel.mysqlbackup.repository.UserAccountRepository;
 
 @Service
 @Validated
-public class UserAccountService extends ServiceBase<UserAccountRecord, UserAccount> {
+public class UserAccountDbService extends ServiceBase<UserAccountRecord, UserAccount> {
 
 	@Autowired
-	public UserAccountService(UserAccountRepository serverRepository) {
+	public UserAccountDbService(UserAccountRepository serverRepository) {
 		super(serverRepository);
 	}
 	

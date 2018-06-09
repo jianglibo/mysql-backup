@@ -29,7 +29,7 @@ public class MysqlBackupSchedule extends SchedulerBase {
 	public void whenServerCreated(ModelCreatedEvent<MysqlInstance> mysqlInstanceCreatedEvent)
 			throws SchedulerException, ParseException {
 		MysqlInstance mi = mysqlInstanceCreatedEvent.getModel();
-		Server server = serverService.findById(mi.getServerId());
+		Server server = serverDbService.findById(mi.getServerId());
 		
 		createTrigger(server,
 				mi.getFlushLogCron(),
@@ -43,7 +43,7 @@ public class MysqlBackupSchedule extends SchedulerBase {
 			throws SchedulerException, ParseException {
 		MysqlInstance before = mysqlInstanceChangedEvent.getBefore();
 		MysqlInstance after = mysqlInstanceChangedEvent.getAfter();
-		Server server = serverService.findById(after.getServerId());
+		Server server = serverDbService.findById(after.getServerId());
 		
 		reschedule(server,
 				before.getFlushLogCron(),
@@ -57,7 +57,7 @@ public class MysqlBackupSchedule extends SchedulerBase {
 	@EventListener
 	public void whenMysqlInstanceDeleted(ModelDeletedEvent<MysqlInstance> mysqlInstanceDeletedEvent) throws SchedulerException, ParseException {
 		MysqlInstance mi = mysqlInstanceDeletedEvent.getModel();
-		Server server = serverService.findById(mi.getServerId());
+		Server server = serverDbService.findById(mi.getServerId());
 		scheduler.unscheduleJob(triggerKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
 	}
 }

@@ -8,7 +8,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.model.BorgDescription;
-import com.go2wheel.mysqlbackup.service.BorgDownloadService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 
 public class TestBorgArchiveJob extends JobBaseFort {
 	
@@ -16,7 +16,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	private BorgArchiveJob borgArchiveJob;
 	
 	@Autowired
-	private BorgDownloadService borgDownloadService;
+	private BorgDownloadDbService borgDownloadDbService;
 	
 	@Test
 	public void testJobFunction() throws SchedulerException {
@@ -27,8 +27,8 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		createContext();
 		deleteAllJobs();
 		borgArchiveJob.execute(context);
-		borgDownloadService.count();
-		assertThat(borgDownloadService.count(), equalTo(1L));
+		borgDownloadDbService.count();
+		assertThat(borgDownloadDbService.count(), equalTo(1L));
 	}
 	
 	@Test
@@ -38,11 +38,11 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
 		.withArchiveCron(A_VALID_CRON_EXPRESSION).build();
-		bd = borgDescriptionService.save(bd);
+		bd = borgDescriptionDbService.save(bd);
 		assertThat(countJobs(), equalTo(1L)); // cause only set archiveCron.
 		assertThat(countTriggers(), equalTo(1L)); // cause only set archiveCron.
 		
-		borgDescriptionService.delete(bd);
+		borgDescriptionDbService.delete(bd);
 		assertThat(countJobs(), equalTo(1L));
 		assertThat(countTriggers(), equalTo(0L));
 	}
@@ -56,11 +56,11 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		.withArchiveCron(A_VALID_CRON_EXPRESSION)
 		.withPruneCron(A_VALID_CRON_EXPRESSION)
 		.build();
-		bd = borgDescriptionService.save(bd);
+		bd = borgDescriptionDbService.save(bd);
 		assertThat(countJobs(), equalTo(2L)); // cause only set archiveCron.
 		assertThat(countTriggers(), equalTo(2L)); // cause only set archiveCron.
 		
-		borgDescriptionService.delete(bd);
+		borgDescriptionDbService.delete(bd);
 		assertThat(countJobs(), equalTo(2L));
 		assertThat(countTriggers(), equalTo(0L));
 	}
@@ -74,14 +74,14 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
 		.withArchiveCron(A_VALID_CRON_EXPRESSION).build();
-		bd = borgDescriptionService.save(bd);
+		bd = borgDescriptionDbService.save(bd);
 		assertThat(countTriggers(), equalTo(1L));
 		
-		bd = borgDescriptionService.save(bd);
+		bd = borgDescriptionDbService.save(bd);
 		assertThat(countTriggers(), equalTo(1L));
 		
 		bd.setArchiveCron(null);
-		borgDescriptionService.save(bd);
+		borgDescriptionDbService.save(bd);
 		assertThat(countTriggers(), equalTo(0L));
 	}
 }

@@ -18,18 +18,18 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
-import com.go2wheel.mysqlbackup.service.ReuseableCronService;
-import com.go2wheel.mysqlbackup.service.ServerGrpService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
 public class AppEventListenerBean implements EnvironmentAware {
 	
 	@Autowired
-	private ReuseableCronService reuseableCronService;
+	private ReuseableCronDbService reuseableCronService;
 	
 	@Autowired
-	private ServerGrpService serverGrpService;
+	private ServerGrpDbService serverGrpDbService;
 	
 	@Autowired
 	private DefaultValues defaultValues;
@@ -73,10 +73,10 @@ public class AppEventListenerBean implements EnvironmentAware {
     
     
     private void createDefaultServerGrp() {
-    	ServerGrp sg = serverGrpService.findByEname("default");
+    	ServerGrp sg = serverGrpDbService.findByEname("default");
     	if (sg == null) {
     		sg = new ServerGrp("default");
-    		serverGrpService.save(sg);
+    		serverGrpDbService.save(sg);
     	}
     }
 

@@ -28,16 +28,16 @@ import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UpTime;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
-import com.go2wheel.mysqlbackup.service.BorgDownloadService;
-import com.go2wheel.mysqlbackup.service.DiskfreeService;
-import com.go2wheel.mysqlbackup.service.JobErrorService;
-import com.go2wheel.mysqlbackup.service.MysqlDumpService;
-import com.go2wheel.mysqlbackup.service.MysqlFlushService;
-import com.go2wheel.mysqlbackup.service.ServerGrpService;
-import com.go2wheel.mysqlbackup.service.ServerService;
-import com.go2wheel.mysqlbackup.service.UpTimeService;
-import com.go2wheel.mysqlbackup.service.UserAccountService;
-import com.go2wheel.mysqlbackup.service.UserServerGrpService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
+import com.go2wheel.mysqlbackup.service.JobErrorDbService;
+import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
+import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.UpTimeDbService;
+import com.go2wheel.mysqlbackup.service.UserAccountDbService;
+import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 
 @Component
@@ -46,34 +46,34 @@ public class MailerJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private UpTimeService upTimeService;
+	private UpTimeDbService upTimeDbService;
 
 	@Autowired
-	private UserServerGrpService userServerGrpService;
+	private UserServerGrpDbService userServerGrpDbService;
 
 	@Autowired
-	private UserAccountService userAccountService;
+	private UserAccountDbService userAccountDbService;
 
 	@Autowired
-	private ServerGrpService serverGrpService;
+	private ServerGrpDbService serverGrpDbService;
 
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
 	@Autowired
-	private MysqlFlushService mysqlFlushService;
+	private MysqlFlushDbService mysqlFlushDbService;
 
 	@Autowired
-	private DiskfreeService diskfreeService;
+	private DiskfreeDbService diskfreeDbService;
 
 	@Autowired
-	private JobErrorService jobErrorService;
+	private JobErrorDbService jobErrorDbService;
 
 	@Autowired
-	private MysqlDumpService mysqlDumpService;
+	private MysqlDumpDbService mysqlDumpDbService;
 
 	@Autowired
-	private BorgDownloadService borgDownloadService;
+	private BorgDownloadDbService borgDownloadDbService;
 
 	private Mailer mailer;
 
@@ -81,28 +81,28 @@ public class MailerJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		int userServerGrpId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-		UserServerGrp usg = userServerGrpService.findById(userServerGrpId);
+		UserServerGrp usg = userServerGrpDbService.findById(userServerGrpId);
 
 		if (usg == null) {
 			logger.error("Cannot find UserServerGrp with ID: {}", userServerGrpId);
 			return;
 		}
 
-		ServerGrp sg = serverGrpService.findById(usg.getServerGrpId());
-		UserAccount ua = userAccountService.findById(usg.getUserAccountId());
+		ServerGrp sg = serverGrpDbService.findById(usg.getServerGrpId());
+		UserAccount ua = userAccountDbService.findById(usg.getUserAccountId());
 
-		List<Server> servers = serverGrpService.getServers(sg).stream().map(sv -> serverService.loadFull(sv))
+		List<Server> servers = serverGrpDbService.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
 				.collect(Collectors.toList());
 
 		List<ServerContext> oscs = new ArrayList<>();
 
 		for (Server server : servers) {
-			List<UpTime> upTimes = upTimeService.getRecentItems(10);
-			List<MysqlFlush> mysqlFlushs = mysqlFlushService.getRecentItems(5);
-			List<Diskfree> diskfrees = diskfreeService.getRecentItems(5);
-			List<JobError> jobErrors = jobErrorService.getRecentItems(5);
-			List<MysqlDump> mysqlDumps = mysqlDumpService.getRecentItems(1);
-			List<BorgDownload> borgDownloads = borgDownloadService.getRecentItems(5);
+			List<UpTime> upTimes = upTimeDbService.getRecentItems(10);
+			List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(5);
+			List<Diskfree> diskfrees = diskfreeDbService.getRecentItems(5);
+			List<JobError> jobErrors = jobErrorDbService.getRecentItems(5);
+			List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(1);
+			List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(5);
 			ServerContext osc = new ServerContext(upTimes, mysqlFlushs, diskfrees, jobErrors, mysqlDumps,
 					borgDownloads);
 			osc.setServer(server);

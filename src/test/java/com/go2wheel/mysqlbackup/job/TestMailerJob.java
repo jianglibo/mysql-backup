@@ -63,12 +63,12 @@ public class TestMailerJob extends JobBaseFort {
 		deleteAllJobs();
 		
 		ServerGrp sg = new ServerGrp("default");
-		sg = serverGrpService.save(sg);
+		sg = serverGrpDbService.save(sg);
 		
-		serverGrpService.addServer(sg, server);
+		serverGrpDbService.addServer(sg, server);
 		
 		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		deleteAllJobs();
 		
 		JobDataMap jdm = new JobDataMap();

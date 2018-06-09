@@ -13,17 +13,17 @@ import com.go2wheel.mysqlbackup.repository.DiskfreeRepository;
 
 @Service
 @Validated
-public class DiskfreeService extends ServiceBase<DiskfreeRecord, Diskfree> {
+public class DiskfreeDbService extends ServiceBase<DiskfreeRecord, Diskfree> {
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 
-	public DiskfreeService(DiskfreeRepository repo) {
+	public DiskfreeDbService(DiskfreeRepository repo) {
 		super(repo);
 	}
 
 	public List<Diskfree> getItemsInDays(Server box, int days) {
-		Server server = serverService.findByHost(box.getHost());
+		Server server = serverDbService.findByHost(box.getHost());
 		return  ((DiskfreeRepository)repo).getItemsInDays(server.getId(), days);
 	}
 	

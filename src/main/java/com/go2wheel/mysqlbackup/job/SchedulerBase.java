@@ -17,7 +17,7 @@ import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class SchedulerBase {
@@ -26,7 +26,7 @@ public class SchedulerBase {
 	protected Scheduler scheduler;
 	
 	@Autowired
-	protected ServerService serverService;
+	protected ServerDbService serverDbService;
 	
 	public void createTrigger(BaseModel bm, String cronExpression, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
 		if (!StringUtil.hasAnyNonBlankWord(cronExpression)) return;

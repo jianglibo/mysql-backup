@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.model.BigOb;
-import com.go2wheel.mysqlbackup.service.BigObService;
+import com.go2wheel.mysqlbackup.service.BigObDbService;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
@@ -26,7 +26,7 @@ public class SecurityService {
 	private MyAppSettings appSettings;
 
 	@Autowired
-	private BigObService bigObService;
+	private BigObDbService bigObDbService;
 
 
 	public FacadeResult<?> securityKeygen(String enc) throws ClassNotFoundException, SQLException {
@@ -42,7 +42,7 @@ public class SecurityService {
 	public FacadeResult<?> securityCopySshkey(boolean toFile, boolean deleteFile) throws ClassNotFoundException, IOException {
 		String idrsa = appSettings.getSsh().getSshIdrsa();
 		Path idrsaPath = Paths.get(idrsa);
-		BigOb bo = bigObService.findByName(BigOb.SSH_KEYFILE_NAME);
+		BigOb bo = bigObDbService.findByName(BigOb.SSH_KEYFILE_NAME);
 		if (toFile) {
 			if (bo == null) {
 				FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KEYFILE_NAME);
@@ -56,10 +56,10 @@ public class SecurityService {
 				bo.setContent(bytes);
 				bo.setCreatedAt(new Date());
 				bo.setName(BigOb.SSH_KEYFILE_NAME);
-				bigObService.save(bo);
+				bigObDbService.save(bo);
 			} else {
 				bo.setContent(bytes);
-				bigObService.save(bo);
+				bigObDbService.save(bo);
 			}
 		}
 		return FacadeResult.doneExpectedResult();
@@ -68,7 +68,7 @@ public class SecurityService {
 	public FacadeResult<?> securityCopyKnownHosts(boolean toFile) throws IOException {
 		String knownHosts = appSettings.getSsh().getKnownHosts();
 		Path knownHostsPath = Paths.get(knownHosts);
-		BigOb bo = bigObService.findByName(BigOb.SSH_KNOWN_HOSTS);
+		BigOb bo = bigObDbService.findByName(BigOb.SSH_KNOWN_HOSTS);
 		if (toFile) {
 			if (bo == null) {
 				FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KNOWN_HOSTS);
@@ -82,10 +82,10 @@ public class SecurityService {
 				bo.setContent(bytes);
 				bo.setCreatedAt(new Date());
 				bo.setName(BigOb.SSH_KNOWN_HOSTS);
-				bigObService.save(bo);
+				bigObDbService.save(bo);
 			} else {
 				bo.setContent(bytes);
-				bigObService.save(bo);
+				bigObDbService.save(bo);
 			}
 		}
 		return FacadeResult.doneExpectedResult();

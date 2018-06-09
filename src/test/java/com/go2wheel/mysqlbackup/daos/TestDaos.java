@@ -16,12 +16,12 @@ import org.springframework.dao.DuplicateKeyException;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
-import com.go2wheel.mysqlbackup.service.ReuseableCronService;
+import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 
 public class TestDaos extends SpringBaseFort {
 	
 	@Autowired
-	private ReuseableCronService reusableCronService;
+	private ReuseableCronDbService reusableCronDbService;
 	
 	
 	@Autowired
@@ -41,7 +41,7 @@ public class TestDaos extends SpringBaseFort {
 		long num  = reusableCronRepository.count();
 		assertThat(num, equalTo(0L));
 		ReusableCron ma = new ReusableCron("", "你好");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 		num  = reusableCronRepository.count();
 		assertThat(num, equalTo(1L));
 		assertThat(ma.getId(), greaterThan(0));
@@ -52,7 +52,7 @@ public class TestDaos extends SpringBaseFort {
 		long num  = reusableCronRepository.count();
 		assertThat(num, equalTo(0L));
 		ReusableCron ma = new ReusableCron(null, "你好");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 		num  = reusableCronRepository.count();
 		assertThat(num, equalTo(1L));
 		assertThat(ma.getId(), greaterThan(0));
@@ -63,7 +63,7 @@ public class TestDaos extends SpringBaseFort {
 		long num  = reusableCronRepository.count();
 		assertThat(num, equalTo(0L));
 		ReusableCron ma = new ReusableCron("hello", "你好");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 		num  = reusableCronRepository.count();
 		assertThat(num, equalTo(1L));
 		assertThat(ma.getId(), greaterThan(0));
@@ -74,7 +74,7 @@ public class TestDaos extends SpringBaseFort {
 		long num  = reusableCronRepository.count();
 		assertThat(num, equalTo(0L));
 		ReusableCron ma = new ReusableCron("0 30 6,12 * * ?", "hello");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 	}
 	
 	@Test(expected = DuplicateKeyException.class)
@@ -82,10 +82,10 @@ public class TestDaos extends SpringBaseFort {
 		long num  = reusableCronRepository.count();
 		assertThat(num, equalTo(0L));
 		ReusableCron ma = new ReusableCron("0 30 6,12 * * ?", "hello");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 		
 		ma = new ReusableCron("0 30 6,12 * * ?", "hello");
-		ma = reusableCronService.save(ma);
+		ma = reusableCronDbService.save(ma);
 
 	}
 

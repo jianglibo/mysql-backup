@@ -12,7 +12,7 @@ import org.quartz.JobExecutionException;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 
-public class TestMysqlInstanceService extends ServiceTbase {
+public class TestMysqlInstanceDbService extends ServiceTbase {
 
 	@Test
 	public void t() throws JobExecutionException {
@@ -20,9 +20,9 @@ public class TestMysqlInstanceService extends ServiceTbase {
 		
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").addSetting("a", "b").build();
 		
-		mi = mysqlInstanceService.save(mi);
+		mi = mysqlInstanceDbService.save(mi);
 
-		List<MysqlInstance> mis = mysqlInstanceService.findAll();
+		List<MysqlInstance> mis = mysqlInstanceDbService.findAll();
 		int sz = mis.size();
 		assertThat(sz, equalTo(1));
 		

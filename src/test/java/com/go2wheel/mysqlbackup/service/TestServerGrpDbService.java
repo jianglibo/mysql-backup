@@ -14,17 +14,17 @@ import org.springframework.dao.DuplicateKeyException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 
-public class TestServerGrpService extends ServiceTbase {
+public class TestServerGrpDbService extends ServiceTbase {
 	
 	@Before
 	public void b() {
-		deleteAll(serverGrpService);
+		deleteAll(serverGrpDbService);
 	}
 	
 	@Test
 	public void testInsertSuccess() {
 		ServerGrp serverGrp = new ServerGrp("abc1");
-		serverGrp = serverGrpService.save(serverGrp);
+		serverGrp = serverGrpDbService.save(serverGrp);
 		assertThat(serverGrp.getId(), greaterThan(99));
 	}
 	
@@ -32,8 +32,8 @@ public class TestServerGrpService extends ServiceTbase {
 	public void testInsertViolateUniqueName() {
 		ServerGrp serverGrp = new ServerGrp("abc1");
 		
-		serverGrpService.save(serverGrp);
-		serverGrp = serverGrpService.save(serverGrp);
+		serverGrpDbService.save(serverGrp);
+		serverGrp = serverGrpDbService.save(serverGrp);
 		
 		assertThat(serverGrp.getId(), greaterThan(99));
 	}
@@ -41,23 +41,23 @@ public class TestServerGrpService extends ServiceTbase {
 	@Test
 	public void addServer() {
 		ServerGrp serverGrp = new ServerGrp("abc1");
-		serverGrp = serverGrpService.save(serverGrp);
+		serverGrp = serverGrpDbService.save(serverGrp);
 		
 		Server server = new Server("abc", "bbc");
-		server = serverService.save(server);
+		server = serverDbService.save(server);
 		
-		List<Server> servers = serverGrpService.getServers(serverGrp);
+		List<Server> servers = serverGrpDbService.getServers(serverGrp);
 		
 		assertThat(servers.size(), equalTo(0));
 		
-		serverGrpService.addServer(serverGrp, server);
+		serverGrpDbService.addServer(serverGrp, server);
 		
-		servers = serverGrpService.getServers(serverGrp);
+		servers = serverGrpDbService.getServers(serverGrp);
 		assertThat(servers.size(), equalTo(1));
 		
-		serverGrpService.removeServer(serverGrp, server);
+		serverGrpDbService.removeServer(serverGrp, server);
 		
-		servers = serverGrpService.getServers(serverGrp);
+		servers = serverGrpDbService.getServers(serverGrp);
 		assertThat(servers.size(), equalTo(0));
 
 	}
@@ -65,18 +65,18 @@ public class TestServerGrpService extends ServiceTbase {
 	
 	public void tFindLikeEname() {
 		ServerGrp serverGrp = new ServerGrp("abc1");
-		serverGrp = serverGrpService.save(serverGrp);
+		serverGrp = serverGrpDbService.save(serverGrp);
 		
-		List<ServerGrp> sgps = serverGrpService.findLikeEname("a");
+		List<ServerGrp> sgps = serverGrpDbService.findLikeEname("a");
 		assertThat(sgps.size(), equalTo(1));
 		
-		sgps = serverGrpService.findLikeEname("b");
+		sgps = serverGrpDbService.findLikeEname("b");
 		assertThat(sgps.size(), equalTo(1));
 		
-		sgps = serverGrpService.findLikeEname("c");
+		sgps = serverGrpDbService.findLikeEname("c");
 		assertThat(sgps.size(), equalTo(1));
 		
-		sgps = serverGrpService.findLikeEname("1");
+		sgps = serverGrpDbService.findLikeEname("1");
 		assertThat(sgps.size(), equalTo(1));
 
 

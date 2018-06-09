@@ -26,9 +26,9 @@ import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.BackupFolderService;
+import com.go2wheel.mysqlbackup.service.BackupFolderDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
-import com.go2wheel.mysqlbackup.service.ServerService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 @Component
@@ -45,10 +45,10 @@ public class ApplicationState implements EnvironmentAware {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
-	private ServerService serverService;
+	private ServerDbService serverDbService;
 	
 	@Autowired
-	private BackupFolderService bfService;
+	private BackupFolderDbService bfService;
 
 	@Autowired
 	private MyAppSettings appSettings;
@@ -80,7 +80,7 @@ public class ApplicationState implements EnvironmentAware {
 
 	@PostConstruct
 	public void post() throws IOException {
-		servers = serverService.findAll().stream().map(s -> serverService.loadFull(s)).collect(Collectors.toList());
+		servers = serverDbService.findAll().stream().map(s -> serverDbService.loadFull(s)).collect(Collectors.toList());
 		logger.info("load {} servers.", servers.size());
 	}
 	

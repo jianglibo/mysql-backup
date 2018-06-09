@@ -14,17 +14,17 @@ public class TestUserAndServerGrp extends JobBaseFort {
 
 	@Test
 	public void t() throws SchedulerException {
-		assertThat(serverGrpService.count(), equalTo(0L));
+		assertThat(serverGrpDbService.count(), equalTo(0L));
 		ServerGrp sg = new ServerGrp("oneGroup");
-		sg = serverGrpService.save(sg);
-		assertThat(serverGrpService.count(), equalTo(1L));
+		sg = serverGrpDbService.save(sg);
+		assertThat(serverGrpDbService.count(), equalTo(1L));
 		UserAccount ua = createUser();
 
 		assertThat(countJobs(), equalTo(0L));
 
 		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION,
 				"aname").build(); // no cron expression.
-		usg = userServerGrpService.save(usg);
+		usg = userServerGrpDbService.save(usg);
 		assertThat(countJobs(), equalTo(1L));
 	}
 

@@ -15,21 +15,21 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 
-public class TestServerService extends ServiceTbase {
+public class TestServerDbService extends ServiceTbase {
 	
 	
 	@Test
 	public void tWithMysqlInstanceAndBorgDescription() {
 		Server server = new Server("abc", "bbc");
-		server = serverService.save(server);
+		server = serverDbService.save(server);
 		
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").build();
-		mi = mysqlInstanceService.save(mi);
+		mi = mysqlInstanceDbService.save(mi);
 		
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).build();
-		bd = borgDescriptionService.save(bd);
+		bd = borgDescriptionDbService.save(bd);
 		
-		server = serverService.loadFull(server);
+		server = serverDbService.loadFull(server);
 		
 		assertNull(server.getMysqlInstance());
 		assertNull(server.getBorgDescription());
@@ -38,11 +38,11 @@ public class TestServerService extends ServiceTbase {
 	@Test
 	public void tCreate() {
 		Server server = ca();
-		server = serverService.save(server);
+		server = serverDbService.save(server);
 		
 		assertThat(server.getId(), greaterThan(99));
 		
-		server = serverService.loadFull(server);
+		server = serverDbService.loadFull(server);
 		
 		assertNull(server.getMysqlInstance());
 		assertNull(server.getBorgDescription());
@@ -52,40 +52,40 @@ public class TestServerService extends ServiceTbase {
 	public void tFindByHost() {
 		Server server = ca();
 		assertThat(server.getId(), greaterThan(99));
-		server = serverService.findByHost("abc");
+		server = serverDbService.findByHost("abc");
 		assertNotNull(server);
 		
-		server = serverService.findByHost("abckku");
+		server = serverDbService.findByHost("abckku");
 		assertNull(server);
 	}
 	
 	private Server ca() {
 		Server server = new Server("abc", "bbc");
-		return serverService.save(server);
+		return serverDbService.save(server);
 	}
 	
 	@Test
 	public void tFindLikeHost() {
 		ca();
-		List<Server> servers = serverService.findLikeHost("abc");
+		List<Server> servers = serverDbService.findLikeHost("abc");
 		assertThat(servers.size(), equalTo(1));
 		
-		servers = serverService.findLikeHost("a");
+		servers = serverDbService.findLikeHost("a");
 		assertThat(servers.size(), equalTo(1));
 		
-		servers = serverService.findLikeHost("b");
+		servers = serverDbService.findLikeHost("b");
 		assertThat(servers.size(), equalTo(1));
 		
-		servers = serverService.findLikeHost("c");
+		servers = serverDbService.findLikeHost("c");
 		assertThat(servers.size(), equalTo(1));
 		
-		servers = serverService.findLikeHost("ac");
+		servers = serverDbService.findLikeHost("ac");
 		assertThat(servers.size(), equalTo(0));
 		
-		servers = serverService.findLikeHost("a%c");
+		servers = serverDbService.findLikeHost("a%c");
 		assertThat(servers.size(), equalTo(1));
 		
-		servers = serverService.findLikeHost("a_c");
+		servers = serverDbService.findLikeHost("a_c");
 		assertThat(servers.size(), equalTo(1));
 	}
 
