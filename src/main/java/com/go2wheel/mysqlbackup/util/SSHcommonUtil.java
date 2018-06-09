@@ -6,10 +6,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -24,7 +22,6 @@ import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
-import com.go2wheel.mysqlbackup.value.DiskFreeAllString;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.UptimeAllString;
 import com.jcraft.jsch.Channel;
@@ -280,18 +277,6 @@ public class SSHcommonUtil {
 			ExceptionUtil.logErrorException(logger, e);
 			return -1;
 		}
-	}
-
-	public static List<DiskFreeAllString> getDiskUsage(Session session) {
-		String command = "df -l -Bm";
-		try {
-			RemoteCommandResult rcr = runRemoteCommand(session, command);
-			return rcr.getAllTrimedNotEmptyLines().stream().map(DiskFreeAllString::build).filter(Objects::nonNull)
-					.collect(Collectors.toList());
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-		}
-		return new ArrayList<>();
 	}
 
 	public static RemoteCommandResult runRemoteCommand(Session session, String command)
