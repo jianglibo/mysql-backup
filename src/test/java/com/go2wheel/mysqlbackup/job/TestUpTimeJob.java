@@ -5,25 +5,10 @@ import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
 import org.quartz.SchedulerException;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.model.Server;
 
 public class TestUpTimeJob extends JobBaseFort {
-	
-	@Autowired
-	private ServerStateJob upTimeJob;
-	
-	@Test
-	public void t() throws SchedulerException {
-		createServer();
-		deleteAllJobs();
-		createContext();
-		upTimeJob.execute(context);
-		
-		upTimeDbService.count();
-		assertThat(upTimeDbService.count(), equalTo(1L));
-	}
 	
 	@Test
 	public void tCreateServerWithUptimeCron() throws SchedulerException {

@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -34,6 +35,7 @@ public class ServerStateJob implements Job {
 	private SshSessionFactory sshSessionFactory;
 
 	@Override
+	@TrapException(ServerStateJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);

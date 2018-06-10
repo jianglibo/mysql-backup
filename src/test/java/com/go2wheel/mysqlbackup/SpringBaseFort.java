@@ -37,6 +37,7 @@ import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
 import com.go2wheel.mysqlbackup.service.JobErrorDbService;
+import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -79,6 +80,9 @@ public class SpringBaseFort {
 	@Autowired
 	protected DSLContext jooq;
 	
+	
+	@Autowired
+	protected JobLogDbService jobLogDbService;
 	
 	@Autowired
 	protected ApplicationContext applicationContext;
@@ -174,7 +178,7 @@ public class SpringBaseFort {
 	@Before
 	public void beforeBase() throws SchedulerException {
 //		UtilForTe.deleteAllJobs(scheduler);
-		
+		jobLogDbService.deleteAll();
 		keyValueInDbService.deleteAll();
 		mysqlInstanceDbService.deleteAll();
 		borgDescriptionDbService.deleteAll();

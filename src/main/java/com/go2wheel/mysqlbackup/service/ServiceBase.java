@@ -7,8 +7,6 @@ import javax.validation.Valid;
 import org.jooq.Condition;
 import org.jooq.SortField;
 import org.jooq.UpdatableRecord;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
@@ -22,8 +20,6 @@ import com.go2wheel.mysqlbackup.repository.RepositoryBase;
 public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
 	
 	private ApplicationEventPublisher applicationEventPublisher;
-	
-	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected RepositoryBase<R, P> repo;
 	
