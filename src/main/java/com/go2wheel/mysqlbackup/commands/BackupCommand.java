@@ -70,8 +70,8 @@ import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
-import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -84,7 +84,6 @@ import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -200,10 +199,10 @@ public class BackupCommand {
 			@ShowDefaultValue() @ShellOption(help = "端口", defaultValue = "22") int port,
 			@ShowDefaultValue() @ShellOption(help = "sshKey文件路径", defaultValue = ShellCommonParameterValue.NOT_EXIST_FILE) File sshKeyFile,
 			@ShowDefaultValue() @ShellOption(help = "knowHosts文件路径", defaultValue = ShellCommonParameterValue.NOT_EXIST_FILE) File knownHostsFile,
-			@ShowDefaultValue() @ShellOption(help = "密码", defaultValue = Box.NO_PASSWORD) String password) {
+			@ShowDefaultValue() @ShellOption(help = "密码", defaultValue = Server.NO_PASSWORD) String password) {
 		File sshk = ShellCommonParameterValue.NOT_EXIST_FILE.equals(sshKeyFile.getName()) ? null : sshKeyFile;
 		File knonwh = ShellCommonParameterValue.NOT_EXIST_FILE.equals(knownHostsFile.getName()) ? null : knownHostsFile;
-		String ppaw = Box.NO_PASSWORD.equals(password) ? null : password;
+		String ppaw = Server.NO_PASSWORD.equals(password) ? null : password;
 
 		if (sshk == null && ppaw == null) {
 			return FacadeResult.showMessageUnExpected("ssh.auth.noway");
@@ -250,6 +249,8 @@ public class BackupCommand {
 		if (server == null) {
 			server = new Server(host, name);
 			server.setOs(os);
+			server.setUptimeCron(dvs.getCron().getUptime());
+			server.setDiskfreeCron(dvs.getCron().getDiskfree());
 			server = serverDbService.save(server);
 		}
 		return FacadeResult.doneExpectedResultDone(server);

@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -10,19 +12,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.DiskfreeService;
+import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.Session;
 
 @Component
-public class DiskfreeJob implements Job {
+public class StorageStateJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private DiskfreeService diskfreeService;
+	private StorageStateService storageStateService;
 
 	@Autowired
 	private ServerDbService serverDbService;
@@ -44,7 +47,13 @@ public class DiskfreeJob implements Job {
 				logger.error("Connecting to server {} failed. message is: {}", server.getHost(), fr.getMessage());
 				return;
 			}
-			diskfreeService.getLinuxDiskfree(server, session);
+			if ("localhost".equals(server.getHost())) {
+				storageStateService.getWinLocalDiskFree(server);
+			} else {
+				storageStateService.getLinuxStorageState(server, session);	
+			}
+		} catch (IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -60,6 +61,22 @@ public class RemoteCommandResult {
 	public String getStdOut() {
 		if (stdOut == null) return "";
 		return stdOut;
+	}
+	
+	public List<String> getStdOutList() {
+		if (stdOut == null) {
+			return new ArrayList<>();
+		} else {
+			return StringUtil.splitLines(stdOut);
+		}
+	}
+	
+	public List<String> getErrorOutList() {
+		if (errOut == null) {
+			return new ArrayList<>();
+		} else {
+			return StringUtil.splitLines(errOut);
+		}
 	}
 
 	public void setStdOut(String stdOut) {

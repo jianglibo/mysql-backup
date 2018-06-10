@@ -16,9 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.EnvironmentAware;
 import org.springframework.context.event.EventListener;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
@@ -26,13 +24,12 @@ import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.BackupFolderDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 @Component
-public class ApplicationState implements EnvironmentAware {
+public class ApplicationState {
 
 	public static final String APPLICATION_STATE_PERSIST_FILE = "application-state.yml";
 	
@@ -48,12 +45,6 @@ public class ApplicationState implements EnvironmentAware {
 	private ServerDbService serverDbService;
 	
 	@Autowired
-	private BackupFolderDbService bfService;
-
-	@Autowired
-	private MyAppSettings appSettings;
-	
-	@Autowired
 	private KeyValueInDbService keyValueInDbService;
 
 	@Autowired
@@ -61,8 +52,6 @@ public class ApplicationState implements EnvironmentAware {
 	
 	private List<Server> servers = new ArrayList<>();
 	
-	private Environment environment;
-
 	private Locale local = Locale.CHINESE;
 	
 	private Server currentServer;
@@ -162,11 +151,6 @@ public class ApplicationState implements EnvironmentAware {
 
 	public void setFacadeResult(FacadeResult<?> facadeResult) {
 		this.facadeResult = facadeResult;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
 	}
 
 	public Server getCurrentServer() {

@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.value;
+package com.go2wheel.mysqlbackup.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.model.UpTime;
+import com.go2wheel.mysqlbackup.service.ServerStateService.UptimeAllString;
 
 public class TestUptimeAllString {
 	

@@ -40,7 +40,7 @@ public class UpgradeUtil {
 
 	public static final Pattern JAR_FILE_PTN = Pattern.compile("mysql-backup-[^-]*-boot.jar");
 
-	private static final Pattern MIGS_PTN = Pattern.compile(".*/mig/.*\\.yml");
+//	private static final Pattern MIGS_PTN = Pattern.compile(".*/mig/.*\\.yml");
 
 	private final Path tmpPath;
 
@@ -53,8 +53,12 @@ public class UpgradeUtil {
 	public UpgradeUtil(Path zipFile) throws IOException {
 		if (zipFile != null) {
 			this.tmpPath = extractFolder(zipFile);
+			if (jarFile == null) {
+				printme("Can't find boot jarFile in " + zipFile.toString());
+				return;
+			}
 			this.setBuildInfo(createBuildInfo());
-			iterateJarFile();
+//			iterateJarFile();
 		} else {
 			this.tmpPath = null;
 		}
@@ -117,25 +121,25 @@ public class UpgradeUtil {
 		return null;
 	}
 
-	private void iterateJarFile() {
-		try (JarFile jfile = new JarFile(tmpPath.resolve(jarFile).toFile())) {
-			Enumeration<?> zipFileEntries = jfile.entries();
-			// Process each entry
-			while (zipFileEntries.hasMoreElements()) {
-				// grab a zip file entry
-				ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
-				String currentEntry = entry.getName();
-				if (MIGS_PTN.matcher(currentEntry).matches()) {
-					try (InputStream is = jfile.getInputStream(entry)) {
-						String mig = StringUtil.inputstreamToString(is);
-						migs.put(Paths.get(currentEntry).getFileName().toString(), mig);
-					}
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+//	private void iterateJarFile() {
+//		try (JarFile jfile = new JarFile(tmpPath.resolve(jarFile).toFile())) {
+//			Enumeration<?> zipFileEntries = jfile.entries();
+//			// Process each entry
+//			while (zipFileEntries.hasMoreElements()) {
+//				// grab a zip file entry
+//				ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+//				String currentEntry = entry.getName();
+//				if (MIGS_PTN.matcher(currentEntry).matches()) {
+//					try (InputStream is = jfile.getInputStream(entry)) {
+//						String mig = StringUtil.inputstreamToString(is);
+//						migs.put(Paths.get(currentEntry).getFileName().toString(), mig);
+//					}
+//				}
+//			}
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//		}
+//	}
 
 	private BuildInfo createBuildInfo() throws IOException {
 		if (this.tmpPath == null) {

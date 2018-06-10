@@ -12,7 +12,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 public class TestUpTimeJob extends JobBaseFort {
 	
 	@Autowired
-	private UpTimeJob upTimeJob;
+	private ServerStateJob upTimeJob;
 	
 	@Test
 	public void t() throws SchedulerException {

@@ -3,18 +3,19 @@ package com.go2wheel.mysqlbackup.mail;
 import java.util.List;
 
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.Diskfree;
 import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.UpTime;
+import com.go2wheel.mysqlbackup.model.ServerState;
+import com.go2wheel.mysqlbackup.model.StorageState;
 
 public class ServerContext {
 	
-	private List<UpTime> upTimes;
+	private List<ServerState> serverStates;
 	private List<MysqlFlush> mysqlFlushs;
-	private List<Diskfree> diskfrees;
+	private List<StorageState> storageStates;
+	
 	private List<JobError> jobErrors;
 	private List<MysqlDump> mysqlDumps;
 	private List<BorgDownload> borgDownloads;
@@ -23,32 +24,24 @@ public class ServerContext {
 	
 	public ServerContext() {}
 	
-	public ServerContext(List<UpTime> upTimes, List<MysqlFlush> mysqlFlushs, List<Diskfree> diskfrees,
+	public ServerContext(List<ServerState> serverStates, List<MysqlFlush> mysqlFlushs, List<StorageState> storageStates,
 			List<JobError> jobErrors, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
 		super();
-		this.upTimes = upTimes;
 		this.mysqlFlushs = mysqlFlushs;
-		this.diskfrees = diskfrees;
 		this.jobErrors = jobErrors;
 		this.mysqlDumps = mysqlDumps;
 		this.borgDownloads = borgDownloads;
+		this.serverStates = serverStates;
+		this.storageStates = storageStates;
 	}
 
-	public List<UpTime> getUpTimes() {
-		return upTimes;
-	}
 
-	public void setUpTimes(List<UpTime> upTimes) {
-		this.upTimes = upTimes;
-	}
 
 	public List<MysqlFlush> getMysqlFlushs() {
 		return mysqlFlushs;
 	}
 
-	public List<Diskfree> getDiskfrees() {
-		return diskfrees;
-	}
+
 
 	public List<JobError> getJobErrors() {
 		return jobErrors;
@@ -75,8 +68,20 @@ public class ServerContext {
 		this.mysqlFlushs = mysqlFlushs;
 	}
 
-	public void setDiskfrees(List<Diskfree> diskfrees) {
-		this.diskfrees = diskfrees;
+	public List<ServerState> getServerStates() {
+		return serverStates;
+	}
+
+	public void setServerStates(List<ServerState> serverStates) {
+		this.serverStates = serverStates;
+	}
+
+	public List<StorageState> getStorageStates() {
+		return storageStates;
+	}
+
+	public void setStorageStates(List<StorageState> storageStates) {
+		this.storageStates = storageStates;
 	}
 
 	public void setJobErrors(List<JobError> jobErrors) {

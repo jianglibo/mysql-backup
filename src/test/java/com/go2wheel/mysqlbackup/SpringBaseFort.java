@@ -43,6 +43,8 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerStateDbService;
+import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.UpTimeDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
@@ -86,6 +88,12 @@ public class SpringBaseFort {
 
 	@Autowired
 	protected Scheduler scheduler;
+	
+	@Autowired
+	protected StorageStateDbService storageStateDbService;
+	
+	@Autowired
+	protected ServerStateDbService serverStateDbService;
 	
 	@Autowired
 	protected ServerDbService serverDbService;
@@ -176,6 +184,8 @@ public class SpringBaseFort {
 		backupFolderDbService.deleteAll();
 		diskfreeDbService.deleteAll();
 		upTimeDbService.deleteAll();
+		serverStateDbService.deleteAll();
+		storageStateDbService.deleteAll();
 		borgDownloadDbService.deleteAll();
 		jobErrorDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
@@ -231,8 +241,13 @@ public class SpringBaseFort {
 	}
 	
 	protected void createServer() {
-		server = new Server(HOST_DEFAULT, "a server.");
+		server = createServer(HOST_DEFAULT);
 		server = serverDbService.save(server);
+	}
+	
+	protected Server createServer(String host) {
+		Server s = new Server(host, "a server.");
+		return serverDbService.save(s);
 	}
 	
 	protected UserAccount createUser() {

@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
@@ -67,6 +68,16 @@ public class TestPowershellBasic {
 		List<String> ls = rcr.getAllTrimedNotEmptyLines();
 		assertTrue(ls.get(0).contains("Name"));
 
+	}
+	
+	@Test
+	public void testFormatList() throws IOException {
+		String pscommand = "Get-PSDrive | Where-Object Name -Match '^.{1}$' | Format-List -Property *";
+		RemoteCommandResult rcr = PSUtil.runPsCommand(pscommand);
+		
+		List<Map<String, String>> lmss = PSUtil.parseFormatList(rcr.getStdOutList());
+		assertThat(lmss.size(), greaterThan(1));
+		
 	}
 
 }

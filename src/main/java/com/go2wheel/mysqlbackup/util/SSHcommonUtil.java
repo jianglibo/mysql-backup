@@ -23,7 +23,6 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.go2wheel.mysqlbackup.value.UptimeAllString;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
 import com.jcraft.jsch.JSchException;
@@ -251,17 +250,17 @@ public class SSHcommonUtil {
 		}
 	}
 
-	public static UptimeAllString getUpTime(Session session) {
-		String command = "uptime -s;uptime -p;uptime";
-		try {
-			RemoteCommandResult rcr = runRemoteCommand(session, command);
-			return UptimeAllString.build(rcr.getAllTrimedNotEmptyLines());
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return null;
-		}
-	}
-	
+//	public static UptimeAllString getUpTime(Session session) {
+//		String command = "uptime -s;uptime -p;uptime";
+//		try {
+//			RemoteCommandResult rcr = runRemoteCommand(session, command);
+//			return UptimeAllString.build(rcr.getAllTrimedNotEmptyLines());
+//		} catch (RunRemoteCommandException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			return null;
+//		}
+//	}
+//	
 	
 	public static int coreNumber(Session session) {
 		String command = "grep 'model name' /proc/cpuinfo | wc -l";

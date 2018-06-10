@@ -17,8 +17,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.ReusableCron;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
@@ -26,10 +28,13 @@ import com.go2wheel.mysqlbackup.value.DefaultValues;
 public class AppEventListenerBean implements EnvironmentAware {
 	
 	@Autowired
-	private ReuseableCronDbService reuseableCronService;
+	private ReuseableCronDbService reuseableCronDbService;
 	
 	@Autowired
 	private ServerGrpDbService serverGrpDbService;
+	
+	@Autowired
+	private ServerDbService serverDbService;
 	
 	@Autowired
 	private DefaultValues defaultValues;
@@ -62,17 +67,28 @@ public class AppEventListenerBean implements EnvironmentAware {
 					}
     			})
     			.forEach(cr -> {
-    				if (reuseableCronService.findByExpression(cr.getExpression()) == null) {
-    					reuseableCronService.save(cr);
+    				if (reuseableCronDbService.findByExpression(cr.getExpression()) == null) {
+    					reuseableCronDbService.save(cr);
     				}
     			});
     	createDefaultServerGrp();
+    	createServerMyself();
     	ApplicationState.IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
     	logger.info("onApplicationStartedEvent be called.");
     }
     
-    
-    private void createDefaultServerGrp() {
+	private void createServerMyself() {
+		Server server = serverDbService.findByHost("localhost");
+		if (server == null) {
+			server = new Server("localhost", "localhost");
+			server.setOs("win");
+			server.setUptimeCron(defaultValues.getCron().getUptime());
+			server.setDiskfreeCron(defaultValues.getCron().getDiskfree());
+			serverDbService.save(server);
+		}
+	}
+
+	private void createDefaultServerGrp() {
     	ServerGrp sg = serverGrpDbService.findByEname("default");
     	if (sg == null) {
     		sg = new ServerGrp("default");

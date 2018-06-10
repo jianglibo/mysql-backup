@@ -67,7 +67,14 @@ dv.cron.common[1]=0 0/30 * * * ?|\u6BCF\u534A\u4E2A\u5C0F\u65F6
 dv.cron.common[2]=0 30 12,18 * * ?|\u6BCF\u5929\u4E2D\u534812\u70B9\u534A\u548C\u4E0B\u53486\u70B9\u534A
 dv.cron.common[3]=0 15 10 ? * MON-FRI|\u5468\u4E00\u5230\u5468\u4E94\u768410\u70B915\u5206
 dv.cron.common[4]=0 15 0 13 * ?|\u6BCF\u4E2A\u670813\u65E5\u96F6\u70B915\u5206
-only.you=true
+dv.cron.common[5]=0 15 0 * * ?|\u6BCF\u5929\u96F6\u70B915\u5206
+dv.cron.common[6]=0 15 1 * * ?|\u6BCF\u59291\u70B915\u5206
+dv.cron.common[7]=0 15 2 * * ?|\u6BCF\u59292\u70B915\u5206
+dv.cron.common[8]=0 15 3 * * ?|\u6BCF\u59293\u70B915\u5206
+dv.cron.common[9]=0 15 4 * * ?|\u6BCF\u59294\u70B915\u5206
+
+ppp.aslist[0]=abc
+ppp.aslist[1]=ccd
 
 spring.thymeleaf.prefix=file:templates/thymeleaf/
 spring.thymeleaf.suffix=

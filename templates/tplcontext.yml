@@ -1,136 +1,131 @@
+myself:
+  borgDownloads: []
+  jobErrors: []
+  mysqlDumps: []
+  mysqlFlushs: []
+  server:
+    borgDescription: null
+    coreNumber: 0
+    createdAt: 2018-06-10T02:12:47.470Z
+    diskfreeCron: null
+    host: localhost
+    id: 143
+    mysqlInstance: null
+    name: a server.
+    os: null
+    password: i_have_no_password
+    port: 22
+    serverRole: null
+    sshKeyFile: i_have_no_sshkey_file
+    uptimeCron: null
+    username: root
+  serverStates:
+  - averageLoad: 7
+    createdAt: 2018-06-10T02:12:58.130Z
+    id: 134
+    memFree: 9264112
+    memUsed: 7454500
+    serverId: 143
+  - averageLoad: 2
+    createdAt: 2018-06-10T02:12:53.380Z
+    id: 133
+    memFree: 9256800
+    memUsed: 7461812
+    serverId: 143
+  - averageLoad: 11
+    createdAt: 2018-06-10T02:12:48.500Z
+    id: 132
+    memFree: 9217872
+    memUsed: 7500740
+    serverId: 143
+  storageStates: []
 serverGroup:
-  createdAt: 2018-06-06T01:26:04.130Z
+  createdAt: 2018-06-10T02:12:28.100Z
   ename: default
-  id: 137
+  id: 121
   msgkey: null
 servers:
 - borgDownloads:
-  - createdAt: 2018-06-06T01:26:16.240Z
-    downloadBytes: 4647264
-    downloadFiles: 3
-    id: 117
+  - createdAt: 2018-06-10T02:12:40.520Z
+    downloadBytes: 11679303
+    downloadFiles: 6
+    id: 120
     result: SUCCESS
-    serverId: 112
-    timeCost: 299
-    totalBytes: 9904048
-    totalFiles: 6
-  - createdAt: 2018-06-06T01:26:13.860Z
-    downloadBytes: 4646635
-    downloadFiles: 3
-    id: 116
+    serverId: 142
+    timeCost: 370
+    totalBytes: 11680860
+    totalFiles: 83
+  - createdAt: 2018-06-10T02:12:37.760Z
+    downloadBytes: 11678470
+    downloadFiles: 6
+    id: 119
     result: SUCCESS
-    serverId: 112
-    timeCost: 326
-    totalBytes: 9903419
-    totalFiles: 6
-  - createdAt: 2018-06-06T01:26:11.410Z
-    downloadBytes: 4646006
-    downloadFiles: 3
-    id: 115
+    serverId: 142
+    timeCost: 368
+    totalBytes: 11679993
+    totalFiles: 81
+  - createdAt: 2018-06-10T02:12:34.980Z
+    downloadBytes: 11677668
+    downloadFiles: 8
+    id: 118
     result: SUCCESS
-    serverId: 112
-    timeCost: 356
-    totalBytes: 9902790
-    totalFiles: 6
-  diskfrees:
-  - available: 49
-    blocks: 49
-    createdAt: 2018-06-06T01:26:22.070Z
-    fileSystem: tmpfs
-    id: 288
-    mountedOn: /run/user/0
-    serverId: 112
-    usePercent: 0
-    used: 0
-  - available: 71682
-    blocks: 250004
-    createdAt: 2018-06-06T01:26:22.070Z
-    fileSystem: vagrant
-    id: 287
-    mountedOn: /vagrant
-    serverId: 112
-    usePercent: 72
-    used: 178323
-  - available: 349
-    blocks: 497
-    createdAt: 2018-06-06T01:26:22.070Z
-    fileSystem: /dev/sda1
-    id: 286
-    mountedOn: /boot
-    serverId: 112
-    usePercent: 30
-    used: 149
-  - available: 29082
-    blocks: 29114
-    createdAt: 2018-06-06T01:26:22.070Z
-    fileSystem: /dev/mapper/centos-home
-    id: 285
-    mountedOn: /home
-    serverId: 112
-    usePercent: 1
-    used: 33
-  - available: 245
-    blocks: 245
-    createdAt: 2018-06-06T01:26:22.070Z
-    fileSystem: tmpfs
-    id: 284
-    mountedOn: /sys/fs/cgroup
-    serverId: 112
-    usePercent: 0
-    used: 0
+    serverId: 142
+    timeCost: 433
+    totalBytes: 11679123
+    totalFiles: 79
   jobErrors: []
   mysqlDumps:
-  - createdAt: 2018-06-06T01:26:05.400Z
+  - createdAt: 2018-06-10T02:12:28.720Z
     fileSize: 658408
-    id: 108
+    id: 106
     result: SUCCESS
-    serverId: 112
+    serverId: 142
     timeCost: 0
   mysqlFlushs:
-  - createdAt: 2018-06-06T01:26:08.920Z
+  - createdAt: 2018-06-10T02:12:32.120Z
     fileNumber: 4
     fileSize: 528
-    id: 121
-    result: null
-    serverId: 112
-    timeCost: 245
-  - createdAt: 2018-06-06T01:26:07.390Z
-    fileNumber: 3
-    fileSize: 408
     id: 120
     result: null
-    serverId: 112
-    timeCost: 208
-  - createdAt: 2018-06-06T01:26:05.980Z
-    fileNumber: 2
-    fileSize: 288
+    serverId: 142
+    timeCost: 286
+  - createdAt: 2018-06-10T02:12:30.710Z
+    fileNumber: 3
+    fileSize: 408
     id: 119
     result: null
-    serverId: 112
-    timeCost: 341
+    serverId: 142
+    timeCost: 359
+  - createdAt: 2018-06-10T02:12:29.210Z
+    fileNumber: 2
+    fileSize: 288
+    id: 118
+    result: null
+    serverId: 142
+    timeCost: 329
   server:
     borgDescription:
       archiveCron: null
       archiveFormat: yyyy-MM-dd-HH-mm-ss
       archiveNamePrefix: ARCHIVE-
-      createdAt: 2018-06-06T01:26:04.120Z
+      createdAt: 2018-06-10T02:12:28.090Z
       excludes: []
-      id: 107
+      id: 106
       includes:
       - /etc
       pruneCron: null
       repo: /opt/borgrepos/repo
-      serverId: 112
-    coreNumber: 2
-    createdAt: 2018-06-06T01:26:04.070Z
+      serverId: 142
+    coreNumber: 0
+    createdAt: 2018-06-10T02:12:28.060Z
     diskfreeCron: null
     host: 192.168.33.110
-    id: 112
+    id: 142
     mysqlInstance:
-      createdAt: 2018-06-06T01:26:04.090Z
+      createdAt: 2018-06-10T02:12:28.070Z
       flushLogCron: 0 0 0 1/1 * ?
       host: localhost
-      id: 108
+      id: 106
       logBinSetting:
         map:
           log_bin_basename: /var/lib/mysql/hm-log-bin
@@ -143,41 +138,70 @@ servers:
       - log_bin_index|/var/lib/mysql/hm-log-bin.index
       password: '123456'
       port: 3306
-      serverId: 112
+      serverId: 142
       username: root
     name: a server.
+    os: null
     password: i_have_no_password
     port: 22
     serverRole: null
     sshKeyFile: i_have_no_sshkey_file
     uptimeCron: null
     username: root
-  upTimes:
-  - createdAt: 2018-06-06T01:26:21.720Z
-    id: 120
-    loadFifteen: 5
-    loadFive: 3
-    loadOne: 8
-    serverId: 112
-    uptimeMinutes: 8136
-  - createdAt: 2018-06-06T01:26:20.150Z
-    id: 119
-    loadFifteen: 5
-    loadFive: 1
-    loadOne: 0
-    serverId: 112
-    uptimeMinutes: 8136
-  - createdAt: 2018-06-06T01:26:18.540Z
-    id: 118
-    loadFifteen: 5
-    loadFive: 1
-    loadOne: 0
-    serverId: 112
-    uptimeMinutes: 8136
+  serverStates:
+  - averageLoad: 6
+    createdAt: 2018-06-10T02:12:45.940Z
+    id: 131
+    memFree: 196542464
+    memUsed: 511934464
+    serverId: 142
+  - averageLoad: 6
+    createdAt: 2018-06-10T02:12:44.320Z
+    id: 130
+    memFree: 196411392
+    memUsed: 511934464
+    serverId: 142
+  - averageLoad: 6
+    createdAt: 2018-06-10T02:12:42.680Z
+    id: 129
+    memFree: 196173824
+    memUsed: 511934464
+    serverId: 142
+  storageStates:
+  - available: 51581218816
+    createdAt: 2018-06-10T02:12:46.450Z
+    id: 230
+    root: /
+    serverId: 142
+    used: 2079657984
+  - available: 244756480
+    createdAt: 2018-06-10T02:12:46.450Z
+    id: 231
+    root: /dev
+    serverId: 142
+    used: 0
+  - available: 902803456
+    createdAt: 2018-06-10T02:12:46.450Z
+    id: 232
+    root: /boot
+    serverId: 142
+    used: 160452608
+  - available: 30007914496
+    createdAt: 2018-06-10T02:12:46.450Z
+    id: 233
+    root: /home
+    serverId: 142
+    used: 33792000
+  - available: 8589799424
+    createdAt: 2018-06-10T02:12:46.450Z
+    id: 234
+    root: /vagrant
+    serverId: 142
+    used: 240516202496
 user:
-  createdAt: 2018-06-06T01:26:04.060Z
+  createdAt: 2018-06-10T02:12:28.060Z
   description: null
   email: jianglibo@gmail.com
-  id: 112
-  mobile: 9566f823-0e27-4cfb-88e5-c4cb8a188343
+  id: 107
+  mobile: 6ddeb7b6-b41b-4528-89ec-debd29e79a95
   name: 江立波

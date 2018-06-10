@@ -19,9 +19,9 @@ public class StringUtil {
 	
 	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
 	
-	private static final long KB = 1024;
-	private static final long MB = KB * 1024;
-	private static final long GB = MB * 1024;
+	public static final long KB = 1024;
+	public static final long MB = KB * 1024;
+	public static final long GB = MB * 1024;
 	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
@@ -48,7 +48,15 @@ public class StringUtil {
 			return 0;
 		}
 	}
-	
+
+	public static long parseLong(String numberHeaded) {
+		Matcher m = NUMBER_HEADED.matcher(numberHeaded);
+		if (m.matches()) {
+			return Integer.valueOf(m.group(1));
+		} else {
+			return 0;
+		}
+	}	
 	
 	public static String[] matchGroupValues(Matcher m) {
 		int c = m.groupCount();

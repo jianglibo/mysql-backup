@@ -16,7 +16,6 @@ import com.go2wheel.mysqlbackup.exception.MysqlDumpException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.Box;
 
 @ConfigurationProperties(prefix="myapp")
 @Component

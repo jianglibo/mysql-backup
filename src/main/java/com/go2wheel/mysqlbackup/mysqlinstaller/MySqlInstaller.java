@@ -16,18 +16,17 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.value.MysqlInstanceYml;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
@@ -162,7 +161,7 @@ public class MySqlInstaller {
 			cmd = String.format("yum -y remove %s", info.getPackageName());
 			SSHcommonUtil.runRemoteCommand(session, cmd);
 
-			String datadir = info.getVariables().get(MysqlInstanceYml.VAR_DATADIR);
+			String datadir = info.getVariables().get(MysqlInstance.VAR_DATADIR);
 			SSHcommonUtil.backupFileByMove(session, datadir);
 			if (datadir != null) {
 				cmd = String.format("rm -rf %s", datadir);

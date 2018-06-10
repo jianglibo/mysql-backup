@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -9,22 +11,21 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.UpTime;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.service.UpTimeDbService;
-import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.service.ServerStateService;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.value.UptimeAllString;
 import com.jcraft.jsch.Session;
 
 @Component
-public class UpTimeJob implements Job {
+public class ServerStateJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
+	
 	@Autowired
-	private UpTimeDbService upTimeDbService;
+	private ServerStateService serverStateService;
 	
 	@Autowired
 	private ServerDbService serverDbService;
@@ -36,27 +37,22 @@ public class UpTimeJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-		Server sv = serverDbService.findById(sid);
-		
+		Server server = serverDbService.findById(sid);
 		Session session = null;
 		try {
-			session = sshSessionFactory.getConnectedSession(sv).getResult();
-			UptimeAllString uta = SSHcommonUtil.getUpTime(session);
-			UpTime ut = uta.toUpTime();
-			if (sv.getCoreNumber() == 0) {
-				int cn = SSHcommonUtil.coreNumber(session);
-				sv.setCoreNumber(cn);
-				serverDbService.save(sv);
+			session = sshSessionFactory.getConnectedSession(server).getResult();
+			if ("localhost".equals(server.getHost())) {
+				serverStateService.createWinServerState(server, session);
+			} else {
+				serverStateService.createLinuxServerState(server, session);
 			}
-			if (sv != null) {
-				ut.setServerId(sv.getId());
-				upTimeDbService.save(ut);
-			}
+			
+		} catch (RunRemoteCommandException | IOException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();
 			}
 		}
 	}
-
 }

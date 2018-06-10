@@ -4,12 +4,14 @@ import java.util.List;
 
 import org.jooq.Condition;
 import org.jooq.DSLContext;
+import org.jooq.Field;
 import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
 import org.jooq.impl.DAOImpl;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.Server;
 
 public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends BaseModel> extends DAOImpl<R, P, Integer> implements RepositoryBase<R, P>{
 	
@@ -25,8 +27,11 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 		return object.getId();
 	}
 	
-	public List<P> getRecentItems(int number) {
-		return jooq.selectFrom(getTable()).orderBy(getTable().field("CREATED_AT").desc()).limit(number).fetchInto(getType());
+	public List<P> getRecentItems(Server server, int number) {
+		@SuppressWarnings("unchecked")
+		Field<Integer> fi = (Field<Integer>) getTable().field("SERVER_ID");
+		Field<?> createdSort =  getTable().field("CREATED_AT");
+		return jooq.selectFrom(getTable()).where(fi.eq(server.getId())).orderBy(createdSort.desc()).limit(number).fetchInto(getType());
 	}
 	
 	@Override

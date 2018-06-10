@@ -10,7 +10,6 @@ import org.junit.Test;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.UtilForTe;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;

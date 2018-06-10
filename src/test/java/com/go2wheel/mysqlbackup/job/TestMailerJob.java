@@ -14,6 +14,7 @@ import javax.mail.MessagingException;
 
 import org.junit.Test;
 import org.quartz.JobDataMap;
+import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
@@ -39,13 +41,13 @@ public class TestMailerJob extends JobBaseFort {
 	private BorgPruneJob borgPruneJob;
 	
 	@Autowired
-	private DiskfreeJob diskfreeJob;
+	private StorageStateJob storageStateJob;
 	
 	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;
 	
 	@Autowired
-	private UpTimeJob upTimeJob;
+	private ServerStateJob serverStateJob;
 	
 	@Autowired
 	private MysqlService mysqlService;
@@ -70,7 +72,12 @@ public class TestMailerJob extends JobBaseFort {
 		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
 		usg = userServerGrpDbService.save(usg);
 		deleteAllJobs();
-		
+		createServerData();
+		createMyselfData();
+		return usg;
+	}
+	
+	private void createServerData() throws JobExecutionException, InterruptedException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -91,13 +98,30 @@ public class TestMailerJob extends JobBaseFort {
 		borgPruneJob.execute(context);
 		
 		for(int i = 0; i< 3;i ++) {
-			upTimeJob.execute(context);
-			diskfreeJob.execute(context);
+			serverStateJob.execute(context);
+			storageStateJob.execute(context);
 			Thread.sleep(1000);
 		}
-		return usg;
+		
 	}
-	
+
+	private void createMyselfData() throws SchedulerException, InterruptedException {
+		createServer("localhost");
+		deleteAllJobs();
+		
+		Server sv = serverDbService.findByHost("localhost");
+		
+		JobDataMap jdm = new JobDataMap();
+		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, sv.getId());
+		given(context.getMergedJobDataMap()).willReturn(jdm);
+
+		for(int i = 0; i< 3;i ++) {
+			serverStateJob.execute(context);
+			storageStateJob.execute(context);
+			Thread.sleep(1000);
+		}
+	}
+
 	@Test
 	public void t() throws MessagingException, SchedulerException, InterruptedException {
 		

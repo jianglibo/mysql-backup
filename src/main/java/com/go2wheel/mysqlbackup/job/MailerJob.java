@@ -19,23 +19,23 @@ import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.Diskfree;
 import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
-import com.go2wheel.mysqlbackup.model.UpTime;
+import com.go2wheel.mysqlbackup.model.ServerState;
+import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
-import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
 import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
-import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.service.UpTimeDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerStateDbService;
+import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -46,7 +46,7 @@ public class MailerJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private UpTimeDbService upTimeDbService;
+	private ServerStateDbService serverStateDbService;
 
 	@Autowired
 	private UserServerGrpDbService userServerGrpDbService;
@@ -64,7 +64,7 @@ public class MailerJob implements Job {
 	private MysqlFlushDbService mysqlFlushDbService;
 
 	@Autowired
-	private DiskfreeDbService diskfreeDbService;
+	private StorageStateDbService storageStateDbService;
 
 	@Autowired
 	private JobErrorDbService jobErrorDbService;
@@ -97,18 +97,11 @@ public class MailerJob implements Job {
 		List<ServerContext> oscs = new ArrayList<>();
 
 		for (Server server : servers) {
-			List<UpTime> upTimes = upTimeDbService.getRecentItems(10);
-			List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(5);
-			List<Diskfree> diskfrees = diskfreeDbService.getRecentItems(5);
-			List<JobError> jobErrors = jobErrorDbService.getRecentItems(5);
-			List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(1);
-			List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(5);
-			ServerContext osc = new ServerContext(upTimes, mysqlFlushs, diskfrees, jobErrors, mysqlDumps,
-					borgDownloads);
-			osc.setServer(server);
+			ServerContext osc = makeServerContext(server);
 			oscs.add(osc);
 		}
-		ServerGroupContext rc = new ServerGroupContext(oscs, ua, sg);
+		Server myself = serverDbService.findByHost("localhost");
+		ServerGroupContext rc = new ServerGroupContext(oscs, ua, sg, makeServerContext(myself));
 		try {
 			mailer.sendMailWithInline(usg.getTemplate(), rc);
 		} catch (MessagingException e) {
@@ -116,10 +109,22 @@ public class MailerJob implements Job {
 		}
 	}
 
+	private ServerContext makeServerContext(Server server) {
+		List<ServerState> serverStates = serverStateDbService.getRecentItems(server, 10);
+		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, 5);
+		List<StorageState> storageStates = storageStateDbService.getRecentItems(server, 5);
+		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, 5);
+		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, 1);
+		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, 5);
+		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, jobErrors, mysqlDumps,
+				borgDownloads);
+		osc.setServer(server);
+		return osc;
+	}
+
 	@Autowired
 	public void setMailer(Mailer mailer) {
 		this.mailer = mailer;
-
 	}
 
 }

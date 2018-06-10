@@ -23,7 +23,6 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -142,7 +141,7 @@ public class MysqlUtil {
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
 
-	public Path getDescriptionFile(Box instance) {
+	public Path getDescriptionFile(Server instance) {
 		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
 	}
 

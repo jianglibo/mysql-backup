@@ -14,7 +14,7 @@ import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
 public class TestDiskFreeJob extends JobBaseFort {
 	
 	@Autowired
-	private DiskfreeJob diskfreeJob;
+	private StorageStateJob diskfreeJob;
 	
 	@Autowired
 	private DiskfreeDbService diskfreeDbService;

@@ -8,12 +8,13 @@ import org.jooq.SortField;
 import org.jooq.UpdatableRecord;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.Server;
 
 public interface RepositoryBase<R extends UpdatableRecord<R>, P extends BaseModel> extends DAO<R, P, Integer> {
 	
 	P insertAndReturn(P p);
 
-	List<P> getRecentItems(int number);
+	List<P> getRecentItems(Server server, int number);
 	
 	List<P> findAll(int offset, int limit);
 	

@@ -15,6 +15,8 @@ public class ServerGroupContext {
 	
 	private List<ServerContext> servers;
 	
+	private ServerContext myself;
+	
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<>();
 		map.put("user", user);
@@ -25,11 +27,12 @@ public class ServerGroupContext {
 	
 	public ServerGroupContext() {}
 	
-	public ServerGroupContext(List<ServerContext> servers, UserAccount user, ServerGrp serverGroup) {
+	public ServerGroupContext(List<ServerContext> servers, UserAccount user, ServerGrp serverGroup, ServerContext myself) {
 		super();
 		this.user = user;
 		this.servers =servers;
 		this.serverGroup = serverGroup;
+		this.setMyself(myself);
 	}
 
 
@@ -56,5 +59,13 @@ public class ServerGroupContext {
 
 	public void setUser(UserAccount user) {
 		this.user = user;
+	}
+
+	public ServerContext getMyself() {
+		return myself;
+	}
+
+	public void setMyself(ServerContext myself) {
+		this.myself = myself;
 	}
 }
