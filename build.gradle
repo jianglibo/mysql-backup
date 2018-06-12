@@ -115,6 +115,10 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.hsqldb/hsqldb
 	compile group: 'org.hsqldb', name: 'hsqldb', version: '2.4.0'
 	
+	// https://mvnrepository.com/artifact/org.jsoup/jsoup
+	compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
+	
+	
 	// https://mvnrepository.com/artifact/org.flywaydb/flyway-core
 	compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.7'
 	
