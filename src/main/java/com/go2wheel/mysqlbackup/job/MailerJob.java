@@ -81,15 +81,18 @@ public class MailerJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		int userServerGrpId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-		UserServerGrp usg = userServerGrpDbService.findById(userServerGrpId);
-
-		if (usg == null) {
-			logger.error("Cannot find UserServerGrp with ID: {}", userServerGrpId);
-			return;
+		UserServerGrp userServerGrp = userServerGrpDbService.findById(userServerGrpId);
+		ServerGroupContext rc = createMailerContext(userServerGrp);
+		try {
+			mailer.sendMailWithInline(userServerGrp.getTemplate(), rc);
+		} catch (MessagingException e) {
+			ExceptionUtil.logErrorException(logger, e);
 		}
-
-		ServerGrp sg = serverGrpDbService.findById(usg.getServerGrpId());
-		UserAccount ua = userAccountDbService.findById(usg.getUserAccountId());
+	}
+	
+	public ServerGroupContext createMailerContext(UserServerGrp userServerGrp) {
+		ServerGrp sg = serverGrpDbService.findById(userServerGrp.getServerGrpId());
+		UserAccount ua = userAccountDbService.findById(userServerGrp.getUserAccountId());
 
 		List<Server> servers = serverGrpDbService.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
 				.collect(Collectors.toList());
@@ -101,12 +104,14 @@ public class MailerJob implements Job {
 			oscs.add(osc);
 		}
 		Server myself = serverDbService.findByHost("localhost");
-		ServerGroupContext rc = new ServerGroupContext(oscs, ua, sg, makeServerContext(myself));
-		try {
-			mailer.sendMailWithInline(usg.getTemplate(), rc);
-		} catch (MessagingException e) {
-			ExceptionUtil.logErrorException(logger, e);
-		}
+		return new ServerGroupContext(oscs, ua, sg, makeServerContext(myself));
+
+	}
+	
+	public ServerGroupContext createMailerContext(int userServerGrpId) {
+		UserServerGrp usg = userServerGrpDbService.findById(userServerGrpId);
+		return createMailerContext(usg);
+
 	}
 
 	private ServerContext makeServerContext(Server server) {

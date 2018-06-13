@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.text.ParseException;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -19,6 +20,8 @@ public class DefaultValues {
 	
 	private Cron cron;
 	
+	private DefaultCount defaultCount;
+	
 	@PostConstruct
 	public void post() throws ParseException {
 		new CronExpression(cron.getBorgArchive());
@@ -35,6 +38,54 @@ public class DefaultValues {
 	public void setCron(Cron cron) {
 		this.cron = cron;
 	}
+	
+	public DefaultCount getDefaultCount() {
+		return defaultCount;
+	}
+
+	public void setDefaultCount(DefaultCount defaultCount) {
+		this.defaultCount = defaultCount;
+	}
+
+	public static class DefaultCount {
+		private int serverState;
+		private int storageState;
+		private int jobError;
+		private int mysqlDump;
+		private int borgDownload;
+		public int getServerState() {
+			return serverState;
+		}
+		public void setServerState(int serverState) {
+			this.serverState = serverState;
+		}
+		public int getStorageState() {
+			return storageState;
+		}
+		public void setStorageState(int storageState) {
+			this.storageState = storageState;
+		}
+		public int getJobError() {
+			return jobError;
+		}
+		public void setJobError(int jobError) {
+			this.jobError = jobError;
+		}
+		public int getMysqlDump() {
+			return mysqlDump;
+		}
+		public void setMysqlDump(int mysqlDump) {
+			this.mysqlDump = mysqlDump;
+		}
+		public int getBorgDownload() {
+			return borgDownload;
+		}
+		public void setBorgDownload(int borgDownload) {
+			this.borgDownload = borgDownload;
+		}
+		
+	}
+
 
 	public static class Cron {
 		private String uptime;

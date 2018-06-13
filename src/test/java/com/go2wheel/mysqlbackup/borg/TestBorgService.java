@@ -32,6 +32,9 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Before
 	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
+		createSession();
+		createBorgDescription();
+		deleteAllJobs();
 		InstallationInfo ii = borgService.unInstall(session).getResult();
 		assertFalse(ii.isInstalled());
 	}

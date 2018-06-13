@@ -374,55 +374,13 @@ public class BorgService {
 
 	}
 	//@formatter:on
-//	public FacadeResult<?> updateBorgDescription(Server server, String repo, String archiveFormat,
-//			String archiveNamePrefix, String archiveCron, String pruneCron) {
-//		BorgDescription bbdi = server.getBorgDescription();
-//
-//		bbdi.setRepo(repo);
-//		bbdi.setArchiveFormat(archiveFormat);
-//		bbdi.setArchiveNamePrefix(archiveNamePrefix);
-//		bbdi.setArchiveCron(archiveCron);
-//			
-//		bbdi.setPruneCron(pruneCron);
-//		server.setBorgDescription(bbdi);
-//		return saveBox(server);
-//	}
 
-//	public FacadeResult<?> updateBorgDescription(Session session, Server server, String include, String exclude,
-//			boolean isadd) {
-//		BorgDescription bbdi = server.getBorgDescription();
-//		if (isadd) {
-//			if (!include.isEmpty())
-//				bbdi.getIncludes().add(include);
-//			if (!exclude.isEmpty())
-//				bbdi.getExcludes().add(exclude);
-//		} else {
-//			if (!include.isEmpty()) {
-//				bbdi.getIncludes().remove(include);
-//			}
-//			if (!exclude.isEmpty()) {
-//				bbdi.getExcludes().remove(exclude);
-//			}
-//		}
-//		FacadeResult<?> frb = saveBox(server);
-//		if (frb.getResult() != null) {
-//			return FacadeResult.doneExpectedResult(server.getBorgDescription(), CommonActionResult.DONE);
-//		} else {
-//			return frb;
-//		}
-//	}
-
-//	public FacadeResult<Server> saveBox(Server server) {
-//		return null;
-//		try {
-//			boxService.writeDescription(box);
-//			return FacadeResult.doneExpectedResult(box, CommonActionResult.DONE);
-//		} catch (IOException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			return FacadeResult.unexpectedResult(e);
-//		}
-//	}
-
+	/**
+	 * borg产生的卷是有时间顺序的，每个卷都有一个名称，所以可以恢复到各个时间点。prune之后，比如剩下7个天备份，4个月备份，那么恢复的粒度就不是每天了。
+	 * @param session
+	 * @param server
+	 * @return
+	 */
 	public FacadeResult<?> archive(Session session, Server server) {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), false);

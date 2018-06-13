@@ -43,8 +43,8 @@ logging.level.org.flywaydb= DEBUG
 
 myapp.dataDir= boxes
 myapp.downloadFolder= notingit
-myapp.ssh.sshIdrsa= G:/cygwin64/home/Administrator/.ssh/id_rsa
-myapp.ssh.knownHosts= G:/cygwin64/home/Administrator/.ssh/known_hosts
+myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
 myapp.jp.maxThreads=3
 myapp.jp.waitPause=10
 myapp.jp.maxWait=10000
@@ -73,11 +73,17 @@ dv.cron.common[7]=0 15 2 * * ?|\u6BCF\u59292\u70B915\u5206
 dv.cron.common[8]=0 15 3 * * ?|\u6BCF\u59293\u70B915\u5206
 dv.cron.common[9]=0 15 4 * * ?|\u6BCF\u59294\u70B915\u5206
 
-ppp.aslist[0]=abc
-ppp.aslist[1]=ccd
+dv.default-count.server-state=20
+dv.default-count.storage-state=20
+dv.default-count.job-error=20
+dv.default-count.mysql-dump=2
+dv.default-count.borg-download=20
+
+only.you=true
 
 spring.thymeleaf.prefix=file:templates/thymeleaf/
 spring.thymeleaf.suffix=
+
 spring.freemarker.template-loader-path=file:templates/freemarker/
 spring.freemarker.suffix=
 spring.freemarker.prefix=

@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.commands;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,7 +54,9 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
+import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
@@ -91,6 +94,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -139,6 +143,9 @@ public class BackupCommand {
 
 	@Autowired
 	private BorgService borgService;
+	
+	@Autowired
+	private MailerJob mailerJob;
 
 	@Autowired
 	@Lazy
@@ -896,6 +903,19 @@ public class BackupCommand {
 		sureServerSelected();
 		Server server = appState.currentServerOptional().get();
 		return schedulerService.delteBoxTriggers(server, triggerKey);
+	}
+	
+	
+	@ShellMethod(value = "创建模板的Context数据")
+	public FacadeResult<?> extraTemplateContext(
+			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
+			@ShellOption(help = "输出文件的名称。") String outfile
+			) throws IOException {
+		ServerGroupContext sgc = mailerJob.createMailerContext(userServerGrpId);
+		Path pa = Paths.get("templates", "tplcontext.yml");
+		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgc);
+		Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
+		return FacadeResult.doneExpectedResult();
 	}
 
 	@ShellMethod(value = "查看最后一个命令的详细执行结果")

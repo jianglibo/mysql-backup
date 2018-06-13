@@ -150,7 +150,7 @@ public class SpringBaseFort {
 	protected Server server;
 	
 	@Autowired
-	private DefaultValues dvs;
+	protected DefaultValues dvs;
 	
 	@Autowired
 	protected SshSessionFactory sshSessionFactory;

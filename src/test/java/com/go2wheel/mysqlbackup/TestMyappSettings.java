@@ -16,13 +16,22 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
-import org.springframework.web.servlet.ViewResolver;
-import org.thymeleaf.TemplateEngine;
 
-import freemarker.template.Configuration;
+import com.go2wheel.mysqlbackup.value.DefaultValues.DefaultCount;
 
 @Import(com.go2wheel.mysqlbackup.TestMyappSettings.Tcc.class)
 public class TestMyappSettings  extends SpringBaseFort {
+	
+	
+	@Test
+	public void testDefaultCount() {
+		DefaultCount dc = dvs.getDefaultCount();
+		assertThat(dc.getBorgDownload(), equalTo(20));
+		assertThat(dc.getJobError(), equalTo(20));
+		assertThat(dc.getMysqlDump(), equalTo(2));
+		assertThat(dc.getServerState(), equalTo(20));
+		assertThat(dc.getStorageState(), equalTo(20));
+	}
 	
 	@Test
 	public void t() {

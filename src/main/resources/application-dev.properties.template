@@ -70,6 +70,14 @@ dv.cron.common[7]=0 15 2 * * ?|\u6BCF\u59292\u70B915\u5206
 dv.cron.common[8]=0 15 3 * * ?|\u6BCF\u59293\u70B915\u5206
 dv.cron.common[9]=0 15 4 * * ?|\u6BCF\u59294\u70B915\u5206
 
+dv.default-count.server-state=20
+dv.default-count.storage-state=20
+dv.default-count.job-error=20
+dv.default-count.mysql-dump=2
+dv.default-count.borg-download=20
+
+only.you=true
+
 ppp.aslist[0]=abc
 ppp.aslist[1]=ccd
 
