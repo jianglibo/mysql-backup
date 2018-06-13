@@ -12,4 +12,6 @@ public interface ServerRepository extends RepositoryBase<ServerRecord, Server>{
 	List<Server> findLikeHost(String partOfHostName);
 
 	List<String> findDistinctOsType(String input);
+
+	List<Server> findLikeHostAndRoleIs(String input, String role);
 }

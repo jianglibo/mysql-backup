@@ -63,4 +63,8 @@ public class ServerDbService extends ServiceBase<ServerRecord, Server> {
 	public List<String> findDistinctOsType(String input) {
 		return ((ServerRepository)repo).findDistinctOsType(input);
 	}
+
+	public List<Server> findLikeHostAndRoleIs(String input, String role) {
+		return ((ServerRepository)repo).findLikeHostAndRoleIs(input, role);
+	}
 }

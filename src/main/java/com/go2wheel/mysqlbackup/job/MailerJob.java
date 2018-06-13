@@ -39,6 +39,7 @@ import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Component
 public class MailerJob implements Job {
@@ -59,6 +60,9 @@ public class MailerJob implements Job {
 
 	@Autowired
 	private ServerDbService serverDbService;
+	
+	@Autowired
+	private DefaultValues dvs;
 
 	@Autowired
 	private MysqlFlushDbService mysqlFlushDbService;
@@ -115,12 +119,12 @@ public class MailerJob implements Job {
 	}
 
 	private ServerContext makeServerContext(Server server) {
-		List<ServerState> serverStates = serverStateDbService.getRecentItems(server, 10);
-		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, 5);
-		List<StorageState> storageStates = storageStateDbService.getRecentItems(server, 5);
-		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, 5);
-		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, 1);
-		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, 5);
+		List<ServerState> serverStates = serverStateDbService.getRecentItems(server, dvs.getDefaultCount().getServerState());
+		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlFlush());
+		List<StorageState> storageStates = storageStateDbService.getRecentItems(server, dvs.getDefaultCount().getStorageState());
+		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, dvs.getDefaultCount().getJobError());
+		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlDump());
+		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, dvs.getDefaultCount().getBorgDownload());
 		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, jobErrors, mysqlDumps,
 				borgDownloads);
 		osc.setServer(server);

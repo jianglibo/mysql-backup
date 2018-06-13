@@ -32,7 +32,11 @@ public class JOOQServerRepository extends RepositoryBaseImpl<ServerRecord, Serve
 	@Override
 	public List<String> findDistinctOsType(String input) {
 		return jooq.selectDistinct(SERVER.OS).from(SERVER).fetch(SERVER.OS);
-//		return jooq.selectFrom(SERVER).fetch(SERVER.OS);
-//		return jooq.selectDistinct(SERVER.OS).fetch(SERVER.OS);
+	}
+
+	@Override
+	public List<Server> findLikeHostAndRoleIs(String partOfHostName, String role) {
+		String likeStr = partOfHostName.indexOf('%') == -1 ? '%' + partOfHostName + '%' : partOfHostName;
+		return jooq.selectFrom(SERVER).where(SERVER.HOST.likeIgnoreCase(likeStr).and(SERVER.SERVER_ROLE.eq(role))).fetchInto(Server.class);
 	}
 }

@@ -74,6 +74,7 @@ dv.default-count.server-state=20
 dv.default-count.storage-state=20
 dv.default-count.job-error=20
 dv.default-count.mysql-dump=2
+dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20
 
 only.you=true

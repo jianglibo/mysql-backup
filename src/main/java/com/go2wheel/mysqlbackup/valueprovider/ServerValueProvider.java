@@ -10,6 +10,7 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 
@@ -31,7 +32,14 @@ public class ServerValueProvider  implements ValueProvider {
         if (input.startsWith("-")) {
         	return new ArrayList<>();
         }
-        List<Server> servers = serverDbService.findLikeHost(input); 
+
+		SetServerOnly sso = parameter.getParameterAnnotation(SetServerOnly.class);
+        List<Server> servers; 
+        if (sso == null) {
+        	servers = serverDbService.findLikeHost(input);
+        } else {
+        	servers = serverDbService.findLikeHostAndRoleIs(input, "GET");
+        }
         return servers.stream().map(sv -> sv.getHost()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     

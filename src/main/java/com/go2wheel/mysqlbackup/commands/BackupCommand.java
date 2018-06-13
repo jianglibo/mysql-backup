@@ -42,7 +42,7 @@ import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
-import com.go2wheel.mysqlbackup.annotation.ServerHostPrompt;
+import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowDefaultValue;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
@@ -251,11 +251,14 @@ public class BackupCommand {
 			@ShellOption(help = "服务器主机名或者IP") String host,
 			@OstypeIndicator
 			@ShellOption(help = "操作系统类型") String os,
+			@ShowPossibleValue({"GET", "SET"})
+			@ShellOption(help = "服务器的角色，默认是GET，从它那里获取数据。")  @Pattern(regexp = "GET|SET") String serverRole,
 			@ShellOption(help = "服务器的名称") String name) throws IOException {
 		Server server = serverDbService.findByHost(host);
 		if (server == null) {
 			server = new Server(host, name);
 			server.setOs(os);
+			server.setServerRole(serverRole);
 			server.setUptimeCron(dvs.getCron().getUptime());
 			server.setDiskfreeCron(dvs.getCron().getDiskfree());
 			server = serverDbService.save(server);
@@ -265,7 +268,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "删除一个服务器.")
 	public FacadeResult<?> serverDelete(
-			@ServerHostPrompt @ShellOption(help = "服务器主机名或者IP") Server server,
+			@ShellOption(help = "服务器主机名或者IP") Server server,
 			@ShellOption(defaultValue = "") String iknow) throws IOException {
 		if (!DANGEROUS_ALERT.equals(iknow)) {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
@@ -314,6 +317,22 @@ public class BackupCommand {
 			}
 			return FacadeResult.unexpectedResult(e);
 		}
+		return FacadeResult.doneExpectedResultDone(server);
+	}
+
+	@ShellMethod(value = "将数据库在目标服务器上重建。")
+	public FacadeResult<?> serverAddDbPair(
+			@SetServerOnly
+			@ShellOption(help = "模拟的SET类型的服务器") Server server) throws IOException {
+		
+		return FacadeResult.doneExpectedResultDone(server);
+	}
+	
+	@ShellMethod(value = "将文件目录在目标服务器上重建。")
+	public FacadeResult<?> serverAddDirPair(
+			@SetServerOnly
+			@ShellOption(help = "模拟的SET类型的服务器") Server server,
+			@ShellOption(help = "模拟路径") Server dir) throws IOException {
 		return FacadeResult.doneExpectedResultDone(server);
 	}
 

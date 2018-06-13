@@ -53,6 +53,9 @@ public class DefaultValues {
 		private int jobError;
 		private int mysqlDump;
 		private int borgDownload;
+		
+		private int mysqlFlush;
+		
 		public int getServerState() {
 			return serverState;
 		}
@@ -82,6 +85,12 @@ public class DefaultValues {
 		}
 		public void setBorgDownload(int borgDownload) {
 			this.borgDownload = borgDownload;
+		}
+		public int getMysqlFlush() {
+			return mysqlFlush;
+		}
+		public void setMysqlFlush(int mysqlFlush) {
+			this.mysqlFlush = mysqlFlush;
 		}
 		
 	}
