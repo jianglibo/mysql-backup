@@ -40,6 +40,7 @@ import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
+import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
@@ -75,6 +76,7 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.SqlService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -109,6 +111,9 @@ public class BackupCommand {
 	
 	@Autowired
 	private SecurityService securityService;
+	
+	@Autowired
+	private SqlService sqlService;
 
 	@Autowired
 	private DefaultValues dvs;
@@ -184,7 +189,7 @@ public class BackupCommand {
 	// @formatter:off
 	private Session getSession() {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		if (_session == null || !_session.isConnected()) {
 			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 			if (frSession.isExpected()) {
@@ -237,7 +242,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "List all managed servers.")
 	public FacadeResult<?> serverList() throws IOException {
-		return FacadeResult.doneExpectedResultDone(appState.getServers());
+		return FacadeResult.doneExpectedResultDone(serverDbService.findAll());
 	}
 
 	@ShellMethod(value = "Pickup a server to work on.")
@@ -283,7 +288,7 @@ public class BackupCommand {
 	@ShellMethod(value = "显示服务器描述")
 	public FacadeResult<?> serverDetail() throws JSchException, IOException {
 		sureServerSelected();
-		return FacadeResult.doneExpectedResult(appState.currentServerOptional().get(), CommonActionResult.DONE);
+		return FacadeResult.doneExpectedResult(appState.getCurrentServer(), CommonActionResult.DONE);
 	}
 
 	@ShellMethod(value = "和修改服务器描述")
@@ -294,7 +299,7 @@ public class BackupCommand {
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		Optional<Field> fo = ObjectUtil.getField(Server.class, field);
 		Optional<Object> originOp = Optional.empty();
 		
@@ -411,7 +416,7 @@ public class BackupCommand {
 			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
 			throws JSchException, IOException {
 		sureMysqlConfigurated();
-		return mysqlService.enableLogbin(getSession(), appState.currentServerOptional().get(), logBinValue);
+		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
 
 	@ShellMethod(value = "安装borg。")
@@ -424,7 +429,7 @@ public class BackupCommand {
 	public FacadeResult<?> borgDescriptionCreate()
 			throws JSchException, IOException {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		BorgDescription bbd = server.getBorgDescription();
 		if (bbd != null) {
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
@@ -445,7 +450,7 @@ public class BackupCommand {
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		BorgDescription bd = server.getBorgDescription();
 		
 		Optional<Field> fo = ObjectUtil.getField(BorgDescription.class, field);
@@ -489,7 +494,7 @@ public class BackupCommand {
 			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, twoDigitVersion, initPassword);
 		if (!fr.isExpected()) {
 			if (StringUtil.hasAnyNonBlankWord(fr.getMessage())) {
@@ -507,14 +512,14 @@ public class BackupCommand {
 	@ShellMethod(value = "卸载目标机器的MYSQL")
 	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return mySqlInstaller.unInstall(getSession(), server);
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
 	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return borgService.initRepo(getSession(), server.getBorgDescription().getRepo());
 	}
 
@@ -522,28 +527,28 @@ public class BackupCommand {
 	public FacadeResult<?> borgArchiveCreate(@ShellOption(help = "try to solve comman problems.") boolean solveProblems)
 			throws RunRemoteCommandException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return borgService.archive(getSession(), server, solveProblems);
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
 	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return borgService.downloadRepo(getSession(), server);
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
 	public List<String> borgArchiveList() {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return borgService.listArchives(getSession(), server).getResult().getArchives();
 	}
 
 	@ShellMethod(value = "修剪borg创建的卷")
 	public String borgArchivePrune() throws RunRemoteCommandException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		BorgPruneResult bpr = borgService.pruneRepo(getSession(), server).getResult();
 		return String.format("action: %s, pruned: %s, keeped: %s", bpr.isSuccess(), bpr.prunedArchiveNumbers(),
 				bpr.keepedArchiveNumbers());
@@ -552,12 +557,12 @@ public class BackupCommand {
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
 	public List<String> borgRepoListFiles() throws RunRemoteCommandException {
 		sureBorgConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return borgService.listRepoFiles(getSession(), server).getResult().getAllTrimedNotEmptyLines();
 	}
 
 	private void sureServerSelected() {
-		if (!appState.currentServerOptional().isPresent()) {
+		if (appState.getCurrentServer() == null) {
 			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING,
 					"选择一个目标服务器先。 server-list, server-select.");
 		}
@@ -565,21 +570,21 @@ public class BackupCommand {
 
 	private void sureBorgConfigurated() {
 		sureServerSelected();
-		if (appState.currentServerOptional().get().getBorgDescription() == null) {
+		if (appState.getCurrentServer().getBorgDescription() == null) {
 			throw new ShowToUserException("borg.unconfigurated", "");
 		}
 	}
 
 	private void sureMysqlConfigurated() {
 		sureServerSelected();
-		if (appState.currentServerOptional().get().getMysqlInstance() == null) {
+		if (appState.getCurrentServer().getMysqlInstance() == null) {
 			throw new ShowToUserException("mysql.unconfigurated", "");
 		}
 	}
 
 	private void sureMysqlReadyForBackup() {
 		sureMysqlConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		if (server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null) {
 			throw new ShowToUserException("mysql.unreadyforbackup", server.getHost());
 		}
@@ -588,7 +593,7 @@ public class BackupCommand {
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
 		sureMysqlReadyForBackup();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
 		return fr;
 	}
@@ -604,7 +609,7 @@ public class BackupCommand {
 	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = ShellOption.NULL) String iknow)
 			throws JSchException, IOException {
 		sureMysqlReadyForBackup();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		if (!DANGEROUS_ALERT.equals(iknow)) {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
@@ -617,7 +622,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "列出Mysqldump历史纪录")
 	public FacadeResult<?> mysqlDumpList() throws JSchException, IOException {
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		List<MysqlDump> dumps = mysqlDumpDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
 		return FacadeResult.doneExpectedResultDone(dumps);
 	}
@@ -631,7 +636,7 @@ public class BackupCommand {
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
 		sureMysqlConfigurated();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		MysqlInstance mi = server.getMysqlInstance();
 		
 		Optional<Field> fo = ObjectUtil.getField(MysqlInstance.class, field);
@@ -663,7 +668,7 @@ public class BackupCommand {
 			@ShowDefaultValue @ShellOption(help = "mysql username.", defaultValue = "root") String username,
 			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		MysqlInstance mi = server.getMysqlInstance();
 		if (mi != null) {
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
@@ -679,7 +684,7 @@ public class BackupCommand {
 	@ShellMethod(value = "手动flush Mysql的日志")
 	public FacadeResult<?> MysqlFlushLog() {
 		sureMysqlReadyForBackup();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 
 		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(getSession(), server);
 		mysqlFlushDbService.processFlushResult(server, fr);
@@ -689,7 +694,7 @@ public class BackupCommand {
 	@ShellMethod(value = "列出flush Mysql的历史")
 	public FacadeResult<?> MysqlFlushLogList() {
 		sureMysqlReadyForBackup();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		List<MysqlFlush> mfs = mysqlFlushDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
 		return FacadeResult.doneExpectedResultDone(mfs);
 	}
@@ -865,10 +870,11 @@ public class BackupCommand {
 		case WAITING_SELECT:
 			return "Please choose an instance by preceding number: ";
 		default:
-			if (appState.currentServerOptional().isPresent()) {
-				return appState.currentServerOptional().get().getHost() + "> ";
+			Server server = appState.getCurrentServer();
+			if (server != null) {
+				return server.getHost() + "> ";
 			} else {
-				return "serverbackup> ";
+				return "no_server_selected> ";
 			}
 		}
 	}
@@ -902,7 +908,7 @@ public class BackupCommand {
 	@ShellMethod(value = "列出当前主机的计划任务")
 	public List<String> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		if (all) {
 			return schedulerService.getAllSchedulerJobList();
 		} else {
@@ -913,14 +919,14 @@ public class BackupCommand {
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
 	public List<String> schedulerTriggerList() throws SchedulerException {
 		sureServerSelected();
-		return schedulerService.getServerTriggers(appState.currentServerOptional().get()).stream()
+		return schedulerService.getServerTriggers(appState.getCurrentServer()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
 
 	@ShellMethod(value = "删除计划任务触发器")
 	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
 		sureServerSelected();
-		Server server = appState.currentServerOptional().get();
+		Server server = appState.getCurrentServer();
 		return schedulerService.delteBoxTriggers(server, triggerKey);
 	}
 	
@@ -954,6 +960,23 @@ public class BackupCommand {
 			}
 		}
 	}
+	
+	@ShellMethod(value = "执行SQL SELECT.")
+	public FacadeResult<?> sqlSelect(
+			@DbTableName
+			@ShellOption(help = "数据表名称") String tableName,
+			@ShellOption(help = "返回的记录数", defaultValue="10") int limit) {
+		return FacadeResult.doneExpectedResultDone(sqlService.select(tableName, limit));
+	}
+	
+	@ShellMethod(value = "执行SQL DELETE.")
+	public FacadeResult<?> sqlDelete(
+			@DbTableName
+			@ShellOption(help = "数据表名称") String tableName,
+			@ShellOption(help = "记录的ID") int id) {
+		return FacadeResult.doneExpectedResultDone(sqlService.delete(tableName, id));
+	}
+
 	
 	@ShellMethod(value = "获取HSQLDB的CRYPT_KEY")
 	public FacadeResult<?> securityKeygen(@ShellOption(help = "编码方式", defaultValue="AES") String enc) throws ClassNotFoundException, SQLException {

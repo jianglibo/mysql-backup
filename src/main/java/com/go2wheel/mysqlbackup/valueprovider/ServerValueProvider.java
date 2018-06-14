@@ -40,7 +40,7 @@ public class ServerValueProvider  implements ValueProvider {
         } else {
         	servers = serverDbService.findLikeHostAndRoleIs(input, "GET");
         }
-        return servers.stream().map(sv -> sv.getHost()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
+        return servers.stream().map(sv -> sv.toListRepresentation()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     
 }

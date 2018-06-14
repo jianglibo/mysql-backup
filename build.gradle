@@ -57,7 +57,7 @@ flyway {
 }
 
 archivesBaseName = 'mysql-backup'
-version = '1.1.0'
+version = '1.1.1'
 
 sourceSets {
     main {
@@ -134,6 +134,10 @@ dependencies {
 	
 	// https://mvnrepository.com/artifact/com.jcraft/jsch
 	compile group: 'com.jcraft', name: 'jsch', version: '0.1.54'
+	
+	// https://mvnrepository.com/artifact/com.google.guava/guava
+	compile group: 'com.google.guava', name: 'guava', version: '25.1-jre'
+	
 	
 	
 //	testCompile("junit:junit")

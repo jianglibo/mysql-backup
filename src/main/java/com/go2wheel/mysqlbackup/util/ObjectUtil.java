@@ -62,12 +62,17 @@ public class ObjectUtil {
 	
 	public static Optional<String> getValueIfIsToListRepresentation(String toListRepresentation, String fieldName) {
 		if (toListRepresentation.startsWith("[") && toListRepresentation.endsWith("]")) {
-			String s = toListRepresentation.substring(1, toListRepresentation.length() - 2);
+			String s = toListRepresentation.substring(1, toListRepresentation.length() - 1);
 			String[] ss = s.split(", ");
 			for(String par: ss) {
 				String[] kv = par.split(": ", 2);
 				if (kv.length == 2) {
-					return Optional.ofNullable(kv[1]);
+					String ktrim = kv[0].trim();
+					String vtrim = kv[1].trim();
+					if (ktrim.equals(fieldName)) {
+						return Optional.of(vtrim);
+					}
+					
 				}
 			}
 			return Optional.of("");
@@ -83,7 +88,6 @@ public class ObjectUtil {
 			for(String par: ss) {
 				String[] kv = par.split(": ", 2);
 				return kv[1];
-
 			}
 			return "";
 		} else {

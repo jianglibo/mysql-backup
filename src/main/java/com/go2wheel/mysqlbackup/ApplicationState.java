@@ -1,14 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
-import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
 
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -19,7 +12,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.KeyValueInDb;
@@ -50,8 +42,6 @@ public class ApplicationState {
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
 	
-	private List<Server> servers = new ArrayList<>();
-	
 	private Locale local = Locale.CHINESE;
 	
 	private Server currentServer;
@@ -66,29 +56,12 @@ public class ApplicationState {
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
 	}
-
-	@PostConstruct
-	public void post() throws IOException {
-		servers = serverDbService.findAll().stream().map(s -> serverDbService.loadFull(s)).collect(Collectors.toList());
-		logger.info("load {} servers.", servers.size());
-	}
 	
 	public void fireSwitchEvent() {
 		ServerSwitchEvent sce = new ServerSwitchEvent(this);
 		applicationEventPublisher.publishEvent(sce);
 	}
-
-	public Optional<Server> currentServerOptional() {
-		if (currentServer == null) {
-			if (getServers().size() > 0) {
-				currentServer = getServers().get(0);
-			} else {
-				return Optional.empty();
-			}
-		}
-		return Optional.of(currentServer);
-	}
-
+	
 	public void persistState() {
 		if (getCurrentServer() != null) {
 			KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
@@ -100,32 +73,6 @@ public class ApplicationState {
 			}
 			kv.setTheValue(getCurrentServer().getId() + "");
 			keyValueInDbService.save(kv);
-		}
-	}
-
-	private boolean addServer(Server server) {
-		if (server == null) {
-			return false;
-		}
-		boolean exists = getServers().stream().anyMatch(b -> b.getHost().equalsIgnoreCase(server.getHost()));
-		if (!exists) {
-			this.servers.add(server);
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	private boolean removeServer(Server server) {
-		if (server == null) {
-			return false;
-		}
-		Optional<Server> svOp = getServers().stream().filter(b -> b.getHost().equalsIgnoreCase(server.getHost())).findAny();
-		if (svOp.isPresent()) {
-			this.servers.remove(svOp.get());
-			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -168,26 +115,10 @@ public class ApplicationState {
 			fireSwitchEvent();
 		}
 	}
-
-	public List<Server> getServers() {
-		return servers;
-	}
-
-	public void setServers(List<Server> servers) {
-		this.servers = servers;
-	}
-	
-	@EventListener
-	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
-		Server sv = serverCreatedEvent.getModel();
-		addServer(sv);
-	}
 	
 	@EventListener
 	public void whenServerDeleted(ModelDeletedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Server sv = serverCreatedEvent.getModel();
-		removeServer(sv);
-		
 		if (currentServer != null && sv.getId().equals(currentServer.getId())) {
 			setCurrentServer(null);
 		}
