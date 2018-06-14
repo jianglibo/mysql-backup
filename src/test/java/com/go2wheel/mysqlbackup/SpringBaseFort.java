@@ -177,7 +177,28 @@ public class SpringBaseFort {
 	// this before run first.
 	@Before
 	public void beforeBase() throws SchedulerException {
-//		UtilForTe.deleteAllJobs(scheduler);
+	}
+	@After
+	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
+		if (tmpDirectory != null) {
+			try {
+				FileUtil.deleteFolder(tmpDirectory);
+			} catch (Exception e) {
+			}
+		}
+		if (tmpFile != null) {
+			Files.delete(tmpFile);
+		}
+		if (remoteDemoFile != null) {
+			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
+		}
+
+		if (session != null) {
+			session.disconnect();
+		}
+	}
+	
+	protected void clearDb() {
 		jobLogDbService.deleteAll();
 		keyValueInDbService.deleteAll();
 		mysqlInstanceDbService.deleteAll();
@@ -224,25 +245,7 @@ public class SpringBaseFort {
 	
 	
 	
-	@After
-	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
-		if (tmpDirectory != null) {
-			try {
-				FileUtil.deleteFolder(tmpDirectory);
-			} catch (Exception e) {
-			}
-		}
-		if (tmpFile != null) {
-			Files.delete(tmpFile);
-		}
-		if (remoteDemoFile != null) {
-			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
-		}
-		
-		if (session != null) {
-			session.disconnect();
-		}
-	}
+
 	
 	protected void createServer() {
 		server = createServer(HOST_DEFAULT);

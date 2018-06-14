@@ -21,6 +21,7 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
@@ -28,9 +29,6 @@ import com.jcraft.jsch.Session;
 public class StorageStateService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
-	@Autowired
-	private DiskfreeDbService diskfreeDbService;
 
 	@Autowired
 	private StorageStateDbService storageStateDbService;
@@ -47,17 +45,6 @@ public class StorageStateService {
 		return new ArrayList<>();
 	}
 
-//	public List<Diskfree> getLinuxDiskfree(Server server, Session session) {
-//		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
-//		List<Diskfree> dfs = dfss.stream().map(dd -> dd.toDiskfree()).collect(Collectors.toList());
-//		final Date d = new Date();
-//		return dfs.stream().map(df -> {
-//			df.setCreatedAt(d);
-//			df.setServerId(server.getId());
-//			return diskfreeDbService.save(df);
-//		}).collect(Collectors.toList());
-//	}
-
 	public List<StorageState> getLinuxStorageState(Server server, Session session) {
 		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
 		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).collect(Collectors.toList());
@@ -71,8 +58,8 @@ public class StorageStateService {
 
 	public List<StorageState> getWinLocalDiskFree(Server server) throws IOException {
 		String pscommand = "Get-PSDrive | Where-Object Name -Match '^.{1}$' | Format-List -Property *";
-		RemoteCommandResult rcr = PSUtil.runPsCommand(pscommand);
-		List<Map<String, String>> lmss = PSUtil.parseFormatList(rcr.getStdOutList());
+		ProcessExecResult rcr = PSUtil.runPsCommand(pscommand);
+		List<Map<String, String>> lmss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty());
 		List<StorageState> dfs = new ArrayList<>();
 		final Date d = new Date();
 		for (Map<String, String> mss : lmss) {

@@ -8,34 +8,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
 public class PSUtil {
-
-	public static RemoteCommandResult runPsCommand(String command) throws IOException {
-
-		ProcessBuilder pb = new ProcessBuilder("powershell.exe", command);
-		Process powerShellProcess = pb.start();
-
-		// Getting the results
-		powerShellProcess.getOutputStream().close();
-		List<String> lines = new ArrayList<>();
-		String line;
-		BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
-		while ((line = stdout.readLine()) != null) {
-			lines.add(line);
+	
+	public static ProcessExecResult runPsCommand(String oneLineCommand) {
+		ProcessExecResult per = new ProcessExecResult();
+		try {
+			
+//			ProcessBuilder pb = new ProcessBuilder("powershell.exe", "-Command", String.format("{%s}", oneLineCommand));
+			ProcessBuilder pb = new ProcessBuilder("powershell.exe", oneLineCommand);
+			Process powerShellProcess = pb.start();
+			powerShellProcess.getOutputStream().close();
+			String line;
+			List<String> stdOutLines = new ArrayList<>();
+			BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
+			while ((line = stdout.readLine()) != null) {
+				stdOutLines.add(line);
+			}
+			stdout.close();
+			List<String> stdErrorLines = new ArrayList<>();
+			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
+			while ((line = stderr.readLine()) != null) {
+				stdErrorLines.add(line);
+			}
+			stderr.close();
+			powerShellProcess.waitFor();
+			per.setStdOut(stdOutLines);
+			per.setStdError(stdErrorLines);
+			per.setExitValue(powerShellProcess.exitValue());
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+			per.setException(e);
 		}
-		stdout.close();
-
-		List<String> errorLines = new ArrayList<>();
-
-		BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
-		while ((line = stderr.readLine()) != null) {
-			errorLines.add(line);
-		}
-		stderr.close();
-		return new RemoteCommandResult(String.join("\n", lines), String.join("\n", errorLines),
-				powerShellProcess.exitValue());
+		return per;
+	}
+	
+	public static ProcessExecResult archiveZip(String src, String dst) {
+		String cmd = String.format("Compress-Archive -Path %s -DestinationPath %s", src, dst);
+		return runPsCommand(cmd);
 	}
 
 	public static List<Map<String, String>> parseFormatList(List<String> lines) {

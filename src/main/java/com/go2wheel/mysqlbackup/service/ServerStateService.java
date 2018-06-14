@@ -19,6 +19,7 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
@@ -26,12 +27,6 @@ import com.jcraft.jsch.Session;
 public class ServerStateService {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
-	@Autowired
-	private UpTimeDbService upTimeDbService;
-	
-	@Autowired
-	private ServerDbService serverDbService;
 	
 	@Autowired
 	private ServerStateDbService serverStateDbService;
@@ -46,22 +41,6 @@ public class ServerStateService {
 			return null;
 		}
 	}
-	
-
-//	public void createLinuxUptime(Server sv, Session session) {
-//		UptimeAllString uta = getUpTime(session);
-//		UpTime ut = uta.toUpTime();
-//		if (sv.getCoreNumber() == 0) {
-//			int cn = SSHcommonUtil.coreNumber(session);
-//			sv.setCoreNumber(cn);
-//			serverDbService.save(sv);
-//		}
-//		if (sv != null) {
-//			ut.setServerId(sv.getId());
-//			upTimeDbService.save(ut);
-//		}
-//	}
-	
 	
 	public ServerState createLinuxServerState(Server server, Session session) throws RunRemoteCommandException {
 		ServerState ss = new ServerState();
@@ -86,15 +65,15 @@ public class ServerStateService {
 	public ServerState createWinServerState(Server server, Session session) throws IOException {
 		ServerState ss = new ServerState();
 		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
-		RemoteCommandResult rcr = PSUtil.runPsCommand(command);
-		Map<String, String> mss = PSUtil.parseFormatList(rcr.getStdOutList()).get(0);
+		ProcessExecResult rcr = PSUtil.runPsCommand(command);
+		Map<String, String> mss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty()).get(0);
 		String lbt = mss.get("LastBootUpTime");
 		ss.setMemFree(StringUtil.parseLong(mss.get("FreePhysicalMemory")));
 		ss.setMemUsed(StringUtil.parseLong(mss.get("TotalVisibleMemorySize")) - ss.getMemFree());
 		
 		command = "Get-WmiObject win32_processor | Format-List -Property *";
 		rcr = PSUtil.runPsCommand(command);
-		mss = PSUtil.parseFormatList(rcr.getStdOutList()).get(0); // LoadPercentage, NumberOfCores
+		mss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
 		
 		ss.setAverageLoad(StringUtil.parseInt(mss.get("LoadPercentage")));
 		ss.setServerId(server.getId());
