@@ -58,7 +58,7 @@ public class ServerStateService {
 		}
 	}
 	
-	public ServerState createServerState(Server server, Session session) throws IOException, RunRemoteCommandException {
+	public ServerState createServerState(Server server, Session session) {
 		if ("localhost".equals(server.getHost())) {
 			return createWinServerState(server, session);
 		} else {
@@ -66,7 +66,7 @@ public class ServerStateService {
 		}
 	}
 	
-	public ServerState createLinuxServerState(Server server, Session session) throws RunRemoteCommandException {
+	public ServerState createLinuxServerState(Server server, Session session) {
 		ServerState ss = new ServerState();
 		String loadstr = getUpTime(session);
 		int load = (int) (Float.parseFloat(loadstr) * 100);
@@ -85,7 +85,7 @@ public class ServerStateService {
 		return serverStateDbService.save(ss);
 	}
 	
-	public ServerState createWinServerState(Server server, Session session) throws IOException {
+	public ServerState createWinServerState(Server server, Session session) {
 		ServerState ss = new ServerState();
 		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
 		ProcessExecResult rcr = PSUtil.runPsCommand(command);

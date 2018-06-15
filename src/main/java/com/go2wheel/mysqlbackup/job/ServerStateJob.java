@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.job;
 
-import java.io.IOException;
-
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -12,11 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.jcraft.jsch.Session;
 
@@ -46,8 +42,6 @@ public class ServerStateJob implements Job {
 				session = sshSessionFactory.getConnectedSession(server).getResult();
 			}
 			serverStateService.createServerState(server, session);
-		} catch (RunRemoteCommandException | IOException e) {
-			ExceptionUtil.logErrorException(logger, e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

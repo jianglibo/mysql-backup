@@ -7,7 +7,7 @@ spring.datasource.username=SA
 spring.datasource.password=
 spring.datasource.driver-class-name=org.hsqldb.jdbc.JDBCDriver
 spring.datasource.validation-query=select 1 from INFORMATION_SCHEMA.SYSTEM_USERS
-spring.datasource.test-on-borrow= true
+spring.datasource.test-on-borrow=true
 
 # SerializationFeature.class
 spring.jackson.serialization.INDENT_OUTPUT=true

@@ -13,13 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.exception.JobOnGoingException;
-import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 
 @Aspect
@@ -71,6 +68,7 @@ public class TaskLockAspect {
 			proceedingJoinPoint.proceed();
 		} catch (Exception e) {
 			saveException(e, trapException, context);
+			throw e;
 		}
 	}
 

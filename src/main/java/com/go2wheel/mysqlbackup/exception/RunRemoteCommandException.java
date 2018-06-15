@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public class RunRemoteCommandException extends Exception {
+public class RunRemoteCommandException extends RuntimeException {
 	
 	
 	private String command;

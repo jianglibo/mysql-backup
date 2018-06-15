@@ -52,7 +52,7 @@ public class StringUtil {
 	public static long parseLong(String numberHeaded) {
 		Matcher m = NUMBER_HEADED.matcher(numberHeaded);
 		if (m.matches()) {
-			return Integer.valueOf(m.group(1));
+			return Long.valueOf(m.group(1));
 		} else {
 			return 0;
 		}
