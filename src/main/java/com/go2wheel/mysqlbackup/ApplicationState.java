@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup;
 import java.text.ParseException;
 import java.util.Locale;
 
+import javax.annotation.PostConstruct;
+
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,6 +54,17 @@ public class ApplicationState {
 	
 	@Value("${expectit.echo}")
 	private boolean expectitEcho;
+	
+	@PostConstruct
+	public void post() {
+		KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
+		if (kv != null) {
+			Server server = serverDbService.findById(kv.getTheValue());
+			if (server != null) {
+				setCurrentServer(serverDbService.loadFull(server));
+			}
+		}
+	}
 
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
@@ -59,6 +72,7 @@ public class ApplicationState {
 	
 	public void fireSwitchEvent() {
 		ServerSwitchEvent sce = new ServerSwitchEvent(this);
+		persistState();
 		applicationEventPublisher.publishEvent(sce);
 	}
 	

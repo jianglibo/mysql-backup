@@ -72,8 +72,6 @@ public class LogBinSetting {
 		return map.getOrDefault(LOG_BIN_INDEX, "");
 	}
 
-
-
 	public Map<String, String> getMap() {
 		return map;
 	}

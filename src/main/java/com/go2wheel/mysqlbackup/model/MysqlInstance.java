@@ -21,6 +21,9 @@ public class MysqlInstance extends BaseModel {
 	private String password;
 	private String mycnfFile;
 	
+	private String dumpFileName;
+	private String clientBin;
+	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String flushLogCron;
 	
@@ -180,6 +183,25 @@ public class MysqlInstance extends BaseModel {
 
 	public void setLogBinSetting(LogBinSetting logBinSetting) {
 		this.mysqlSettings = logBinSetting.toLines();
+	}
+
+	public String getDumpFileName() {
+		return dumpFileName;
+	}
+
+	public void setDumpFileName(String dumpFileName) {
+		this.dumpFileName = dumpFileName;
+	}
+
+	public String getClientBin() {
+		return clientBin;
+	}
+
+	public void setClientBin(String clientBin) {
+		if (clientBin != null && !clientBin.endsWith("/")) {
+			clientBin = clientBin + "/";
+		}
+		this.clientBin = clientBin;
 	}
 
 }

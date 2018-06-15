@@ -50,8 +50,11 @@ import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
@@ -469,6 +472,20 @@ public class BackupCommand {
 		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
 
+	@ShellMethod(value = "查看logbin状态")
+	public FacadeResult<?> mysqlGetLogbinState()
+			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+		sureMysqlConfigurated();
+		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
+	}
+
+	@ShellMethod(value = "查看myCnf")
+	public FacadeResult<?> mysqlGetMycnf()
+			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException, RunRemoteCommandException, ScpException {
+		sureMysqlConfigurated();
+		return mysqlService.getMyCnf(getSession(), appState.getCurrentServer());
+	}
+
 	@ShellMethod(value = "安装borg。")
 	public FacadeResult<?> borgInstall() {
 		sureBorgConfigurated();
@@ -680,8 +697,8 @@ public class BackupCommand {
 	// @formatter: off
 	@ShellMethod(value = "添加或更改Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionUpdate(
-			@ShowPossibleValue({"host", "port", "username", "password","flushLogCron"})
-			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|port|username|password|flushLogCron") String field,
+			@ShowPossibleValue({"host", "port", "username", "password","flushLogCron", "dumpFileName", "clientBin"})
+			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|port|username|password|flushLogCron|dumpFileName|clientBin") String field,
 			@ObjectFieldIndicator(objectClass=MysqlInstance.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {

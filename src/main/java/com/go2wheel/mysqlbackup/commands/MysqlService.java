@@ -274,34 +274,6 @@ public class MysqlService {
 		}
 	}
 
-//	public FacadeResult<?> updateMysqlDescription(Server server) {
-//		try {
-//			boxService.writeDescription(server);
-//		} catch (IOException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			FacadeResult.unexpectedResult(e);
-//		}
-//		return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-//	}
-
-//	public FacadeResult<?> updateMysqlDescription(Server server, String username, String password, int port,
-//			String flushLogCron) {
-//		MysqlInstance mi = server.getMysqlInstance();
-//
-//		mi.setUsername(username);
-//		mi.setPassword(password);
-//		mi.setPort(port);
-//		if (!flushLogCron.equals(mi.getFlushLogCron())) {
-//			mi.setFlushLogCron(flushLogCron);
-//			CronExpressionChangeEvent cece = new CronExpressionChangeEvent(this, BoxUtil.getBorgPruneJobKey(server),
-//					BoxUtil.getBorgPruneTriggerKey(server), flushLogCron);
-//			applicationEventPublisher.publishEvent(cece);
-//		}
-//		
-//		server.setMysqlInstance(mi);
-//		return updateMysqlDescription(server);
-//	}
-
 	public FacadeResult<String> getMyCnfFile(Session session, Server server) {
 		try {
 			return FacadeResult.doneExpectedResult(mysqlUtil.getEffectiveMyCnf(session, server), CommonActionResult.DONE);
@@ -309,6 +281,16 @@ public class MysqlService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
+	}
+
+	public FacadeResult<?> getLogbinState(Session session, Server server) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+	    return FacadeResult.doneExpectedResultDone(mysqlUtil.getLogbinState(session, server).toLines());
+	}
+
+	public FacadeResult<?> getMyCnf(Session session, Server server) throws RunRemoteCommandException, IOException, JSchException, ScpException {
+		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
+		return FacadeResult.doneExpectedResultDone(mfh.getMyCnfFile());
+
 	}
 
 }

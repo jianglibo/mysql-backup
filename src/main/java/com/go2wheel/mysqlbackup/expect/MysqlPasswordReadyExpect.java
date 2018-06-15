@@ -5,11 +5,13 @@ import static net.sf.expectit.matcher.Matchers.times;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.IOExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.JSchExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -18,6 +20,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 import net.sf.expectit.Expect;
+import net.sf.expectit.ExpectIOException;
 
 public abstract class MysqlPasswordReadyExpect {
 	
@@ -49,12 +52,14 @@ public abstract class MysqlPasswordReadyExpect {
 		// @formatter:off
 		try {
 			expect = ExpectitUtil.getExpectBuilder(channel, !ApplicationState.IS_PROD_MODE).build();			
-				tillPasswordRequired();
-				expect.expect(contains("password: "));
-				expect.sendLine(server.getMysqlInstance().getPassword());
-				return afterLogin();
-			} catch (IOException e) {
-				throw new IOExceptionWrapper(e);
+			tillPasswordRequired();
+			expect.expect(contains("password: "));
+			expect.sendLine(server.getMysqlInstance().getPassword());
+			return afterLogin();
+		} catch (ExpectIOException e) {
+			throw new UnExpectedContentException(e.getInputBuffer());
+		} catch (IOException e) {
+			throw new IOExceptionWrapper(e);
 		} finally {
 			try {
 				expect.close();
@@ -70,6 +75,11 @@ public abstract class MysqlPasswordReadyExpect {
 	protected String expectBashPromptAndReturnRaw(int num) throws IOException {
 		return expect.expect(times(num, contains(BASH_PROMPT))).getBefore();
 	}
+	
+	protected String expectBashPromptAndReturnRaw(int num, long duration, TimeUnit tu) throws IOException {
+		return expect.withTimeout(duration, tu).expect(times(num, contains(BASH_PROMPT))).getBefore();
+	}
+
 	
 	protected List<String> expectBashPromptAndReturnList() throws IOException {
 		return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());

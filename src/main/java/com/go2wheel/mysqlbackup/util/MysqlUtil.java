@@ -20,6 +20,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -58,9 +59,14 @@ public class MysqlUtil {
 
 	public String getEffectiveMyCnf(Session session, Server server) throws RunRemoteCommandException {
 		String matcherline = ".*Default options are read from the following.*";
-		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, "mysql --help --verbose");
+		String cb = server.getMysqlInstance().getClientBin();
+		String cmd = String.format("%smysql --help --verbose", cb == null ? "" : cb);
+		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, cmd);
 		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
 				.findMatchAndReturnNextLine(matcherline);
+		if (!possibleFiles.isPresent())  {
+			throw new UnExpectedContentException(result.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+		}
 		List<String> filenames = Stream.of(possibleFiles.get().split("\\s+")).filter(l -> !l.trim().isEmpty())
 				.collect(Collectors.toList());
 
@@ -119,19 +125,6 @@ public class MysqlUtil {
 		return getVariables(session, server.getMysqlInstance().getUsername("root"), server.getMysqlInstance().getPassword(), vnames);
 	}
 	
-
-//	public void writeDescription(Server server) throws IOException {
-//		Path dstFile = null;
-//		String ds = YamlInstance.INSTANCE.yaml.dumpAsMap(box);
-//		Path dstDir = appSettings.getDataRoot().resolve(box.getHost());
-//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-//			Files.createDirectories(dstDir);
-//		}
-//		dstFile = dstDir.resolve(BackupCommand.DESCRIPTION_FILENAME);
-//		FileUtil.atomicWriteFile(dstFile, ds.getBytes());
-//
-//	}
-
 	public void writeBinLog(Session session, Server server, String rfile) throws IOException, ScpException {
 		Path dstDir = appSettings.getDataRoot().resolve(server.getHost()).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
