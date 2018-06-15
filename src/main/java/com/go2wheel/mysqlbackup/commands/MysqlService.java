@@ -102,6 +102,7 @@ public class MysqlService {
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
+				llsl.setMd5(r.get(1));
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
 				return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
 			} else {

@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.expect;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -26,13 +25,22 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect {
 		MysqlInstance mi = server.getMysqlInstance();
 		expect.sendLine("ls -l " + mi.getDumpFileName());
 		String s = expectBashPromptAndReturnRaw(1);
-		List<String> r = new ArrayList<>(Arrays.asList(s));
+		List<String> r = new ArrayList<>();
 		if (s.indexOf("cannot access") == -1) {
 			Optional<String> found = StringUtil.splitLines(s).stream().filter(line -> LinuxLsl.matchAndReturnLinuxLsl(line).isPresent()).findFirst();
 			if (found.isPresent()) {
 				expect.sendLine(String.format("md5sum %s", mi.getDumpFileName()));
-				r.set(0, found.get());
-				r.add(expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS));
+				r.add(found.get());
+				String md5r = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+//				 md5sum /tmp/mysqldump.sql
+//				 64f299244a31dd673466fd990b97c8d3  /tmp/mysqldump.sql
+//				 [root@localhost ~
+				Optional<String> md5Op = StringUtil.splitLines(md5r).stream().map(l -> l.trim().split("\\s+")).filter(ss -> ss.length == 2).map(ss -> ss[0].trim()).filter(ones -> ones.length() == 32).findFirst();
+				if (md5Op.isPresent()) {
+					r.add(md5Op.get());
+				} else {
+					r.add("");
+				}
 			}
 		}
 		return r;
