@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class RemoteCommandResult {
@@ -55,7 +56,7 @@ public class RemoteCommandResult {
 	
 	@Override
 	public String toString() {
-		return String.format("[exitValue: %s, reason: %s]", getExitValue(), getReason());
+		return ObjectUtil.dumpObjectAsMap(this);
 	}
 
 	public String getStdOut() {

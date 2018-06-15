@@ -42,13 +42,10 @@ public class ServerStateJob implements Job {
 		Server server = serverDbService.findById(sid);
 		Session session = null;
 		try {
-			session = sshSessionFactory.getConnectedSession(server).getResult();
-			if ("localhost".equals(server.getHost())) {
-				serverStateService.createWinServerState(server, session);
-			} else {
-				serverStateService.createLinuxServerState(server, session);
+			if (server.supportSSH()) {
+				session = sshSessionFactory.getConnectedSession(server).getResult();
 			}
-			
+			serverStateService.createServerState(server, session);
 		} catch (RunRemoteCommandException | IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 		} finally {

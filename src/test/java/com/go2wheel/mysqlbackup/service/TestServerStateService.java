@@ -22,6 +22,7 @@ public class TestServerStateService extends JobBaseFort {
 
 	@Test
 	public void t() throws SchedulerException, RunRemoteCommandException, IOException {
+		clearDb();
 		createServer();
 		deleteAllJobs();
 		createSession();

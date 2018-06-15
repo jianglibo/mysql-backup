@@ -34,11 +34,14 @@ public class TableDiscovery {
 
 		// this is how you can load the class type from BeanDefinition instance
 		for (BeanDefinition bean : classes) {
-			Class<? extends TableImpl<?>> clazz;
+//			Class<? extends TableImpl<?>> clazz;
+			Class<?> clazz;
 			try {
-				clazz = (Class<? extends TableImpl<?>>) Class.forName(bean.getBeanClassName());
-				String s = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(clazz.getSimpleName());
-				tablemap.put(s, clazz.newInstance());
+				clazz = Class.forName(bean.getBeanClassName());
+				if (TableImpl.class.isAssignableFrom(clazz)) {
+					String s = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_UNDERSCORE).convert(clazz.getSimpleName());
+					tablemap.put(s, clazz.newInstance());
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}

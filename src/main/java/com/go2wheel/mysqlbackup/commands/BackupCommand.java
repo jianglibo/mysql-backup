@@ -65,6 +65,8 @@ import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.ServerState;
+import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
@@ -76,7 +78,9 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.service.SqlService;
+import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -108,15 +112,21 @@ public class BackupCommand {
 	public static final String DANGEROUS_ALERT = "I know what i am doing.";
 
 	public static final int RESTART_CODE = 101;
-	
+
 	@Autowired
 	private SecurityService securityService;
-	
+
 	@Autowired
 	private SqlService sqlService;
 
 	@Autowired
 	private DefaultValues dvs;
+
+	@Autowired
+	private ServerStateService serverStateService;
+
+	@Autowired
+	private StorageStateService storageStateService;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -125,7 +135,7 @@ public class BackupCommand {
 
 	@Autowired
 	private Environment environment;
-	
+
 	@Autowired
 	private ApplicationState appState;
 
@@ -137,7 +147,7 @@ public class BackupCommand {
 
 	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;
-	
+
 	@Autowired
 	private MysqlDumpDbService mysqlDumpDbService;
 
@@ -148,7 +158,7 @@ public class BackupCommand {
 
 	@Autowired
 	private BorgService borgService;
-	
+
 	@Autowired
 	private MailerJob mailerJob;
 
@@ -173,7 +183,6 @@ public class BackupCommand {
 
 	@Autowired
 	private ServerDbService serverDbService;
-
 
 	@Autowired
 	private MysqlFlushDbService mysqlFlushDbService;
@@ -290,6 +299,47 @@ public class BackupCommand {
 		sureServerSelected();
 		return FacadeResult.doneExpectedResult(appState.getCurrentServer(), CommonActionResult.DONE);
 	}
+
+	@ShellMethod(value = "显示服务器健康度")
+	public FacadeResult<?> serverHealthyState(
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server
+			) throws JSchException, IOException, RunRemoteCommandException {
+		if (server == null) {
+			sureServerSelected();
+			server = appState.getCurrentServer();
+		}
+		Session sess = null;
+		if (server.supportSSH()) {
+			if (server.getId().equals(appState.getCurrentServer().getId())) {
+				sess = getSession();
+			} else {
+				sess = sshSessionFactory.getConnectedSession(server).getResult();
+			}
+		}
+		ServerState ss = serverStateService.createServerState(server, sess);
+		return FacadeResult.doneExpectedResultDone(ss);
+	}
+	
+	@ShellMethod(value = "显示服务器存储状态")
+	public FacadeResult<?> serverStorageState(
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
+		
+		if (server == null) {
+			sureServerSelected();
+			server = appState.getCurrentServer();
+		}
+		Session sess = null;
+		if (server.supportSSH()) {
+			if (server.getId().equals(appState.getCurrentServer().getId())) {
+				sess = getSession();
+			} else {
+				sess = sshSessionFactory.getConnectedSession(server).getResult();
+			}
+		}
+		List<StorageState> ssl = storageStateService.getStorageState(server, sess);
+		return FacadeResult.doneExpectedResultDone(ssl);
+	}
+
 
 	@ShellMethod(value = "和修改服务器描述")
 	public FacadeResult<?> serverUpdate(
@@ -975,6 +1025,28 @@ public class BackupCommand {
 			@ShellOption(help = "数据表名称") String tableName,
 			@ShellOption(help = "记录的ID") int id) {
 		return FacadeResult.doneExpectedResultDone(sqlService.delete(tableName, id));
+	}
+	
+	@ShellMethod(value = "执行远程命令.")
+	public FacadeResult<?> testRunRemote(
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
+			@ShellOption(help = "command to run.") String command
+			) throws RunRemoteCommandException {
+		
+		if (server == null) {
+			sureServerSelected();
+			server = appState.getCurrentServer();
+		}
+		Session sess = null;
+		if (server.supportSSH()) {
+			if (server.getId().equals(appState.getCurrentServer().getId())) {
+				sess = getSession();
+			} else {
+				sess = sshSessionFactory.getConnectedSession(server).getResult();
+			}
+			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sess, command));
+		}
+		return FacadeResult.unexpectedResult(CommonMessageKeys.UNSUPPORTED);
 	}
 
 	

@@ -19,4 +19,6 @@ public class CommonMessageKeys {
 
 	public static final String DB_ITEMNOTEXISTS = "db.itemnotexists";
 
+	public static final String UNSUPPORTED = "common.unsupported";
+
 }

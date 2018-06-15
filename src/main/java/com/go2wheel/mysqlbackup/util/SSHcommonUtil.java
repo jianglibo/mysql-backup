@@ -105,6 +105,17 @@ public class SSHcommonUtil {
 			}
 		}
 	}
+	
+	public static String targzFile(Session session, String remoteFile) throws RunRemoteCommandException {
+		String tarFile = RemotePathUtil.getRidOfLastSlash(remoteFile) + ".tar.gz";
+		String command = String.format("tar -czf %s %", tarFile, remoteFile);
+		RemoteCommandResult rcr =  runRemoteCommand(session, command);
+		if (rcr.getExitValue() == 0) {
+			return tarFile;			
+		} else {
+			return null;
+		}
+	}
 
 	/**
 	 * By invoke 'ls remoteFile', if it's a directory, the first line should be

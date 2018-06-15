@@ -20,7 +20,7 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect {
 	}
 
 	protected String getCmd() {
-		String cmd = "mysqldump -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
+		String cmd = "mysqldump --max_allowed_packet=512M -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
 		cmd = String.format(cmd, StringUtil.notEmptyValue(server.getMysqlInstance().getUsername()).orElse("root"), MysqlUtil.DUMP_FILE_NAME);
 		return cmd;
 	}

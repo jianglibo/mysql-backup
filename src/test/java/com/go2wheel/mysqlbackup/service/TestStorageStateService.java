@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Test;
@@ -19,11 +20,12 @@ public class TestStorageStateService extends JobBaseFort {
 	private StorageStateService storageStateService;
 
 	@Test
-	public void t() throws SchedulerException {
+	public void t() throws SchedulerException, IOException {
+		clearDb();
 		createServer();
 		deleteAllJobs();
 		createSession();
-		List<StorageState> sss = storageStateService.getLinuxStorageState(server, session);
+		List<StorageState> sss = storageStateService.getStorageState(server, session);
 		
 		assertThat(sss.size(), greaterThan(2));
 		

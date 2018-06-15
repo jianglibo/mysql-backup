@@ -8,6 +8,17 @@ public class RemotePathUtil {
 		return remotePath.substring(0, remotePath.lastIndexOf('/') + 1);
 	}
 	
+	public static String getRidOfLastSlash(String remotePath) {
+		if (remotePath.endsWith("/")) {
+			return remotePath.replaceAll("/+$", "");
+					
+		} else {
+			return remotePath;
+		}
+		
+	}
+
+	
 	public static String getLogBinFile(Server server, String onlyFilename) {
 		String remoteDir = server.getMysqlInstance().getLogBinSetting().getLogBinDirWithEndingSlash();
 		return remoteDir + onlyFilename;

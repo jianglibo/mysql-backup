@@ -23,8 +23,6 @@ public class JobBaseFort extends SpringBaseFort {
 		deleteAllJobs();
 	}
 	
-
-	
 	protected void assertJc(long before, int delta) throws SchedulerException {
 		long now = countJobs();
 		assertThat(now, equalTo(before + delta)); //create server will cause create uptime and diskfree jobs.

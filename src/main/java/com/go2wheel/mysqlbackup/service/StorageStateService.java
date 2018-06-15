@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -44,8 +43,16 @@ public class StorageStateService {
 		}
 		return new ArrayList<>();
 	}
+	
+	public List<StorageState> getStorageState(Server server, Session session) {
+		if ("localhost".equals(server.getHost())) {
+			return getWinLocalDiskFree(server);
+		} else {
+			return getLinuxStorageState(server, session);	
+		}
+	}
 
-	public List<StorageState> getLinuxStorageState(Server server, Session session) {
+	private List<StorageState> getLinuxStorageState(Server server, Session session) {
 		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
 		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).collect(Collectors.toList());
 		final Date d = new Date();
@@ -56,22 +63,29 @@ public class StorageStateService {
 		}).collect(Collectors.toList());
 	}
 
-	public List<StorageState> getWinLocalDiskFree(Server server) throws IOException {
+	private List<StorageState> getWinLocalDiskFree(Server server) {
 		String pscommand = "Get-PSDrive | Where-Object Name -Match '^.{1}$' | Format-List -Property *";
 		ProcessExecResult rcr = PSUtil.runPsCommand(pscommand);
 		List<Map<String, String>> lmss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty());
 		List<StorageState> dfs = new ArrayList<>();
 		final Date d = new Date();
 		for (Map<String, String> mss : lmss) {
-			StorageState df = new StorageState();
-			df.setCreatedAt(d);
-			df.setServerId(server.getId());
-			long used = Long.parseLong(mss.get("Used"));
-			long free = Long.parseLong(mss.get("Free"));
-			df.setRoot(mss.get("Root"));
-			df.setAvailable(free);
-			df.setUsed(used);
-			dfs.add(storageStateDbService.save(df));
+			try {
+				String usedNumber = mss.get("Used");
+				String freeNumber = mss.get("Free");
+				if (usedNumber.trim().isEmpty() || freeNumber.trim().isEmpty())continue;
+				StorageState df = new StorageState();
+				df.setCreatedAt(d);
+				df.setServerId(server.getId());
+				long used = Long.parseLong(usedNumber);
+				long free = Long.parseLong(freeNumber);
+				df.setRoot(mss.get("Root"));
+				df.setAvailable(free);
+				df.setUsed(used);
+				dfs.add(storageStateDbService.save(df));
+			} catch (NumberFormatException e) {
+				ExceptionUtil.logErrorException(logger, e);
+			}
 		}
 		return dfs;
 	}

@@ -181,5 +181,9 @@ public class Server extends BaseModel {
 	public void setOs(String os) {
 		this.os = os;
 	}
+	
+	public boolean supportSSH() {
+		return getOs().contains("linux");
+	}
 
 }

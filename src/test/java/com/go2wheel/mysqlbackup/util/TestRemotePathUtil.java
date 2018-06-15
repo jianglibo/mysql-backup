@@ -7,6 +7,14 @@ import org.junit.Test;
 
 public class TestRemotePathUtil {
 	
+	@Test
+	public void testgetRidOfLastSlash() {
+		String l = RemotePathUtil.getRidOfLastSlash("abc///");
+		assertThat(l, equalTo("abc"));
+		
+		l = RemotePathUtil.getRidOfLastSlash("/");
+		assertThat(l, equalTo(""));
+	}
 	
 	@Test
 	public void t() {
