@@ -6,30 +6,22 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
-import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 import com.jcraft.jsch.Session;
 
 @Component
 public class BorgArchiveJob implements Job {
-
-	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private BorgService borgService;
@@ -39,72 +31,33 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
-	@Autowired
-	private JobErrorDbService jobErrorDbService;
 
 	@Autowired
 	private ServerDbService serverDbService;
-	
+
 	@Override
+	@TrapException(BorgArchiveJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 
 		Session session = null;
 		try {
 			JobDataMap data = context.getMergedJobDataMap();
 			int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-			
+
 			Server sv = serverDbService.findById(sid);
 			sv = serverDbService.loadFull(sv);
-			
-			JobError je = new JobError();
-			je.setServerId(sv.getId());
-			
-			if (borgService.isBorgNotReady(sv)) {
-				logger.error("Box {} is not ready for Archive.", sv.getHost());
-				je.setMessageDetail("borg not ready for backup.");
-				jobErrorDbService.save(je);
-				return;
-			}
-			
+
 			session = sshSessionFactory.getConnectedSession(sv).getResult();
 
 			FacadeResult<RemoteCommandResult> fr = borgService.archive(session, sv, false);
-			
-			if (CommonMessageKeys.APPLICATION_NOTINSTALLED.equals(fr.getMessage())) {
-				borgService.install(session);
-				fr = borgService.archive(session, sv, false);
-			}
 
 			long ts = fr.getEndTime() - fr.getStartTime();
-			
-			
-			
-			BorgDownload bd = null;
-			if (!fr.isExpected()) {
-				if (fr.getResult() != null) {
-					ExceptionUtil.logRemoteCommandResult(logger, fr.getResult());
-				}
-				je.setMessageKey(fr.getMessage());
-				je.setMessageDetail(fr.resultToString());
-				jobErrorDbService.save(je);
-			} else {
-				FacadeResult<BorgDownload> frBorgDownload = borgService.downloadRepo(session, sv);
-				ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
-				if (frBorgDownload.isExpected()) {
-					if (frBorgDownload.getResult() != null) {
-						bd = frBorgDownload.getResult();
-					}
-				}
-			}
 
-			if (bd == null) {
-				bd = new BorgDownload();
-				bd.setResult(ResultEnum.FAIL);
-			} else {
-				bd.setResult(ResultEnum.SUCCESS);
-			}
-			
+			BorgDownload bd = null;
+			FacadeResult<BorgDownload> frBorgDownload = borgService.downloadRepo(session, sv);
+			ts += frBorgDownload.getEndTime() - frBorgDownload.getStartTime();
+			bd = frBorgDownload.getResult();
+
 			bd.setServerId(sv.getId());
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);

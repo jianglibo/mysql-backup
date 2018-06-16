@@ -62,6 +62,7 @@ import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -75,6 +76,7 @@ import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
@@ -127,6 +129,9 @@ public class BackupCommand {
 
 	@Autowired
 	private ServerStateService serverStateService;
+	
+	@Autowired
+	private BorgDownloadDbService borgDownloadDbService;
 
 	@Autowired
 	private StorageStateService storageStateService;
@@ -602,7 +607,13 @@ public class BackupCommand {
 	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
-		return borgService.downloadRepo(getSession(), server);
+		FacadeResult<BorgDownload> fr = borgService.downloadRepo(getSession(), server);
+		BorgDownload bd = fr.getResult();
+		bd.setTimeCost(fr.getEndTime() - fr.getStartTime());
+		bd.setServerId(server.getId());
+		bd = borgDownloadDbService.save(bd);
+		fr.setResult(bd);
+		return fr;
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")

@@ -279,7 +279,7 @@ public class BorgService {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.APPLICATION_NOTINSTALLED, cmd);
 			}
 			if (rcr.getExitValue() == 0) {
-				return FacadeResult.showMessageExpected(CommonMessageKeys.MISSION_ACCOMPLISHED);
+				return FacadeResult.doneExpectedResultDone(rcr);
 			} else {
 				List<String> lines = rcr.getAllTrimedNotEmptyLines();
 				String errOut = rcr.getErrOut();
