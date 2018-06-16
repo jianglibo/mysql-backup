@@ -260,18 +260,6 @@ public class SSHcommonUtil {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
 		}
 	}
-
-//	public static UptimeAllString getUpTime(Session session) {
-//		String command = "uptime -s;uptime -p;uptime";
-//		try {
-//			RemoteCommandResult rcr = runRemoteCommand(session, command);
-//			return UptimeAllString.build(rcr.getAllTrimedNotEmptyLines());
-//		} catch (RunRemoteCommandException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			return null;
-//		}
-//	}
-//	
 	
 	public static int coreNumber(Session session) {
 		String command = "grep 'model name' /proc/cpuinfo | wc -l";

@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.service;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -56,6 +55,13 @@ public class ServerStateService {
 			ExceptionUtil.logErrorException(logger, e);
 			return null;
 		}
+	}
+	
+	public int getCoreNumber(Server server, Session session) {
+		if (session == null) {
+			return 0;
+		}
+		return SSHcommonUtil.coreNumber(session);
 	}
 	
 	public ServerState createServerState(Server server, Session session) {

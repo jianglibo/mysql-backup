@@ -312,19 +312,9 @@ public class BackupCommand {
 	public FacadeResult<?> serverHealthyState(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server
 			) throws JSchException, IOException, RunRemoteCommandException {
-		if (server == null) {
-			sureServerSelected();
-			server = appState.getCurrentServer();
-		}
-		Session sess = null;
-		if (server.supportSSH()) {
-			if (server.getId().equals(appState.getCurrentServer().getId())) {
-				sess = getSession();
-			} else {
-				sess = sshSessionFactory.getConnectedSession(server).getResult();
-			}
-		}
-		ServerState ss = serverStateService.createServerState(server, sess);
+		
+		ServerAndSession sas = getServerAndSession(server);
+		ServerState ss = serverStateService.createServerState(sas.getServer(), sas.getSession());
 		return FacadeResult.doneExpectedResultDone(ss);
 	}
 	
@@ -332,20 +322,22 @@ public class BackupCommand {
 	public FacadeResult<?> serverStorageState(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
 		
-		if (server == null) {
-			sureServerSelected();
-			server = appState.getCurrentServer();
-		}
-		Session sess = null;
-		if (server.supportSSH()) {
-			if (server.getId().equals(appState.getCurrentServer().getId())) {
-				sess = getSession();
-			} else {
-				sess = sshSessionFactory.getConnectedSession(server).getResult();
-			}
-		}
-		List<StorageState> ssl = storageStateService.getStorageState(server, sess);
+		ServerAndSession sas = getServerAndSession(server);
+		List<StorageState> ssl = storageStateService.getStorageState(sas.getServer(), sas.getSession());
 		return FacadeResult.doneExpectedResultDone(ssl);
+	}
+
+	@ShellMethod(value = "获取CPU的核数")
+	public FacadeResult<?> serverCoreNumber(
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
+		
+		ServerAndSession sas = getServerAndSession(server);
+		if (sas.getSession() != null) {
+			int i = SSHcommonUtil.coreNumber(sas.getSession());
+			return FacadeResult.doneExpectedResultDone(i);
+		} else {
+			return FacadeResult.showMessageUnExpected(CommonMessageKeys.UNSUPPORTED);
+		}
 	}
 
 
@@ -1060,19 +1052,9 @@ public class BackupCommand {
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
 			@ShellOption(help = "command to run.") String command
 			) throws RunRemoteCommandException {
-		
-		if (server == null) {
-			sureServerSelected();
-			server = appState.getCurrentServer();
-		}
-		Session sess = null;
-		if (server.supportSSH()) {
-			if (server.getId().equals(appState.getCurrentServer().getId())) {
-				sess = getSession();
-			} else {
-				sess = sshSessionFactory.getConnectedSession(server).getResult();
-			}
-			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sess, command));
+		ServerAndSession sas = getServerAndSession(server);
+		if (sas.getSession() != null) {
+			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sas.getSession(), command));
 		}
 		return FacadeResult.unexpectedResult(CommonMessageKeys.UNSUPPORTED);
 	}
@@ -1098,5 +1080,39 @@ public class BackupCommand {
 	public PromptProvider myPromptProvider() {
 		return () -> new AttributedString(getPromptString(),
 				AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+	}
+	
+	private ServerAndSession getServerAndSession(Server server) {
+		if (server == null) {
+			sureServerSelected();
+			server = appState.getCurrentServer();
+		}
+		Session sess = null;
+		if (server.supportSSH()) {
+			if (server.getId().equals(appState.getCurrentServer().getId())) {
+				sess = getSession();
+			} else {
+				sess = sshSessionFactory.getConnectedSession(server).getResult();
+			}
+		}
+		return new ServerAndSession(server, sess);
+	}
+	
+	private class ServerAndSession {
+		private final Server server;
+		private final Session session;
+		
+		public ServerAndSession(Server server, Session session) {
+			this.server = server;
+			this.session = session;
+		}
+
+		public Server getServer() {
+			return server;
+		}
+
+		public Session getSession() {
+			return session;
+		}
 	}
 }

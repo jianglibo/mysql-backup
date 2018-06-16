@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -30,6 +31,7 @@ public class BorgPruneJob implements Job {
 	private ServerDbService serverDbService;
 
 	@Override
+	@TrapException(BorgPruneJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		Session session = null;
 		try {

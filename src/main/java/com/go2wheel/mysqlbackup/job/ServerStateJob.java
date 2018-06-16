@@ -4,8 +4,6 @@ import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,8 +17,6 @@ import com.jcraft.jsch.Session;
 @Component
 public class ServerStateJob implements Job {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
-	
 	@Autowired
 	private ServerStateService serverStateService;
 	
@@ -40,6 +36,10 @@ public class ServerStateJob implements Job {
 		try {
 			if (server.supportSSH()) {
 				session = sshSessionFactory.getConnectedSession(server).getResult();
+				if (server.getCoreNumber() == 0) {
+					server.setCoreNumber(serverStateService.getCoreNumber(server, session));
+					serverDbService.save(server);
+				}
 			}
 			serverStateService.createServerState(server, session);
 		} finally {
