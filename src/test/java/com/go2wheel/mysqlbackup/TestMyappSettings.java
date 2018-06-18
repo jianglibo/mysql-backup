@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -42,6 +43,8 @@ public class TestMyappSettings  extends SpringBaseFort {
 		assertThat(env.getProperty("logging.file.max-size"), equalTo("5MB"));
 		assertThat(env.getProperty("logging.file.max-history"), equalTo("100"));
 		assertThat(env.getProperty("spring.profiles.active"), equalTo("dev"));
+		
+		assertThat(myAppSettings.getStorageExcludes().size(), greaterThan(4));
 	}
 	
 	@Test

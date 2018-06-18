@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+  <div th:fragment="detail">
+    <div th:each="daily: ${serverCtx.getStorageStateByDate()}">
+      <p th:text="${daily.key}">日期</p>
+      <table>
+        <tr>
+          <th>根目录</th>
+          <th>使用比例</th>
+        </tr>
+        <tr th:each="storageStateByRoot: ${daily.value}" th:with="root=${storageStateByRoot.key}, storageState=${storageStateByRoot.value}">
+          <td th:text="${root}">2.41</td>
+          <td th:text="|${#numbers.formatDecimal(storageState.usedRatio,0,2)}%|">Onions</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

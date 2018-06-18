@@ -22,6 +22,7 @@ public class ServerGroupContext {
 		map.put("user", user);
 		map.put("servers", servers);
 		map.put("serverGroup", serverGroup);
+		map.put("myself", myself);
 		return map;
 	}
 	

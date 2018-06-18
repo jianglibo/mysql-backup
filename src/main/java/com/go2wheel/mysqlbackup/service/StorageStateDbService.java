@@ -27,6 +27,10 @@ public class StorageStateDbService extends ServiceBase<StorageStateRecord, Stora
 		return  ((StorageStateRepository)repo).getItemsInDays(server.getId(), days);
 	}
 
+	public int remove(Server server, int keepDays) {
+		return  ((StorageStateRepository)repo).removeBeforeDay(server, keepDays);
+	}
+
 	
 	
 }

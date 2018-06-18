@@ -21,4 +21,6 @@ public class CommonMessageKeys {
 
 	public static final String UNSUPPORTED = "common.unsupported";
 
+	public static final String DB_RECORD_DELETED = "db.record.deleted";
+
 }

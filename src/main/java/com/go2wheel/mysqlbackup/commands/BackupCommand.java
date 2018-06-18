@@ -327,17 +327,37 @@ public class BackupCommand {
 		return FacadeResult.doneExpectedResultDone(ssl);
 	}
 
+	@ShellMethod(value = "整理数据库中的关于存储状态的记录")
+	public FacadeResult<?> serverStorageStatePrune(
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
+			@ShellOption(help = "保留指定天数内的记录", defaultValue="180") int keepDays,
+			@ShellOption(help = "针对所有服务器。") boolean allServer) throws JSchException, IOException, RunRemoteCommandException {
+		ServerAndSession sas = getServerAndSession(server, true);
+		int deleted;
+		
+		if (allServer) {
+			deleted = storageStateService.pruneStorageState(null, keepDays);
+		} else {
+			deleted = storageStateService.pruneStorageState(sas.getServer(), keepDays);
+		}
+		
+		return FacadeResult.showMessageExpected(CommonMessageKeys.DB_RECORD_DELETED, deleted);
+	}
+
 	@ShellMethod(value = "获取CPU的核数")
 	public FacadeResult<?> serverCoreNumber(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
 		
 		ServerAndSession sas = getServerAndSession(server);
-		if (sas.getSession() != null) {
-			int i = SSHcommonUtil.coreNumber(sas.getSession());
-			return FacadeResult.doneExpectedResultDone(i);
-		} else {
-			return FacadeResult.showMessageUnExpected(CommonMessageKeys.UNSUPPORTED);
-		}
+		int i = serverStateService.getCoreNumber(server, sas.getSession());
+		return FacadeResult.doneExpectedResultDone(i);
+
+//		if (sas.getSession() != null) {
+//			int i = SSHcommonUtil.coreNumber(sas.getSession());
+//			return FacadeResult.doneExpectedResultDone(i);
+//		} else {
+//			return FacadeResult.showMessageUnExpected(CommonMessageKeys.UNSUPPORTED);
+//		}
 	}
 
 
@@ -1004,10 +1024,13 @@ public class BackupCommand {
 	@ShellMethod(value = "创建模板的Context数据")
 	public FacadeResult<?> extraTemplateContext(
 			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
-			@ShellOption(help = "输出文件的名称。") String outfile
+			@ShellOption(help = "输出文件的名称。", defaultValue=ShellOption.NULL) String outfile
 			) throws IOException {
 		ServerGroupContext sgc = mailerJob.createMailerContext(userServerGrpId);
 		Path pa = Paths.get("templates", "tplcontext.yml");
+		if (outfile != null) {
+			pa = Paths.get("templates", outfile); 
+		}
 		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgc);
 		Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
 		return FacadeResult.doneExpectedResult();
@@ -1083,16 +1106,22 @@ public class BackupCommand {
 	}
 	
 	private ServerAndSession getServerAndSession(Server server) {
+		return getServerAndSession(server, false);
+	}
+	
+	private ServerAndSession getServerAndSession(Server server, boolean notConnect) {
 		if (server == null) {
 			sureServerSelected();
 			server = appState.getCurrentServer();
 		}
 		Session sess = null;
-		if (server.supportSSH()) {
-			if (server.getId().equals(appState.getCurrentServer().getId())) {
-				sess = getSession();
-			} else {
-				sess = sshSessionFactory.getConnectedSession(server).getResult();
+		if (!notConnect) {
+			if (server.supportSSH()) {
+				if (server.getId().equals(appState.getCurrentServer().getId())) {
+					sess = getSession();
+				} else {
+					sess = sshSessionFactory.getConnectedSession(server).getResult();
+				}
 			}
 		}
 		return new ServerAndSession(server, sess);

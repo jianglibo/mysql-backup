@@ -59,7 +59,10 @@ public class ServerStateService {
 	
 	public int getCoreNumber(Server server, Session session) {
 		if (session == null) {
-			return 0;
+			String command = "Get-WmiObject win32_processor | Format-List -Property *";
+			ProcessExecResult pcr = PSUtil.runPsCommand(command);
+			Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
+			return StringUtil.parseInt(mss.get("NumberOfCores"));
 		}
 		return SSHcommonUtil.coreNumber(session);
 	}
@@ -94,15 +97,15 @@ public class ServerStateService {
 	public ServerState createWinServerState(Server server, Session session) {
 		ServerState ss = new ServerState();
 		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
-		ProcessExecResult rcr = PSUtil.runPsCommand(command);
-		Map<String, String> mss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty()).get(0);
+		ProcessExecResult pcr = PSUtil.runPsCommand(command);
+		Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0);
 		String lbt = mss.get("LastBootUpTime");
 		ss.setMemFree(StringUtil.parseLong(mss.get("FreePhysicalMemory")) * 1024);
 		ss.setMemUsed(StringUtil.parseLong(mss.get("TotalVisibleMemorySize"))  * 1024 - ss.getMemFree());
 		
 		command = "Get-WmiObject win32_processor | Format-List -Property *";
-		rcr = PSUtil.runPsCommand(command);
-		mss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
+		pcr = PSUtil.runPsCommand(command);
+		mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
 		
 		ss.setAverageLoad(StringUtil.parseInt(mss.get("LoadPercentage")));
 		ss.setServerId(server.getId());

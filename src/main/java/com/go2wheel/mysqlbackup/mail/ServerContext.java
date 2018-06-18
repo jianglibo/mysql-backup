@@ -1,6 +1,14 @@
 package com.go2wheel.mysqlbackup.mail;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.JobError;
@@ -9,21 +17,26 @@ import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
+import com.go2wheel.mysqlbackup.util.SQLTimeUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.ServerStateAvg;
 
 public class ServerContext {
-	
+
 	private List<ServerState> serverStates;
 	private List<MysqlFlush> mysqlFlushs;
 	private List<StorageState> storageStates;
-	
+
 	private List<JobError> jobErrors;
 	private List<MysqlDump> mysqlDumps;
 	private List<BorgDownload> borgDownloads;
-	
+
 	private Server server;
-	
-	public ServerContext() {}
-	
+	private String mem;
+
+	public ServerContext() {
+	}
+
 	public ServerContext(List<ServerState> serverStates, List<MysqlFlush> mysqlFlushs, List<StorageState> storageStates,
 			List<JobError> jobErrors, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
 		super();
@@ -33,15 +46,94 @@ public class ServerContext {
 		this.borgDownloads = borgDownloads;
 		this.serverStates = serverStates;
 		this.storageStates = storageStates;
+		createMem();
 	}
 
+	public Map<String, Map<String, StorageState>> getStorageStateByDate() {
+		Map<String, Set<StorageState>> stss = getStorageStates().stream().collect(Collectors.groupingBy(sst -> {
+			return SQLTimeUtil.formatDate(sst.getCreatedAt());
+		}, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
 
+		Map<String, Map<String, StorageState>> byDateAndRoot = new TreeMap<>();
+
+		for (Map.Entry<String, Set<StorageState>> es : stss.entrySet()) {
+			String dateKey = es.getKey();
+			Set<StorageState> dailyData = es.getValue();
+			Map<String, Set<StorageState>> oneByRoot = dailyData.stream().collect(Collectors.groupingBy(
+					StorageState::getRoot, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
+			
+			// get one record a day. If there was more than one record discard it.
+			Map<String, StorageState> onlyOneRecord = new HashMap<>();
+			
+			for(Map.Entry<String, Set<StorageState>> oneRootItem : oneByRoot.entrySet()) {
+				onlyOneRecord.put(oneRootItem.getKey(), oneRootItem.getValue().iterator().next());
+			}
+			
+			byDateAndRoot.put(dateKey, onlyOneRecord);
+		}
+
+		return byDateAndRoot;
+	}
+
+	public Map<String, Map<String, ServerStateAvg>> getServerStatebyHours() {
+		Map<String, Set<ServerState>> byDate = byDate(getServerStates());
+
+		Map<String, Map<String, Set<ServerState>>> byHours = new TreeMap<>();
+		DateFormat df = new SimpleDateFormat("HH");
+
+		for (Map.Entry<String, Set<ServerState>> es : byDate.entrySet()) {
+			Map<String, Set<ServerState>> oneByDate = es.getValue().stream().collect(Collectors.groupingBy(sst -> {
+				String k = df.format(sst.getCreatedAt());
+				return k;
+			}, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
+			byHours.put(es.getKey(), oneByDate);
+		}
+		Map<String, Map<String, ServerStateAvg>> byHoursAvg = new TreeMap<>();
+		
+
+		for (Map.Entry<String, Map<String, Set<ServerState>>> es : byHours.entrySet()) {
+			String dateKey = es.getKey(); // key is date. 1982-01-12
+			Map<String, Set<ServerState>> hourValue = es.getValue();
+
+			Map<String, ServerStateAvg> hourAvg = new TreeMap<>();
+
+			for (Map.Entry<String, Set<ServerState>> hes : hourValue.entrySet()) {
+				String hourKey = hes.getKey();
+				double avgMemused = hes.getValue().stream().collect(Collectors.averagingDouble(st -> {
+					double d = (double) st.getMemUsed() / (st.getMemFree() + st.getMemUsed());
+					return d;
+				}));
+				avgMemused = avgMemused * 100;
+				double avgLoad = hes.getValue().stream().collect(Collectors.averagingInt(st -> st.getAverageLoad()));
+				ServerStateAvg ss = new ServerStateAvg();
+				ss.setAvgLoad(avgLoad);
+				ss.setAvgMemused(avgMemused);
+				hourAvg.put(hourKey, ss);
+			}
+			byHoursAvg.put(dateKey, hourAvg);
+		}
+		return byHoursAvg;
+	}
+
+	private Map<String, Set<ServerState>> byDate(Collection<ServerState> ss) {
+		return ss.stream().collect(Collectors.groupingBy(sst -> {
+			return SQLTimeUtil.formatDate(sst.getCreatedAt());
+		}, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
+
+	}
+
+	public void createMem() {
+		if (this.serverStates == null && this.serverStates.isEmpty()) {
+			setMem("0");
+		} else {
+			ServerState ss = this.serverStates.get(0);
+			setMem(StringUtil.formatSize(ss.getMemFree() + ss.getMemUsed()));
+		}
+	}
 
 	public List<MysqlFlush> getMysqlFlushs() {
 		return mysqlFlushs;
 	}
-
-
 
 	public List<JobError> getJobErrors() {
 		return jobErrors;
@@ -54,7 +146,6 @@ public class ServerContext {
 	public List<BorgDownload> getBorgDownloads() {
 		return borgDownloads;
 	}
-
 
 	public Server getServer() {
 		return server;
@@ -95,6 +186,13 @@ public class ServerContext {
 	public void setBorgDownloads(List<BorgDownload> borgDownloads) {
 		this.borgDownloads = borgDownloads;
 	}
-	
-	
+
+	public String getMem() {
+		return mem;
+	}
+
+	public void setMem(String mem) {
+		this.mem = mem;
+	}
+
 }

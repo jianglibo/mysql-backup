@@ -281,6 +281,49 @@ servers:
     memFree: 192626688
     memUsed: 511934464
     serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-18T02:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-18T10:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-19T01:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-19T01:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-19T01:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-20T01:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  - averageLoad: 5
+    createdAt: 2018-06-20T01:56:40.190Z
+    id: 117
+    memFree: 192626688
+    memUsed: 511934464
+    serverId: 100
+  
   storageStates:
   - available: 162672721920
     createdAt: 2018-06-18T01:55:23.900Z

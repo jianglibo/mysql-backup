@@ -12,8 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.model.Diskfree;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -28,6 +28,9 @@ import com.jcraft.jsch.Session;
 public class StorageStateService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	@Autowired
+	private MyAppSettings myAppSettings;
 
 	@Autowired
 	private StorageStateDbService storageStateDbService;
@@ -45,11 +48,14 @@ public class StorageStateService {
 	}
 	
 	public List<StorageState> getStorageState(Server server, Session session) {
+		List<StorageState> lss;
 		if ("localhost".equals(server.getHost())) {
-			return getWinLocalDiskFree(server);
+			lss = getWinLocalDiskFree(server);
 		} else {
-			return getLinuxStorageState(server, session);	
+			lss = getLinuxStorageState(server, session);	
 		}
+		return lss.stream().filter(it -> !myAppSettings.getStorageExcludes().contains(it.getRoot())).collect(Collectors.toList());
+		
 	}
 
 	private List<StorageState> getLinuxStorageState(Server server, Session session) {
@@ -92,9 +98,11 @@ public class StorageStateService {
 
 	private static class DiskFreeAllString {
 		private String fileSystem = "";
+		@SuppressWarnings("unused")
 		private String blocks = "";
 		private String used = "";
 		private String available = "";
+		@SuppressWarnings("unused")
 		private String use = "";
 		private String mountedOn = "";
 
@@ -125,16 +133,9 @@ public class StorageStateService {
 			df.setAvailable(StringUtil.parseLong(available) * 1024);
 			return df;
 		}
+	}
 
-		public Diskfree toDiskfree() {
-			Diskfree df = new Diskfree();
-			df.setFileSystem(fileSystem);
-			df.setBlocks(StringUtil.parseInt(blocks));
-			df.setMountedOn(mountedOn);
-			df.setUsed(StringUtil.parseInt(used));
-			df.setUsePercent(StringUtil.parseInt(use));
-			df.setAvailable(StringUtil.parseInt(available));
-			return df;
-		}
+	public int pruneStorageState(Server server, int keepDays) {
+		return storageStateDbService.remove(server, keepDays);
 	}
 }

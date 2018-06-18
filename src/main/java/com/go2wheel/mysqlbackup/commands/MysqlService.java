@@ -42,6 +42,7 @@ import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.ResultEnum;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -200,7 +201,6 @@ public class MysqlService {
 
 	}
 	
-	
 	public FacadeResult<?> disableLogbin(Session session, Server server) {
 		try {
 
@@ -252,6 +252,9 @@ public class MysqlService {
 			
 			MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 			String mycnfFile = mfh.getMyCnfFile();
+			
+			Path mysqlSettingDir = appSettings.getLocalMysqlDir(server);
+			Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());
 			
 			if (!lbs.isEnabled()) {
 				mfh.enableBinLog(logBinValue); // 修改logbin的值

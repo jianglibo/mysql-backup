@@ -11,6 +11,7 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
@@ -20,12 +21,12 @@ public class ObjectFieldValueProvider implements ValueProvider {
 
 	@Autowired
 	private ReuseableCronDbService reusableCronDbService;
-	
+
 	@Autowired
 	private SharedValueProviderMethods svpm;
-	
+
 	private static List<Class<? extends Annotation>> al = new ArrayList<>();
-	
+
 	static {
 		al.add(CronExpressionConstraint.class);
 		al.add(OstypeIndicator.class);
@@ -33,8 +34,9 @@ public class ObjectFieldValueProvider implements ValueProvider {
 
 	@Override
 	public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
-		return svpm.filedHasAnnotation(completionContext, parameter, al) != null;
-				
+		// return svpm.filedHasAnnotation(completionContext, parameter, al) != null;
+		return parameter.getParameterAnnotation(ObjectFieldIndicator.class) != null;
+
 	}
 
 	@Override
@@ -46,23 +48,24 @@ public class ObjectFieldValueProvider implements ValueProvider {
 		if (input.startsWith("-")) {
 			return new ArrayList<>();
 		}
-		
+
 		Object an = svpm.filedHasAnnotation(completionContext, parameter, al);
-		
-		if (an instanceof CronExpressionConstraint) {
-			List<ReusableCron> crons = reusableCronDbService.findAll();
-			if (crons.size() == 1) {
-				return crons.stream().map(o -> o.getExpression())
-						.map(CompletionProposal::new).collect(Collectors.toList());
-			} else {
-				return crons.stream().map(o -> o.toListRepresentation())
-						.map(CompletionProposal::new).collect(Collectors.toList());
+
+		if (an != null) {
+			if (an instanceof CronExpressionConstraint) {
+				List<ReusableCron> crons = reusableCronDbService.findAll();
+				if (crons.size() == 1) {
+					return crons.stream().map(o -> o.getExpression()).map(CompletionProposal::new)
+							.collect(Collectors.toList());
+				} else {
+					return crons.stream().map(o -> o.toListRepresentation()).map(CompletionProposal::new)
+							.collect(Collectors.toList());
+				}
+			} else if (an instanceof OstypeIndicator) {
+				return svpm.getOstypeProposals(input);
 			}
-		} else if (an instanceof OstypeIndicator) {
-			return svpm.getOstypeProposals(input);
 		}
-		
-		return new ArrayList<>();
+		return svpm.getOriginValue(completionContext, parameter, input);
 	}
 
 }

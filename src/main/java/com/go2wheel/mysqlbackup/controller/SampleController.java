@@ -5,9 +5,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.http.ResponseEntity;
@@ -20,12 +20,17 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.go2wheel.mysqlbackup.job.MailerJob;
+import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Controller
 public class SampleController implements ApplicationContextAware {
 
 	private ApplicationContext applicationContext;
+	
+	@Autowired
+	private MailerJob mailJob;
 
 	@RequestMapping("/")
 	@ResponseBody
@@ -34,21 +39,25 @@ public class SampleController implements ApplicationContextAware {
 	}
 
 	@ModelAttribute
-	public void populateModel(@RequestParam(required = false) String number, Model model) {
-		model.addAttribute("number", number);
-	}
-
-	@ModelAttribute
-	public void populateServerGroup(Model model) throws IOException {
-		Path pa = Paths.get("templates", "tplcontext.yml");
+	public void populateServerGroup(@RequestParam(required = false) String ctxFile, Model model) throws IOException {
+		if (ctxFile == null) {
+			ctxFile = "tplcontext.yml";
+		}
+		Path pa = Paths.get("templates", ctxFile);
 		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
-		Map<String, ?> m = YamlInstance.INSTANCE.yaml.loadAs(content, Map.class);
-		model.addAllAttributes(m);
+		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
+		model.addAllAttributes(m.toMap());
 	}
 
 	@GetMapping("/dynamic/{tplName}")
 	public String ft(@PathVariable String tplName) {
 		return tplName;
+	}
+	
+	@GetMapping("/createctx/{userServerGrpId}")
+	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
+		mailJob.createMailerContext(userServerGrpId);
+		return ResponseEntity.ok("done");
 	}
 
 	@Override
