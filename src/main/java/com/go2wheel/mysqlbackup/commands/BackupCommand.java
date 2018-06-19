@@ -992,13 +992,13 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出当前主机的计划任务")
-	public List<String> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
+	public FacadeResult<?> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		if (all) {
-			return schedulerService.getAllSchedulerJobList();
+			return FacadeResult.doneExpectedResultDone(schedulerService.getAllJobKeys().stream().map(StringUtil::formatJobkey).collect(Collectors.toList()));
 		} else {
-			return schedulerService.getServerSchedulerJobList(server);
+			return FacadeResult.doneExpectedResultDone(schedulerService.getJobkeysOfServer(server).stream().map(StringUtil::formatJobkey).collect(Collectors.toList()));
 		}
 	}
 	

@@ -16,6 +16,7 @@ import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class JobKeyProvider implements ValueProvider {
 
@@ -39,7 +40,7 @@ public class JobKeyProvider implements ValueProvider {
 			return new ArrayList<>();
 		}
 		try {
-			return schedulerService.getAllJobKeys().stream().map(jk -> jk.getName() + "-" + jk.getGroup()).filter(jn -> jn.startsWith(input))
+			return schedulerService.getAllJobKeys().stream().map(StringUtil::formatJobkey).filter(jn -> jn.startsWith(input))
 					.map(CompletionProposal::new).collect(Collectors.toList());
 		} catch (SchedulerException e) {
 			ExceptionUtil.logErrorException(logger, e);

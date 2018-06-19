@@ -10,6 +10,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.quartz.JobKey;
+import org.quartz.TriggerKey;
+
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
 
 public class StringUtil {
@@ -26,6 +29,15 @@ public class StringUtil {
 	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
+	}
+	
+	
+	public static String formatJobkey(JobKey jobkey) {
+		return String.format("%s-%s", jobkey.getName(), jobkey.getGroup());
+	}
+
+	public static String formatTriggerkey(TriggerKey triggerkey) {
+		return String.format("%s-%s", triggerkey.getName(), triggerkey.getGroup());
 	}
 	
 	public static Optional<String> notEmptyValue(String maybeEmpty) {

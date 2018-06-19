@@ -74,15 +74,9 @@ public class SchedulerService {
 		return FacadeResult.doneExpectedResult();
 	}
 
-	public List<String> getServerSchedulerJobList(Server box) throws SchedulerException {
+	public List<JobKey> getJobkeysOfServer(Server box) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
-				.filter(jk -> jk.getName().equals(box.getHost())).map(jk -> jk.toString())
-				.collect(Collectors.toList());
-	}
-	
-	public List<String> getAllSchedulerJobList() throws SchedulerException {
-		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
-				.map(jk -> jk.toString())
+				.filter(jk -> jk.getName().equals(box.getHost()))
 				.collect(Collectors.toList());
 	}
 	
