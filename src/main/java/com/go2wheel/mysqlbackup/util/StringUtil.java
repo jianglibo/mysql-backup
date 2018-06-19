@@ -3,12 +3,15 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.quartz.JobKey;
 import org.quartz.TriggerKey;
@@ -23,12 +26,56 @@ public class StringUtil {
 	
 	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
 	
+	public static Pattern PAIR_PTN = Pattern.compile("^[a-zA-Z]+=|,[a-zA-Z]+=");
+	
 	public static final long KB = 1024;
 	public static final long MB = KB * 1024;
 	public static final long GB = MB * 1024;
 	
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
+	}
+	
+	/**
+	 * input a=b\nc:d or a=b,c=d
+	 * @param lines
+	 * @return
+	 */
+	public static Map<String, String> toPair(List<String> lines) {
+		return lines.stream().map(line -> line.split("=", 2)).filter(ss -> ss.length == 2).collect(Collectors.toMap(ss -> ss[0], ss -> ss[1]));
+	}
+	
+	/**
+	 * input a=b,c=d
+	 * @param line
+	 * @return
+	 */
+	public static List<String> toLines(String line) {
+		Matcher m = PAIR_PTN.matcher(line);
+		List<String> lines = new ArrayList<>();
+		int pos=0;
+		String key = null;
+		String value = null;
+		int count = 0;
+		while(m.find()) {
+			int start = m.start();
+			if (start > pos) { // it's value.
+				value = line.substring(pos, start);
+				lines.add(key + value);
+			}
+			int end = m.end();
+			pos = end;
+			if (count == 0) {
+				key = line.substring(start, end);
+			} else {
+				key = line.substring(start + 1, end);
+			}
+			count++;
+		}
+		if (pos < line.length()) {
+			lines.add(key + line.substring(pos));
+		}
+		return lines;
 	}
 	
 	

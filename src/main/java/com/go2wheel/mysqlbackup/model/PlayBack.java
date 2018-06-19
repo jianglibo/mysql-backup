@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 
  * @author jianglibo@gmail.com
@@ -15,6 +18,8 @@ public class PlayBack extends BaseModel {
 	private Integer targetServerId;
 	
 	private String playWhat; // BORG, MYSQL
+	
+	private List<String> pairs = new ArrayList<>();
 
 	public Integer getSourceServerId() {
 		return sourceServerId;
@@ -38,6 +43,14 @@ public class PlayBack extends BaseModel {
 
 	public void setPlayWhat(String playWhat) {
 		this.playWhat = playWhat;
+	}
+
+	public List<String> getPairs() {
+		return pairs;
+	}
+
+	public void setPairs(List<String> pairs) {
+		this.pairs = pairs;
 	}
 
 }
