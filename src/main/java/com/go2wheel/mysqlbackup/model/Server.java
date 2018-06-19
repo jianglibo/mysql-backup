@@ -183,6 +183,9 @@ public class Server extends BaseModel {
 	}
 	
 	public boolean supportSSH() {
+		if (getOs() == null) {
+			return true;
+		}
 		return getOs().contains("linux");
 	}
 

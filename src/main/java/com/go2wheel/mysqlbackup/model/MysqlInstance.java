@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
@@ -186,7 +187,12 @@ public class MysqlInstance extends BaseModel {
 	}
 
 	public String getDumpFileName() {
-		return dumpFileName;
+		if (StringUtil.hasAnyNonBlankWord(dumpFileName)) {
+			return dumpFileName;
+		} else {
+			return MysqlUtil.DUMP_FILE_NAME;
+		}
+		
 	}
 
 	public void setDumpFileName(String dumpFileName) {

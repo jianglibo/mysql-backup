@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.util.TplUtil;
 
 public class ServerGroupContext {
 	
@@ -17,12 +18,15 @@ public class ServerGroupContext {
 	
 	private ServerContext myself;
 	
+	private TplUtil tplUtil;
+	
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<>();
 		map.put("user", user);
 		map.put("servers", servers);
 		map.put("serverGroup", serverGroup);
 		map.put("myself", myself);
+		map.put("tplUtil", new TplUtil());
 		return map;
 	}
 	
@@ -33,9 +37,9 @@ public class ServerGroupContext {
 		this.user = user;
 		this.servers =servers;
 		this.serverGroup = serverGroup;
+		this.tplUtil = new TplUtil();
 		this.setMyself(myself);
 	}
-
 
 	public ServerGrp getServerGroup() {
 		return serverGroup;
@@ -68,5 +72,13 @@ public class ServerGroupContext {
 
 	public void setMyself(ServerContext myself) {
 		this.myself = myself;
+	}
+
+	public TplUtil getTplUtil() {
+		return tplUtil;
+	}
+
+	public void setTplUtil(TplUtil tplUtil) {
+		this.tplUtil = tplUtil;
 	}
 }

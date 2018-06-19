@@ -1,24 +1,13 @@
 package com.go2wheel.mysqlbackup.mail;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.Locale;
-import java.util.Set;
-
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.TemplateEngine;
-import org.thymeleaf.context.Context;
-import org.thymeleaf.messageresolver.IMessageResolver;
-import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @Service
 public class MailerImpl implements Mailer {
@@ -28,7 +17,6 @@ public class MailerImpl implements Mailer {
 	
 	@Autowired
 	private EmailViewRender emailViewRender;
-	
 	
 	@Value("${spring.mail.username}")
 	private String mailFrom;
@@ -67,16 +55,20 @@ public class MailerImpl implements Mailer {
 //
 //	}
 
-	public void sendMailWithInline(String template, ServerGroupContext rc) throws MessagingException {
-		final Context ctx = new Context();
+	public void sendMailWithInline(String email, String template, ServerGroupContext sgctx) throws MessagingException {
 		final MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
 		final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
 		message.setSubject("服务器备份报表。");
 		message.setFrom(mailFrom);
-		message.setTo(rc.getUser().getEmail());
-		String htmlContent = emailViewRender.render(template, rc);
+		message.setTo(email);
+		String htmlContent = emailViewRender.render(template, sgctx);
 		message.setText(htmlContent, true); // true = isHtml
 		this.javaMailSender.send(mimeMessage);
+	}
+
+	@Override
+	public String renderTemplate(String template, ServerGroupContext rc) {
+		return emailViewRender.render(template, rc);
 	}
 
 }

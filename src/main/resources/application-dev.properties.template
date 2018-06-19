@@ -21,31 +21,31 @@ spring.quartz.jdbc.initialize-schema=never
 spring.flyway.locations=classpath:/dev/db/migration
 
 
-spring.mail.host= smtp.qq.com
+spring.mail.host=smtp.qq.com
 #465
-spring.mail.port= 587
-spring.mail.username= jlbfine@qq.com
-spring.mail.password= emnbsygyqacibgjh
-spring.mail.protocol= smtp
+spring.mail.port=587
+spring.mail.username=jlbfine@qq.com
+spring.mail.password=emnbsygyqacibgjh
+spring.mail.protocol=smtp
 spring.mail.properties.mail.smtp.auth=true
 
-spring.messages.use-code-as-default-message= false
-spring.messages.basename= messages.command_msg
+spring.messages.use-code-as-default-message=false
+spring.messages.basename=messages.command_msg
 
-logging.file= log/spring.log
-logging.file.max-size= 5MB
-logging.file.max-history= 100
-logging.level.root= INFO
-logging.level.com.go2wheel.mysqlbackup.job.SampleJob= ERROR
-logging.level.com.go2wheel.mysqlbackup.job.SampleJobService= ERROR
-logging.level.org.jooq= DEBUG
-logging.level.org.flywaydb= DEBUG
+logging.file=log/spring.log
+logging.file.max-size=5MB
+logging.file.max-history=100
+logging.level.root=INFO
+logging.level.com.go2wheel.mysqlbackup.job.SampleJob=ERROR
+logging.level.com.go2wheel.mysqlbackup.job.SampleJobService=ERROR
+logging.level.org.jooq=DEBUG
+logging.level.org.flywaydb=DEBUG
 logging.level.com.zaxxer.hikari=DEBUG
 
-myapp.dataDir= boxes
-myapp.downloadFolder= notingit
-myapp.ssh.sshIdrsa= G:/cygwin64/home/Administrator/.ssh/id_rsa
-myapp.ssh.knownHosts= G:/cygwin64/home/Administrator/.ssh/known_hosts
+myapp.dataDir=boxes
+myapp.downloadFolder=notingit
+myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
 myapp.jp.maxThreads=3
 myapp.jp.waitPause=10
 myapp.jp.maxWait=10000
@@ -58,14 +58,14 @@ myapp.storage_excludes[4]=/boot
 myapp.storage_excludes[5]=/run/user/0
 myapp.storage_excludes[6]=/run/user/1000
 
-using.spring.schedulerFactory= true
-expectit.echo= true
+using.spring.schedulerFactory=true
+expectit.echo=true
 
-dv.cron.uptime= 0 0/2 * * * ?
-dv.cron.diskfree= 0 0/2 * * * ?
-dv.cron.borg_archive= 0 0/2 * * * ?
-dv.cron.borg_prune= 0 0/2 * * * ?
-dv.cron.mysql_flush= 0 0/2 * * * ?
+dv.cron.uptime=0 0/2 * * * ?
+dv.cron.diskfree=0 0/2 * * * ?
+dv.cron.borg_archive=0 0/2 * * * ?
+dv.cron.borg_prune=0 0/2 * * * ?
+dv.cron.mysql_flush=0 0/2 * * * ?
 dv.cron.common[0]=0 33 0/1 * * ?|\u5728\u6BCF\u5C0F\u65F6\u768433\u5206\u949F\u65F6
 dv.cron.common[1]=0 0/30 * * * ?|\u6BCF\u534A\u4E2A\u5C0F\u65F6
 dv.cron.common[2]=0 30 12,18 * * ?|\u6BCF\u5929\u4E2D\u534812\u70B9\u534A\u548C\u4E0B\u53486\u70B9\u534A

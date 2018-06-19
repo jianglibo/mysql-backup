@@ -1,12 +1,12 @@
-<!DOCTYPE html>
+<!DOCTYPE>
 
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
 
   <head>
     <title>Good Thymes Virtual Grocery</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <link rel="stylesheet" type="text/css" media="all" 
-          href="../../css/gtvg.css" th:href="@{/css/gtvg.css}" />
+          href="../../css/gtvg.css" th:href="@{css/gtvg.css}" />
   </head>
 
   <body>
@@ -24,16 +24,16 @@
         <td>正常</td>
       </tr>
     </table>
-
+<!--    [[${tplUtil}]] -->
     <h2>详细信息</h2>
 
     <div th:each="serverCtx : ${servers}">
-        <div th:insert="~{server.html :: detail}"></div>
+        <div th:insert="~{fragments/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
         <hr>
     </div>
 
     <h2>备份服务器自身状况</h2>
-    <div th:insert="~{server.html :: detail}" th:with="serverCtx=${myself}"></div>
+    <div th:insert="~{fragments/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"></div>
   </body>
 
 </html>

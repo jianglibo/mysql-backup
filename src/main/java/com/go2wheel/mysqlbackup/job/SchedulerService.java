@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.exception.ShowToUserException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -46,9 +45,9 @@ public class SchedulerService {
 		scheduler.rescheduleJob(tk, trigger);
 	}
 
-	public List<Trigger> getServerTriggers(Server box) throws SchedulerException {
+	public List<Trigger> getServerTriggers(Server server) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
-				.filter(jk -> jk.getName().equals(box.getHost()))
+				.filter(jk -> jk.getName().equals(server.getHost()))
 				.flatMap(jk -> {
 					try {
 						return scheduler.getTriggersOfJob(jk).stream();
@@ -59,14 +58,14 @@ public class SchedulerService {
 	}
 	
 
-	public FacadeResult<?> delteBoxTriggers(Server box, String triggerKey) {
-		String[] ss = triggerKey.split("\\.", 2);
-		if (ss.length != 2) {
-			throw new ShowToUserException("scheduler.key.malformed", "");
-		}
-		TriggerKey tk = triggerKey(ss[1], ss[0]);
+	public FacadeResult<?> delteBoxTriggers(TriggerKey triggerKey) {
+//		String[] ss = triggerKey.split("\\.", 2);
+//		if (ss.length != 2) {
+//			throw new ShowToUserException("scheduler.key.malformed", "");
+//		}
+//		TriggerKey tk = triggerKey(ss[1], ss[0]);
 		try {
-			scheduler.unscheduleJob(tk);
+			scheduler.unscheduleJob(triggerKey);
 		} catch (SchedulerException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -75,7 +74,7 @@ public class SchedulerService {
 		return FacadeResult.doneExpectedResult();
 	}
 
-	public List<String> getBoxSchedulerJobList(Server box) throws SchedulerException {
+	public List<String> getServerSchedulerJobList(Server box) throws SchedulerException {
 		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
 				.filter(jk -> jk.getName().equals(box.getHost())).map(jk -> jk.toString())
 				.collect(Collectors.toList());
@@ -86,9 +85,29 @@ public class SchedulerService {
 				.map(jk -> jk.toString())
 				.collect(Collectors.toList());
 	}
+	
+	public List<JobKey> getAllJobKeys() throws SchedulerException {
+		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
+				.collect(Collectors.toList());
+	}
 
 	public void unscheduleJob(TriggerKey triggerKey) throws SchedulerException {
 		this.scheduler.unscheduleJob(triggerKey);
+	}
+
+	public List<Trigger> getAllTriggers() throws SchedulerException {
+		return scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream()
+				.flatMap(jk -> {
+					try {
+						return scheduler.getTriggersOfJob(jk).stream();
+					} catch (SchedulerException e) {
+						return Stream.empty();
+					}
+				}).collect(Collectors.toList());
+	}
+
+	public void getDeleteJob(JobKey jobKey) throws SchedulerException {
+		this.scheduler.deleteJob(jobKey);
 	}
 
 }

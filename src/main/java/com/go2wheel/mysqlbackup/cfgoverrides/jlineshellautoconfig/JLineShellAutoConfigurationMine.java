@@ -48,7 +48,7 @@ import org.springframework.shell.jline.PromptProvider;
  * @author jianglib@gmail.com
  *
  */
-@Configuration
+//@Configuration
 public class JLineShellAutoConfigurationMine {
 
 	@Autowired

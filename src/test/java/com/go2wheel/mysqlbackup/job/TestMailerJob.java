@@ -54,6 +54,7 @@ public class TestMailerJob extends JobBaseFort {
 	
 	
 	private UserServerGrp simulation() throws SchedulerException, InterruptedException {
+		clearDb();
 		UserAccount ua = createUser();
 		createServer();
 		deleteAllJobs();
@@ -133,17 +134,20 @@ public class TestMailerJob extends JobBaseFort {
 		
 		mailerJob.setMailer(new Mailer() {
 			@Override
-			public void sendMailWithInline(String template, ServerGroupContext rc) throws MessagingException {
-				System.out.println(rc);
+			public void sendMailWithInline(String email, String template, ServerGroupContext sgctx) throws MessagingException {
+				System.out.println(sgctx);
 				try {
 					Path pa = Paths.get("templates", "tplcontext.yml");
-					String s = YamlInstance.INSTANCE.yaml.dumpAsMap(rc);
+					String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgctx);
 					Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
-//					objectMapper.writeValue(pa.toFile(), rc);
-//					ServerGroupContext sgc = objectMapper.readValue(pa.toFile(), ServerGroupContext.class);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
+			}
+
+			@Override
+			public String renderTemplate(String template, ServerGroupContext rc) {
+				return null;
 			}
 		});
 		mailerJob.execute(context);

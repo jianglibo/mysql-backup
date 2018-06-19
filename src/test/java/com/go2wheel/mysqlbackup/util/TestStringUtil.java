@@ -91,22 +91,22 @@ public class TestStringUtil {
 	public void testSize() {
 		
 	
-		String ss = StringUtil.formatSize(1024);
+		String ss = StringUtil.formatSize(1024L);
 		assertThat(ss, equalTo("1024B"));
 		
-		ss = StringUtil.formatSize(1025);
+		ss = StringUtil.formatSize(1025L);
 		assertThat(ss, equalTo("1.00KB"));
 		
-		ss = StringUtil.formatSize(1185);
+		ss = StringUtil.formatSize(1185L);
 		assertThat(ss, equalTo("1.16KB"));
 		
-		ss = StringUtil.formatSize(1024*1024);
+		ss = StringUtil.formatSize(1024*1024L);
 		assertThat(ss, equalTo("1024.00KB"));
 		
-		ss = StringUtil.formatSize(1024*1024* 2);
+		ss = StringUtil.formatSize(1024*1024* 2L);
 		assertThat(ss, equalTo("2.00MB"));
 		
-		ss = StringUtil.formatSize(1024*1024* 2 + 1024*6);
+		ss = StringUtil.formatSize(1024*1024* 2 + 1024*6L);
 		assertThat(ss, equalTo("2.01MB"));
 
 		ss = StringUtil.formatSize(1024*1024* 2048L + 1024*1024* 50L);

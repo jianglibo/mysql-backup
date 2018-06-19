@@ -22,47 +22,47 @@ import org.springframework.shell.result.TerminalSizeAwareResultHandler;
 @Configuration
 public class ResultHandlerConfigMine {
 
-	@Bean
-	@Qualifier("main")
-	public ResultHandler<?> mainResultHandler() {
-		return new TypeHierarchyResultHandlerMine();
-	}
-	
-	@Bean
-	public IterableResultHandlerMine iterableResultHandler() {
-		return new IterableResultHandlerMine();
-	}
+//	@Bean
+//	@Qualifier("main")
+//	public ResultHandler<?> mainResultHandler() {
+//		return new TypeHierarchyResultHandlerMine();
+//	}
+//	
+//	@Bean
+//	public IterableResultHandlerMine iterableResultHandler() {
+//		return new IterableResultHandlerMine();
+//	}
 
-	@PostConstruct
-	public void wireIterableResultHandler() {
-		iterableResultHandler().setDelegate(mainResultHandler());
-	}
+//	@PostConstruct
+//	public void wireIterableResultHandler() {
+//		iterableResultHandler().setDelegate(mainResultHandler());
+//	}
 
-	@Bean
-	@ConditionalOnClass(TerminalSizeAware.class)
-	public TerminalSizeAwareResultHandler terminalSizeAwareResultHandler() {
-		return new TerminalSizeAwareResultHandler();
-	}
+//	@Bean
+//	@ConditionalOnClass(TerminalSizeAware.class)
+//	public TerminalSizeAwareResultHandler terminalSizeAwareResultHandler() {
+//		return new TerminalSizeAwareResultHandler();
+//	}
 
-	@Bean
-	public AttributedCharSequenceResultHandler attributedCharSequenceResultHandler() {
-		return new AttributedCharSequenceResultHandler();
-	}
-
-	@Bean
-	public DefaultResultHandler defaultResultHandler() {
-		return new DefaultResultHandler();
-	}
-
-	@Bean
-	public ParameterValidationExceptionResultHandler parameterValidationExceptionResultHandler() {
-		return new ParameterValidationExceptionResultHandler();
-	}
-
-	@Bean
-	public ThrowableResultHandlerMine throwableResultHandler() {
-		return new ThrowableResultHandlerMine();
-	}
+//	@Bean
+//	public AttributedCharSequenceResultHandler attributedCharSequenceResultHandler() {
+//		return new AttributedCharSequenceResultHandler();
+//	}
+//
+//	@Bean
+//	public DefaultResultHandler defaultResultHandler() {
+//		return new DefaultResultHandler();
+//	}
+//
+//	@Bean
+//	public ParameterValidationExceptionResultHandler parameterValidationExceptionResultHandler() {
+//		return new ParameterValidationExceptionResultHandler();
+//	}
+//
+//	@Bean
+//	public ThrowableResultHandlerMine throwableResultHandler() {
+//		return new ThrowableResultHandlerMine();
+//	}
 	
 	@Bean
 	public FacadeResultHandler<?> facadeResultHandler() {

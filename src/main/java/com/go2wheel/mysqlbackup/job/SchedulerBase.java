@@ -28,8 +28,19 @@ public class SchedulerBase {
 	@Autowired
 	protected ServerDbService serverDbService;
 	
-	public void createTrigger(BaseModel bm, String cronExpression, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
-		if (!StringUtil.hasAnyNonBlankWord(cronExpression)) return;
+	/**
+	 * 
+	 * @param bm
+	 * @param cronExpression
+	 * @param jobClass
+	 * @param jk
+	 * @param tk
+	 * @return true if created.
+	 * @throws SchedulerException
+	 * @throws ParseException
+	 */
+	public boolean createTrigger(BaseModel bm, String cronExpression, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
+		if (!StringUtil.hasAnyNonBlankWord(cronExpression)) return false;
 		JobDetail job = scheduler.getJobDetail(jk);
 		if (job == null) {
 			job = newJob(jobClass)
@@ -43,7 +54,9 @@ public class SchedulerBase {
 			Trigger trigger = newTrigger().withIdentity(tk)
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);
-		}
+			return true;
+		} 
+		return false;
 	}
 	
 	protected void reschedule(BaseModel bm, String cronExpBefore, String cronExpAfter, Class<? extends Job> jobClass, JobKey jk, TriggerKey tk) throws SchedulerException, ParseException {
@@ -57,6 +70,8 @@ public class SchedulerBase {
 			Trigger trigger = newTrigger().withIdentity(tk)
 						.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.rescheduleJob(tk, trigger);
+		} else if (cronExpBefore.equals(cronExpAfter)) {
+			createTrigger(bm, cronExpAfter, jobClass, jk, tk);
 		}
 	}
 	

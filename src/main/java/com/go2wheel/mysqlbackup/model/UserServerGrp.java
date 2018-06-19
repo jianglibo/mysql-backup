@@ -75,7 +75,7 @@ public class UserServerGrp extends BaseModel {
 
 	@Override
 	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this, "name", "userAccountId", "serverGrpId");
+		return ObjectUtil.toListRepresentation(this,"id", "name", "userAccountId", "serverGrpId");
 	}
 	public String getName() {
 		return name;

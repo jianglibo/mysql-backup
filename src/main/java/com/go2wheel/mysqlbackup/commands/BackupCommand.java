@@ -17,12 +17,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
+import org.quartz.TriggerKey;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -969,13 +972,6 @@ public class BackupCommand {
 		}
 	}
 
-	@ShellMethod(value = "重新设置出发器")
-	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
-			throws SchedulerException, ParseException {
-		sureServerSelected();
-		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
-	}
-
 	@ShellMethod(value = "支持的语言")
 	public List<String> languageList() {
 		List<String> las = new ArrayList<>();
@@ -1002,9 +998,26 @@ public class BackupCommand {
 		if (all) {
 			return schedulerService.getAllSchedulerJobList();
 		} else {
-			return schedulerService.getBoxSchedulerJobList(server);
+			return schedulerService.getServerSchedulerJobList(server);
 		}
 	}
+	
+	
+	@ShellMethod(value = "删除JOB")
+	public FacadeResult<?> schedulerJobDelete(@ShellOption(help = "job key。") JobKey jobKey) throws SchedulerException {
+		sureServerSelected();
+		schedulerService.getDeleteJob(jobKey);
+		return FacadeResult.doneExpectedResult();
+	}
+	
+	@ShellMethod(value = "重新设置出发器")
+	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
+			throws SchedulerException, ParseException {
+		sureServerSelected();
+		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
+	}
+
+
 
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
 	public List<String> schedulerTriggerList() throws SchedulerException {
@@ -1014,10 +1027,9 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "删除计划任务触发器")
-	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") String triggerKey) {
+	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") TriggerKey triggerKey) {
 		sureServerSelected();
-		Server server = appState.getCurrentServer();
-		return schedulerService.delteBoxTriggers(server, triggerKey);
+		return schedulerService.delteBoxTriggers(triggerKey);
 	}
 	
 	
@@ -1097,6 +1109,24 @@ public class BackupCommand {
 	@ShellMethod(value = "将KnownHosts从文件复制到数据库或反之。")
 	public FacadeResult<?> securityCopyKnownHosts(@ShellOption(help = "db到文件") boolean toFile) throws ClassNotFoundException, IOException {
 		return securityService.securityCopyKnownHosts(toFile);
+	}
+
+	@ShellMethod(value = "立即发送建邮件通知。")
+	public FacadeResult<?> emailNoticeSend(
+			@ShellOption(help = "邮件地址") @Email String email,
+			@TemplateIndicator
+			@ShellOption(help = "邮件模板") String template,
+			@ShellOption(help = "用户服务器组") UserServerGrp userServerGrp,
+			@ShellOption(help = "真的发送") boolean sendTruely
+			) throws ClassNotFoundException, IOException {
+		ServerGroupContext sgctx = mailerJob.createMailerContext(userServerGrp);
+		if (sendTruely) {
+			mailerJob.mail(email, template, sgctx);
+			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
+		} else {
+			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
+		}
+		
 	}
 
 	@Bean

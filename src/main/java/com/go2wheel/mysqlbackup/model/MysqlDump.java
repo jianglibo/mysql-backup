@@ -41,6 +41,7 @@ public class MysqlDump extends BaseModel {
 	public void setResult(ResultEnum result) {
 		this.result = result;
 	}
+	
 	@Override
 	public String toListRepresentation(String... fields) {
 		return ObjectUtil.toListRepresentation(this);

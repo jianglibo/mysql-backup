@@ -41,9 +41,10 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 
 // StandardAPIAutoConfiguration
 
-@SpringBootApplication(exclude = { SpringShellAutoConfiguration.class,
-		JLineShellAutoConfiguration.class,
-		StandardAPIAutoConfiguration.class})
+@SpringBootApplication(exclude = {})
+//@SpringBootApplication(exclude = { SpringShellAutoConfiguration.class,
+//		JLineShellAutoConfiguration.class,
+//		StandardAPIAutoConfiguration.class})
 @EnableAspectJAutoProxy
 @EnableAsync
 public class StartPointer {

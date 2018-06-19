@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -101,7 +102,10 @@ public class StringUtil {
 	}
 
 	
-	public static String formatSize(long size) {
+	public static String formatSize(Long size) {
+		if (size == null) {
+			size = 0L;
+		}
 		return formatSize(size, 2);
 	}
 
@@ -145,6 +149,49 @@ public class StringUtil {
 	public static boolean isNullString(String str) {
 		return "null".equalsIgnoreCase(str);
 	}
-
-
+	
+	
+	public static String getTimeCost(long delta, TimeUnit unit) {
+		switch (unit) {
+		case SECONDS:
+			return TimeUnit.MILLISECONDS.toSeconds(delta) + "s";
+		case DAYS:
+			return TimeUnit.MILLISECONDS.toDays(delta) + unit.toString();
+		case HOURS:
+			return TimeUnit.MILLISECONDS.toHours(delta) + unit.toString();
+		case MICROSECONDS:
+			return TimeUnit.MILLISECONDS.toMicros(delta) + unit.toString();
+		case MILLISECONDS:
+			return TimeUnit.MILLISECONDS.toMillis(delta) + "ms";
+		case MINUTES:
+			return TimeUnit.MILLISECONDS.toMinutes(delta) + unit.toString();
+		case NANOSECONDS:
+			return TimeUnit.MILLISECONDS.toNanos(delta) + unit.toString();
+		default:
+			break;
+		}
+		return "";
+	}
+	
+	public static String getTimeCost(long delta) {
+		TimeUnit unit = TimeUnit.MILLISECONDS;
+		long properValue = delta;
+		if (delta > 3000) {
+			properValue = TimeUnit.MILLISECONDS.toSeconds(delta);
+			unit = TimeUnit.SECONDS;
+			if (properValue > 360) {
+				properValue = TimeUnit.MICROSECONDS.toMinutes(delta);
+				unit = TimeUnit.MINUTES;
+				if (properValue > 180) {
+					properValue = TimeUnit.MICROSECONDS.toHours(delta);
+					unit = TimeUnit.HOURS;
+				}
+				if (properValue > 72) {
+					properValue = TimeUnit.MICROSECONDS.toDays(delta);
+					unit = TimeUnit.DAYS;
+				}
+			}
+		}
+		return properValue + " " + unit.toString();
+	}
 }

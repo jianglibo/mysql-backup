@@ -51,8 +51,7 @@ public class ServerStateSchedule extends SchedulerBase {
 	@EventListener
 	public void whenServerDeleted(ModelDeletedEvent<Server> serverDeletedEvent) throws SchedulerException, ParseException {
 		scheduler.unscheduleJob(triggerKey(serverDeletedEvent.getModel().getHost(), SERVER_STATE_GROUP));
+		scheduler.deleteJob(jobKey(serverDeletedEvent.getModel().getHost(), SERVER_STATE_GROUP));
 	}
-
-
 
 }
