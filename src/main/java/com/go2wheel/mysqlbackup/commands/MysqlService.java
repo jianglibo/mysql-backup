@@ -252,6 +252,7 @@ public class MysqlService {
 			
 			MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 			String mycnfFile = mfh.getMyCnfFile();
+			mfh.setVariables(lbs.getMap());
 			
 			Path mysqlSettingDir = appSettings.getLocalMysqlDir(server);
 			Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());

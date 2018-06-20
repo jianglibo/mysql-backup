@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class LogBinSetting {
 	
@@ -37,14 +38,17 @@ public class LogBinSetting {
 	
 	public LogBinSetting(List<String> lines) {
 		super();
-		lines.stream().map(line -> line.split("\\|", 2)).filter(ss -> ss.length == 2).forEach(ss -> {
-			map.put(ss[0].trim(), ss[1].trim());
-		});
+		Map<String, String> m = StringUtil.toPair(lines);
+		this.map.putAll(m);
+//		lines.stream().map(line -> line.split("\\|", 2)).filter(ss -> ss.length == 2).forEach(ss -> {
+//			map.put(ss[0].trim(), ss[1].trim());
+//		});
 	}
 
 	
 	public List<String> toLines() {
-		return this.map.entrySet().stream().map(es -> es.getKey() + "|" + es.getValue()).collect(Collectors.toList());
+		return StringUtil.toLines(this.map);
+//		return this.map.entrySet().stream().map(es -> es.getKey() + "|" + es.getValue()).collect(Collectors.toList());
 	}
 	
 	public String getLogBinDirWithEndingSlash() {

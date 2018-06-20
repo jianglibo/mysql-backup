@@ -26,8 +26,6 @@ public class StringUtil {
 	
 	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
 	
-	public static Pattern PAIR_PTN = Pattern.compile("^[a-zA-Z]+=|,[a-zA-Z]+=");
-	
 	public static final long KB = 1024;
 	public static final long MB = KB * 1024;
 	public static final long GB = MB * 1024;
@@ -45,13 +43,32 @@ public class StringUtil {
 		return lines.stream().map(line -> line.split("=", 2)).filter(ss -> ss.length == 2).collect(Collectors.toMap(ss -> ss[0], ss -> ss[1]));
 	}
 	
+	public static List<String> toLines(Map<String, String> pairs) {
+		return pairs.entrySet().stream().map(es -> es.getKey() + "=" + es.getValue()).collect(Collectors.toList());
+	}
+	
+	public static String toOneLine(Map<String, String> pairs, String separator) {
+		return pairs.entrySet().stream().map(es -> es.getKey() + "=" + es.getValue()).collect(Collectors.joining(separator));
+	}
+	
+	public static String toOneLine(Map<String, String> pairs) {
+		return toOneLine(pairs, ",");
+	}
+
+	
+	public static List<String> toLines(String line) {
+		return toLines(line, ",");
+	}
+
+	
 	/**
 	 * input a=b,c=d
 	 * @param line
 	 * @return
 	 */
-	public static List<String> toLines(String line) {
-		Matcher m = PAIR_PTN.matcher(line);
+	public static List<String> toLines(String line, String separator) {
+		Pattern ptn = Pattern.compile(String.format("^[a-zA-Z]+=|%s[a-zA-Z]+=", separator));
+		Matcher m = ptn.matcher(line);
 		List<String> lines = new ArrayList<>();
 		int pos=0;
 		String key = null;

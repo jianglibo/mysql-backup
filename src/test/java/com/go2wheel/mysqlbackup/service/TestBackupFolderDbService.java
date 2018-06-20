@@ -28,7 +28,7 @@ public class TestBackupFolderDbService extends ServiceTbase {
 	}
 	
 	private BackupFolder createOne(String folderName) {
-		Server server = new Server(serverHost, "a server");
+		Server server = new Server(HOST_DEFAULT, "a server");
 		server = sservice.save(server);
 		
 		BackupFolder bf = new BackupFolder(server.getId(), folderName);
@@ -39,7 +39,7 @@ public class TestBackupFolderDbService extends ServiceTbase {
 	public void t() {
 		BackupFolder bf = createOne("/etc");
 		assertThat(bf.getId(), greaterThan(99));
-		Server sv = sservice.findByHost(serverHost);
+		Server sv = sservice.findByHost(HOST_DEFAULT);
 		assertThat(bf.getServerId(), equalTo(sv.getId()));
 	}
 	

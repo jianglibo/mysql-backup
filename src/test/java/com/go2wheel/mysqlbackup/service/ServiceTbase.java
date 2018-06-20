@@ -3,7 +3,6 @@ package com.go2wheel.mysqlbackup.service;
 import java.util.List;
 
 import org.jooq.UpdatableRecord;
-import org.junit.Before;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.BaseModel;
@@ -13,12 +12,12 @@ import com.go2wheel.mysqlbackup.model.UserAccount;
 
 public class ServiceTbase extends SpringBaseFort {
 	
-	protected String serverHost = "192.168.33.110";
+//	protected String serverHost = "192.168.33.110";
 	
-	@Before
-	public void stBefore() {
-		createSession();
-	}
+//	@Before
+//	public void stBefore() {
+//		createSession();
+//	}
 	
 	protected <R extends UpdatableRecord<R>,M extends BaseModel, S extends ServiceBase<R, M>>  void deleteAll(S service) {
 		List<M> ms = service.findAll(); 
@@ -39,12 +38,12 @@ public class ServiceTbase extends SpringBaseFort {
 		return serverGrpDbService.save(serverGrp);
 	}
 	
-	protected Server createAServer() {
-		Server s = serverDbService.findByHost(serverHost);
-		if (s != null) {
-			return s;
-		}
-		s = new Server(serverHost, "a server.");
-		return serverDbService.save(s);
-	}
+//	protected Server createAServer() {
+//		Server s = serverDbService.findByHost(serverHost);
+//		if (s != null) {
+//			return s;
+//		}
+//		s = new Server(serverHost, "a server.");
+//		return serverDbService.save(s);
+//	}
 }

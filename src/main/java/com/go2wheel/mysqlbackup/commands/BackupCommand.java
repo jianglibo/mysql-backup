@@ -69,6 +69,7 @@ import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
@@ -1126,7 +1127,17 @@ public class BackupCommand {
 		} else {
 			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
 		}
-		
+	}
+	
+	@ShellMethod(value = "创建回放设定。")
+	public FacadeResult<?> playbackCreate(
+			@ShellOption(help = "源服务器") Server sourceServer,
+			@ShellOption(help = "回放服务器") Server targetServer,
+			@ShowPossibleValue({PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL})
+			@ShellOption(help = "回放内容") String playWhat,
+			@ShellOption(help = "设定条目") List<String> settings
+			) {
+		return FacadeResult.doneExpectedResult();
 	}
 
 	@Bean

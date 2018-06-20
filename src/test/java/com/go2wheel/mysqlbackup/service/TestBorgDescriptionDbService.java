@@ -16,7 +16,7 @@ public class TestBorgDescriptionDbService extends ServiceTbase {
 
 	@Test
 	public void t() throws JobExecutionException {
-		Server server = createAServer();
+		Server server = createServer();
 
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).addInclude("/etc")
 				.addInclude("/kk").addExclude("/e1").addExclude("/e2").build();

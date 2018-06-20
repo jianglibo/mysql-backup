@@ -16,7 +16,7 @@ public class TestMysqlInstanceDbService extends ServiceTbase {
 
 	@Test
 	public void t() throws JobExecutionException {
-		Server server = createAServer();
+		Server server = createServer();
 		
 		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").addSetting("a", "b").build();
 		

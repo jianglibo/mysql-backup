@@ -6,6 +6,8 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +39,13 @@ public class TestStringUtil {
 		
 		lines = StringUtil.toLines("a=b=,,=,,,c=d");
 		assertThat(lines, contains("a=b=,,=,,", "c=d"));
+		
+		Map<String, String> m = new TreeMap<>();
+		m.put("a", "b");
+		m.put("c", "d");
+		
+		lines = StringUtil.toLines(m);
+		assertThat(lines, contains("a=b", "c=d"));
 
 	}
 	
