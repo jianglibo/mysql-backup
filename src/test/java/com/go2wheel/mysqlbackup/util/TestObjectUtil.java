@@ -36,7 +36,7 @@ public class TestObjectUtil {
 	@Test
 	public void tFields() {
 		List<Field> fds = ObjectUtil.getFields(Server.class); 
-		assertThat(fds.size(), equalTo(14));
+		assertThat(fds.size(), equalTo(15));
 	}
 	
 	@Test

@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.robocopy;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,6 +30,7 @@ public class TestRoboCopy extends SpringBaseFort {
 	
 	@Test
 	public void t() throws IOException, InterruptedException {
+		assumeTrue(Files.exists(src));
 		ProcessExecResult per = peu.runDos("dir", src.toAbsolutePath().toString());
 		assertThat(per.getExitValue(), equalTo(0));
 		assertTrue(per.getStdError().size() == 0);
@@ -37,6 +39,7 @@ public class TestRoboCopy extends SpringBaseFort {
 	
 	@Test
 	public void tMir() throws IOException, InterruptedException {
+		assumeTrue(Files.exists(src));
 		ProcessExecResult per = peu.run(Arrays.asList("robocopy.exe", src.toString(), dst.toString(), "/MIR"));
 		assertTrue((!per.getTimeCost(TimeUnit.SECONDS).isEmpty()));
 		assertThat(per.getExitValue(), equalTo(0));
@@ -46,6 +49,7 @@ public class TestRoboCopy extends SpringBaseFort {
 	
 	@Test
 	public void troboMirror() throws IOException, InterruptedException {
+		assumeTrue(Files.exists(src));
 		tmpFile = Files.createTempFile("robo", "log");
 		ProcessExecResult per = peu.roboCopy(src.toString(), dst.toString(), tmpFile);
 		assertTrue((!per.getTimeCost(TimeUnit.SECONDS).isEmpty()));

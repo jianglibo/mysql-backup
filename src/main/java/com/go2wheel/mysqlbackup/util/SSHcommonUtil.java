@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
@@ -214,7 +215,18 @@ public class SSHcommonUtil {
 			Pattern ptn = Pattern.compile(remoteFile + "\\.(\\d+)$");
 			fns = fns.stream().filter(fn -> ptn.matcher(fn).matches()).collect(Collectors.toList()); // not include
 																										// origin file.
-			Collections.sort(fns);
+			Collections.sort(fns, new Comparator<String>() {
+
+				@Override
+				public int compare(String s1, String s2) {
+					if (s1.length() == s2.length()) {
+						return s1.compareTo(s2);
+					} else {
+						return s1.length() - s2.length();
+					}
+				}
+				
+			});
 			if (fns.size() > 0) {
 				Matcher m = ptn.matcher(fns.get(fns.size() - 1));
 				m.matches();

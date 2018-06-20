@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,8 +18,21 @@ public class BlockedPropertiesFileHolder {
 	public BlockedPropertiesFileHolder(List<String> lines) {
 		super();
 		this.lines = lines;
+		deduplicate();
 	}
 	
+	private void deduplicate() {
+		List<String> nl = new ArrayList<>();
+		String currentLine = null;
+		for(String line: lines) {
+			if (!line.equals(currentLine)) {
+				nl.add(line);
+				currentLine = line;
+			}
+		}
+		this.lines = nl;
+	}
+
 	private String getKvLine(ConfigValue cv, Object v) {
 		return String.format("%s=%s", cv.getKey(), v);
 	}

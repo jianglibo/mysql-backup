@@ -54,13 +54,13 @@ public class StorageStateService {
 		} else {
 			lss = getLinuxStorageState(server, session);	
 		}
-		return lss.stream().filter(it -> !myAppSettings.getStorageExcludes().contains(it.getRoot())).collect(Collectors.toList());
+		return lss;
 		
 	}
 
 	private List<StorageState> getLinuxStorageState(Server server, Session session) {
 		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
-		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).collect(Collectors.toList());
+		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).filter(it -> !myAppSettings.getStorageExcludes().contains(it.getRoot())).collect(Collectors.toList());
 		final Date d = new Date();
 		return dfs.stream().map(df -> {
 			df.setCreatedAt(d);
@@ -77,6 +77,8 @@ public class StorageStateService {
 		final Date d = new Date();
 		for (Map<String, String> mss : lmss) {
 			try {
+				String root = mss.get("Root");
+				if (myAppSettings.getStorageExcludes().contains(root))continue;
 				String usedNumber = mss.get("Used");
 				String freeNumber = mss.get("Free");
 				if (usedNumber.trim().isEmpty() || freeNumber.trim().isEmpty())continue;
@@ -85,7 +87,7 @@ public class StorageStateService {
 				df.setServerId(server.getId());
 				long used = Long.parseLong(usedNumber);
 				long free = Long.parseLong(freeNumber);
-				df.setRoot(mss.get("Root"));
+				df.setRoot(root);
 				df.setAvailable(free);
 				df.setUsed(used);
 				dfs.add(storageStateDbService.save(df));

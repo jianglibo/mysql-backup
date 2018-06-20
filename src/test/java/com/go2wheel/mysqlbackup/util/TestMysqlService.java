@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -23,6 +24,14 @@ public class TestMysqlService extends SpringBaseFort {
 
 	@Autowired
 	private MysqlService mysqlService;
+	
+	
+	@Before
+	public void before() {
+		clearDb();
+		createSession();
+		createMysqlIntance();
+	}
 
 
 	@Test

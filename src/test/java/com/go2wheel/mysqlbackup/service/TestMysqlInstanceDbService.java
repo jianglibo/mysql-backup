@@ -27,7 +27,7 @@ public class TestMysqlInstanceDbService extends ServiceTbase {
 		assertThat(sz, equalTo(1));
 		
 		mi = mis.get(0);
-		assertThat(mi.getMysqlSettings(), contains("a|b"));
+		assertThat(mi.getMysqlSettings(), contains("a=b"));
 		
 		assertThat(mi.getLogBinSetting().getMap().get("a"), equalTo("b"));
 	}

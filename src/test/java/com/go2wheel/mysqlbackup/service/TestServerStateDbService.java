@@ -24,6 +24,7 @@ public class TestServerStateDbService extends JobBaseFort {
 	
 	@Test
 	public void tSuccess() throws SchedulerException {
+		clearDb();
 		createServer();
 		createContext();
 		deleteAllJobs();
@@ -49,9 +50,10 @@ public class TestServerStateDbService extends JobBaseFort {
 
 	}
 	
-	@Test
+	@Test(expected = NullPointerException.class)
 	public void tFail() throws SchedulerException {
 		createServer();
+		createContext();
 		deleteAllJobs();
 		
 		JobDataMap jdm = new JobDataMap();

@@ -12,6 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
@@ -25,6 +26,12 @@ import com.jcraft.jsch.JSchException;
 public class TestSSHcommonUtil extends SpringBaseFort {
 	
 	private List<String> remoteFiles = new ArrayList<>();
+	
+	@Before
+	public void before() {
+		clearDb();
+		createSession();
+	}
 	
 	@After
 	public void after() throws IOException, JSchException, RunRemoteCommandException {

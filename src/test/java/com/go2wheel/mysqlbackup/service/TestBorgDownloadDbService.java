@@ -11,12 +11,10 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobError;
-import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class TestBorgDownloadDbService extends JobBaseFort {
 
@@ -28,21 +26,16 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 	
 	@Before
 	public void b() {
+		clearDb();
+		createSession();
+		createBorgDescription();
+		createContext();
 		borgService.unInstall(session);
 	}
 
-	@Test
+	@Test(expected=UnExpectedContentException.class)
 	public void tNoBorgInstalled() throws JobExecutionException {
 		borgArchiveJob.execute(context);
-
-		List<BorgDownload> downloads = borgDownloadDbService.getItemsInDays(server, 3);
-
-		assertThat(downloads.size(), equalTo(1));
-		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.FAIL));
-		
-		List<JobError> jes = jobErrorDbService.findAll();
-		assertThat(jes.get(0).getMessageKey(), equalTo(CommonMessageKeys.APPLICATION_NOTINSTALLED));
-
 	}
 	
 	@Test
@@ -52,8 +45,6 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 		List<BorgDownload> downloads = borgDownloadDbService.getItemsInDays(server, 3);
 
 		assertThat(downloads.size(), equalTo(1));
-		assertThat(downloads.get(0).getResult(), equalTo(ResultEnum.SUCCESS));
-
 	}
 
 }

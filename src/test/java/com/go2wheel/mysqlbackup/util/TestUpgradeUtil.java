@@ -1,8 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeNotNull;
 import static org.junit.Assume.assumeTrue;
@@ -11,7 +9,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.SortedMap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -39,8 +36,6 @@ public class TestUpgradeUtil {
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		BuildInfo bi = uu.getBuildInfo();
 		assertFalse(bi.getVersion().isEmpty());
-//		SortedMap<String, String> sm = uu.getMigs();
-//		assertThat(sm.size(), greaterThan(0));
 	}
 
 	@Test

@@ -66,13 +66,13 @@ public class TaskLockAspect {
 		JobExecutionContext context = (JobExecutionContext) proceedingJoinPoint.getArgs()[0]; 
 		try {
 			proceedingJoinPoint.proceed();
-		} catch (Exception e) {
+		} catch (Throwable e) {
 			saveException(e, trapException, context);
 			throw e;
 		}
 	}
 
-	private void saveException(Exception e, TrapException trapException, JobExecutionContext context) {
+	private void saveException(Throwable e, TrapException trapException, JobExecutionContext context) {
 		JobLog jl = new JobLog();
 		JobDataMap data = context.getMergedJobDataMap();
 		Properties p = new Properties();

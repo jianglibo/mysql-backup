@@ -18,9 +18,9 @@ import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
-import com.go2wheel.mysqlbackup.exception.MysqlUnreadyException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
@@ -140,8 +140,8 @@ public class MysqlService {
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
 	public FacadeResult<String> mysqlFlushLogs(Session session, Server server) {
-		if (!server.getMysqlInstance().isReadyForBackup()) {
-			throw new MysqlUnreadyException();
+		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
+			throw new UnExpectedInputException(null, "mysql.unready", "");
 		}
 		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, server);
 		List<String> r = mfle.start();

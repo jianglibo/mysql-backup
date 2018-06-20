@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.shell.MethodTarget;
 import org.springframework.shell.ResultHandler;
 import org.springframework.shell.Shell;
+import org.springframework.shell.result.TypeHierarchyResultHandler;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.UtilForTe;
@@ -40,7 +41,7 @@ public class TestShell extends SpringBaseFort {
 		MethodTarget mt = shell.listCommands().get("clear");
 		mt.getMethod().invoke(mt.getBean());
 		UtilForTe.printme(mt.getBean());
-		assertTrue("should be instance of TypeHierarchyResultHandler", resultHandler instanceof TypeHierarchyResultHandlerMine);
+		assertTrue("should be instance of TypeHierarchyResultHandler", resultHandler instanceof TypeHierarchyResultHandler);
 		
 	}
 

@@ -25,6 +25,7 @@ public class TestModelLifeCycleEvent  extends SpringBaseFort {
 	
 	@Before
 	public void b() {
+		clearDb();
 		countTotal = 0;
 		countReu = 0;
 		countcc = 0;

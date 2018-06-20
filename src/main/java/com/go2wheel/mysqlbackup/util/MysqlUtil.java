@@ -46,6 +46,7 @@ public class MysqlUtil {
 		String content = ScpUtil.from(session, cnfFile).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
 		mfh.setMyCnfFile(cnfFile);
+		server.getMysqlInstance().setMycnfFile(cnfFile);
 		return mfh;
 	}
 

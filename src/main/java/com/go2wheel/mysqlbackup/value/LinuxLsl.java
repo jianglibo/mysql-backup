@@ -44,13 +44,14 @@ public class LinuxLsl {
 			return matchAndReturnLinuxLsl(withMd5.get(0));	
 		} else if (withMd5.size() == 2) {
 			Optional<LinuxLsl> r = matchAndReturnLinuxLsl(withMd5.get(0));
-			r.get().setMd5ByMd5sumOutput(withMd5.get(1));
+			r.get().setMd5(withMd5.get(1));
+//			r.get().setMd5ByMd5sumOutput(withMd5.get(1));
 			return r;
 		} else {
 			return Optional.empty();
 		}
 	}
-	
+
 	@Override
 	public String toString() {
 		return String.format("%s: %s\n%s: %s\n%s: %s", "filename", filename, "size", size, "md5", md5);

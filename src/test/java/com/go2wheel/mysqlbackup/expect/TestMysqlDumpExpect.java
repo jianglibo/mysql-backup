@@ -19,6 +19,9 @@ public class TestMysqlDumpExpect extends SpringBaseFort {
 	
 	@Test
 	public void t() throws Exception {
+		clearDb();
+		createSession();
+		createMysqlIntance();
 		createALocalFile(" ");
 		MysqlDumpExpect mde = new MysqlDumpExpect(session, server);
 		List<String> result = mde.start();

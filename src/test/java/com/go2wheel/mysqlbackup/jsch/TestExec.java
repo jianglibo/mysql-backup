@@ -21,12 +21,14 @@ public class TestExec extends SpringBaseFort {
 
 	@Test
 	public void testExec() throws IOException, JSchException {
+		createSession();
 		String s = UtilForTe.sshEcho(session, "helo");
 		assertThat(s.trim(), equalTo("helo"));
 	}
 	
 	@Test
 	public void testExecReuseSession() throws IOException, JSchException {
+		createSession();
 		String s = UtilForTe.sshEcho(session, "helo");
 		s = UtilForTe.sshEcho(session, "helo");
 		s = UtilForTe.sshEcho(session, "helo");

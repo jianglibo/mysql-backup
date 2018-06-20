@@ -272,6 +272,9 @@ public class TestGetMysqlCnf extends SpringBaseFort {
 
 	@Test
 	public void tLogin() throws IOException, JSchException {
+		clearDb();
+		createSession();
+		createMysqlIntance();
 		Channel channel = session.openChannel("shell");
 		channel.connect();
 

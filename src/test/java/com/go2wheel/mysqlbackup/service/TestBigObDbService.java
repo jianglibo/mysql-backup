@@ -8,18 +8,15 @@ import java.util.Date;
 
 import org.junit.Test;
 import org.quartz.SchedulerException;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BigOb;
 
 public class TestBigObDbService extends JobBaseFort {
 
-	@Autowired
-	private BigObDbService bigObDbService;
-
 	@Test
 	public void t() throws SchedulerException {
+		clearDb();
 		BigOb bo = new BigOb();
 		bo.setContent("hhhhhhhhhhhhhhhhhhhhhh".getBytes());
 		bo.setCreatedAt(new Date());

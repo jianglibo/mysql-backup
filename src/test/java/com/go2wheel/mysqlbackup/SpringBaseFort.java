@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup;
 import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import org.jooq.DSLContext;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -33,6 +35,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.service.BackupFolderDbService;
 import com.go2wheel.mysqlbackup.service.BackupFolderStateDbService;
+import com.go2wheel.mysqlbackup.service.BigObDbService;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
@@ -122,6 +125,9 @@ public class SpringBaseFort {
 	protected UserAccountDbService userAccountDbService;
 	
 	@Autowired
+	protected BigObDbService bigObDbService;
+	
+	@Autowired
 	protected MysqlFlushDbService mysqlFlushDbService;
 	
 	@Autowired
@@ -200,10 +206,12 @@ public class SpringBaseFort {
 		if (session != null) {
 			session.disconnect();
 		}
+		clearDb();
 	}
 	
 	protected void clearDb() {
 		jobLogDbService.deleteAll();
+		bigObDbService.deleteAll();
 		playBackDbService.deleteAll();
 		keyValueInDbService.deleteAll();
 		mysqlInstanceDbService.deleteAll();
@@ -368,6 +376,11 @@ public class SpringBaseFort {
 		assertThat("files should right.", Files.list(topPath).filter(Files::isRegularFile).count(), equalTo(files));
 		assertThat("total should right.", Files.walk(topPath).count(), equalTo(total));
 
+	}
+	
+	@Test
+	public void tplaceholder() {
+		assertTrue(true);
 	}
 	
 	@TestConfiguration

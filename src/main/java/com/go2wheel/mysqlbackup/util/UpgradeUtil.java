@@ -27,7 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.exception.ShowToUserException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.value.CommonFileNames;
 
 public class UpgradeUtil {
@@ -40,7 +40,6 @@ public class UpgradeUtil {
 
 	public static final Pattern JAR_FILE_PTN = Pattern.compile("mysql-backup-[^-]*-boot.jar");
 
-//	private static final Pattern MIGS_PTN = Pattern.compile(".*/mig/.*\\.yml");
 
 	private final Path tmpPath;
 
@@ -58,7 +57,6 @@ public class UpgradeUtil {
 				return;
 			}
 			this.setBuildInfo(createBuildInfo());
-//			iterateJarFile();
 		} else {
 			this.tmpPath = null;
 		}
@@ -92,7 +90,7 @@ public class UpgradeUtil {
 				BuildInfo bi = new BuildInfo(is);
 				p.setProperty(UpgradeFile.CURRENT_VESION, bi.getVersion());
 			} else {
-				throw new ShowToUserException(null, "upgrade.cannotdetermineversion", "");
+				throw new UnExpectedInputException(null, "upgrade.cannotdetermineversion", "");
 			}
 		} finally {
 			if (is != null) {

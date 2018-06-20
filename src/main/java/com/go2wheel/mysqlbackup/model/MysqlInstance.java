@@ -125,6 +125,7 @@ public class MysqlInstance extends BaseModel {
 		private final String password;
 		private String mycnfFile;
 		private String flushLogCron;
+		private String dumpFileName = MysqlUtil.DUMP_FILE_NAME;
 		
 		private Set<String> mysqlSettings = new HashSet<>();
 		
@@ -142,7 +143,7 @@ public class MysqlInstance extends BaseModel {
 		}
 		
 		public MysqlInstanceBuilder addSetting(String key, String value) {
-			this.mysqlSettings.add(key + "|" + value);
+			this.mysqlSettings.add(key + "=" + value);
 			return this;
 		}
 
@@ -154,6 +155,11 @@ public class MysqlInstance extends BaseModel {
 		
 		public MysqlInstanceBuilder withPort(int port) {
 			this.port = port;
+			return this;
+		}
+		
+		public MysqlInstanceBuilder withDumpFileName(String dumpFileName) {
+			this.dumpFileName = dumpFileName;
 			return this;
 		}
 
@@ -172,6 +178,7 @@ public class MysqlInstance extends BaseModel {
 			mi.setPort(port);
 			mi.setServerId(serverId);
 			mi.setUsername(username);
+			mi.setDumpFileName(dumpFileName);
 			mi.setMysqlSettings(new ArrayList<>(mysqlSettings));
 			mi.setHost(host);
 			return mi;

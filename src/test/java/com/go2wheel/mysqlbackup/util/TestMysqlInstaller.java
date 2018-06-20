@@ -18,6 +18,9 @@ public class TestMysqlInstaller extends SpringBaseFort {
 	
 	@Test
 	public void tInstall() {
+		clearDb();
+		createSession();
+		createMysqlIntance();
 		FacadeResult<MysqlInstallInfo> info = mii.install(session, server, "56", "123456");
 		assertTrue(info.getResult().isInstalled());
 	}

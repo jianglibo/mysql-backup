@@ -2,9 +2,11 @@ package com.go2wheel.mysqlbackup.job;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.BDDMockito.given;
 
 import org.junit.Before;
+import org.junit.Test;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.SchedulerException;
@@ -44,6 +46,13 @@ public class JobBaseFort extends SpringBaseFort {
 	protected void printJobs() throws SchedulerException {
 		scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream().forEach(System.out::println);	
 	}
+	
+	@Test
+	public void tplaceholder() {
+		assertTrue(true);
+	}
+	
+	
 
 	
 	protected void createContext() {

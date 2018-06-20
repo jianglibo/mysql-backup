@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -8,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -28,13 +30,20 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Autowired
 	private MysqlUtil mysqlUtil;
+	
+	@Before
+	public void be() {
+		clearDb();
+		createSession();
+		createMysqlIntance();
+	}
 
 
 	@Test
 	public void testMysqlVariable()
 			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
 		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
-		assertThat(lbs.getMap().size(), equalTo(3));
+		assertThat(lbs.getMap().size(), greaterThan(3));
 	}
 
 	@Test
@@ -50,6 +59,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 		BackupedFiles backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		int flsi = backupedFiles.getBackups().size();
+		
 		SSHcommonUtil.backupFile(session, server.getMysqlInstance().getMycnfFile());
 		byte[] bytes = String.join("\n", mfh.getLines()).getBytes();
 		ScpUtil.to(session, server.getMysqlInstance().getMycnfFile(), bytes);

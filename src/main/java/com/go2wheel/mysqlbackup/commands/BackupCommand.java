@@ -57,7 +57,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.ShowToUserException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.MailerJob;
@@ -217,7 +217,7 @@ public class BackupCommand {
 				_session = frSession.getResult();
 			} else {
 				if (StringUtil.hasAnyNonBlankWord(frSession.getMessage())) {
-					throw new ShowToUserException(null, frSession.getMessage(), "", frSession.getMessagePlaceHolders());
+					throw new UnExpectedInputException(null, frSession.getMessage(), "", frSession.getMessagePlaceHolders());
 				} else if (frSession.getException() != null) {
 					// will not get here.
 				}
@@ -657,7 +657,7 @@ public class BackupCommand {
 
 	private void sureServerSelected() {
 		if (appState.getCurrentServer() == null) {
-			throw new ShowToUserException(null, BackupCommandMsgKeys.SERVER_MISSING,
+			throw new UnExpectedInputException(null, BackupCommandMsgKeys.SERVER_MISSING,
 					"选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
@@ -665,14 +665,14 @@ public class BackupCommand {
 	private void sureBorgConfigurated() {
 		sureServerSelected();
 		if (appState.getCurrentServer().getBorgDescription() == null) {
-			throw new ShowToUserException(null, "borg.unconfigurated", "");
+			throw new UnExpectedInputException(null, "borg.unconfigurated", "");
 		}
 	}
 
 	private void sureMysqlConfigurated() {
 		sureServerSelected();
 		if (appState.getCurrentServer().getMysqlInstance() == null) {
-			throw new ShowToUserException(null, "mysql.unconfigurated", "");
+			throw new UnExpectedInputException(null, "mysql.unconfigurated", "");
 		}
 	}
 
@@ -680,7 +680,7 @@ public class BackupCommand {
 		sureMysqlConfigurated();
 		Server server = appState.getCurrentServer();
 		if (server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null) {
-			throw new ShowToUserException(null, "mysql.unreadyforbackup", "", server.getHost());
+			throw new UnExpectedInputException(null, "mysql.unreadyforbackup", "", server.getHost());
 		}
 	}
 

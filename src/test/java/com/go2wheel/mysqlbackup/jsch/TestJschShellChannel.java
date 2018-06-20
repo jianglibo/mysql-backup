@@ -18,6 +18,8 @@ public class TestJschShellChannel extends SpringBaseFort {
 
 	@Test
 	public void t() throws JSchException, IOException {
+		  clearDb();
+		  createSession();
 	      Channel channel = session.openChannel("shell");
 	      OutputStream ops = channel.getOutputStream();
 	      PrintStream ps = new PrintStream(ops, true);

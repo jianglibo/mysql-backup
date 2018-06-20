@@ -4,18 +4,21 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import org.junit.Test;
-import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 
 public class TestMysqlFlushLogJob extends JobBaseFort {
 	
 	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;
 	
-	@Test
-	public void tNotReady() throws JobExecutionException {
-		createServer();
+	@Test(expected=UnExpectedInputException.class)
+	public void tNotReady() throws SchedulerException {
+		clearDb();
+		createSession();
+		deleteAllJobs();
 		createContext();
 		mysqlFlushLogJob.execute(context); // cause server was not ready for mysqlbackup.
 		mysqlFlushDbService.count();
@@ -24,7 +27,8 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 	
 	@Test
 	public void tReady() throws SchedulerException {
-		createServer();
+		clearDb();
+		createSession();
 		createContext();
 		createMysqlIntance();
 		assertThat(countJobs(), equalTo(1L)); // new add mysqlinstance job.

@@ -17,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.BorgService.InstallationInfo;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
@@ -32,6 +33,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Before
 	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
+		clearDb();
 		createSession();
 		createBorgDescription();
 		deleteAllJobs();
@@ -64,7 +66,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	}
 
-	@Test
+	@Test(expected = UnExpectedContentException.class)
 	public void testArchive() {
 		borgService.unInstall(session);
 		FacadeResult<?> fr = borgService.archive(session, server);

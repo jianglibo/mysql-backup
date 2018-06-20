@@ -7,6 +7,7 @@ import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 
@@ -16,16 +17,21 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	private BorgArchiveJob borgArchiveJob;
 	
 	@Autowired
+	private BorgService borgService;
+	
+	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
 	
 	@Test
 	public void testJobFunction() throws SchedulerException {
+		clearDb();
 		long jc = countJobs();
 		assertThat(jc, equalTo(0L));
-		createServer();
+		createSession();
 		createBorgDescription();
 		createContext();
 		deleteAllJobs();
+		borgService.install(session);
 		borgArchiveJob.execute(context);
 		borgDownloadDbService.count();
 		assertThat(borgDownloadDbService.count(), equalTo(1L));
@@ -33,6 +39,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testSchedulerBorg() throws SchedulerException {
+		clearDb();
 		createServer();
 		deleteAllJobs();
 		
@@ -49,6 +56,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testSchedulerBorg2() throws SchedulerException {
+		clearDb();
 		createServer();
 		deleteAllJobs();
 		
@@ -67,6 +75,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testSchedulerBorgUpdate() throws SchedulerException {
+		clearDb();
 		long tc = countTriggers();
 		assertThat(tc, equalTo(0L));
 		createServer();

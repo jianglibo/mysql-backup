@@ -13,8 +13,10 @@ public class TestMysqlLogin extends SpringBaseFort {
 
 	@Test
 	public void tLogin() throws IOException, JSchException, MysqlAccessDeniedException, MysqlNotStartedException {
+		clearDb();
+		createSession();
+		createMysqlIntance();
 		new MysqlInteractiveExpect<String>(session) {
-
 			@Override
 			protected String afterLogin() {
 				return "";

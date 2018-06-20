@@ -20,6 +20,7 @@ import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
@@ -276,7 +277,7 @@ public class BorgService {
 			String cmd = String.join(" ", cmdparts);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 			if (rcr.isCommandNotFound()) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.APPLICATION_NOTINSTALLED, cmd);
+				throw new UnExpectedContentException(null, CommonMessageKeys.APPLICATION_NOTINSTALLED, cmd);
 			}
 			if (rcr.getExitValue() == 0) {
 				return FacadeResult.doneExpectedResultDone(rcr);

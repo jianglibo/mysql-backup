@@ -22,6 +22,9 @@ public class TestMysqlFlushLogExpect extends SpringBaseFort {
 	
 	@Before
 	public void b() throws IOException, SchedulerException {
+		clearDb();
+		createSession();
+		createMysqlIntance();
 		oriPwd = server.getMysqlInstance().getPassword();
 	}
 	

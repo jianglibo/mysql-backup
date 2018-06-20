@@ -17,7 +17,7 @@ public class TestDefaultValue extends SpringBaseFort {
 	@Test
 	public void tValue() {
 		assertNotNull(defaultValues.getCron().getBorgArchive());
-		assertThat(defaultValues.getCron().getCommon().size(), equalTo(3));
+		assertThat(defaultValues.getCron().getCommon().size(), equalTo(10));
 	}
 
 }

@@ -31,8 +31,8 @@ public class TestServerDbService extends ServiceTbase {
 		
 		server = serverDbService.loadFull(server);
 		
-		assertNull(server.getMysqlInstance());
-		assertNull(server.getBorgDescription());
+		assertNotNull(server.getMysqlInstance());
+		assertNotNull(server.getBorgDescription());
 	}
 	
 	@Test

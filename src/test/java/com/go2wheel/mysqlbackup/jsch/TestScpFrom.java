@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
@@ -16,6 +17,12 @@ import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
 
 public class TestScpFrom extends SpringBaseFort {
+	
+	@Before
+	public void before() {
+		clearDb();
+		createSession();
+	}
 
 	@Test
 	public void tFromFileToFile() throws IOException, JSchException, ScpException {
