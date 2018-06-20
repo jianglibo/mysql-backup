@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.repository.PlayBackRepository;
 
 @Service
 @Validated
-public class PlayBackDbService extends ServiceBase<PlayBackRecord, PlayBack> {
+public class PlayBackDbService extends DbServiceBase<PlayBackRecord, PlayBack> {
 	
 	public PlayBackDbService(PlayBackRepository repo) {
 		super(repo);

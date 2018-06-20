@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.repository.BigObRepository;
 
 @Service
 @Validated
-public class BigObDbService extends ServiceBase<BigObRecord, BigOb> {
+public class BigObDbService extends DbServiceBase<BigObRecord, BigOb> {
 	
 	public BigObDbService(BigObRepository repo) {
 		super(repo);

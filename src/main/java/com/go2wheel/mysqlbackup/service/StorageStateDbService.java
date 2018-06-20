@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.repository.StorageStateRepository;
 
 @Service
 @Validated
-public class StorageStateDbService extends ServiceBase<StorageStateRecord, StorageState> {
+public class StorageStateDbService extends DbServiceBase<StorageStateRecord, StorageState> {
 	
 	@Autowired
 	private ServerDbService serverDbService;

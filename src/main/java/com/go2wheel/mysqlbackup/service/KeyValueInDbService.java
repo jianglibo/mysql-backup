@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.repository.KeyValueInDbRepository;
 
 @Service
 @Validated
-public class KeyValueInDbService extends ServiceBase<KeyValueRecord, KeyValueInDb> {
+public class KeyValueInDbService extends DbServiceBase<KeyValueRecord, KeyValueInDb> {
 	
 	public KeyValueInDbService(KeyValueInDbRepository repo) {
 		super(repo);

@@ -41,14 +41,14 @@ public class ServerStateService {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 			Optional<String> lineOp = rcr.getAllTrimedNotEmptyLines().stream().filter(l -> l.contains("average")).findAny();
 			if (!lineOp.isPresent()) {
-				throw new UnExpectedContentException(rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+				throw new UnExpectedContentException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 			}
 			
 			String line = lineOp.get();
 			Matcher m = uptimePtn.matcher(line);
 			
 			if (!m.matches()) {
-				throw new UnExpectedContentException(rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+				throw new UnExpectedContentException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 			}
 			return m.group(1);
 		} catch (RunRemoteCommandException e) {

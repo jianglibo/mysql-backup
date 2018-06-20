@@ -65,7 +65,7 @@ public class MysqlUtil {
 		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
 				.findMatchAndReturnNextLine(matcherline);
 		if (!possibleFiles.isPresent()) {
-			throw new UnExpectedContentException(
+			throw new UnExpectedContentException(null, null,
 					result.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 		}
 		List<String> filenames = Stream.of(possibleFiles.get().split("\\s+")).filter(l -> !l.trim().isEmpty())

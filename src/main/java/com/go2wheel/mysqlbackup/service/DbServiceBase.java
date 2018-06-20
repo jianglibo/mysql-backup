@@ -17,13 +17,13 @@ import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
 
-public abstract class ServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
+public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
 	
 	private ApplicationEventPublisher applicationEventPublisher;
 	
 	protected RepositoryBase<R, P> repo;
 	
-	public ServiceBase(RepositoryBase<R, P> repo) {
+	public DbServiceBase(RepositoryBase<R, P> repo) {
 		this.repo = repo;
 	}
 	

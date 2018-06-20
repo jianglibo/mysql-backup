@@ -1,18 +1,8 @@
 package com.go2wheel.mysqlbackup.resulthandler;
 
-import javax.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.shell.ResultHandler;
-import org.springframework.shell.TerminalSizeAware;
-import org.springframework.shell.result.AttributedCharSequenceResultHandler;
-import org.springframework.shell.result.DefaultResultHandler;
-import org.springframework.shell.result.ParameterValidationExceptionResultHandler;
 import org.springframework.shell.result.ResultHandlerConfig;
-import org.springframework.shell.result.TerminalSizeAwareResultHandler;
 
 /**
  * @see ResultHandlerConfig
@@ -58,11 +48,11 @@ public class ResultHandlerConfigMine {
 //	public ParameterValidationExceptionResultHandler parameterValidationExceptionResultHandler() {
 //		return new ParameterValidationExceptionResultHandler();
 //	}
-//
-//	@Bean
-//	public ThrowableResultHandlerMine throwableResultHandler() {
-//		return new ThrowableResultHandlerMine();
-//	}
+
+	@Bean
+	public HasErrorIdAndMsgkeyResultHandler hasErrorIdAndMsgkeyResultHandler() {
+		return new HasErrorIdAndMsgkeyResultHandler();
+	}
 	
 	@Bean
 	public FacadeResultHandler<?> facadeResultHandler() {

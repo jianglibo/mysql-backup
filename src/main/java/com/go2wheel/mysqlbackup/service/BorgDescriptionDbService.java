@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.repository.BorgDescriptionRepository;
 
 @Service
 @Validated
-public class BorgDescriptionDbService extends ServiceBase<BorgDescriptionRecord, BorgDescription> {
+public class BorgDescriptionDbService extends DbServiceBase<BorgDescriptionRecord, BorgDescription> {
 	
 	public BorgDescriptionDbService(BorgDescriptionRepository repo) {
 		super(repo);

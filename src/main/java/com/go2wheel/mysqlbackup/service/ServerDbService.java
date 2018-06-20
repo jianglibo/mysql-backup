@@ -14,7 +14,7 @@ import com.go2wheel.mysqlbackup.repository.ServerRepository;
 
 @Service
 @Validated
-public class ServerDbService extends ServiceBase<ServerRecord, Server> {
+public class ServerDbService extends DbServiceBase<ServerRecord, Server> {
 	
 	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;

@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.repository.BorgDownloadRepository;
 
 @Service
 @Validated
-public class BorgDownloadDbService extends ServiceBase<BorgDownloadRecord, BorgDownload> {
+public class BorgDownloadDbService extends DbServiceBase<BorgDownloadRecord, BorgDownload> {
 	
 	@Autowired
 	private ServerDbService serverDbService;

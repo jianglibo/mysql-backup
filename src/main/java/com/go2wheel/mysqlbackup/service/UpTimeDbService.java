@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.repository.UpTimeRepository;
 
 @Service
 @Validated
-public class UpTimeDbService extends ServiceBase<UpTimeRecord, UpTime> {
+public class UpTimeDbService extends DbServiceBase<UpTimeRecord, UpTime> {
 	
 	@Autowired
 	private ServerDbService serverDbService;

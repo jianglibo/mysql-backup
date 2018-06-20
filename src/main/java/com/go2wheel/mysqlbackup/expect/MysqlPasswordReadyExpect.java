@@ -57,7 +57,7 @@ public abstract class MysqlPasswordReadyExpect {
 			expect.sendLine(server.getMysqlInstance().getPassword());
 			return afterLogin();
 		} catch (ExpectIOException e) {
-			throw new UnExpectedContentException(e.getInputBuffer());
+			throw new UnExpectedContentException(null, null, e.getInputBuffer());
 		} catch (IOException e) {
 			throw new IOExceptionWrapper(e);
 		} finally {

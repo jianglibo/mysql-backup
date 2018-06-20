@@ -10,7 +10,7 @@ import com.go2wheel.mysqlbackup.repository.BackupFolderStateRepository;
 
 @Service
 @Validated
-public class BackupFolderStateDbService extends ServiceBase<BackupFolderStateRecord, BackupFolderState> {
+public class BackupFolderStateDbService extends DbServiceBase<BackupFolderStateRecord, BackupFolderState> {
 
 	@Autowired
 	public BackupFolderStateDbService(BackupFolderStateRepository repo) {

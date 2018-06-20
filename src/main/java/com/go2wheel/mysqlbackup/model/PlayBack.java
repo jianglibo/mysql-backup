@@ -52,5 +52,13 @@ public class PlayBack extends BaseModel {
 	public void setPairs(List<String> pairs) {
 		this.pairs = pairs;
 	}
+	
+	@Override
+	public String toListRepresentation(String... fields) {
+		if (fields.length == 0) {
+			fields = new String[] {"id", "sourceServerId", "targetServerId", "playWhat"};
+		}
+		return super.toListRepresentation(fields);
+	}
 
 }

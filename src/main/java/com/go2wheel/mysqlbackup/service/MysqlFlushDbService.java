@@ -22,7 +22,7 @@ import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 @Service
 @Validated
-public class MysqlFlushDbService extends ServiceBase<MysqlFlushRecord, MysqlFlush> {
+public class MysqlFlushDbService extends DbServiceBase<MysqlFlushRecord, MysqlFlush> {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	

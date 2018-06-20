@@ -12,6 +12,7 @@ import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.JobKeyProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ObjectFieldValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.OstypeProvider;
+import com.go2wheel.mysqlbackup.valueprovider.PlayBackValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
@@ -29,16 +30,6 @@ import com.go2wheel.mysqlbackup.valueprovider.UserServerGrpValueProvider;
 @Configuration
 public class StandardAPIAutoConfigurationMine {
 
-//	@Bean
-//	public ValueProvider commandValueProvider(@Lazy CommandRegistry commandRegistry) {
-//		return new CommandValueProvider(commandRegistry);
-//	}
-
-//	@Bean
-//	public ValueProvider enumValueProvider() {
-//		return new EnumValueProvider();
-//	}
-	
 	@Bean
 	public ValueProvider serverValueProvider() {
 		return new ServerValueProvider();
@@ -58,6 +49,11 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider serverGrpValueProvider() {
 		return new ServerGrpValueProvider();
+	}
+
+	@Bean
+	public ValueProvider playBackValueProvider() {
+		return new PlayBackValueProvider();
 	}
 
 	@Bean
@@ -113,13 +109,4 @@ public class StandardAPIAutoConfigurationMine {
 		return new JobKeyProvider();
 	}
 
-//	@Bean
-//	public MethodTargetRegistrar standardMethodTargetResolver() {
-//		return new StandardMethodTargetRegistrar();
-//	}
-
-//	@Bean
-//	public ParameterResolver standardParameterResolver(@Qualifier("spring-shell") ConversionService conversionService) {
-//		return new StandardParameterResolver(conversionService);
-//	}
 }

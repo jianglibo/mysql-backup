@@ -1,24 +1,13 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public class UnExpectedContentException extends RuntimeException {
+public class UnExpectedContentException extends HasErrorIdAndMsgkey {
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	
-	private String unexpectedContent;
-	
-	public UnExpectedContentException(String unexpectedContent) {
-		super(unexpectedContent);
+	public UnExpectedContentException(String errorId, String msgkey, String unexpectedContent) {
+		super(errorId, msgkey, unexpectedContent);
 	}
-
-	public String getUnexpectedContent() {
-		return unexpectedContent;
-	}
-
-	public void setUnexpectedContent(String unexpectedContent) {
-		this.unexpectedContent = unexpectedContent;
-	}
-
 }

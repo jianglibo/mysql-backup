@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.repository.MysqlInstanceRepository;
 
 @Service
 @Validated
-public class MysqlInstanceDbService extends ServiceBase<MysqlInstanceRecord, MysqlInstance> {
+public class MysqlInstanceDbService extends DbServiceBase<MysqlInstanceRecord, MysqlInstance> {
 	
 	public MysqlInstanceDbService(MysqlInstanceRepository repo) {
 		super(repo);

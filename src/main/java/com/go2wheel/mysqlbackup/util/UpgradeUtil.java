@@ -92,7 +92,7 @@ public class UpgradeUtil {
 				BuildInfo bi = new BuildInfo(is);
 				p.setProperty(UpgradeFile.CURRENT_VESION, bi.getVersion());
 			} else {
-				throw new ShowToUserException("upgrade.cannotdetermineversion");
+				throw new ShowToUserException(null, "upgrade.cannotdetermineversion", "");
 			}
 		} finally {
 			if (is != null) {

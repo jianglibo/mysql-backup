@@ -53,7 +53,7 @@ public class ThrowableResultHandlerMine extends ThrowableResultHandler implement
 			String s;
 			try {
 				ShowToUserException stue = (ShowToUserException) result;
-				s = messageService.getMessage(stue.getMessageKey(), stue.getMessagePlaceHolders());
+				s = messageService.getMessage(stue.getMsgkey(), stue.getMessagePlaceHolders());
 			} catch (Exception e) {
 				s = result.getMessage();
 			}

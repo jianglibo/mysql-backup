@@ -19,7 +19,7 @@ public class ServiceTbase extends SpringBaseFort {
 //		createSession();
 //	}
 	
-	protected <R extends UpdatableRecord<R>,M extends BaseModel, S extends ServiceBase<R, M>>  void deleteAll(S service) {
+	protected <R extends UpdatableRecord<R>,M extends BaseModel, S extends DbServiceBase<R, M>>  void deleteAll(S service) {
 		List<M> ms = service.findAll(); 
 		ms.stream().forEach(pojo -> service.delete(pojo));
 	}

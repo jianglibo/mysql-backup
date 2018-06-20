@@ -55,7 +55,6 @@ import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
-import com.go2wheel.mysqlbackup.exception.NoServerSelectedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.ShowToUserException;
@@ -84,6 +83,7 @@ import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.service.PlayBackService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
@@ -217,7 +217,7 @@ public class BackupCommand {
 				_session = frSession.getResult();
 			} else {
 				if (StringUtil.hasAnyNonBlankWord(frSession.getMessage())) {
-					throw new ShowToUserException(frSession.getMessage(), frSession.getMessagePlaceHolders());
+					throw new ShowToUserException(null, frSession.getMessage(), "", frSession.getMessagePlaceHolders());
 				} else if (frSession.getException() != null) {
 					// will not get here.
 				}
@@ -278,7 +278,7 @@ public class BackupCommand {
 			@OstypeIndicator
 			@ShellOption(help = "操作系统类型") String os,
 			@ShowPossibleValue({"GET", "SET"})
-			@ShellOption(help = "服务器的角色，默认是GET，从它那里获取数据。")  @Pattern(regexp = "GET|SET") String serverRole,
+			@ShellOption(help = "服务器的角色，默认是GET，从它那里获取数据。") String serverRole,
 			@ShellOption(help = "服务器的名称") String name) throws IOException {
 		Server server = serverDbService.findByHost(host);
 		if (server == null) {
@@ -368,7 +368,7 @@ public class BackupCommand {
 	@ShellMethod(value = "和修改服务器描述")
 	public FacadeResult<?> serverUpdate(
 			@ShowPossibleValue({"host", "name" ,"port", "username", "password" ,"sshKeyFile", "serverRole", "uptimeCron", "diskfreeCron", "os"})
-			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|name|port|username|password|sshKeyFile|serverRole|uptimeCron|diskfreeCron|os") String field,
+			@ShellOption(help = "需要改变的属性") String field,
 			@ObjectFieldIndicator(objectClass=Server.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
@@ -533,7 +533,7 @@ public class BackupCommand {
 	@ShellMethod(value = "更新Borg的描述")
 	public FacadeResult<?> borgDescriptionUpdate(
 			@ShowPossibleValue({"repo", "archiveCron", "pruneCron", "includes","excludes"})
-			@ShellOption(help = "需要改变的属性, 其中includes和exludes使用:符号分割") @Pattern(regexp = "repo|archiveCron|pruneCron|includes|excludes") String field,
+			@ShellOption(help = "需要改变的属性, 其中includes和exludes使用:符号分割") String field,
 			@ObjectFieldIndicator(objectClass=BorgDescription.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
@@ -579,7 +579,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(@ShowPossibleValue({ "55", "56", "57",
-			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") @Pattern(regexp = "55|56|57|80") String twoDigitVersion,
+			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") String twoDigitVersion,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
@@ -657,7 +657,7 @@ public class BackupCommand {
 
 	private void sureServerSelected() {
 		if (appState.getCurrentServer() == null) {
-			throw new NoServerSelectedException(BackupCommandMsgKeys.SERVER_MISSING,
+			throw new ShowToUserException(null, BackupCommandMsgKeys.SERVER_MISSING,
 					"选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
@@ -665,14 +665,14 @@ public class BackupCommand {
 	private void sureBorgConfigurated() {
 		sureServerSelected();
 		if (appState.getCurrentServer().getBorgDescription() == null) {
-			throw new ShowToUserException("borg.unconfigurated", "");
+			throw new ShowToUserException(null, "borg.unconfigurated", "");
 		}
 	}
 
 	private void sureMysqlConfigurated() {
 		sureServerSelected();
 		if (appState.getCurrentServer().getMysqlInstance() == null) {
-			throw new ShowToUserException("mysql.unconfigurated", "");
+			throw new ShowToUserException(null, "mysql.unconfigurated", "");
 		}
 	}
 
@@ -680,7 +680,7 @@ public class BackupCommand {
 		sureMysqlConfigurated();
 		Server server = appState.getCurrentServer();
 		if (server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null) {
-			throw new ShowToUserException("mysql.unreadyforbackup", server.getHost());
+			throw new ShowToUserException(null, "mysql.unreadyforbackup", "", server.getHost());
 		}
 	}
 
@@ -725,7 +725,7 @@ public class BackupCommand {
 	@ShellMethod(value = "添加或更改Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionUpdate(
 			@ShowPossibleValue({"host", "port", "username", "password","flushLogCron", "dumpFileName", "clientBin"})
-			@ShellOption(help = "需要改变的属性") @Pattern(regexp = "host|port|username|password|flushLogCron|dumpFileName|clientBin") String field,
+			@ShellOption(help = "需要改变的属性") String field,
 			@ObjectFieldIndicator(objectClass=MysqlInstance.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
 			) throws JSchException, IOException {
@@ -930,7 +930,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "管理服务器组的主机")
 	public FacadeResult<?> ServerGroupMembers(@ShowPossibleValue({ "LIST", "ADD",
-			"REMOVE" }) @ShellOption(help = "The action to take.") @Pattern(regexp = "ADD|REMOVE|LIST") String action,
+			"REMOVE" }) @ShellOption(help = "The action to take.") String action,
 			@ShellOption(help = "The server group to manage.") @NotNull ServerGrp serverGroup,
 			@ShellOption(help = "The server to manage.", defaultValue = ShellOption.NULL) Server server) {
 		switch (action) {
@@ -1129,14 +1129,25 @@ public class BackupCommand {
 		}
 	}
 	
+	@Autowired
+	private PlayBackService playBackService;
+	
 	@ShellMethod(value = "创建回放设定。")
 	public FacadeResult<?> playbackCreate(
 			@ShellOption(help = "源服务器") Server sourceServer,
 			@ShellOption(help = "回放服务器") Server targetServer,
 			@ShowPossibleValue({PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL})
 			@ShellOption(help = "回放内容") String playWhat,
-			@ShellOption(help = "设定条目") List<String> settings
+			@ShellOption(help = "设定条目", defaultValue=ShellOption.NULL) List<String> settings
 			) {
+		PlayBack pb = playBackService.create(sourceServer, targetServer, playWhat, settings);
+		return FacadeResult.doneExpectedResultDone(pb);
+	}
+	
+	@ShellMethod(value = "删除回放设定。")
+	public FacadeResult<?> playbackDelete(
+			@ShellOption(help = "回放设定") PlayBack playback) {
+		playBackService.remove(playback);
 		return FacadeResult.doneExpectedResult();
 	}
 

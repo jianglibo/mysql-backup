@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.repository.DiskfreeRepository;
 
 @Service
 @Validated
-public class DiskfreeDbService extends ServiceBase<DiskfreeRecord, Diskfree> {
+public class DiskfreeDbService extends DbServiceBase<DiskfreeRecord, Diskfree> {
 	
 	@Autowired
 	private ServerDbService serverDbService;

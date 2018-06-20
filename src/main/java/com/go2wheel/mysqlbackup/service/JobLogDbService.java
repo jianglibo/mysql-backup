@@ -10,7 +10,7 @@ import com.go2wheel.mysqlbackup.repository.JobLogRepository;
 
 @Service
 @Validated
-public class JobLogDbService extends ServiceBase<JobLogRecord, JobLog> {
+public class JobLogDbService extends DbServiceBase<JobLogRecord, JobLog> {
 	
 	@Autowired
 	private ServerDbService serverDbService;

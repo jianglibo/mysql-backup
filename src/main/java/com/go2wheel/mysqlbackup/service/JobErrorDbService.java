@@ -12,7 +12,7 @@ import com.go2wheel.mysqlbackup.repository.JobErrorRepository;
 
 @Service
 @Validated
-public class JobErrorDbService extends ServiceBase<JobErrorRecord, JobError> {
+public class JobErrorDbService extends DbServiceBase<JobErrorRecord, JobError> {
 	
 
 	public JobErrorDbService(JobErrorRepository repo) {

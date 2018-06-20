@@ -24,7 +24,6 @@ public abstract class BaseModel implements ToListRepresentation{
 		this.id = id;
 	}
 	
-	
 	@Override
 	public String toString() {
 		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
@@ -40,6 +39,9 @@ public abstract class BaseModel implements ToListRepresentation{
 	
 	@Override
 	public String toListRepresentation(String... fields) {
+		if (fields.length == 0) {
+			return ObjectUtil.dumpObjectAsMap(this);
+		}
 		return ObjectUtil.toListRepresentation(this, fields); 
 	}
 

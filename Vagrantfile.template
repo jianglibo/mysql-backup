@@ -85,6 +85,17 @@ Vagrant.configure("2") do |config|
     	end
     	centos.vm.box = "geerlingguy/centos7"
     	centos.vm.network "private_network", ip: "192.168.33.110"
+    end
+    
+    
+    config.vm.define "centos1" do |centos|
+	    centos.vm.provider "virtualbox" do |v|
+#    	  v.gui = true
+#      	  v.memory = 8192
+#      	  v.customize ['createmedium', '--filename',  'f:/vms/desktop', '--size', 100000]
+    	end
+    	centos.vm.box = "geerlingguy/centos7"
+    	centos.vm.network "private_network", ip: "192.168.33.111"
   	end
 
 end

@@ -16,7 +16,7 @@ import com.go2wheel.mysqlbackup.repository.UserServerGrpRepository;
 
 @Service
 @Validated
-public class UserServerGrpDbService extends ServiceBase<UserAndServerGrpRecord, UserServerGrp> {
+public class UserServerGrpDbService extends DbServiceBase<UserAndServerGrpRecord, UserServerGrp> {
 
 	@Autowired
 	public UserServerGrpDbService(UserServerGrpRepository userServerGrpRepository) {
