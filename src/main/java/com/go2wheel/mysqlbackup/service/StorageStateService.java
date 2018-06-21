@@ -65,7 +65,8 @@ public class StorageStateService {
 		return dfs.stream().map(df -> {
 			df.setCreatedAt(d);
 			df.setServerId(server.getId());
-			return storageStateDbService.save(df);
+			df = storageStateDbService.save(df);
+			return df;
 		}).collect(Collectors.toList());
 	}
 

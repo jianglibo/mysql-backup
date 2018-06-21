@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.service;
 import org.jooq.DSLContext;
 import org.jooq.Field;
 import org.jooq.Result;
+import org.jooq.Table;
 import org.jooq.impl.TableImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,14 @@ public class SqlService {
 	private DSLContext jooq;
 	
 	public String select(String tableName, int limit) {
-		TableImpl<?> ti = tableDiscovery.getTable(tableName);
-		Result<?> ro = jooq.selectFrom(ti).limit(limit).fetch();
+		Table<?> ti = tableDiscovery.getTable(tableName);
+		Field<?> fi = ti.field("CREATED_AT");
+		Result<?> ro;
+		if (fi == null) {
+			ro = jooq.selectFrom(ti).limit(limit).fetch();
+		} else {
+			ro = jooq.selectFrom(ti).orderBy(fi.desc()).limit(limit).fetch();
+		}
 		return ro.toString();
 	}
 	

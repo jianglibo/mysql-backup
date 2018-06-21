@@ -55,7 +55,14 @@ public class SchedulerBase {
 					.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
 			scheduler.scheduleJob(trigger);
 			return true;
-		} 
+		} else {
+			if (scheduler.getTrigger(tk) == null) {
+				CronExpression ce = new CronExpression(cronExpression);
+				Trigger trigger = newTrigger().withIdentity(tk)
+						.withSchedule(CronScheduleBuilder.cronSchedule(ce)).forJob(jk).build();
+				scheduler.scheduleJob(trigger);
+			}
+		}
 		return false;
 	}
 	
