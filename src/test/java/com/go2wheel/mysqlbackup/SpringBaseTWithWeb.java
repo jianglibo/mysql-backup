@@ -15,5 +15,6 @@ webEnvironment = WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
 public abstract class SpringBaseTWithWeb {
+	
 
 }

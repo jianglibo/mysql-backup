@@ -54,6 +54,11 @@ public class SampleController implements ApplicationContextAware {
 		return tplName;
 	}
 	
+	@GetMapping("/dynamic/{dir}/{tplName}")
+	public String ftmore(@PathVariable String dir, @PathVariable String tplName) {
+		return dir + "/" + tplName;
+	}
+	
 	@GetMapping("/createctx/{userServerGrpId}")
 	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
 		mailJob.createMailerContext(userServerGrpId);
