@@ -73,6 +73,8 @@ public class MysqlService {
 		this.appSettings = appSettings;
 	}
 
+	@Exclusive(TaskLocks.TASK_MYSQL)
+	@MeasureTimeCost
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) {
 		return mysqlDump(session, server, false);
 	}
@@ -93,7 +95,8 @@ public class MysqlService {
 			Path logbinDir = appSettings.getLogBinDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
-				return saveDumpResult(server, FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP));
+				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
+//				return saveDumpResult(server, FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP));
 			}
 			if (force) {
 				FileUtil.backup(3, false, dumpDir, logbinDir);
@@ -105,21 +108,24 @@ public class MysqlService {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				llsl.setMd5(r.get(1));
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
-				return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
+				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
+//				return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
 			} else {
-				return saveDumpResult(server, FacadeResult.unexpectedResult(r.get(0)));
+				return FacadeResult.unexpectedResult(r.get(0));
+//				return saveDumpResult(server, FacadeResult.unexpectedResult(r.get(0)));
 			}
 		} catch (IOException | RunRemoteCommandException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
-			return saveDumpResult(server, FacadeResult.unexpectedResult(e));
+			return FacadeResult.unexpectedResult(e);
 		}
 		
 	}
 	
-	private FacadeResult<LinuxLsl> saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
+	public FacadeResult<LinuxLsl> saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
 		MysqlDump md = new MysqlDump();
 		md.setCreatedAt(new Date());
-		md.setTimeCost(fr.getEndTime() - fr.getStartTime());
+		long tc = fr.getEndTime() - fr.getStartTime();
+		md.setTimeCost(tc);
 		if (fr.isExpected()) {
 			if (fr.getResult() != null) {
 				md.setFileSize(fr.getResult().getSize());
@@ -198,7 +204,6 @@ public class MysqlService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
-
 	}
 	
 	public FacadeResult<?> disableLogbin(Session session, Server server) {

@@ -689,7 +689,7 @@ public class BackupCommand {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
-		return fr;
+		return mysqlService.saveDumpResult(server, fr);
 	}
 	
 	/**
@@ -708,7 +708,7 @@ public class BackupCommand {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
 		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
-		return fr;
+		return mysqlService.saveDumpResult(server, fr);
 	}
 
 

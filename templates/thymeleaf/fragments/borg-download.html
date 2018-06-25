@@ -6,6 +6,7 @@
   <div th:fragment="detail (tplUtil, serverCtx)">
     <div th:assert="${tplUtil}, ${serverCtx}"></div>
     <div th:if="${(serverCtx.borgDownloads ne null) and (not #lists.isEmpty(serverCtx.borgDownloads))}">
+	<p>---------------------- 文件系统备份状况-------------------------------</p>
       <table>
         <tr>
           <th>日期</th>
@@ -22,9 +23,12 @@
           <td th:text="${tplUtil.getFormatedSize(download.totalBytes)}">2.41</td>
           <td th:text="${tplUtil.getFormatedSize(download.downloadBytes)}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(download.timeCost)}">Onions</td>
-<!--      <td th:text="${download.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td> -->
+          <!--/*-->
+          <td th:text="${download.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>
+          <!--*/-->
         </tr>
       </table>
+	<p>---------------------- 文件系统备份状况-------------------------------</p>
     </div>
   </div>
 </body>

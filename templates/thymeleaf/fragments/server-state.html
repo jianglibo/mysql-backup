@@ -4,6 +4,7 @@
 
 <body>
   <div th:fragment="detail">
+	<p>---------------------- 服务器健康状况-------------------------------</p>
     <div th:each="daily: ${serverCtx.getServerStatebyHours()}">
       <p th:text="${daily.key}">日期</p>
       <table>
@@ -19,6 +20,7 @@
         </tr>
       </table>
     </div>
+	<p>---------------------- 服务器健康状况-------------------------------</p>
   </div>
 </body>
 </html>

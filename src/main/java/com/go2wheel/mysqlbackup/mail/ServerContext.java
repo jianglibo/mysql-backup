@@ -49,6 +49,10 @@ public class ServerContext {
 		createMem();
 	}
 
+	/**
+	 * The date as key. root and percent as a pair.
+	 * @return
+	 */
 	public Map<String, Map<String, StorageState>> getStorageStateByDate() {
 		Map<String, Set<StorageState>> stss = getStorageStates().stream().collect(Collectors.groupingBy(sst -> {
 			return SQLTimeUtil.formatDate(sst.getCreatedAt());
@@ -58,7 +62,10 @@ public class ServerContext {
 
 		for (Map.Entry<String, Set<StorageState>> es : stss.entrySet()) {
 			String dateKey = es.getKey();
-			Set<StorageState> dailyData = es.getValue();
+			
+			Set<StorageState> dailyData = es.getValue(); // date as the key.
+			
+			// root as key, maybe has multiple values, if we run program twice a day.
 			Map<String, Set<StorageState>> oneByRoot = dailyData.stream().collect(Collectors.groupingBy(
 					StorageState::getRoot, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
 			
@@ -71,8 +78,38 @@ public class ServerContext {
 			
 			byDateAndRoot.put(dateKey, onlyOneRecord);
 		}
-
 		return byDateAndRoot;
+	}
+	
+	/**
+	 * mount root as key. date and percent pair as value. 
+	 * @return
+	 */
+	public Map<String, Map<String, StorageState>> getStorageStateByRoot() {
+		Map<String, Set<StorageState>> stss = getStorageStates().stream().collect(Collectors.groupingBy(sst -> {
+			return sst.getRoot();
+		}, TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
+
+		Map<String, Map<String, StorageState>> byRootAndDate = new TreeMap<>();
+
+		for (Map.Entry<String, Set<StorageState>> es : stss.entrySet()) {
+			String rootKey = es.getKey();
+			Set<StorageState> rootData = es.getValue(); // all storageStates about one root, span multiple days.
+			
+			// date as the key, maybe has multiple values, if we run program twice a day.
+			Map<String, Set<StorageState>> oneByDate = rootData.stream().collect(Collectors.groupingBy(sst ->
+					SQLTimeUtil.formatDate(sst.getCreatedAt()), TreeMap::new, Collectors.mapping(sst -> sst, Collectors.toSet())));
+			
+			// get one record for one root in one day. If there was more than one record discard it.
+			Map<String, StorageState> onlyOneRecord = new TreeMap<>();
+			
+			for(Map.Entry<String, Set<StorageState>> oneDateItem : oneByDate.entrySet()) {
+				onlyOneRecord.put(oneDateItem.getKey() /*it's date.*/, oneDateItem.getValue().iterator().next());
+			}
+			
+			byRootAndDate.put(rootKey, onlyOneRecord);
+		}
+		return byRootAndDate;
 	}
 
 	public Map<String, Map<String, ServerStateAvg>> getServerStatebyHours() {
@@ -123,7 +160,7 @@ public class ServerContext {
 	}
 
 	public void createMem() {
-		if (this.serverStates == null && this.serverStates.isEmpty()) {
+		if (this.serverStates == null || this.serverStates.isEmpty()) {
 			setMem("0");
 		} else {
 			ServerState ss = this.serverStates.get(0);

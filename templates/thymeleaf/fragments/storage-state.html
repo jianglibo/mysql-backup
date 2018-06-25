@@ -4,19 +4,22 @@
 
 <body>
   <div th:fragment="detail">
-    <div th:each="daily: ${serverCtx.getStorageStateByDate()}">
-      <p th:text="${daily.key}">日期</p>
-      <table>
-        <tr>
+  <p>----------------------存储状况-------------------------------</p>
+    <div>
+      <table th:with="tb=${serverCtx.getStorageStateByRoot()}">
+        <tr th:with="dts=${tb.values().iterator().next().keySet()}">
           <th>根目录</th>
-          <th>使用比例</th>
+          <th th:each="dt: ${dts}" th:text="${dt}">使用比例</th>
         </tr>
-        <tr th:each="storageStateByRoot: ${daily.value}" th:with="root=${storageStateByRoot.key}, storageState=${storageStateByRoot.value}">
-          <td th:text="${root}">2.41</td>
-          <td th:text="|${#numbers.formatDecimal(storageState.usedRatio,0,2)}%|">Onions</td>
+
+        <tr th:each="rootDatePercentsEntry: ${tb}">
+          <td th:text="${rootDatePercentsEntry.key}">2.41</td>
+          <th th:each="dp: ${rootDatePercentsEntry.value}" th:text="|${#numbers.formatDecimal(dp.value.getUsedRatio(),0,2)}%|">使用比例</th>
         </tr>
+         
       </table>
     </div>
+  <p>----------------------存储状况-------------------------------</p>
   </div>
 </body>
 </html>

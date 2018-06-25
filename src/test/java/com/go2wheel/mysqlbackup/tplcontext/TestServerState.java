@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.tplcontext;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
@@ -8,16 +9,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -27,6 +22,7 @@ import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.value.ServerStateAvg;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.google.common.collect.Lists;
 
 public class TestServerState {
 	
@@ -49,7 +45,7 @@ public class TestServerState {
 	}
 	
 	@Test
-	public void tStorageState() throws IOException {
+	public void tStorageStateByDate() throws IOException {
 		Path pa = Paths.get("templates", "tplcontext.1.yml");
 		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
 		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
@@ -60,6 +56,60 @@ public class TestServerState {
 		Map<String, Map<String, StorageState>> byDate = sc.getStorageStateByDate();
 		
 		assertThat(byDate.size(), greaterThan(0));
+	}
+
+	@Test
+	public void tStorageStateByRoot() throws IOException {
+		Path pa = Paths.get("templates", "tplcontext.1.yml");
+		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
+		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
+		
+		List<ServerContext> scs = m.getServers();
+		
+		ServerContext sc = scs.get(0);
+		
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.YEAR, 2018);
+		c.set(Calendar.MONTH, 11);
+		c.set(Calendar.DATE, 6);
+		List<StorageState> lss = Lists.newArrayList();
+		StorageState ss = new StorageState();
+		ss.setAvailable(100L);
+		ss.setUsed(55L);
+		ss.setRoot("/");
+		ss.setCreatedAt(c.getTime());
+		
+		lss.add(ss);
+		
+		ss = new StorageState();
+		ss.setAvailable(100L);
+		ss.setUsed(55L);
+		ss.setRoot("/");
+		c.set(Calendar.YEAR, 2018);
+		c.set(Calendar.MONTH, 11);
+		c.set(Calendar.DATE, 5);
+		ss.setCreatedAt(c.getTime());
+		lss.add(ss);
+		
+		ss = new StorageState();
+		ss.setAvailable(100L);
+		ss.setUsed(55L);
+		ss.setRoot("/");
+		c.set(Calendar.YEAR, 2018);
+		c.set(Calendar.MONTH, 11);
+		c.set(Calendar.DATE, 3);
+		ss.setCreatedAt(c.getTime());
+		lss.add(ss);
+		
+		sc = new ServerContext(Lists.newArrayList(), null, lss, null, null, null);
+		
+		Map<String, Map<String, StorageState>> byRoot = sc.getStorageStateByRoot();
+		
+		Map<String, StorageState> date_percent = byRoot.entrySet().iterator().next().getValue();
+		
+		Set<String> dates = date_percent.keySet();
+		
+		assertThat(dates, contains("2018-12-03", "2018-12-05", "2018-12-06"));
 	}
 
 

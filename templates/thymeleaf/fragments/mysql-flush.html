@@ -6,6 +6,7 @@
   <div th:fragment="detail (tplUtil, serverCtx)">
     <div th:assert="${tplUtil}, ${serverCtx}"></div>
     <div th:if="${(serverCtx.mysqlFlushs ne null) and (not #lists.isEmpty(serverCtx.mysqlFlushs))}">
+	<p>----------------------MYSQL FLUSH 状况-------------------------------</p>
       <table>
         <tr>
           <th>日期</th>
@@ -20,9 +21,12 @@
           <td th:text="${tplUtil.getFormatedSize(flush.fileSize)}">2.41</td>
           <td th:text="${flush.fileNumber}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(flush.timeCost)}">Onions</td>
-<!--      <td th:text="${dump.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td> -->
+          <!--/*-->
+	      <td th:text="${dump.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>
+          <!--*/-->
         </tr>
       </table>
+	<p>----------------------MYSQL FLUSH 状况-------------------------------</p>
     </div>
   </div>
 </body>

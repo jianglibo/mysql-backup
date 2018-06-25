@@ -6,6 +6,7 @@
   <div th:fragment="detail (tplUtil, serverCtx)">
     <div th:assert="${tplUtil}, ${serverCtx}"></div>
     <div th:if="${(serverCtx.mysqlDumps ne null) and (not #lists.isEmpty(serverCtx.mysqlDumps))}">
+	<p>----------------------MYSQL DUMP 状况-------------------------------</p>
       <table>
         <tr>
           <th>日期</th>
@@ -16,9 +17,12 @@
           <td th:text="${#dates.format(dump.createdAt, 'yyyy-MM-dd')}">Onions</td>
           <td th:text="${tplUtil.getFormatedSize(dump.fileSize)}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(dump.timeCost)}">Onions</td>
-<!--      <td th:text="${dump.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td> -->
+          <!--/*-->
+		  <td th:text="${dump.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>
+          <!--*/-->
         </tr>
       </table>
+	<p>----------------------MYSQL DUMP 状况-------------------------------</p>
     </div>
   </div>
 </body>
