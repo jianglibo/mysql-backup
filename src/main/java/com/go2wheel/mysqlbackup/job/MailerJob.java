@@ -117,7 +117,7 @@ public class MailerJob implements Job {
 	}
 
 	private ServerContext makeServerContext(Server server) {
-		List<ServerState> serverStates = serverStateDbService.getRecentItems(server, dvs.getDefaultCount().getServerState());
+		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getDefaultCount().getServerState());
 		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlFlush());
 		List<StorageState> storageStates = storageStateDbService.getItemsInDays(server, dvs.getDefaultCount().getStorageState());
 		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, dvs.getDefaultCount().getJobError());

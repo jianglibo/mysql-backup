@@ -119,6 +119,7 @@ public class ServerContext {
 		DateFormat df = new SimpleDateFormat("HH");
 
 		for (Map.Entry<String, Set<ServerState>> es : byDate.entrySet()) {
+			if (es.getValue().size() < 4) continue;
 			Map<String, Set<ServerState>> oneByDate = es.getValue().stream().collect(Collectors.groupingBy(sst -> {
 				String k = df.format(sst.getCreatedAt());
 				return k;

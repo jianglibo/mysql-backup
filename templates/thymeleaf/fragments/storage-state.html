@@ -2,11 +2,16 @@
 
 <html xmlns:th="http://www.thymeleaf.org">
 
+<!--/*-->
+ 
+<!--*/-->
+
 <body>
-  <div th:fragment="detail">
+  <div th:fragment="detail" th:with="tb=${serverCtx.getStorageStateByRoot()}" >
+  <div th:if="${not #maps.isEmpty(tb)}">
   <p>----------------------存储状况-------------------------------</p>
     <div>
-      <table th:with="tb=${serverCtx.getStorageStateByRoot()}">
+      <table>
         <tr th:with="dts=${tb.values().iterator().next().keySet()}">
           <th>根目录</th>
           <th th:each="dt: ${dts}" th:text="${dt}">使用比例</th>
@@ -20,6 +25,7 @@
       </table>
     </div>
   <p>----------------------存储状况-------------------------------</p>
+  </div>
   </div>
 </body>
 </html>

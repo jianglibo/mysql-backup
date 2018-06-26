@@ -7,7 +7,7 @@ public class ServerState extends BaseModel {
 	private Integer serverId;
 	private long memFree;
 	private long memUsed;
-	private Integer averageLoad;
+	private Integer averageLoad = 0;
 	
 	public Integer getServerId() {
 		return serverId;

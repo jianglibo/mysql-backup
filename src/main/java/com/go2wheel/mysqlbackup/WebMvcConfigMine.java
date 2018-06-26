@@ -69,6 +69,10 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 	public void addResourceHandlers(ResourceHandlerRegistry registry) {
         registry.addResourceHandler("/static/**")
         .addResourceLocations("file:static/");
+        
+        registry.addResourceHandler("/img/**")
+        .addResourceLocations("classpath:/public/img/")
+        .setCachePeriod(31556926);
 //        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
 	}
 	

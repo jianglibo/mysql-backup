@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.tplcontext;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
@@ -41,7 +42,7 @@ public class TestServerState {
 		ServerContext sc = scs.get(0);
 		Map<String, Map<String, ServerStateAvg>> byHours = sc.getServerStatebyHours();
 		
-		assertThat(byHours.size(), greaterThan(2));
+		assertThat(byHours.size(), greaterThan(1));
 	}
 	
 	@Test
@@ -57,59 +58,72 @@ public class TestServerState {
 		
 		assertThat(byDate.size(), greaterThan(0));
 	}
+	
+	private List<StorageState> createDemoStorageStates(int startYear, int startMonth, int startDay, int numberOfDays) {
+		List<StorageState> lss = Lists.newArrayList();
+		Calendar c = Calendar.getInstance();
+		for(int i=0; i< numberOfDays;i++) {
+			c.set(startYear, startMonth, startDay + i);
+			StorageState ss = new StorageState();
+			ss.setAvailable(100L);
+			ss.setUsed(55L);
+			ss.setRoot("/");
+			ss.setCreatedAt(c.getTime());
+			lss.add(ss);
+		}
+		return lss;
+	}
 
 	@Test
 	public void tStorageStateByRoot() throws IOException {
 		Path pa = Paths.get("templates", "tplcontext.1.yml");
 		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
 		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
-		
 		List<ServerContext> scs = m.getServers();
-		
 		ServerContext sc = scs.get(0);
-		
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.YEAR, 2018);
-		c.set(Calendar.MONTH, 11);
-		c.set(Calendar.DATE, 6);
-		List<StorageState> lss = Lists.newArrayList();
-		StorageState ss = new StorageState();
-		ss.setAvailable(100L);
-		ss.setUsed(55L);
-		ss.setRoot("/");
-		ss.setCreatedAt(c.getTime());
-		
-		lss.add(ss);
-		
-		ss = new StorageState();
-		ss.setAvailable(100L);
-		ss.setUsed(55L);
-		ss.setRoot("/");
-		c.set(Calendar.YEAR, 2018);
-		c.set(Calendar.MONTH, 11);
-		c.set(Calendar.DATE, 5);
-		ss.setCreatedAt(c.getTime());
-		lss.add(ss);
-		
-		ss = new StorageState();
-		ss.setAvailable(100L);
-		ss.setUsed(55L);
-		ss.setRoot("/");
-		c.set(Calendar.YEAR, 2018);
-		c.set(Calendar.MONTH, 11);
-		c.set(Calendar.DATE, 3);
-		ss.setCreatedAt(c.getTime());
-		lss.add(ss);
-		
-		sc = new ServerContext(Lists.newArrayList(), null, lss, null, null, null);
-		
+
+		sc = new ServerContext(Lists.newArrayList(), null, createDemoStorageStates(2018, 11, 3, 4), null, null, null);
 		Map<String, Map<String, StorageState>> byRoot = sc.getStorageStateByRoot();
-		
 		Map<String, StorageState> date_percent = byRoot.entrySet().iterator().next().getValue();
-		
 		Set<String> dates = date_percent.keySet();
+		assertThat(dates, contains("2018-12-03", "2018-12-04", "2018-12-05", "2018-12-06"));
+	}
+	
+	private List<ServerState> createDemoServerStates(int dayoneTimes, int daytwoTimes) {
+		Calendar c = Calendar.getInstance();
+		List<ServerState> ls = Lists.newArrayList();
+		ServerState ssa;
 		
-		assertThat(dates, contains("2018-12-03", "2018-12-05", "2018-12-06"));
+		for(int i = 0; i< dayoneTimes; i++) {
+			ssa = new ServerState();
+			c.set(2018, 11, 5, 10 + i, 30);
+			ssa.setCreatedAt(c.getTime());
+			ssa.setMemFree(60L);
+			ssa.setMemUsed(35);
+			ls.add(ssa);
+		}
+		
+		for(int i = 0; i< daytwoTimes; i++) {
+			ssa = new ServerState();
+			c.set(2018, 11, 6, 10 + i, 30);
+			ssa.setCreatedAt(c.getTime());
+			ssa.setMemFree(60L);
+			ssa.setMemUsed(35);
+			ls.add(ssa);
+		}
+		return ls;
+	}
+	
+	@Test
+	public void tServerStateByHours() {
+		ServerContext sc = new ServerContext(createDemoServerStates(3, 2), null, null, null, null, null);
+		Map<String, Map<String, ServerStateAvg>> result = sc.getServerStatebyHours();
+		assertThat(result.size(), equalTo(1));
+		
+		sc = new ServerContext(createDemoServerStates(3, 3), null, null, null, null, null);
+		result = sc.getServerStatebyHours();
+		assertThat(result.size(), equalTo(2));
+
 	}
 
 
