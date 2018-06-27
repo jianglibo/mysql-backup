@@ -31,10 +31,6 @@ public class SampleController implements ApplicationContextAware {
 	@Autowired
 	private MailerJob mailJob;
 
-	@GetMapping("/")
-	String home() {
-		return "index.html";
-	}
 
 	@ModelAttribute
 	public void populateServerGroup(@RequestParam(required = false) String ctxFile, Model model) throws IOException {

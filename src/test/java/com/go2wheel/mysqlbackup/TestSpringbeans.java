@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executor;
 
 import org.junit.Test;
@@ -16,6 +17,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.web.servlet.ViewResolver;
+import org.thymeleaf.templateresolver.ITemplateResolver;
 
 @Import(com.go2wheel.mysqlbackup.TestSpringbeans.Tcc.class)
 public class TestSpringbeans extends SpringBaseFort {
@@ -43,6 +46,17 @@ public class TestSpringbeans extends SpringBaseFort {
 		assertThat(executors.length, equalTo(0));
 		assertThat(jexecutors.length, equalTo(0));
 		assertThat(sexecutors.length, equalTo(0));
+	}
+	
+	@Test
+	public void thymeLeafResolver() {
+		String[] executors = applicationContext.getBeanNamesForType(ITemplateResolver.class);
+		Map<String, ITemplateResolver> beans = applicationContext.getBeansOfType(ITemplateResolver.class);
+		assertThat(executors.length, equalTo(2));
+		assertThat(beans.size(), equalTo(2));
+		
+		String[] viewresovlers = applicationContext.getBeanNamesForType(ViewResolver.class);
+		assertThat(viewresovlers.length, equalTo(4));
 	}
 
 	@Test

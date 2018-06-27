@@ -18,11 +18,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
+import com.go2wheel.mysqlbackup.ui.MenuGroups;
 import com.go2wheel.mysqlbackup.value.DefaultValues.DefaultCount;
 
 @Import(com.go2wheel.mysqlbackup.TestMyappSettings.Tcc.class)
 public class TestMyappSettings  extends SpringBaseFort {
 	
+	@Autowired
+	private MenuGroups menuGroups;
 	
 	@Test
 	public void testDefaultCount() {
@@ -30,7 +33,7 @@ public class TestMyappSettings  extends SpringBaseFort {
 		assertThat(dc.getBorgDownload(), equalTo(20));
 		assertThat(dc.getJobError(), equalTo(20));
 		assertThat(dc.getMysqlDump(), equalTo(2));
-		assertThat(dc.getServerState(), equalTo(20));
+		assertThat(dc.getServerState(), equalTo(2));
 		assertThat(dc.getStorageState(), equalTo(20));
 	}
 	
@@ -45,6 +48,15 @@ public class TestMyappSettings  extends SpringBaseFort {
 		assertThat(env.getProperty("spring.profiles.active"), equalTo("dev"));
 		
 		assertThat(myAppSettings.getStorageExcludes().size(), greaterThan(4));
+	}
+	
+	@Test
+	public void testmenu() {
+		assertThat(menuGroups.getGroups().size(), equalTo(1));
+		assertThat(menuGroups.getGroups().get(0).getName(), equalTo("g1"));
+		
+		assertThat(menuGroups.getGroups().get(0).getItems().size(), equalTo(1));
+		assertThat(menuGroups.getGroups().get(0).getItems().get(0).getPath(), equalTo("/item1"));
 	}
 	
 	@Test

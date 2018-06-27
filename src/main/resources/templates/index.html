@@ -1,13 +1,12 @@
 
 <!doctype html>
-<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description"
 	content="Quickstart your next web project with these example layouts.">
 <title>Layouts &ndash; Pure</title>
-
 
 <link rel="stylesheet"
 	href="https://unpkg.com/purecss@1.0.0/build/pure-min.css"
@@ -19,8 +18,9 @@
 	href="https://fonts.googleapis.com/css?family=Raleway:200">
 
 <!--[if lte IE 8]>
-            <link rel="stylesheet" href="/combo/1.18.13?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css">
-        <![endif]-->
+   <link rel="stylesheet" href="/combo/1.18.13?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css">
+<![endif]-->
+
 <!--[if gt IE 8]><!-->
 <link rel="stylesheet"
 	href="/combo/1.18.13?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/rainbow/baby-blue.css">
@@ -28,7 +28,7 @@
 
 <!--[if lt IE 9]>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
-    <![endif]-->
+<![endif]-->
 <script>
 </script>
 </head>
@@ -36,16 +36,16 @@
 
 <script>
 </script>
-
 	<div id="layout">
 		<a href="#menu" id="menuLink" class="menu-link"> <span></span>
 		</a>
 		<div id="menu">
 			<div class="pure-menu">
 				<a class="pure-menu-heading" href="/">Pure</a>
-				<ul class="pure-menu-list">
-					<li class="pure-menu-item"><a href="/start/"
-						class="pure-menu-link">Get Started</a></li>
+				<ul th:remove="all-but-first" class="pure-menu-list">
+					<li class="pure-menu-item" th:each="mi: ${menus}" th:classappend="(${mi.groupFirst} ? 'menu-item-divided' : '') + ' ' + (${mi.active} ? 'pure-menu-selected' : '')">
+						<a href="/start/" th:href="@{${mi.path}}" class="pure-menu-link" th:text="${mi.name}">Get Started</a>
+					</li>
 					<li class="pure-menu-item pure-menu-selected"><a
 						href="/layouts/" class="pure-menu-link">Layouts</a></li>
 					<li class="pure-menu-item menu-item-divided"><a href="/base/"
@@ -60,8 +60,7 @@
 						class="pure-menu-link">Tables</a></li>
 					<li class="pure-menu-item"><a href="/menus/"
 						class="pure-menu-link">Menus</a></li>
-					<li class="pure-menu-item menu-item-divided"><a href="/tools/"
-						class="pure-menu-link">Tools</a></li>
+					<li class="pure-menu-item menu-item-divided"><a href="/tools/"	class="pure-menu-link">Tools</a></li>
 					<li class="pure-menu-item"><a href="/customize/"
 						class="pure-menu-link">Customize</a></li>
 					<li class="pure-menu-item"><a href="/extend/"
@@ -76,14 +75,6 @@
 		</div>
 
 		<div id="main">
-
-
-
-
-
-
-
-
 			<div class="header">
 				<h1>Layouts</h1>
 
