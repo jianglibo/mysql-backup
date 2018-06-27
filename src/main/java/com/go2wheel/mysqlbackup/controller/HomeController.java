@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.go2wheel.mysqlbackup.ui.MenuGroups;
 import com.go2wheel.mysqlbackup.ui.MenuItem;
@@ -34,6 +35,11 @@ public class HomeController  implements ApplicationContextAware {
 	@GetMapping("/")
 	String home() {
 		return "index";
+	}
+
+	@GetMapping("/app/{page}")
+	String appPage(@PathVariable String page) {
+		return page;
 	}
 	
 	@Override
