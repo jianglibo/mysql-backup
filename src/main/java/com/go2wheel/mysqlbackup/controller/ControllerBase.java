@@ -8,20 +8,15 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import com.go2wheel.mysqlbackup.ui.MenuGroups;
 import com.go2wheel.mysqlbackup.ui.MenuItem;
 
-
-@Controller
-public class HomeController  implements ApplicationContextAware {
+public abstract class ControllerBase   implements ApplicationContextAware {
 	
-	private ApplicationContext applicationContext;
+	protected ApplicationContext applicationContext;
 	
 	@Autowired
 	private MenuGroups menuGroups;
@@ -31,20 +26,20 @@ public class HomeController  implements ApplicationContextAware {
 		List<MenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
 	}
-
-	@GetMapping("/")
-	String home() {
-		return "index";
-	}
-
-//	@GetMapping("/app/{page}")
-//	String appPage(@PathVariable String page) {
-//		return page;
-//	}
+	
 	
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
+	}
+	
+	protected String getTplName(String full) {
+		int p = full.lastIndexOf('/');
+		if (p == -1) {
+			return full;
+		} else {
+			return full.substring(p);
+		}
 	}
 
 }
