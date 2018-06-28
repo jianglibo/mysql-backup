@@ -41,6 +41,7 @@ import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.DiskfreeDbService;
 import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.JobLogDbService;
+import com.go2wheel.mysqlbackup.service.KeyKeyValueDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -105,6 +106,9 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected ServerDbService serverDbService;
+	
+	@Autowired
+	protected KeyKeyValueDbService keyKeyValueDbService;
 
 	@Autowired
 	protected PlayBackDbService playBackDbService;
