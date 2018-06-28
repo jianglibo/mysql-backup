@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.ViewResolver;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
@@ -65,6 +67,14 @@ public class TestSpringbeans extends SpringBaseFort {
 		Tenv tv2 = applicationContext.getBean("bbean", Tenv.class);
 		assertThat(tv1, equalTo(tv2));
 		assertThat(tv2, equalTo(tv3));
+	}
+	
+	@Test
+	public void testLocaleResolver() {
+		LocaleResolver lr = applicationContext.getBean(LocaleResolver.class);
+		
+		assertNotNull(lr);
+		
 	}
 
 	@TestConfiguration

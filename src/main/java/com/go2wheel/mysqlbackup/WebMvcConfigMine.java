@@ -1,11 +1,13 @@
 package com.go2wheel.mysqlbackup;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
@@ -13,6 +15,7 @@ import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
 
 @Configuration
@@ -44,6 +47,12 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 
     }
     
+    @Bean
+    public LocaleResolver localeResolver() {
+        SessionLocaleResolver slr = new SessionLocaleResolver();
+        slr.setDefaultLocale(Locale.CHINESE);
+        return slr;
+    }
     
 
 	@Bean
@@ -102,6 +111,11 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         registry.addResourceHandler("/img/**")
         .addResourceLocations("classpath:/public/img/")
         .setCachePeriod(31556926);
+        
+        registry.addResourceHandler("/pure/**")
+        .addResourceLocations("classpath:/public/pure/")
+        .setCachePeriod(31536000);
+
 //        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
 	}
 	

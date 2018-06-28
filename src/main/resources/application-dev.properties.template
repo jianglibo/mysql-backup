@@ -30,7 +30,7 @@ spring.mail.protocol=smtp
 spring.mail.properties.mail.smtp.auth=true
 
 spring.messages.use-code-as-default-message=false
-spring.messages.basename=messages.command_msg
+spring.messages.basename=messages.command_msg,messages.menu
 
 logging.file=log/spring.log
 logging.file.max-size=5MB
@@ -58,6 +58,7 @@ myapp.storage_excludes[4]=/boot
 myapp.storage_excludes[5]=/run/user/0
 myapp.storage_excludes[6]=/run/user/1000
 myapp.storage_excludes[7]=\u6302\u8F7D\u70B9
+myapp.cache.combo=0
 
 using.spring.schedulerFactory=true
 expectit.echo=true

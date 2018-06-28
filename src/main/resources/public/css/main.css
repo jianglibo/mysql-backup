@@ -69,6 +69,13 @@ aside {
         color: rgb(169, 226, 255);
     }
 
+aside.warn {
+    background: rgb(202, 60, 60); /* this is a maroon */
+}
+
+aside.success {
+	background: rgb(28, 184, 65); /* this is a green */
+}
 
 /* --------------------------
  * Layout Styles

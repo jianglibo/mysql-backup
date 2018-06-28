@@ -18,15 +18,28 @@
 				<h2 id="common-layouts" class="content-subhead">
 					常用设定
 				</h2>
-
 				<form class="pure-form pure-form-aligned" action="#" th:action="@{settings}" th:object="${sshconfig}" method="POST">
+					<aside class="warn" th:if="${#fields.hasErrors('*')}">
+					<ul>
+					    <li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
+					        <span th:text="${e.global}? '*' : ${e.fieldName}">The field name</span> |
+					        <span th:text="${e.message}">The error message</span>
+					    </li>
+					</ul>
+					</aside>
 					<fieldset>
 						<div class="pure-control-group">
-							<label for="ssh-idrsa">Sshidrsa File</label>
+							<label for="sshIdrsa">Sshidrsa File</label>
 							<input th:field="*{sshIdrsa}"  type="text" placeholder="ssh idrsa file path.">
 							<span class="pure-form-message-inline">This is a required field.</span>
 						</div>
 
+						<div class="pure-control-group">
+							<label for="knownHosts">Known Hosts File</label>
+							<input th:field="*{knownHosts}"  type="text" placeholder="known hosts file path.">
+							<span class="pure-form-message-inline">This is a required field.</span>
+						</div>
+<!--/*-->
 						<div class="pure-control-group">
 							<label for="password">Password</label>
 							<input id="password" type="password" placeholder="Password">
@@ -41,18 +54,20 @@
 							<label for="foo">Supercalifragilistic Label</label>
 							<input id="foo" type="text" placeholder="Enter something here...">
 						</div>
-
+<!--*/-->
 						<div class="pure-controls">
+							<!--/*-->
 							<label for="cb" class="pure-checkbox">
 								<input id="cb" type="checkbox"> I've read the terms and conditions
 							</label>
-
-							<button type="submit" class="pure-button pure-button-primary">Submit</button>
+							<!--*/-->
+							<button type="submit" class="pure-button pure-button-primary" th:text="发送">Submit</button>
 						</div>
 					</fieldset>
 				</form>
-
 			</div>
+		</div>
+	</div>
 </body>
 
 </html>

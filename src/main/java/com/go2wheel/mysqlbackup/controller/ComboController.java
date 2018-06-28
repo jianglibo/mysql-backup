@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.io.Resource;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
+import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.google.common.base.Splitter;
 import com.google.common.io.ByteStreams;
 import com.google.common.io.Files;
@@ -35,6 +37,9 @@ public class ComboController implements ApplicationContextAware {
 	protected static final String APPLICATION_JS = "application/javascript; charset=utf-8";
 	
 	private ApplicationContext applicationContext;
+	
+	@Autowired
+	private MyAppSettings myAppsettings;
 	
 	private StreamingResponseBody errorRb(String errorMsg) {
 		return new StreamingResponseBody() {
@@ -81,7 +86,7 @@ public class ComboController implements ApplicationContextAware {
 	    return ResponseEntity
 	            .ok()
 	            .header("Content-Type", ct)
-	            .cacheControl(CacheControl.maxAge(30, TimeUnit.DAYS))
+	            .cacheControl(CacheControl.maxAge(myAppsettings.getCache().getCombo(), TimeUnit.DAYS))
 	            .eTag(version) // lastModified is also available
 	            .body(srb);
 	}

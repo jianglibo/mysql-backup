@@ -1,12 +1,14 @@
 package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotEmpty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,8 @@ public class MyAppSettings {
 	private Path downloadRoot;
 	
 	private Set<String> storageExcludes;
+	
+	private CacheTimes cache;
 
 	@PostConstruct
 	public void post() throws IOException {
@@ -147,9 +151,37 @@ public class MyAppSettings {
 	public void setStorageExcludes(Set<String> storageExcludes) {
 		this.storageExcludes = storageExcludes;
 	}
+	
+	public CacheTimes getCache() {
+		return cache;
+	}
 
-	public static class SshConfig {
+	public void setCache(CacheTimes cache) {
+		this.cache = cache;
+	}
+
+	public static class CacheTimes {
+
+		private int combo;
+
+		public int getCombo() {
+			return combo;
+		}
+
+		public void setCombo(int combo) {
+			this.combo = combo;
+		}
+	}
+
+	public static class SshConfig implements Serializable {
+		
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		@NotEmpty
 		private String sshIdrsa;
+		@NotEmpty
 		private String knownHosts;
 
 		public String getSshIdrsa() {
