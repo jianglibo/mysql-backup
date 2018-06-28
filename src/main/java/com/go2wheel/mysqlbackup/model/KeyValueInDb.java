@@ -8,6 +8,8 @@ public class KeyValueInDb extends BaseModel {
 	
 	public static final String OBNAME_MYSQL = "mysql";
 	
+//	CONSTRAINT unique_kv_idnamekey UNIQUE (object_id, object_name, the_key)
+	
 	private Integer objectId;
 	private String objectName;
 	private String theKey;

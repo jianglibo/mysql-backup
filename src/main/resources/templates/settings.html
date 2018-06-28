@@ -18,6 +18,9 @@
 				<h2 id="common-layouts" class="content-subhead">
 					常用设定
 				</h2>
+					<aside class="success" th:if="${formProcessSuccessed}">
+						<p>修改成功。</p>
+					</aside>
 				<form class="pure-form pure-form-aligned" action="#" th:action="@{settings}" th:object="${sshconfig}" method="POST">
 					<aside class="warn" th:if="${#fields.hasErrors('*')}">
 					<ul>
