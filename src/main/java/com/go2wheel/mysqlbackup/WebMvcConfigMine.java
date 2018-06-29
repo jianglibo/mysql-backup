@@ -116,6 +116,10 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         .addResourceLocations("classpath:/public/pure/")
         .setCachePeriod(31536000);
 
+        registry.addResourceHandler("/jquery/**")
+        .addResourceLocations("classpath:/public/jquery/")
+        .setCachePeriod(31536000);
+
 //        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
 	}
 	

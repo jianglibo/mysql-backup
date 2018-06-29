@@ -15,7 +15,7 @@
 -->
 
 <link rel="stylesheet"
-	href="/pure/1.0.0/built/pure-min.css">
+	href="../public/pure/1.0.0/built/pure-min.css" th:href="@{/pure/1.0.0/built/pure-min.css}">
 
 
 
@@ -30,11 +30,17 @@
 <link rel="stylesheet"
 	href="/combo/1.18.13?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/rainbow/baby-blue.css">
 <!--<![endif]-->
+<!--/*-->
+<link rel="stylesheet" href="../public/css/main-grid.css">
+<link rel="stylesheet" href="../public/css/main.css">
+<link rel="stylesheet" href="../public/css/layouts.css">
+<link rel="stylesheet" href="../public/css/rainbow/baby-blue.css">
+<!--*/-->
 
 <!--[if lt IE 9]>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
 <![endif]-->
-
+<script src="../public/jquery/3.3.1/jquery.min.js" th:src="@{/jquery/3.3.1/jquery.min.js}"></script>
   <!--/* Per-page placeholder for additional links */-->
   <th:block th:replace="${links}" />
 <script>
@@ -109,7 +115,7 @@
 
 				<div class="layout-item l-wrap pure-g">
 					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/blog/"> <img src="/img/layouts/blog@2x.jpg"
+						<a href="/layouts/blog/"> <img th:src="@{/img/layouts/blog@2x.jpg}" src="../public/img/layouts/blog@2x.jpg"
 							class="pure-img-responsive" width="400" height="214"
 							alt="Screenshot of Blog example layout.">
 						</a>
@@ -146,8 +152,8 @@
 				</div>
 				<div class="layout-item l-wrap pure-g">
 					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/email/"> <img
-							src="/img/layouts/email@2x.jpg" class="pure-img-responsive"
+						<a href="/layouts/email/"> <img src="../public/img/layouts/email@2x.jpg"
+							th:src="@{/img/layouts/email@2x.jpg}" class="pure-img-responsive"
 							width="400" height="214"
 							alt="Screenshot of Email example layout.">
 						</a>
@@ -183,8 +189,8 @@
 				</div>
 				<div class="layout-item l-wrap pure-g">
 					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/gallery/"> <img
-							src="/img/layouts/gallery@2x.jpg" class="pure-img-responsive"
+						<a href="/layouts/gallery/"> <img th:src="/img/layouts/gallery@2x.jpg"
+							src="../public/img/layouts/gallery@2x.jpg" class="pure-img-responsive"
 							width="400" height="214"
 							alt="Screenshot of Photo Gallery example layout.">
 						</a>
@@ -223,8 +229,8 @@
 				</div>
 				<div class="layout-item l-wrap pure-g">
 					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/marketing/"> <img
-							src="/img/layouts/marketing@2x.jpg" class="pure-img-responsive"
+						<a href="/layouts/marketing/"> <img th:src="@{/img/layouts/marketing@2x.jpg}"
+							src="../public/img/layouts/marketing@2x.jpg" class="pure-img-responsive"
 							width="400" height="214"
 							alt="Screenshot of Landing Page example layout.">
 						</a>
@@ -262,147 +268,12 @@
 						</p>
 					</div>
 				</div>
-				<div class="layout-item l-wrap pure-g">
-					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/pricing/"> <img
-							src="/img/layouts/pricing@2x.jpg" class="pure-img-responsive"
-							width="400" height="214"
-							alt="Screenshot of Pricing Table example layout.">
-						</a>
-					</div>
 
-					<div class="layout-item-content content pure-u-1 u-sm-1-2">
-						<h3 class="layout-item-head">Pricing Table</h3>
-						<p>A layout example that shows off a responsive pricing table.</p>
-
-						<ul class="layout-item-modules pure-g">
-							<li class="layout-item-module layout-item-module-base pure-u">
-								<a href="/base/">base</a>
-							</li>
-							<li class="layout-item-module layout-item-module-grids pure-u">
-								<a href="/grids/">grids</a>
-							</li>
-							<li class="layout-item-module layout-item-module-buttons pure-u">
-								<a href="/buttons/">buttons</a>
-							</li>
-							<li class="layout-item-module layout-item-module-menus pure-u">
-								<a href="/menus/">menus</a>
-							</li>
-						</ul>
-
-						<p>
-							<a href="/layouts/pricing/"
-								class="pure-button pure-button-primary">View</a> <a download
-								href="/layouts/pricing/download"
-								onclick="return Pure.trackDownload.call(this, 'layouts', 'pricing');"
-								class="pure-button">Download</a>
-						</p>
-					</div>
-				</div>
-				<div class="layout-item l-wrap pure-g">
-					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/side-menu/"> <img
-							src="/img/layouts/side-menu@2x.jpg" class="pure-img-responsive"
-							width="400" height="214"
-							alt="Screenshot of Responsive Side Menu example layout.">
-						</a>
-					</div>
-
-					<div class="layout-item-content content pure-u-1 u-sm-1-2">
-						<h3 class="layout-item-head">Responsive Side Menu</h3>
-						<p>A layout example with a side menu that hides on mobile,
-							just like the Pure website.</p>
-
-						<ul class="layout-item-modules pure-g">
-							<li class="layout-item-module layout-item-module-base pure-u">
-								<a href="/base/">base</a>
-							</li>
-							<li class="layout-item-module layout-item-module-grids pure-u">
-								<a href="/grids/">grids</a>
-							</li>
-							<li class="layout-item-module layout-item-module-menus pure-u">
-								<a href="/menus/">menus</a>
-							</li>
-						</ul>
-
-						<p>
-							<a href="/layouts/side-menu/"
-								class="pure-button pure-button-primary">View</a> <a download
-								href="/layouts/side-menu/download"
-								onclick="return Pure.trackDownload.call(this, 'layouts', 'side-menu');"
-								class="pure-button">Download</a>
-						</p>
-					</div>
-				</div>
-				<div class="layout-item l-wrap pure-g">
-					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/tucked-menu-vertical/"> <img
-							src="/img/layouts/tucked-menu-vertical@2x.jpg"
-							class="pure-img-responsive" width="400" height="214"
-							alt="Screenshot of Responsive Horizontal-to-Vertical Menu example layout.">
-						</a>
-					</div>
-
-					<div class="layout-item-content content pure-u-1 u-sm-1-2">
-						<h3 class="layout-item-head">Responsive
-							Horizontal-to-Vertical Menu</h3>
-						<p>A set of horizontal menus that switch to vertical and which
-							hide at small window widths.</p>
-
-						<ul class="layout-item-modules pure-g">
-							<li class="layout-item-module layout-item-module-base pure-u">
-								<a href="/base/">base</a>
-							</li>
-							<li class="layout-item-module layout-item-module-grids pure-u">
-								<a href="/grids/">grids</a>
-							</li>
-							<li class="layout-item-module layout-item-module-menus pure-u">
-								<a href="/menus/">menus</a>
-							</li>
-						</ul>
-
-						<p>
-							<a href="/layouts/tucked-menu-vertical/"
-								class="pure-button pure-button-primary">View</a> <a download
-								href="/layouts/tucked-menu-vertical/download"
-								onclick="return Pure.trackDownload.call(this, 'layouts', 'tucked-menu-vertical');"
-								class="pure-button">Download</a>
-						</p>
-					</div>
-				</div>
-				<div class="layout-item l-wrap pure-g">
-					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
-						<a href="/layouts/tucked-menu/"> <img
-							src="/img/layouts/tucked-menu@2x.jpg" class="pure-img-responsive"
-							width="400" height="214"
-							alt="Screenshot of Responsive Horizontal-to-Scrollable Menu example layout.">
-						</a>
-					</div>
-
-					<div class="layout-item-content content pure-u-1 u-sm-1-2">
-						<h3 class="layout-item-head">Responsive
-							Horizontal-to-Scrollable Menu</h3>
-						<p>Showcases a horizontal menu that hides at small window
-							widths, and which scrolls when revealed.</p>
-
-						<ul class="layout-item-modules pure-g">
-							<li class="layout-item-module layout-item-module-base pure-u">
-								<a href="/base/">base</a>
-							</li>
-							<li class="layout-item-module layout-item-module-menus pure-u">
-								<a href="/menus/">menus</a>
-							</li>
-						</ul>
-
-						<p>
-							<a href="/layouts/tucked-menu/"
-								class="pure-button pure-button-primary">View</a> <a download
-								href="/layouts/tucked-menu/download"
-								onclick="return Pure.trackDownload.call(this, 'layouts', 'tucked-menu');"
-								class="pure-button">Download</a>
-						</p>
-					</div>
-				</div>
+			<div class="pure-button-group button-xsmall" role="group" aria-label="...">
+				<button class="pure-button">A Pure Button</button>
+				<button class="pure-button pure-button-disabled">Disabled</button>
+				<button class="pure-button pure-button-active">Active</button>
+			</div>
 			</div>
 
 
@@ -432,6 +303,19 @@
 			</div>
 		</div>
 	</div>
+
+	<script>
+		var two = $(".pure-button-group button:eq(1)");
+		$(".pure-button-group button:first").on( "click", function( event ) {
+			two.toggleClass('pure-button-disabled');
+		});
+
+		/*
+		$( "li" ).each(function( index ) {
+  			console.log( index + ": " + $( this ).text() );
+		});
+		*/
+	</script>
 
 	<script
 		src="/combo/1.18.13?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
