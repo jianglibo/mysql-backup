@@ -86,31 +86,11 @@ dv.default-count.mysql-dump=2
 dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20
 
-menus.groups[0].name=settings
-menus.groups[0].order=100
-menus.groups[0].items[0].name=menu.settings
+menus.groups[0].name=g2
+menus.groups[0].order=1000
+menus.groups[0].items[0].name=menu.home
 menus.groups[0].items[0].order=1
-menus.groups[0].items[0].path=/app/settings
-
-menus.groups[1].name=objects
-menus.groups[1].order=200
-menus.groups[1].items[0].name=menu.servers
-menus.groups[1].items[0].order=10
-menus.groups[1].items[0].path=/app/servers
-menus.groups[1].items[1].name=menu.users
-menus.groups[1].items[1].order=20
-menus.groups[1].items[1].path=/app/users
-menus.groups[1].items[2].name=menu.servergrps
-menus.groups[1].items[2].order=30
-menus.groups[1].items[2].path=/app/servergrps
-
-
-
-menus.groups[2].name=g2
-menus.groups[2].order=1000
-menus.groups[2].items[0].name=menu.home
-menus.groups[2].items[0].order=1
-menus.groups[2].items[0].path=/
+menus.groups[0].items[0].path=/
 
 only.you=true
 

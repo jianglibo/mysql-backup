@@ -11,19 +11,19 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import com.go2wheel.mysqlbackup.ui.MenuGroups;
-import com.go2wheel.mysqlbackup.ui.MenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
+import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 
 public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	protected ApplicationContext applicationContext;
 	
 	@Autowired
-	private MenuGroups menuGroups;
+	private MainMenuGroups menuGroups;
 
 	@ModelAttribute
 	public void populateServerGroup(Model model, HttpServletRequest request) {
-		List<MenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
+		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
 	}
 	
@@ -32,6 +32,8 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
+	
+	public abstract List<MainMenuItem> getMenuItems();
 	
 	protected String getTplName(String full) {
 		int p = full.lastIndexOf('/');

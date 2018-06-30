@@ -65,33 +65,11 @@ aside {
     border-radius: 3px;
     color: #fff;
 }
-    aside a, aside a:visited {
-        color: rgb(169, 226, 255);
-    }
-
-aside.warn {
-    background: rgb(202, 60, 60); /* this is a maroon */
+aside a, aside a:visited {
+    color: rgb(169, 226, 255);
 }
 
-aside.success {
-	background: rgb(28, 184, 65); /* this is a green */
-}
 
-.button-xsmall {
-    font-size: 70%;
-}
-
-.button-small {
-    font-size: 85%;
-}
-
-.button-large {
-    font-size: 110%;
-}
-
-.button-xlarge {
-    font-size: 125%;
-}
 
 
 /* --------------------------

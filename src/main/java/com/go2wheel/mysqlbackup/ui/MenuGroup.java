@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.ui;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -9,7 +10,14 @@ public class MenuGroup implements Comparable<MenuGroup>{
 	
 	private Integer order = 0;
 	
-	private List<MenuItem> items;
+	private List<MainMenuItem> items = new ArrayList<>();
+	
+	
+	public MenuGroup() {}
+	
+	public MenuGroup(String name) {
+		this.name = name;
+	}
 	
 	public MenuGroup clone() {
 		MenuGroup nmg = new MenuGroup();
@@ -40,11 +48,11 @@ public class MenuGroup implements Comparable<MenuGroup>{
 		this.order = order;
 	}
 
-	public List<MenuItem> getItems() {
+	public List<MainMenuItem> getItems() {
 		return items;
 	}
 
-	public void setItems(List<MenuItem> items) {
+	public void setItems(List<MainMenuItem> items) {
 		this.items = items;
 	}
 	

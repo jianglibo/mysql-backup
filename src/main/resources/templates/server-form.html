@@ -1,0 +1,66 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title th:text="((${server.id} != null) and (${server.id} gt 0))? '编辑服务器' : '新建服务器'">编辑或新建服务器</title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:text="((${server.id} != null) and (${server.id} gt 0))? '编辑服务器' : '新建服务器'">编辑或新建服务器</h1>
+
+			</div>
+			<div class="content">
+				<h2 id="common-layouts" class="content-subhead">
+					请填写服务器的普通字段
+				</h2>
+					<aside class="success" th:if="${formProcessSuccessed}">
+						<p>修改成功。</p>
+					</aside>
+				<form class="pure-form pure-form-aligned" action="#" th:action="@{${#request.getRequestURI()}}" th:object="${server}" method="POST">
+					<aside class="warn" th:if="${#fields.hasErrors('*')}">
+					<ul>
+					    <li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
+					        <span th:text="${e.global}? '*' : ${e.fieldName}">The field name</span> |
+					        <span th:text="${e.message}">The error message</span>
+					    </li>
+					</ul>
+					</aside>
+					<fieldset>
+						<div class="pure-control-group">
+							<label for="name">名称</label>
+							<input th:field="*{name}"  type="text" placeholder="">
+							<span class="pure-form-message-inline">必须.</span>
+						</div>
+
+						<div class="pure-control-group">
+							<label for="host">主机名或IP</label>
+							<input th:field="*{host}"  type="text" placeholder="">
+							<span class="pure-form-message-inline">必须.</span>
+						</div>
+
+						<div class="pure-control-group">
+							<label for="os">OS类型</label>
+							<select th:field="*{os}" th:remove="all-but-first">
+								<option th:each="one : ${oses}"
+									th:value="${one}"
+									th:text="${one}"
+									th:selected="${one} == ${server.os}">AL</option>
+								<option>CA</option>
+								<option>IL</option>
+							</select>
+							<span class="pure-form-message-inline">必须.</span>
+						</div>
+						<div class="pure-controls">
+							<button type="submit" class="pure-button pure-button-primary" th:text="发送">Submit</button>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+</body>
+
+</html>

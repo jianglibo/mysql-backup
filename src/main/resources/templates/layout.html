@@ -1,5 +1,5 @@
 <!doctype html>
-<html th:fragment="layout (title,links, header, content)" xmlns:th="http://www.fhymeleaf.org">
+<html th:fragment="layout (title,links, header, content, script)" xmlns:th="http://www.fhymeleaf.org">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,26 +23,27 @@
 	href="https://fonts.googleapis.com/css?family=Raleway:200">
 
 <!--[if lte IE 8]>
-   <link rel="stylesheet" href="/combo/1.18.13?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css">
+   <link rel="stylesheet" href="/combo/1.18.13?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css&/css/customize.css">
 <![endif]-->
 
 <!--[if gt IE 8]><!-->
 <link rel="stylesheet"
-	href="/combo/1.18.13?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/rainbow/baby-blue.css">
+	href="/combo/1.18.13?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/rainbow/baby-blue.css&/css/customize.css">
 <!--<![endif]-->
 <!--/*-->
 <link rel="stylesheet" href="../public/css/main-grid.css">
 <link rel="stylesheet" href="../public/css/main.css">
 <link rel="stylesheet" href="../public/css/layouts.css">
 <link rel="stylesheet" href="../public/css/rainbow/baby-blue.css">
+<link rel="stylesheet" href="../public/css/customize.css">
 <!--*/-->
-
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt" crossorigin="anonymous">
 <!--[if lt IE 9]>
         <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
 <![endif]-->
 <script src="../public/jquery/3.3.1/jquery.min.js" th:src="@{/jquery/3.3.1/jquery.min.js}"></script>
   <!--/* Per-page placeholder for additional links */-->
-  <th:block th:replace="${links}" />
+<th:block th:replace="${links}" />
 <script>
 </script>
 </head>
@@ -269,11 +270,7 @@
 					</div>
 				</div>
 
-			<div class="pure-button-group button-xsmall" role="group" aria-label="...">
-				<button class="pure-button">A Pure Button</button>
-				<button class="pure-button pure-button-disabled">Disabled</button>
-				<button class="pure-button pure-button-active">Active</button>
-			</div>
+
 			</div>
 
 
@@ -304,21 +301,17 @@
 		</div>
 	</div>
 
+	<!--/*-->
 	<script>
 		var two = $(".pure-button-group button:eq(1)");
 		$(".pure-button-group button:first").on( "click", function( event ) {
 			two.toggleClass('pure-button-disabled');
 		});
-
-		/*
-		$( "li" ).each(function( index ) {
-  			console.log( index + ": " + $( this ).text() );
-		});
-		*/
 	</script>
-
+	<!--*/-->
 	<script
 		src="/combo/1.18.13?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
 
+	<th:block th:replace="${script}" />
 </body>
 </html>

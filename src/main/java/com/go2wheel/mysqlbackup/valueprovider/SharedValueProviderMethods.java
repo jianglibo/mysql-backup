@@ -31,7 +31,7 @@ import com.go2wheel.mysqlbackup.util.ObjectUtil;
 @Service
 public class SharedValueProviderMethods {
 
-	private static Set<String> predefines = new HashSet<>(
+	public static Set<String> predefines = new HashSet<>(
 			Arrays.asList("linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"));
 
 	@Autowired

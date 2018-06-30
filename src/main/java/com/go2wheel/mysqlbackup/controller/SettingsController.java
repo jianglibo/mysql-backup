@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -16,6 +18,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
+import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 
 
 @Controller
@@ -53,5 +56,10 @@ public class SettingsController  extends ControllerBase {
 	    
 	    ras.addFlashAttribute("formProcessSuccessed", true);
 	    return "redirect:" + uri;
+	}
+
+	@Override
+	public List<MainMenuItem> getMenuItems() {
+		return Arrays.asList(new MainMenuItem("appmodel", "settings", uri, 200));
 	}
 }

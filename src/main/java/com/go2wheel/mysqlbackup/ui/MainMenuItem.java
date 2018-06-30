@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.ui;
 
-public class MenuItem implements Comparable<MenuItem> {
+public class MainMenuItem implements Comparable<MainMenuItem> {
 	
 	private static final String DIVIDED = "menu-item-divided";
 	private static final String ACTIVE = "menu-item-divided";
@@ -11,16 +11,24 @@ public class MenuItem implements Comparable<MenuItem> {
 	
 	private String path;
 	
+	private String groupName;
+	
 	private boolean active = false;
 	
 	private boolean groupFirst = false;
 	
-//	public String extraClass() {
-//		
-//	}
+	public MainMenuItem(String groupName, String name, String path, Integer order) {
+		this.groupName = groupName;
+		this.name = name;
+		this.path = path;
+		this.order = order;
+	}
 	
-	public MenuItem clone() {
-		MenuItem mi = new MenuItem();
+	public MainMenuItem() {
+	}
+
+	public MainMenuItem clone() {
+		MainMenuItem mi = new MainMenuItem();
 		mi.setName(getName());
 		mi.setPath(getPath());
 		mi.setOrder(getOrder());
@@ -28,7 +36,7 @@ public class MenuItem implements Comparable<MenuItem> {
 	}
 
 	@Override
-	public int compareTo(MenuItem o) {
+	public int compareTo(MainMenuItem o) {
 		return this.getOrder().compareTo(o.getOrder());
 	}
 
@@ -70,6 +78,14 @@ public class MenuItem implements Comparable<MenuItem> {
 
 	public void setGroupFirst(boolean groupFirst) {
 		this.groupFirst = groupFirst;
+	}
+
+	public String getGroupName() {
+		return groupName;
+	}
+
+	public void setGroupName(String groupName) {
+		this.groupName = groupName;
 	}
 
 }

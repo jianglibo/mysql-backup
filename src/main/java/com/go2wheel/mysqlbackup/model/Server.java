@@ -3,7 +3,7 @@ package com.go2wheel.mysqlbackup.model;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotEmpty;
 
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
@@ -20,9 +20,10 @@ public class Server extends BaseModel {
 	
 	public static final String ROLE_SET="SET";
 	
-	@NotNull
+	@NotEmpty
 	private String host;
 	
+	@NotEmpty
 	private String name;
 	
 	private int coreNumber;

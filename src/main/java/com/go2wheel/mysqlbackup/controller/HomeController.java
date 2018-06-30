@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 
-import com.go2wheel.mysqlbackup.ui.MenuGroups;
-import com.go2wheel.mysqlbackup.ui.MenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
+import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 
 
 @Controller
@@ -24,11 +24,11 @@ public class HomeController  implements ApplicationContextAware {
 	private ApplicationContext applicationContext;
 	
 	@Autowired
-	private MenuGroups menuGroups;
+	private MainMenuGroups menuGroups;
 
 	@ModelAttribute
 	public void populateServerGroup(Model model, HttpServletRequest request) {
-		List<MenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
+		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
 	}
 
