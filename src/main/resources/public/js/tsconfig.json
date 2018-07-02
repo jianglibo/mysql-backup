@@ -1,8 +1,9 @@
 {
     "files": [
-        "src/main.ts"
+        "src/main.tsx"
     ],
     "compilerOptions": {
+        "jsx" : "react",
         "noImplicitAny": true,
         "target": "es2015"
     }

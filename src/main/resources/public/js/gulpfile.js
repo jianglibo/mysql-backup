@@ -2,6 +2,7 @@ var gulp = require('gulp');
 var browserify = require('browserify');
 var source = require('vinyl-source-stream');
 var tsify = require('tsify');
+var uglify = require('gulp-uglify');
 var sourcemaps = require('gulp-sourcemaps');
 var buffer = require('vinyl-buffer');
 
@@ -15,7 +16,7 @@ var paths = {
 var brfy = browserify({
     basedir: '.',
     debug: true,
-    entries: ['src/main.ts'],
+    entries: ['src/main.tsx'],
     cache: {},
     packageCache: {}
 });
@@ -31,8 +32,8 @@ function bundle() {
     return watchedBrowserify
         .plugin(tsify)
         .transform('babelify', {
-            presets: ['es2015'],
-            extensions: ['.ts']
+            presets: ['react', 'es2015'],
+            extensions: ['.ts', '.tsx']
         })
         .bundle()
         .on('error', function (err) {
@@ -41,6 +42,7 @@ function bundle() {
         .pipe(source('bundle.js'))
         .pipe(buffer())
         .pipe(sourcemaps.init({ loadMaps: true }))
+        .pipe(uglify().on('error', function(err){console.log(err)}))
         .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('dist'));
 }
@@ -49,4 +51,3 @@ gulp.task('default', ['copyHtml'], bundle);
 
 watchedBrowserify.on("update", bundle);
 watchedBrowserify.on("log", gutil.log);
-watchedBrowserify.on("error", gutil.log);
