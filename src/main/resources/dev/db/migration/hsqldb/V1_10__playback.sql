@@ -1,1 +1,0 @@
-ALTER TABLE play_back ADD CONSTRAINT unique_play_back UNIQUE (source_server_id, target_server_id, play_what);

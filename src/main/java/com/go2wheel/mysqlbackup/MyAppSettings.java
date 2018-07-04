@@ -13,12 +13,10 @@ import javax.validation.constraints.NotEmpty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.KeyKeyValueDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
@@ -40,9 +38,6 @@ public class MyAppSettings {
 	private Set<String> storageExcludes;
 	
 	private CacheTimes cache;
-	
-	@Autowired
-	private KeyKeyValueDbService keyKeyValueDbService;
 	
 	private Map<String, String> sshMap;
 
@@ -67,7 +62,7 @@ public class MyAppSettings {
 				Files.createDirectories(tmp);
 			}
 			this.downloadRoot = tmp;
-			this.sshMap = keyKeyValueDbService.getGroup("myapp").getNestedMap("ssh");
+//			this.sshMap = keyKeyValueDbService.getGroup("myapp").getNestedMap("ssh");
 		} catch (Exception e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}

@@ -20,7 +20,6 @@ import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobError;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -30,7 +29,6 @@ import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
-import com.go2wheel.mysqlbackup.service.JobErrorDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -70,9 +68,6 @@ public class MailerJob implements Job {
 
 	@Autowired
 	private StorageStateDbService storageStateDbService;
-
-	@Autowired
-	private JobErrorDbService jobErrorDbService;
 
 	@Autowired
 	private MysqlDumpDbService mysqlDumpDbService;
@@ -120,10 +115,10 @@ public class MailerJob implements Job {
 		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getDefaultCount().getServerState());
 		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlFlush());
 		List<StorageState> storageStates = storageStateDbService.getItemsInDays(server, dvs.getDefaultCount().getStorageState());
-		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, dvs.getDefaultCount().getJobError());
+//		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, dvs.getDefaultCount().getJobError());
 		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlDump());
 		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, dvs.getDefaultCount().getBorgDownload());
-		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, jobErrors, mysqlDumps,
+		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, null, mysqlDumps,
 				borgDownloads);
 		osc.setServer(server);
 		return osc;

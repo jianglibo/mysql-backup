@@ -16,9 +16,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
-import com.go2wheel.mysqlbackup.model.KeyValueInDb;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.KeyValueInDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
@@ -39,9 +37,6 @@ public class ApplicationState {
 	private ServerDbService serverDbService;
 	
 	@Autowired
-	private KeyValueInDbService keyValueInDbService;
-
-	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
 	
 	private Locale local = Locale.CHINESE;
@@ -57,13 +52,13 @@ public class ApplicationState {
 	
 	@PostConstruct
 	public void post() {
-		KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
-		if (kv != null) {
-			Server server = serverDbService.findById(kv.getTheValue());
-			if (server != null) {
-				setCurrentServer(serverDbService.loadFull(server));
-			}
-		}
+//		KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
+//		if (kv != null) {
+//			Server server = serverDbService.findById(kv.getTheValue());
+//			if (server != null) {
+//				setCurrentServer(serverDbService.loadFull(server));
+//			}
+//		}
 	}
 
 	public static enum CommandStepState {
@@ -77,17 +72,17 @@ public class ApplicationState {
 	}
 	
 	public void persistState() {
-		if (getCurrentServer() != null) {
-			KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
-			if (kv == null) {
-				kv = new KeyValueInDb();
-				kv.setObjectId(APP_STATE_ID);
-				kv.setObjectName(APP_STATE_NAME);
-				kv.setTheKey(APP_STATE_LAST_SERVER_ID);
-			}
-			kv.setTheValue(getCurrentServer().getId() + "");
-			keyValueInDbService.save(kv);
-		}
+//		if (getCurrentServer() != null) {
+//			KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
+//			if (kv == null) {
+//				kv = new KeyValueInDb();
+//				kv.setObjectId(APP_STATE_ID);
+//				kv.setObjectName(APP_STATE_NAME);
+//				kv.setTheKey(APP_STATE_LAST_SERVER_ID);
+//			}
+//			kv.setTheValue(getCurrentServer().getId() + "");
+//			keyValueInDbService.save(kv);
+//		}
 	}
 
 	public CommandStepState getStep() {
