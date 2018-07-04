@@ -5,6 +5,8 @@
     "compilerOptions": {
         "jsx" : "react",
         "noImplicitAny": true,
-        "target": "es2015"
+        "allowSyntheticDefaultImports": true,
+        "target": "es2015",
+        "types": ["jest"]
     }
 }
