@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 import java.util.List;
 
 import org.junit.Test;
-import org.quartz.JobExecutionException;
 
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -15,7 +14,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 public class TestBorgDescriptionDbService extends ServiceTbase {
 
 	@Test
-	public void t() throws JobExecutionException {
+	public void tCreate() {
 		Server server = createServer();
 
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).addInclude("/etc")

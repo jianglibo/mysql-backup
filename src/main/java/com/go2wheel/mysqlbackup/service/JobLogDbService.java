@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -12,9 +11,6 @@ import com.go2wheel.mysqlbackup.repository.JobLogRepository;
 @Validated
 public class JobLogDbService extends DbServiceBase<JobLogRecord, JobLog> {
 	
-	@Autowired
-	private ServerDbService serverDbService;
-
 	public JobLogDbService(JobLogRepository repo) {
 		super(repo);
 	}

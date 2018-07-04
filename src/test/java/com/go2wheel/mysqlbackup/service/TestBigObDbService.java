@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 import java.util.Date;
 
 import org.junit.Test;
-import org.quartz.SchedulerException;
 
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BigOb;
@@ -15,7 +14,7 @@ import com.go2wheel.mysqlbackup.model.BigOb;
 public class TestBigObDbService extends JobBaseFort {
 
 	@Test
-	public void t() throws SchedulerException {
+	public void tCreate() {
 		clearDb();
 		BigOb bo = new BigOb();
 		bo.setContent("hhhhhhhhhhhhhhhhhhhhhh".getBytes());

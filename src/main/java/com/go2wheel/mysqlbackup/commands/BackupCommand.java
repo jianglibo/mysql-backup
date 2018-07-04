@@ -65,6 +65,7 @@ import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
+import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -80,6 +81,7 @@ import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
@@ -108,7 +110,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.vo.UserServerGrpVo;
+import com.go2wheel.mysqlbackup.value.UserServerGrpVo;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -1150,6 +1152,27 @@ public class BackupCommand {
 		playBackService.remove(playback);
 		return FacadeResult.doneExpectedResult();
 	}
+	
+	@Autowired
+	private KeyValueService keyValueService;
+	
+	@ShellMethod(value = "查询键值对。")
+	public FacadeResult<?> keyValueGet(
+			@ShellOption(help = "键值，可以用dot分隔") String key
+			) {
+		List<KeyValue> kvs = keyValueService.findByKeyPrefix(key);
+		return FacadeResult.doneExpectedResult();
+	}
+	
+	@ShellMethod(value = "新建或更新键值对。")
+	public FacadeResult<?> keyValueUpdate(
+			@ShellOption(help = "键值，可以用dot分隔") String key,
+			@ShellOption(help = "值") String value
+			) {
+		return FacadeResult.doneExpectedResult();
+	}
+
+
 
 	@Bean
 	public PromptProvider myPromptProvider() {

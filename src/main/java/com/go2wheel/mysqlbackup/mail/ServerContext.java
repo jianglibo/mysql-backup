@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobError;
+import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -27,7 +27,7 @@ public class ServerContext {
 	private List<MysqlFlush> mysqlFlushs;
 	private List<StorageState> storageStates;
 
-	private List<JobError> jobErrors;
+	private List<JobLog> jobLogs;
 	private List<MysqlDump> mysqlDumps;
 	private List<BorgDownload> borgDownloads;
 
@@ -38,10 +38,10 @@ public class ServerContext {
 	}
 
 	public ServerContext(List<ServerState> serverStates, List<MysqlFlush> mysqlFlushs, List<StorageState> storageStates,
-			List<JobError> jobErrors, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
+			List<JobLog> jobLogs, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
 		super();
 		this.mysqlFlushs = mysqlFlushs;
-		this.jobErrors = jobErrors;
+		this.setJobLogs(jobLogs);
 		this.mysqlDumps = mysqlDumps;
 		this.borgDownloads = borgDownloads;
 		this.serverStates = serverStates;
@@ -173,9 +173,7 @@ public class ServerContext {
 		return mysqlFlushs;
 	}
 
-	public List<JobError> getJobErrors() {
-		return jobErrors;
-	}
+
 
 	public List<MysqlDump> getMysqlDumps() {
 		return mysqlDumps;
@@ -213,9 +211,7 @@ public class ServerContext {
 		this.storageStates = storageStates;
 	}
 
-	public void setJobErrors(List<JobError> jobErrors) {
-		this.jobErrors = jobErrors;
-	}
+
 
 	public void setMysqlDumps(List<MysqlDump> mysqlDumps) {
 		this.mysqlDumps = mysqlDumps;
@@ -231,6 +227,14 @@ public class ServerContext {
 
 	public void setMem(String mem) {
 		this.mem = mem;
+	}
+
+	public List<JobLog> getJobLogs() {
+		return jobLogs;
+	}
+
+	public void setJobLogs(List<JobLog> jobLogs) {
+		this.jobLogs = jobLogs;
 	}
 
 }

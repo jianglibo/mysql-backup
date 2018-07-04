@@ -1,5 +1,10 @@
 package com.go2wheel.mysqlbackup.exception;
 
+/**
+ * use for when getting unexpected result.
+ * @author Administrator
+ *
+ */
 public class UnExpectedContentException extends HasErrorIdAndMsgkey {
 
 	/**

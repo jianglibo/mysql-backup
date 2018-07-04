@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 public class TestPlayBackDbService extends ServiceTbase {
 
 	@Test
-	public void t() throws SchedulerException {
+	public void tCreate() throws SchedulerException {
 		clearDb();
 		
 		Server server1 = createServer();

@@ -1,4 +1,6 @@
-package com.go2wheel.mysqlbackup.model;
+package com.go2wheel.mysqlbackup.value;
+
+import com.go2wheel.mysqlbackup.model.BaseModel;
 
 public class Diskfree extends BaseModel {
 	

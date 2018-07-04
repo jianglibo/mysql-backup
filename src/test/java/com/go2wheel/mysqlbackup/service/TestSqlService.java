@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.service;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -12,8 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Author;
-import com.go2wheel.mysqlbackup.jooqschema.tables.records.AuthorRecord;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class TestSqlService extends SpringBaseFort {
 	

@@ -45,7 +45,7 @@ public class TestBackupFolderDbService extends ServiceTbase {
 	
 	@Test(expected = DataIntegrityViolationException.class)
 	public void deleteServer() {
-		BackupFolder bf = createOne("/etc");
+//		BackupFolder bf = createOne("/etc");
 		sservice.findAll().forEach(sservice::delete);
 	}
 
