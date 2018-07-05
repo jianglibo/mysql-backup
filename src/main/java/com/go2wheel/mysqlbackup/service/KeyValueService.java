@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
 @Service
 public class KeyValueService {
@@ -22,8 +23,18 @@ public class KeyValueService {
 		return keyValueDbService.save(kv);
 	}
 
-	public List<KeyValue> findByKeyPrefix(String key) {
-		return keyValueDbService.findByKeyPrefix(key);
+	public List<KeyValue> findByKeyPrefix(String... keys) {
+		return keyValueDbService.findByKeyPrefix(keys);
+	}
+
+	public KeyValueProperties getPropertiesByPrefix(String... keys) {
+		String prefix = String.join(".", keys);
+		return new KeyValueProperties(findByKeyPrefix(prefix), prefix);
+	}
+
+	public KeyValue save(KeyValue keyValue) {
+		return keyValueDbService.save(keyValue);
+		
 	}
 
 }

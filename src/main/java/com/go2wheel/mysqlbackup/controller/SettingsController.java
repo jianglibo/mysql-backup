@@ -18,7 +18,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
+import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
 
 @Controller
@@ -29,11 +32,16 @@ public class SettingsController  extends ControllerBase {
 	public static final String OB_NAME = "sshconfig";
 	
 	@Autowired
+	private KeyValueService keyValueService;
+	
+	@Autowired
 	private MyAppSettings myAppSettings;
 
 	@GetMapping("")
 	String getPage(Model model) {
-		model.addAttribute(OB_NAME, myAppSettings.getSsh());
+		KeyValueProperties kvp = keyValueService.getPropertiesByPrefix(MyAppSettings.MYAPP_PREFIX, "ssh");
+		SshConfig sshConfig = new SshConfig(kvp);
+		model.addAttribute(OB_NAME, sshConfig);
 		return "settings";
 	}
 
@@ -52,6 +60,22 @@ public class SettingsController  extends ControllerBase {
 	    
 	    if (bindingResult.hasErrors()) {
 	    	return "settings";
+	    }
+	    
+	    KeyValueProperties kvp = keyValueService.getPropertiesByPrefix(MyAppSettings.MYAPP_PREFIX, "ssh");
+	    KeyValue sshIdRsaKv = kvp.getKeyValue(SshConfig.SSH_ID_RSA_KEY).get(); 
+	    KeyValue knowsHostsKv = kvp.getKeyValue(SshConfig.KNOWN_HOSTS_KEY).get();
+	    
+	    if (!sshIdRsaKv.getItemValue().equals(sshconfig.getSshIdrsa())) {
+	    	sshIdRsaKv.setItemValue(sshconfig.getSshIdrsa());
+	    	keyValueService.save(sshIdRsaKv);
+	    	myAppSettings.getSsh().setSshIdrsa(sshconfig.getSshIdrsa());
+	    }
+	    
+	    if (!knowsHostsKv.getItemValue().equals(sshconfig.getKnownHosts())) {
+	    	knowsHostsKv.setItemValue(sshconfig.getKnownHosts());
+	    	keyValueService.save(sshIdRsaKv);
+	    	myAppSettings.getSsh().setKnownHosts(sshconfig.getKnownHosts());
 	    }
 	    
 	    ras.addFlashAttribute("formProcessSuccessed", true);

@@ -20,7 +20,7 @@ public class TestKeyValueProperties {
 		String group = "a.b";
 		List<KeyValue> kvs = Arrays.asList(new KeyValue(group, "c"));
 		KeyValueProperties kvp = new KeyValueProperties(kvs, "a");
-		assertThat(kvp.getRelativeProperty("b"), equalTo("c"));
+		assertThat(kvp.getProperty("b"), equalTo("c"));
 	}
 	
 	
@@ -33,9 +33,9 @@ public class TestKeyValueProperties {
 				new KeyValue(prefix, "z", "3")
 				);
 		KeyValueProperties kvp = new KeyValueProperties(kvs, "a");
-		assertThat(kvp.getRelativeProperty("b.c.x"), equalTo("1"));
+		assertThat(kvp.getProperty("b.c.x"), equalTo("1"));
 		
-		Map<String, String> subKvp = kvp.getMap("b");
+		Map<String, String> subKvp = kvp.getRelativeMap("b");
 		assertThat(subKvp.size(), equalTo(3));
 		String mk =subKvp.keySet().iterator().next(); 
 		assertTrue("should start with c..", mk.startsWith("c."));
@@ -51,7 +51,7 @@ public class TestKeyValueProperties {
 				new KeyValue(prefix, "d", "4")
 				);
 		KeyValueProperties kvp = new KeyValueProperties(kvs, "a.b");
-		assertThat(kvp.getRelativeProperty("d"), equalTo("4"));
+		assertThat(kvp.getProperty("d"), equalTo("4"));
 		
 		List<String> list = kvp.getRelativeList("c");
 		assertThat(list.size(), equalTo(3));

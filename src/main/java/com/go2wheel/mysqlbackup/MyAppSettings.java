@@ -5,7 +5,6 @@ import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Map;
 import java.util.Set;
 
 import javax.annotation.PostConstruct;
@@ -13,17 +12,24 @@ import javax.validation.constraints.NotEmpty;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.KeyValueDbService;
+import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
-@ConfigurationProperties(prefix = "myapp")
+@ConfigurationProperties(prefix = com.go2wheel.mysqlbackup.MyAppSettings.MYAPP_PREFIX)
 @Component
 public class MyAppSettings {
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	public static final String MYAPP_PREFIX = "myapp";
 
 	private SshConfig ssh;
 
@@ -39,11 +45,49 @@ public class MyAppSettings {
 	
 	private CacheTimes cache;
 	
-	private Map<String, String> sshMap;
+//	myapp.dataDir=boxes
+//	myapp.downloadFolder=notingit
+//	myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+//	myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
+//	myapp.jp.maxThreads=3
+//	myapp.jp.waitPause=10
+//	myapp.jp.maxWait=10000
+//	myapp.jp.remoteMode=false
+//	myapp.storage_excludes[0]=/dev
+//	myapp.storage_excludes[1]=/dev/shm
+//	myapp.storage_excludes[2]=/run
+//	myapp.storage_excludes[3]=/sys/fs/cgroup
+//	myapp.storage_excludes[4]=/boot
+//	myapp.storage_excludes[5]=/run/user/0
+//	myapp.storage_excludes[6]=/run/user/1000
+//	myapp.storage_excludes[7]=挂载点
+//	myapp.cache.combo=0
+	
+	@Autowired
+	private KeyValueDbService keyValueDbService;
+	
+	@Autowired
+	private KeyValueService keyValueService;
 
 	@PostConstruct
 	public void post() throws IOException {
 		try {
+			KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");
+			
+			if (!sshKvp.containsKey(SshConfig.SSH_ID_RSA_KEY)) {
+				KeyValue kv = new KeyValue(new String[] {MYAPP_PREFIX, "ssh", SshConfig.SSH_ID_RSA_KEY}, getSsh().getSshIdrsa());
+				keyValueDbService.save(kv);
+			} else {
+				getSsh().setSshIdrsa(sshKvp.getProperty(SshConfig.SSH_ID_RSA_KEY));
+			}
+			
+			if (!sshKvp.containsKey(SshConfig.KNOWN_HOSTS_KEY)) {
+				KeyValue kv = new KeyValue(new String[] {MYAPP_PREFIX, "ssh", SshConfig.KNOWN_HOSTS_KEY}, getSsh().getKnownHosts());
+				keyValueDbService.save(kv);
+			} else {
+				getSsh().setKnownHosts(sshKvp.getProperty(SshConfig.KNOWN_HOSTS_KEY));
+			}
+			
 			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
 				this.dataDir = "boxes";
 			}
@@ -176,9 +220,11 @@ public class MyAppSettings {
 			this.combo = combo;
 		}
 	}
-
+	
 	public static class SshConfig implements Serializable {
 		
+		public static final String SSH_ID_RSA_KEY = "sshIdrsa";
+		public static final String KNOWN_HOSTS_KEY = "knownHosts";
 		/**
 		 * 
 		 */
@@ -187,6 +233,14 @@ public class MyAppSettings {
 		private String sshIdrsa;
 		@NotEmpty
 		private String knownHosts;
+		
+		public SshConfig() {
+		}
+
+		public SshConfig(KeyValueProperties kvp) {
+			setSshIdrsa(kvp.getProperty(SSH_ID_RSA_KEY));
+			setKnownHosts(kvp.getProperty(KNOWN_HOSTS_KEY));
+		}
 
 		public String getSshIdrsa() {
 			return sshIdrsa;
