@@ -414,7 +414,7 @@ public class UpgradeUtil {
 		Path curTemplatesFolder = curPath.resolve("templates");
 		Path newTemplateFolder = unZippedPath.resolve("templates");
 		FileUtil.backup(curTemplatesFolder,3, false);
-		Files.copy(newTemplateFolder, curTemplatesFolder);
+		FileUtil.copyDirectory(newTemplateFolder, curTemplatesFolder);
 	}
 
 	private static void backupProperties(Path curPath, Path unZippedPath, String newVersion) throws IOException {

@@ -34,7 +34,7 @@ public class TestMyappSettings  extends SpringBaseFort {
 		assertThat(dc.getJobError(), equalTo(20));
 		assertThat(dc.getMysqlDump(), equalTo(2));
 		assertThat(dc.getServerState(), equalTo(2));
-		assertThat(dc.getStorageState(), equalTo(20));
+		assertThat(dc.getStorageState(), equalTo(7));
 	}
 	
 	@Test
@@ -52,11 +52,11 @@ public class TestMyappSettings  extends SpringBaseFort {
 	
 	@Test
 	public void testmenu() {
-		assertThat(menuGroups.getGroups().size(), equalTo(1));
-		assertThat(menuGroups.getGroups().get(0).getName(), equalTo("g1"));
+		assertThat(menuGroups.getGroups().size(), equalTo(2));
+		assertThat(menuGroups.getGroups().get(0).getName(), equalTo("g2"));
 		
 		assertThat(menuGroups.getGroups().get(0).getItems().size(), equalTo(1));
-		assertThat(menuGroups.getGroups().get(0).getItems().get(0).getPath(), equalTo("/item1"));
+		assertThat(menuGroups.getGroups().get(0).getItems().get(0).getPath(), equalTo("/"));
 	}
 	
 	@Test

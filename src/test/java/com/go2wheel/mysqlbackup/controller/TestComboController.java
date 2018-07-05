@@ -66,8 +66,8 @@ public class TestComboController extends SpringBaseTWithWeb {
 		Resource[] jsrs = wac.getResources("classpath:public/**/*.js");
 		Resource[] csrs = wac.getResources("classpath:public/**/*.css");
 
-		assertThat(jsrs.length, equalTo(18));
-		assertThat(csrs.length, equalTo(17));
+		assertThat(jsrs.length, equalTo(28));
+		assertThat(csrs.length, equalTo(57));
 	}
 
 }

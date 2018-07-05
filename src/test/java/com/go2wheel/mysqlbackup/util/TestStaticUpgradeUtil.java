@@ -25,6 +25,7 @@ public class TestStaticUpgradeUtil {
 	private Path currentJar;
 	private Path newJar;
 	private Path dbDir;
+	private Path templatesDir;
 	private Path dbPath;
 	private String newVersion = "1.111";
 	
@@ -45,6 +46,7 @@ public class TestStaticUpgradeUtil {
 		unZippedPath = Files.createTempDirectory("test");
 		curPath = Files.createTempDirectory("test");
 		dbDir = Files.createDirectories(curPath.resolve("dbdata"));
+		templatesDir = Files.createDirectories(curPath.resolve("templates"));
 		dbPath = dbDir.resolve("db");
 		Files.write(dbDir.resolve("db.tt"), "abc".getBytes());
 		currentJar = curPath.resolve("aa-cc.jar");
@@ -52,6 +54,10 @@ public class TestStaticUpgradeUtil {
 		
 		newJar = unZippedPath.resolve("aa-cc-1.0.jar");
 		Files.write(newJar, "HGellos".getBytes());
+		
+		Path unzipedTemplates = Files.createDirectories(unZippedPath.resolve("templates"));
+		
+		Files.write(unzipedTemplates.resolve("tpl.html"), "abc".getBytes());
 		
 		createProperties(curPath, null, null);
 		createProperties(unZippedPath, "k", "v");
@@ -67,7 +73,7 @@ public class TestStaticUpgradeUtil {
 	}
 	
 	@Test
-	public void t() throws IOException {
+	public void tDoChange() throws IOException {
 		UpgradeUtil.doChange(curPath, unZippedPath, currentJar, newJar, dbDir, newVersion);
 		assertTrue("new jar name should be aa-cc-1.0.jar", Files.exists(curPath.resolve("aa-cc-1.0.jar")));
 		assertFalse("origin jar should removed to backup.", Files.exists(curPath.resolve("aa-cc.jar")));

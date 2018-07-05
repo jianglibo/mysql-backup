@@ -44,32 +44,6 @@ public class TestTemplates extends SpringBaseFort {
 	
 	@Test
 	public void tThymeleafTplWithExt() {
-		templateEngine.process("a.html", new AbstractContext() {});
+		templateEngine.process("a/a.html", new AbstractContext() {});
 	}
-	
-	
-	
-	@Test
-	public void tObjectInstance() throws Exception {
-		String[] cs = applicationContext.getBeanNamesForType(Configuration.class);
-		assertThat(cs.length, equalTo(1));
-		
-		cs = applicationContext.getBeanNamesForType(TemplateEngine.class);
-		assertThat(cs.length, equalTo(1));
-		
-		
-		cs = applicationContext.getBeanNamesForType(ViewResolver.class);
-		assertThat(cs.length, equalTo(4));
-		
-		for(String bn: cs) {
-			ViewResolver vr = (ViewResolver) applicationContext.getBean(bn);
-			System.out.println(vr);
-		}
-		
-		ViewResolver cvr = applicationContext.getBean(ViewResolverComposite.class);
-		
-		View v = cvr.resolveViewName("a.html", Locale.getDefault());
-		assertNotNull(v);
-	}
-	
 }

@@ -7,7 +7,6 @@ import static org.junit.Assert.assertThat;
 
 import java.util.List;
 
-import org.junit.Before;
 import org.junit.Test;
 import org.springframework.dao.DuplicateKeyException;
 
@@ -15,11 +14,6 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 
 public class TestServerGrpDbService extends ServiceTbase {
-	
-	@Before
-	public void b() {
-		deleteAll(serverGrpDbService);
-	}
 	
 	@Test
 	public void testInsertSuccess() {

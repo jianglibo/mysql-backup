@@ -33,8 +33,6 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.service.BackupFolderDbService;
-import com.go2wheel.mysqlbackup.service.BackupFolderStateDbService;
 import com.go2wheel.mysqlbackup.service.BigObDbService;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
@@ -45,10 +43,10 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateDbService;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.FileUtil;
@@ -131,12 +129,6 @@ public class SpringBaseFort {
 	protected MysqlDumpDbService mysqlDumpDbService;
 	
 	@Autowired
-	protected BackupFolderDbService backupFolderDbService;
-	
-	@Autowired
-	protected BackupFolderStateDbService backupFolderStateDbService;
-	
-	@Autowired
 	protected ReuseableCronDbService reuseableCronDbService;
 	
 	@Autowired
@@ -206,8 +198,6 @@ public class SpringBaseFort {
 		borgDescriptionDbService.deleteAll();
 		mysqlDumpDbService.deleteAll();
 		mysqlFlushDbService.deleteAll();
-		backupFolderStateDbService.deleteAll();
-		backupFolderDbService.deleteAll();
 		serverStateDbService.deleteAll();
 		storageStateDbService.deleteAll();
 		borgDownloadDbService.deleteAll();
