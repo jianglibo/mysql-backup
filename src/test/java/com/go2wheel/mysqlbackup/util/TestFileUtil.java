@@ -1,11 +1,14 @@
 package com.go2wheel.mysqlbackup.util;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -13,6 +16,8 @@ import java.nio.file.StandardCopyOption;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import com.go2wheel.mysqlbackup.util.FileUtil.PathPair;
 
 public class TestFileUtil {
 	
@@ -32,15 +37,46 @@ public class TestFileUtil {
 		}
 	}
 	
+	@Test(expected=FileAlreadyExistsException.class)
+	public void copyExists() throws IOException {
+		Files.copy(dir, dir1);
+		assertThat(Files.list(dir).count(), equalTo(0L));
+		
+		Files.write(dir.resolve("a"), "abc".getBytes());
+		
+		assertThat(Files.list(dir).count(), equalTo(1L));
+		
+	}
+	
+	@Test
+	public void tCopyDirectoryNoTarget() throws IOException {
+		String fn = "a.b.0";
+		Files.write(dir.resolve(fn), "abc".getBytes());
+		Path dd = dir.resolve("dd");
+		Files.createDirectories(dd);
+		Files.write(dd.resolve(fn), "abc".getBytes());
+		
+		FileUtil.copyDirectory(dir, dir1);
+		
+		assertTrue("level one file should copied.", Files.exists(dir1.resolve(fn)));
+		assertTrue("level two file should copied.", Files.exists(dir1.resolve("dd").resolve(fn)));
+		
+	}
+	
 	@Test
 	public void tSuccess() throws IOException {
+		// there is a file named a.b.0 under the 'dir';
 		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
 		Path dst = dir.getParent().resolve(dir.getFileName().toString() + ".1");
 		
+		PathPair pp1 = new PathPair(dir, dst);
+		
 		Files.write(dir1.resolve("a.b.0"), "abc".getBytes());
 		Path dst1 = dir1.getParent().resolve(dir1.getFileName().toString() + ".1");
-
-		FileUtil.moveFilesAllOrNone(false, new Path[] {dir, dst}, new Path[] {dir1, dst1});
+		PathPair pp2 = new PathPair(dir1, dst1);
+		FileUtil.moveFilesAllOrNone(false, pp1, pp2);
+		
+		assertTrue(Files.isDirectory((dst)));
 		
 		assertTrue(Files.exists(dst));
 		assertFalse(Files.exists(dir));
@@ -123,7 +159,7 @@ public class TestFileUtil {
 		} catch (InterruptedException e) {
 		}
 
-		FileUtil.moveFilesAllOrNone(false, new Path[] {dir, dst}, new Path[] {dir1, dst1});
+		FileUtil.moveFilesAllOrNone(false, new PathPair(dir, dst), new PathPair(dir1, dst1));
 		
 		assertTrue(Files.exists(dir));
 		assertFalse(Files.exists(dst));

@@ -96,7 +96,6 @@ public class MysqlService {
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
 				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
-//				return saveDumpResult(server, FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP));
 			}
 			if (force) {
 				FileUtil.backup(3, false, dumpDir, logbinDir);
@@ -109,10 +108,8 @@ public class MysqlService {
 				llsl.setMd5(r.get(1));
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
 				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
-//				return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
-//				return saveDumpResult(server, FacadeResult.unexpectedResult(r.get(0)));
 			}
 		} catch (IOException | RunRemoteCommandException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);

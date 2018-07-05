@@ -1,6 +1,9 @@
 ECHO OFF
 SETLOCAL
 
+:: UpgradeFile包含一个upgrade-jar属性，根据这个属性找到解压后的升级文件目录，以该目录下的新的jar启动程序，反过来对当前的目录结构进行修改。
+:: 环境变量的覆盖是一个问题，所以将部分变量写入数据库是比较合理的方案。
+
 REM https://ss64.com/nt/for_cmd.html
 REM http://steve-jansen.github.io/guides/windows-batch-scripting/part-3-return-codes.html
 REM http://steve-jansen.github.io/guides/windows-batch-scripting/part-7-functions.html

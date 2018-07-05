@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,13 +16,63 @@ public class FileUtil {
 	
 	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
-	public static void moveFilesAllOrNone(boolean keepOrigin, Path[]... pairs) throws IOException  {
-		for (Path[] pair : pairs) {
-			Files.copy(pair[0], pair[1], StandardCopyOption.COPY_ATTRIBUTES);
+	/**
+	 * Files.copy can copy files and directory (only directory, no including files in.).
+	 * 
+	 * @param keepOrigin
+	 * @param filePairs
+	 * @throws IOException
+	 */
+	public static void moveFilesAllOrNone(boolean keepOrigin, PathPair... filePairs) throws IOException  {
+		for (PathPair pair : filePairs) {
+			Files.copy(pair.getSrc(), pair.getDst(), StandardCopyOption.COPY_ATTRIBUTES);
 			if (!keepOrigin) {
-				 deleteFolder(pair[0]);
+				 deleteFolder(pair.getSrc());
 			}
 		}
+	}
+	
+	public static class PathPair {
+		private Path src;
+		private Path dst;
+		
+		public PathPair(Path src, Path dst) {
+			super();
+			this.src = src;
+			this.dst = dst;
+		}
+		public Path getSrc() {
+			return src;
+		}
+		public void setSrc(Path src) {
+			this.src = src;
+		}
+		public Path getDst() {
+			return dst;
+		}
+		public void setDst(Path dst) {
+			this.dst = dst;
+		}
+		
+	}
+	
+	public static void copyDirectory(Path srcDirectory, Path dstDirectory) throws IOException {
+		if (Files.exists(dstDirectory) && Files.list(dstDirectory).count() > 0) {
+			throw new FileAlreadyExistsException(dstDirectory.toAbsolutePath().toString());
+		}
+		Files.walkFileTree(srcDirectory, new SimpleFileVisitor<Path>() {
+			@Override
+			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+				file = file.toAbsolutePath();
+				Path fileRelative = srcDirectory.relativize(file);
+				Path dst = dstDirectory.resolve(fileRelative);
+				if (!Files.exists(dst.getParent())) {
+					Files.createDirectories(dst.getParent());
+				}
+				Files.copy(file, dst);
+				return FileVisitResult.CONTINUE;
+			}
+		});
 	}
 
 	public static void deleteFolder(Path... folders) throws IOException {
@@ -29,7 +80,6 @@ public class FileUtil {
 			if (folder == null || !Files.exists(folder)) {
 				return;
 			}
-
 			if (Files.isRegularFile(folder)) {
 				Files.delete(folder);
 			} else {
@@ -54,7 +104,7 @@ public class FileUtil {
 
 	public static void backup(int postfixNumber,boolean keepOrigin, Path... files) throws IOException {
 		int len = files.length;
-		Path[][] pairs = new Path[len][];
+		PathPair[] filePairs = new PathPair[len];
 		int idx = 0;
 
 		for (int i = 0; i < len; i++) {
@@ -63,15 +113,15 @@ public class FileUtil {
 				logger.error("Source file: '{}' does't exists.", file.toAbsolutePath().toString());
 				continue;
 			}
-			Path file1 = PathUtil.getNextAvailable(file, postfixNumber);
-			if (Files.exists(file1)) {
-				logger.error("Destnation file: '{}' does't exists.", file1.toAbsolutePath().toString());
+			Path fileAtTarget = PathUtil.getNextAvailable(file, postfixNumber);
+			if (Files.exists(fileAtTarget)) {
+				logger.error("Destnation file: '{}' does't exists.", fileAtTarget.toAbsolutePath().toString());
 				continue;
 			}
-			pairs[idx] = new Path[] {file, file1};
+			filePairs[idx] = new PathPair(file, fileAtTarget);
 			idx++;
 		}
-		moveFilesAllOrNone(keepOrigin, pairs);
+		moveFilesAllOrNone(keepOrigin, filePairs);
 	}
 	
 	public static void atomicWriteFile(Path dstFile, byte[] content) throws IOException {

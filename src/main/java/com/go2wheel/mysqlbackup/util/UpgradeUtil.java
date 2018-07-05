@@ -61,6 +61,69 @@ public class UpgradeUtil {
 			this.tmpPath = null;
 		}
 	}
+	
+	public static void doUpgrade(Path curPath, String[] args) throws IOException {
+		// --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
+		curPath = curPath.toAbsolutePath();
+		if (!Files.exists(Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE))) {
+			logger.info("no upgrade file {} found. skiping.",
+					Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE).toAbsolutePath().toString());
+			return;
+		}
+		UpgradeFile uf = new UpgradeFile(curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE));
+		Path newJar = Paths.get(uf.getUpgradeJar());
+		String newVersion = uf.getNewVersion();
+
+		Path zipPath = Paths.get(uf.getUpgradeFolder());
+
+		if (!Files.exists(zipPath)) {
+			logger.error("zipFolder doesn't exits! {}", zipPath.toString());
+			return;
+		}
+
+		logger.info("start upgrading...");
+		Pattern dbPathPtn = Pattern.compile(".*jdbc:hsqldb:file:([^;]+);.*");
+		String dbPath = null;
+		Optional<Path> currentJarOp = Files.list(curPath)
+				.filter(p -> UpgradeUtil.JAR_FILE_PTN.matcher(p.getFileName().toString()).matches()).findAny();
+		if (!currentJarOp.isPresent()) {
+			logger.error("Cannot locate current jar file.");
+			return;
+		}
+		Path currentJar = currentJarOp.get();
+
+		for (String s : args) {
+			Matcher m = dbPathPtn.matcher(s);
+			if (m.matches()) {
+				dbPath = m.group(1);
+			}
+		}
+
+		if (dbPath == null) {
+			logger.info("Cannot find db path.");
+			return;
+		} else {
+			// This pattern is fixed.
+			logger.info("db path: {}", dbPath);
+			if (!Files.exists(Paths.get(dbPath))) {
+				logger.info("Find db path {}. But doesn't exists.", dbPath);				
+			}
+		}
+		
+		Path dbDir = Paths.get(dbPath).getParent();
+		doChange(curPath, zipPath, currentJar, newJar, dbDir, newVersion);
+		
+    	Path upgrade = curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE);
+    	if (Files.exists(upgrade)) {
+    		try {
+				Files.delete(upgrade);
+				System.exit(BackupCommand.RESTART_CODE);
+			} catch (IOException e) {
+				ExceptionUtil.logErrorException(logger, e);
+			}
+    	}
+	}
+
 
 	public UpgradeFile writeUpgradeFile() throws IOException {
 		return writeUpgradeFile(Paths.get(""));
@@ -324,67 +387,6 @@ public class UpgradeUtil {
 
 	}
 
-	public static void doUpgrade(Path curPath, String[] args) throws IOException {
-		// --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
-		curPath = curPath.toAbsolutePath();
-		if (!Files.exists(Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE))) {
-			logger.info("no upgrade file {} found. skiping.",
-					Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE).toAbsolutePath().toString());
-			return;
-		}
-		UpgradeFile uf = new UpgradeFile(curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE));
-		Path newJar = Paths.get(uf.getUpgradeJar());
-		String newVersion = uf.getNewVersion();
-
-		Path zipPath = Paths.get(uf.getUpgradeFolder());
-
-		if (!Files.exists(zipPath)) {
-			logger.error("zipFolder doesn't exits! {}", zipPath.toString());
-			return;
-		}
-
-		logger.info("start upgrading...");
-		Pattern dbPathPtn = Pattern.compile(".*jdbc:hsqldb:file:([^;]+);.*");
-		String dbPath = null;
-		Optional<Path> currentJarOp = Files.list(curPath)
-				.filter(p -> UpgradeUtil.JAR_FILE_PTN.matcher(p.getFileName().toString()).matches()).findAny();
-		if (!currentJarOp.isPresent()) {
-			logger.error("Cannot locate current jar file.");
-			return;
-		}
-		Path currentJar = currentJarOp.get();
-
-		for (String s : args) {
-			Matcher m = dbPathPtn.matcher(s);
-			if (m.matches()) {
-				dbPath = m.group(1);
-			}
-		}
-
-		if (dbPath == null) {
-			logger.info("Cannot find db path.");
-			return;
-		} else {
-			// This pattern is fixed.
-			logger.info("db path: {}", dbPath);
-			if (!Files.exists(Paths.get(dbPath))) {
-				logger.info("Find db path {}. But doesn't exists.", dbPath);				
-			}
-		}
-		
-		Path dbDir = Paths.get(dbPath).getParent();
-		doChange(curPath, zipPath, currentJar, newJar, dbDir, newVersion);
-		
-    	Path upgrade = curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE);
-    	if (Files.exists(upgrade)) {
-    		try {
-				Files.delete(upgrade);
-				System.exit(BackupCommand.RESTART_CODE);
-			} catch (IOException e) {
-				ExceptionUtil.logErrorException(logger, e);
-			}
-    	}
-	}
 
 	protected static void doChange(Path curPath, Path unZippedPath, Path currentJar, Path newJar, Path dbDir,
 			String newVersion) throws IOException {
@@ -392,6 +394,7 @@ public class UpgradeUtil {
 		backupProperties(curPath, unZippedPath, newVersion);
 		backupBat(curPath, unZippedPath);
 		backupJar(curPath, currentJar, newJar);
+		backupTemplates(curPath, unZippedPath);
 	}
 
 	private static void backupJar(Path curPath, Path currentJar, Path newJar) throws IOException {
@@ -403,6 +406,13 @@ public class UpgradeUtil {
 	private static void backupBat(Path curPath, Path unZippedPath) throws IOException {
 		Path curBat = curPath.resolve(CommonFileNames.START_BATCH);
 		Path newBat = unZippedPath.resolve(CommonFileNames.START_BATCH);
+		FileUtil.backup(3, false, curBat);
+		Files.copy(newBat, curBat);
+	}
+	
+	private static void backupTemplates(Path curPath, Path unZippedPath) throws IOException {
+		Path curBat = curPath.resolve("templates");
+		Path newBat = unZippedPath.resolve("templates");
 		FileUtil.backup(3, false, curBat);
 		Files.copy(newBat, curBat);
 	}
