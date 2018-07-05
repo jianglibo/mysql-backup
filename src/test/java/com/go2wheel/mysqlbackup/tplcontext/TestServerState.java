@@ -82,7 +82,7 @@ public class TestServerState {
 		List<ServerContext> scs = m.getServers();
 		ServerContext sc = scs.get(0);
 
-		sc = new ServerContext(Lists.newArrayList(), null, createDemoStorageStates(2018, 11, 3, 4), null, null, null);
+		sc = new ServerContext(Lists.newArrayList(), null, createDemoStorageStates(2018, 11, 3, 4), null, null);
 		Map<String, Map<String, StorageState>> byRoot = sc.getStorageStateByRoot();
 		Map<String, StorageState> date_percent = byRoot.entrySet().iterator().next().getValue();
 		Set<String> dates = date_percent.keySet();
@@ -116,11 +116,11 @@ public class TestServerState {
 	
 	@Test
 	public void tServerStateByHours() {
-		ServerContext sc = new ServerContext(createDemoServerStates(3, 2), null, null, null, null, null);
+		ServerContext sc = new ServerContext(createDemoServerStates(3, 2), null, null, null, null);
 		Map<String, Map<String, ServerStateAvg>> result = sc.getServerStatebyHours();
 		assertThat(result.size(), equalTo(1));
 		
-		sc = new ServerContext(createDemoServerStates(3, 3), null, null, null, null, null);
+		sc = new ServerContext(createDemoServerStates(3, 3), null, null, null, null);
 		result = sc.getServerStatebyHours();
 		assertThat(result.size(), equalTo(2));
 

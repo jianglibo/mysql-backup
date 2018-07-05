@@ -63,8 +63,8 @@ myapp.cache.combo=0
 using.spring.schedulerFactory=true
 expectit.echo=true
 
-dv.cron.uptime=0 0/2 * * * ?
-dv.cron.diskfree=0 0/2 * * * ?
+dv.cron.server-state=0 0/2 * * * ?
+dv.cron.storage-state=0 0/2 * * * ?
 dv.cron.borg_archive=0 0/2 * * * ?
 dv.cron.borg_prune=0 0/2 * * * ?
 dv.cron.mysql_flush=0 0/2 * * * ?
@@ -81,7 +81,7 @@ dv.cron.common[9]=0 15 4 * * ?|\u6BCF\u59294\u70B915\u5206
 
 dv.default-count.server-state=2
 dv.default-count.storage-state=7
-dv.default-count.job-error=20
+dv.default-count.job-log=20
 dv.default-count.mysql-dump=2
 dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20

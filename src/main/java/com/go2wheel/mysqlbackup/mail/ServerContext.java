@@ -11,7 +11,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -27,7 +26,6 @@ public class ServerContext {
 	private List<MysqlFlush> mysqlFlushs;
 	private List<StorageState> storageStates;
 
-	private List<JobLog> jobLogs;
 	private List<MysqlDump> mysqlDumps;
 	private List<BorgDownload> borgDownloads;
 
@@ -38,10 +36,9 @@ public class ServerContext {
 	}
 
 	public ServerContext(List<ServerState> serverStates, List<MysqlFlush> mysqlFlushs, List<StorageState> storageStates,
-			List<JobLog> jobLogs, List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
+			List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
 		super();
 		this.mysqlFlushs = mysqlFlushs;
-		this.setJobLogs(jobLogs);
 		this.mysqlDumps = mysqlDumps;
 		this.borgDownloads = borgDownloads;
 		this.serverStates = serverStates;
@@ -227,14 +224,6 @@ public class ServerContext {
 
 	public void setMem(String mem) {
 		this.mem = mem;
-	}
-
-	public List<JobLog> getJobLogs() {
-		return jobLogs;
-	}
-
-	public void setJobLogs(List<JobLog> jobLogs) {
-		this.jobLogs = jobLogs;
 	}
 
 }

@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -14,6 +16,7 @@ public class JobLogDbService extends DbServiceBase<JobLogRecord, JobLog> {
 	public JobLogDbService(JobLogRepository repo) {
 		super(repo);
 	}
+
 	
 	
 }

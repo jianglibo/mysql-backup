@@ -64,9 +64,9 @@ using.spring.schedulerFactory=true
 expectit.echo=true
 
 # every 30 minutes
-dv.cron.uptime=0 0/30 * * * ?
+dv.cron.server-state=0 0/30 * * * ?
 # at 1:30 every day.
-dv.cron.diskfree=0 30 1 * * ?
+dv.cron.storage-state=0 30 1 * * ?
 # at 12:30 and 18:30 every day. 
 dv.cron.borg_archive=0 30 12,18 * * ?
 # 0 15 0 13 * ?
@@ -85,7 +85,7 @@ dv.cron.common[9]=0 15 4 * * ?|\u6BCF\u59294\u70B915\u5206
 
 dv.default-count.server-state=2
 dv.default-count.storage-state=7
-dv.default-count.job-error=20
+dv.default-count.job-log=20
 dv.default-count.mysql-dump=2
 dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20

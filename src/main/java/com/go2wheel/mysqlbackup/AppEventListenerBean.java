@@ -82,8 +82,8 @@ public class AppEventListenerBean implements EnvironmentAware {
 		if (server == null) {
 			server = new Server("localhost", "localhost");
 			server.setOs("win");
-			server.setUptimeCron(defaultValues.getCron().getUptime());
-			server.setDiskfreeCron(defaultValues.getCron().getDiskfree());
+			server.setUptimeCron(defaultValues.getCron().getServerState());
+			server.setDiskfreeCron(defaultValues.getCron().getStorageState());
 			serverDbService.save(server);
 		}
 	}

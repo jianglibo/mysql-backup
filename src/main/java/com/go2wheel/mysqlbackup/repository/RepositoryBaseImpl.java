@@ -9,11 +9,15 @@ import org.jooq.SortField;
 import org.jooq.Table;
 import org.jooq.UpdatableRecord;
 import org.jooq.impl.DAOImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.Server;
 
 public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends BaseModel> extends DAOImpl<R, P, Integer> implements RepositoryBase<R, P>{
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	protected DSLContext jooq;
 
@@ -30,8 +34,16 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	public List<P> getRecentItems(Server server, int number) {
 		@SuppressWarnings("unchecked")
 		Field<Integer> fi = (Field<Integer>) getTable().field("SERVER_ID");
+		if (fi == null) {
+
+		}
 		Field<?> createdSort =  getTable().field("CREATED_AT");
 		return jooq.selectFrom(getTable()).where(fi.eq(server.getId())).orderBy(createdSort.desc()).limit(number).fetchInto(getType());
+	}
+	
+	public List<P> getRecentItems(int number) {
+		Field<?> createdSort =  getTable().field("CREATED_AT");
+		return jooq.selectFrom(getTable()).orderBy(createdSort.desc()).limit(number).fetchInto(getType());
 	}
 	
 	@Override

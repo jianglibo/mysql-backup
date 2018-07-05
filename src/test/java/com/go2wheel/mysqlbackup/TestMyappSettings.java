@@ -19,7 +19,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
 
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
-import com.go2wheel.mysqlbackup.value.DefaultValues.DefaultCount;
 
 @Import(com.go2wheel.mysqlbackup.TestMyappSettings.Tcc.class)
 public class TestMyappSettings  extends SpringBaseFort {
@@ -27,15 +26,6 @@ public class TestMyappSettings  extends SpringBaseFort {
 	@Autowired
 	private MainMenuGroups menuGroups;
 	
-	@Test
-	public void testDefaultCount() {
-		DefaultCount dc = dvs.getDefaultCount();
-		assertThat(dc.getBorgDownload(), equalTo(20));
-		assertThat(dc.getJobError(), equalTo(20));
-		assertThat(dc.getMysqlDump(), equalTo(2));
-		assertThat(dc.getServerState(), equalTo(2));
-		assertThat(dc.getStorageState(), equalTo(7));
-	}
 	
 	@Test
 	public void t() {

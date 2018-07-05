@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.util.TplUtil;
@@ -20,6 +21,8 @@ public class ServerGroupContext {
 	
 	private TplUtil tplUtil;
 	
+	private List<JobLog> jobLogs;
+	
 	public Map<String, Object> toMap() {
 		Map<String, Object> map = new HashMap<>();
 		map.put("user", user);
@@ -27,16 +30,18 @@ public class ServerGroupContext {
 		map.put("serverGroup", serverGroup);
 		map.put("myself", myself);
 		map.put("tplUtil", new TplUtil());
+		map.put("jobLogs", jobLogs);
 		return map;
 	}
 	
 	public ServerGroupContext() {}
 	
-	public ServerGroupContext(List<ServerContext> servers, UserAccount user, ServerGrp serverGroup, ServerContext myself) {
+	public ServerGroupContext(List<ServerContext> servers, List<JobLog> jobLogs, UserAccount user, ServerGrp serverGroup, ServerContext myself) {
 		super();
 		this.user = user;
 		this.servers =servers;
 		this.serverGroup = serverGroup;
+		this.jobLogs = jobLogs;
 		this.tplUtil = new TplUtil();
 		this.setMyself(myself);
 	}
@@ -80,5 +85,13 @@ public class ServerGroupContext {
 
 	public void setTplUtil(TplUtil tplUtil) {
 		this.tplUtil = tplUtil;
+	}
+
+	public List<JobLog> getJobLogs() {
+		return jobLogs;
+	}
+
+	public void setJobLogs(List<JobLog> jobLogs) {
+		this.jobLogs = jobLogs;
 	}
 }

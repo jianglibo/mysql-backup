@@ -93,6 +93,7 @@ import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.service.SqlService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
+import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -176,6 +177,9 @@ public class BackupCommand {
 
 	@Autowired
 	private MailerJob mailerJob;
+	
+	@Autowired
+	private TemplateContextService templateContextService;
 
 	@Autowired
 	@Lazy
@@ -288,8 +292,8 @@ public class BackupCommand {
 			server = new Server(host, name);
 			server.setOs(os);
 			server.setServerRole(serverRole);
-			server.setUptimeCron(dvs.getCron().getUptime());
-			server.setDiskfreeCron(dvs.getCron().getDiskfree());
+			server.setUptimeCron(dvs.getCron().getServerState());
+			server.setDiskfreeCron(dvs.getCron().getStorageState());
 			server = serverDbService.save(server);
 		}
 		return FacadeResult.doneExpectedResultDone(server);
@@ -1042,7 +1046,7 @@ public class BackupCommand {
 			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
 			@ShellOption(help = "输出文件的名称。", defaultValue=ShellOption.NULL) String outfile
 			) throws IOException {
-		ServerGroupContext sgc = mailerJob.createMailerContext(userServerGrpId);
+		ServerGroupContext sgc = templateContextService.createMailerContext(userServerGrpId);
 		Path pa = Paths.get("templates", "tplcontext.yml");
 		if (outfile != null) {
 			pa = Paths.get("templates", outfile); 
@@ -1123,7 +1127,7 @@ public class BackupCommand {
 			@ShellOption(help = "用户服务器组") UserServerGrp userServerGrp,
 			@ShellOption(help = "真的发送") boolean sendTruely
 			) throws ClassNotFoundException, IOException {
-		ServerGroupContext sgctx = mailerJob.createMailerContext(userServerGrp);
+		ServerGroupContext sgctx = templateContextService.createMailerContext(userServerGrp);
 		if (sendTruely) {
 			mailerJob.mail(email, template, sgctx);
 			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");

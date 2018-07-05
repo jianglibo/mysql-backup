@@ -22,7 +22,7 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	private MainMenuGroups menuGroups;
 
 	@ModelAttribute
-	public void populateServerGroup(Model model, HttpServletRequest request) {
+	public void populateMainMenu(Model model, HttpServletRequest request) {
 		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
 	}

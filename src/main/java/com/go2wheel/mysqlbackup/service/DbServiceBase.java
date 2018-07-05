@@ -14,8 +14,10 @@ import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
+import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
 	
@@ -82,7 +84,10 @@ public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends Base
 	public List<P> getRecentItems(Server server, int number) {
 		return repo.getRecentItems(server, number);
 	}
-
+	
+	public List<P> getRecentItems(int number) {
+		return repo.getRecentItems(number);
+	}
 	
 	@Override
 	public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {

@@ -16,11 +16,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
+import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Controller
@@ -29,7 +28,7 @@ public class SampleController implements ApplicationContextAware {
 	private ApplicationContext applicationContext;
 	
 	@Autowired
-	private MailerJob mailJob;
+	private TemplateContextService templateContextService;
 
 
 	@ModelAttribute
@@ -55,7 +54,7 @@ public class SampleController implements ApplicationContextAware {
 	
 	@GetMapping("/createctx/{userServerGrpId}")
 	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
-		mailJob.createMailerContext(userServerGrpId);
+		templateContextService.createMailerContext(userServerGrpId);
 		return ResponseEntity.ok("done");
 	}
 

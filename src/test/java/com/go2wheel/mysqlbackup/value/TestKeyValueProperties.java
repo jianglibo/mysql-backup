@@ -2,19 +2,44 @@ package com.go2wheel.mysqlbackup.value;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.google.common.base.CaseFormat;
 
 public class TestKeyValueProperties {
+	
+	
+	@Test
+	public void tCaseFormat() {
+		String kk = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN).convert("abDdd");
+		
+		assertThat(kk, equalTo("ab-ddd"));
+	}
 
+	@Test
+	public void tNullPrefix() {
+		String group = "a.b";
+		KeyValueProperties kvp = new KeyValueProperties();
+		
+		List<KeyValue> kvs = Arrays.asList(new KeyValue(group, "c"));
+		kvp.setKeyvalues(kvs);
+		assertThat(kvp.getProperty("a.b"), equalTo("c"));
+		
+		Optional<KeyValue> kv = kvp.getKeyValue("a.b");
+		assertTrue(kv.isPresent());
+	}
+	
+	
 	@Test
 	public void tGetProperty() {
 		String group = "a.b";
