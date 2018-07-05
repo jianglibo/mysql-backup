@@ -10,10 +10,12 @@ import com.go2wheel.mysqlbackup.valueprovider.DbTableNameProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.FileValueProviderMine;
 import com.go2wheel.mysqlbackup.valueprovider.JobKeyProvider;
+import com.go2wheel.mysqlbackup.valueprovider.KeyValueValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ObjectFieldValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.OstypeProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PlayBackValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.SQLCandiatesValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TemplateValueProvider;
@@ -33,6 +35,17 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider serverValueProvider() {
 		return new ServerValueProvider();
+	}
+	
+	@Bean
+	public ValueProvider keyValueValueProvider() {
+		return new KeyValueValueProvider();
+	}
+	
+	
+	@Bean
+	public ValueProvider candidatesFromSQLProvider() {
+		return new SQLCandiatesValueProvider();
 	}
 	
 	

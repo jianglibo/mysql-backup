@@ -98,9 +98,8 @@ public class MysqlService {
 				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
 			}
 			if (force) {
-				FileUtil.backup(3, false, dumpDir, logbinDir);
-				Files.createDirectories(dumpDir);
-				Files.createDirectories(logbinDir);
+				FileUtil.backup(dumpDir, 3, false);
+				FileUtil.backup(logbinDir, 3, false);
 			}
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {

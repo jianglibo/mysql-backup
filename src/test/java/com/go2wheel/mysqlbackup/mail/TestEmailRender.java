@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.mail;
 
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -33,7 +34,7 @@ public class TestEmailRender extends SpringBaseFort {
 		assertThat(s, equalTo("fdefault"));
 		
 		s = emailViewRender.render("ctx.html", getsgc());
-		assertThat(s, equalTo("tdefault"));
+		assertThat(s, containsString("<!DOCTYPE>"));
 
 	}
 	

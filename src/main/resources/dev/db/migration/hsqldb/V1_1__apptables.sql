@@ -248,6 +248,6 @@ CREATE TABLE key_value
   item_key VARCHAR(256) NOT NULL,
   item_value VARCHAR(256) NOT NULL,
   created_at TIMESTAMP(2),
-  CONSTRAINT unique_key_value UNIQUE (item_key, item_value)
+  CONSTRAINT unique_key_value_key UNIQUE (item_key)
 );
 

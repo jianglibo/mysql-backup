@@ -25,4 +25,9 @@ public class JOOQKeyValueRepository extends RepositoryBaseImpl<KeyValueRecord, K
 		return jooq.selectFrom(KEY_VALUE).where(KEY_VALUE.ITEM_KEY.startsWith(key)).fetchInto(KeyValue.class);
 	}
 
+	@Override
+	public KeyValue findOneByKey(String key) {
+		return jooq.selectFrom(KEY_VALUE).where(KEY_VALUE.ITEM_KEY.eq(key)).fetchOneInto(KeyValue.class);
+	}
+
 }

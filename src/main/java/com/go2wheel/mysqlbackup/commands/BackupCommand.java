@@ -42,6 +42,7 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
+import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
@@ -81,7 +82,7 @@ import com.go2wheel.mysqlbackup.model.UserServerGrp;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
-import com.go2wheel.mysqlbackup.service.KeyValueService;
+import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
@@ -1154,25 +1155,53 @@ public class BackupCommand {
 	}
 	
 	@Autowired
-	private KeyValueService keyValueService;
+	private KeyValueDbService keyValueDbService;
+	
+	public static final String KEY_VALUE_CANDIDATES_SQL = "SELECT ITEM_KEY FROM KEY_VALUE WHERE ITEM_KEY LIKE '%%%s%%'";
 	
 	@ShellMethod(value = "查询键值对。")
 	public FacadeResult<?> keyValueGet(
+			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
 			@ShellOption(help = "键值，可以用dot分隔") String key
 			) {
-		List<KeyValue> kvs = keyValueService.findByKeyPrefix(key);
-		return FacadeResult.doneExpectedResult();
+		List<KeyValue> kvs = keyValueDbService.findByKeyPrefix(key);
+		return FacadeResult.doneExpectedResultDone(kvs);
 	}
 	
+	@ShellMethod(value = "删除键值对。")
+	public FacadeResult<?> keyValueDelete(
+			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
+			@ShellOption(help = "键值，可以用dot分隔") String key
+			) {
+		KeyValue kv = keyValueDbService.findOneByKey(key);
+		if (kv == null) {
+			return FacadeResult.doneExpectedResultPreviousDone(CommonMessageKeys.DB_ITEMNOTEXISTS);
+		} else {
+			keyValueDbService.delete(kv);
+			return FacadeResult.doneExpectedResultDone(kv);
+		}
+		
+	}
+
+	
 	@ShellMethod(value = "新建或更新键值对。")
-	public FacadeResult<?> keyValueUpdate(
+	public FacadeResult<?> keyValueUpdateOrCreate(
+			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
 			@ShellOption(help = "键值，可以用dot分隔") String key,
 			@ShellOption(help = "值") String value
 			) {
-		return FacadeResult.doneExpectedResult();
+		KeyValue kv = keyValueDbService.findOneByKey(key);
+		if (kv != null) {
+			if (!kv.getItemValue().equals(value)) {
+				kv.setItemValue(value);
+				kv = keyValueDbService.save(kv);
+			}
+		} else {
+			kv = new KeyValue(key, value);
+			kv = keyValueDbService.save(kv);
+		}
+		return FacadeResult.doneExpectedResultDone(kv);
 	}
-
-
 
 	@Bean
 	public PromptProvider myPromptProvider() {

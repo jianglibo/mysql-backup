@@ -11,6 +11,11 @@ public class KeyValue extends BaseModel {
 		this.setItemKey(key);
 		this.setItemValue(value);
 	}
+	
+	public KeyValue(String group, String key, String value) {
+		this.setItemKey(group + "." + key);
+		this.setItemValue(value);
+	}
 
 
 	public String getItemKey() {

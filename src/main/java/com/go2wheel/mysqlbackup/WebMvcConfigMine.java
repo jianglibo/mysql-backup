@@ -61,6 +61,7 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 		resolver.setApplicationContext(this.applicationContext);
 		resolver.setPrefix("classpath:/templates/");
 		resolver.setSuffix(".html");
+		resolver.setCheckExistence(true);
 		resolver.setTemplateMode("HTML");
 		resolver.setCharacterEncoding(StandardCharsets.UTF_8.name());
 		resolver.setCacheable(false);

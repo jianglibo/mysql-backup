@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
@@ -19,8 +17,6 @@ import org.springframework.core.convert.support.DefaultConversionService;
 import org.springframework.shell.ResultHandler;
 import org.springframework.shell.Shell;
 import org.springframework.shell.SpringShellAutoConfiguration;
-
-import com.go2wheel.mysqlbackup.resulthandler.ResultHandlerConfigMine;
 
 /**
  * copy from @see {@link SpringShellAutoConfiguration}

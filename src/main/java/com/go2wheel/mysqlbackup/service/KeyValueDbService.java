@@ -20,6 +20,10 @@ public class KeyValueDbService extends DbServiceBase<KeyValueRecord, KeyValue> {
 	public List<KeyValue> findByKeyPrefix(String key) {
 		return ((KeyValueRepository)repo).findByKeyPrefix(key);
 	}
+
+	public KeyValue findOneByKey(String key) {
+		return ((KeyValueRepository)repo).findOneByKey(key);
+	}
 	
 	
 }

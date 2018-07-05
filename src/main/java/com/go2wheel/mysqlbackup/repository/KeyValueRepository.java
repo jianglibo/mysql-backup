@@ -9,4 +9,6 @@ public interface KeyValueRepository extends RepositoryBase<KeyValueRecord, KeyVa
 
 	List<KeyValue> findByKeyPrefix(String key);
 
+	KeyValue findOneByKey(String key);
+
 }

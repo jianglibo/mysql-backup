@@ -6,6 +6,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
+import javax.sql.DataSource;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,10 +24,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.shell.SpringShellAutoConfiguration;
-import org.springframework.shell.jline.JLineShellAutoConfiguration;
-import org.springframework.shell.standard.StandardAPIAutoConfiguration;
 import org.springframework.util.StringUtils;
 
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
@@ -95,6 +95,11 @@ public class StartPointer {
 	@ConfigurationProperties(prefix = "spring.messages")
 	public MessageSourceProperties messageSourceProperties() {
 		return new MessageSourceProperties();
+	}
+	
+	@Bean
+	public JdbcTemplate jdbcTemplate(DataSource ds) {
+		return new JdbcTemplate(ds);
 	}
 
 	@Bean

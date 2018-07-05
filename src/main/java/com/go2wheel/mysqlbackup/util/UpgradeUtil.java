@@ -406,15 +406,15 @@ public class UpgradeUtil {
 	private static void backupBat(Path curPath, Path unZippedPath) throws IOException {
 		Path curBat = curPath.resolve(CommonFileNames.START_BATCH);
 		Path newBat = unZippedPath.resolve(CommonFileNames.START_BATCH);
-		FileUtil.backup(3, false, curBat);
+		FileUtil.backup(curBat,3, false);
 		Files.copy(newBat, curBat);
 	}
 	
 	private static void backupTemplates(Path curPath, Path unZippedPath) throws IOException {
-		Path curBat = curPath.resolve("templates");
-		Path newBat = unZippedPath.resolve("templates");
-		FileUtil.backup(3, false, curBat);
-		Files.copy(newBat, curBat);
+		Path curTemplatesFolder = curPath.resolve("templates");
+		Path newTemplateFolder = unZippedPath.resolve("templates");
+		FileUtil.backup(curTemplatesFolder,3, false);
+		Files.copy(newTemplateFolder, curTemplatesFolder);
 	}
 
 	private static void backupProperties(Path curPath, Path unZippedPath, String newVersion) throws IOException {
@@ -427,14 +427,14 @@ public class UpgradeUtil {
 			npros.load(isn);
 			npros.putAll(pros);
 		}
-		FileUtil.backup(3, true, currentApplicationProperties);
+		FileUtil.backup(currentApplicationProperties, 3, true);
 		try (OutputStream os = Files.newOutputStream(currentApplicationProperties)) {
 			npros.store(os, newVersion);
 		}
 	}
 
 	private static void backupDb(Path dbPath) throws IOException {
-		FileUtil.backup(3, true, dbPath);
+		FileUtil.backup(dbPath, 3, true);
 	}
 
 }
