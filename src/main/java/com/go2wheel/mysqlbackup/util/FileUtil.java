@@ -60,15 +60,19 @@ public class FileUtil {
 	}
 
 	public static void copyDirectory(Path srcDirectory, Path dstDirectory) throws IOException {
-		if (Files.exists(dstDirectory) && Files.list(dstDirectory).count() > 0) {
-			throw new FileAlreadyExistsException(dstDirectory.toAbsolutePath().toString());
+		
+		Path srcDirectoryAbs = srcDirectory.toAbsolutePath();
+		Path dstDirectoryAbs = dstDirectory.toAbsolutePath();
+
+		if (Files.exists(dstDirectoryAbs) && Files.list(dstDirectoryAbs).count() > 0) {
+			throw new FileAlreadyExistsException(dstDirectoryAbs.toString());
 		}
-		Files.walkFileTree(srcDirectory, new SimpleFileVisitor<Path>() {
+		Files.walkFileTree(srcDirectoryAbs, new SimpleFileVisitor<Path>() {
 			@Override
 			public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 				file = file.toAbsolutePath();
-				Path fileRelative = srcDirectory.relativize(file);
-				Path dst = dstDirectory.resolve(fileRelative);
+				Path fileRelative = srcDirectoryAbs.relativize(file);
+				Path dst = dstDirectoryAbs.resolve(fileRelative);
 				if (!Files.exists(dst.getParent())) {
 					Files.createDirectories(dst.getParent());
 				}
@@ -95,11 +99,7 @@ public class FileUtil {
 
 					@Override
 					public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-						try {
-							Files.delete(dir);
-						} catch (Exception e) {
-							e.printStackTrace();
-						}
+						Files.delete(dir);
 						if (exc != null)
 							throw exc;
 						return FileVisitResult.CONTINUE;

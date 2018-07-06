@@ -121,10 +121,6 @@ public class TestFileUtil {
 	public void tFailed() throws IOException {
 		Path f = dir.resolve("a.b.0");
 		Files.write(f, "abc".getBytes());
-		Path dst = dir.getParent().resolve(dir.getFileName().toString() + ".1");
-
-		Files.write(dir1.resolve("a.b.0"), "abc".getBytes());
-		Path dst1 = dir1.getParent().resolve(dir1.getFileName().toString() + ".1");
 
 		new Thread(new Runnable() {
 			@Override
@@ -138,10 +134,6 @@ public class TestFileUtil {
 			}
 		}).start();
 
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-		}
 		FileUtil.backup(dir, 1, false);
 	}
 

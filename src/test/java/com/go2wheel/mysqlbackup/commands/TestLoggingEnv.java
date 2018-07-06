@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.commands;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -11,13 +10,15 @@ import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.google.common.collect.Maps;
 
 public class TestLoggingEnv extends SpringBaseFort {
 	
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void t() {
-		String[] ss = env.getDefaultProfiles();
-        Map<String, Object> map = new HashMap();
+//		String[] ss = env.getDefaultProfiles();
+        Map<String, Object> map = Maps.newHashMap();
         for(Iterator it = ((AbstractEnvironment) env).getPropertySources().iterator(); it.hasNext(); ) {
             PropertySource propertySource = (PropertySource) it.next();
             if (propertySource instanceof MapPropertySource) {

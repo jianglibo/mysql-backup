@@ -1,16 +1,16 @@
+jobLogs: []
 myself:
   borgDownloads: []
-  jobErrors: []
   mem: 15.94GB
   mysqlDumps: []
   mysqlFlushs: []
   server:
     borgDescription: null
     coreNumber: 4
-    createdAt: 2018-06-20T13:18:07.040Z
+    createdAt: 2018-07-06T13:31:28.920Z
     diskfreeCron: null
     host: localhost
-    id: 796
+    id: 445
     mysqlInstance: null
     name: a server.
     os: null
@@ -22,204 +22,197 @@ myself:
     username: root
   serverStates:
   - averageLoad: 8
-    createdAt: 2018-06-20T13:18:20.560Z
-    id: 282
-    memFree: 8552722432
-    memUsed: 8567136256
-    serverId: 796
-  - averageLoad: 5
-    createdAt: 2018-06-20T13:18:15.140Z
-    id: 281
-    memFree: 8556441600
-    memUsed: 8563417088
-    serverId: 796
-  - averageLoad: 7
-    createdAt: 2018-06-20T13:18:09.750Z
-    id: 280
-    memFree: 8555827200
-    memUsed: 8564031488
-    serverId: 796
+    createdAt: 2018-07-06T13:31:31.640Z
+    id: 131
+    memFree: 8613052416
+    memUsed: 8506806272
+    serverId: 445
+  - averageLoad: 19
+    createdAt: 2018-07-06T13:31:36.880Z
+    id: 132
+    memFree: 8621391872
+    memUsed: 8498466816
+    serverId: 445
+  - averageLoad: 16
+    createdAt: 2018-07-06T13:31:42.240Z
+    id: 133
+    memFree: 8634150912
+    memUsed: 8485707776
+    serverId: 445
   storageStates:
-  - available: 84302475264
-    createdAt: 2018-06-20T13:18:23.910Z
-    id: 839
+  - available: 82942251008
+    createdAt: 2018-07-06T13:31:34.860Z
+    id: 169
     root: C:\
-    serverId: 796
-    used: 42390171648
-  - available: 43709538304
-    createdAt: 2018-06-20T13:18:23.910Z
-    id: 840
+    serverId: 445
+    used: 43750395904
+  - available: 34754744320
+    createdAt: 2018-07-06T13:31:34.860Z
+    id: 170
     root: E:\
-    serverId: 796
-    used: 205396463616
-  - available: 162662633472
-    createdAt: 2018-06-20T13:18:23.910Z
-    id: 841
+    serverId: 445
+    used: 214351257600
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:34.860Z
+    id: 171
     root: F:\
-    serverId: 796
-    used: 86443368448
+    serverId: 445
+    used: 86785458176
   - available: 139641114624
-    createdAt: 2018-06-20T13:18:23.910Z
-    id: 842
+    createdAt: 2018-07-06T13:31:34.860Z
+    id: 172
     root: G:\
-    serverId: 796
+    serverId: 445
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-06-20T13:18:23.910Z
-    id: 843
+    createdAt: 2018-07-06T13:31:34.860Z
+    id: 173
     root: H:\
-    serverId: 796
+    serverId: 445
     used: 108691607552
-  - available: 84302540800
-    createdAt: 2018-06-20T13:18:18.530Z
-    id: 834
+  - available: 82942144512
+    createdAt: 2018-07-06T13:31:40.220Z
+    id: 174
     root: C:\
-    serverId: 796
-    used: 42390106112
-  - available: 43709538304
-    createdAt: 2018-06-20T13:18:18.530Z
-    id: 835
+    serverId: 445
+    used: 43750502400
+  - available: 34754744320
+    createdAt: 2018-07-06T13:31:40.220Z
+    id: 175
     root: E:\
-    serverId: 796
-    used: 205396463616
-  - available: 162662633472
-    createdAt: 2018-06-20T13:18:18.530Z
-    id: 836
+    serverId: 445
+    used: 214351257600
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:40.220Z
+    id: 176
     root: F:\
-    serverId: 796
-    used: 86443368448
+    serverId: 445
+    used: 86785458176
   - available: 139641114624
-    createdAt: 2018-06-20T13:18:18.530Z
-    id: 837
+    createdAt: 2018-07-06T13:31:40.220Z
+    id: 177
     root: G:\
-    serverId: 796
+    serverId: 445
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-06-20T13:18:18.530Z
-    id: 838
+    createdAt: 2018-07-06T13:31:40.220Z
+    id: 178
     root: H:\
-    serverId: 796
+    serverId: 445
     used: 108691607552
-  - available: 84302471168
-    createdAt: 2018-06-20T13:18:13.110Z
-    id: 829
+  - available: 82942078976
+    createdAt: 2018-07-06T13:31:45.580Z
+    id: 179
     root: C:\
-    serverId: 796
-    used: 42390175744
-  - available: 43709538304
-    createdAt: 2018-06-20T13:18:13.110Z
-    id: 830
+    serverId: 445
+    used: 43750567936
+  - available: 34754744320
+    createdAt: 2018-07-06T13:31:45.580Z
+    id: 180
     root: E:\
-    serverId: 796
-    used: 205396463616
-  - available: 162662633472
-    createdAt: 2018-06-20T13:18:13.110Z
-    id: 831
+    serverId: 445
+    used: 214351257600
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:45.580Z
+    id: 181
     root: F:\
-    serverId: 796
-    used: 86443368448
+    serverId: 445
+    used: 86785458176
   - available: 139641114624
-    createdAt: 2018-06-20T13:18:13.110Z
-    id: 832
+    createdAt: 2018-07-06T13:31:45.580Z
+    id: 182
     root: G:\
-    serverId: 796
+    serverId: 445
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-06-20T13:18:13.110Z
-    id: 833
+    createdAt: 2018-07-06T13:31:45.580Z
+    id: 183
     root: H:\
-    serverId: 796
+    serverId: 445
     used: 108691607552
 serverGroup:
-  createdAt: 2018-06-20T13:17:47.760Z
+  createdAt: 2018-07-06T13:31:09.580Z
   ename: default
-  id: 294
+  id: 191
   msgkey: null
 servers:
 - borgDownloads:
-  - createdAt: 2018-06-20T13:17:59.870Z
-    downloadBytes: 11491527
+  - createdAt: 2018-07-06T13:31:21.900Z
+    downloadBytes: 11430978
     downloadFiles: 6
-    id: 144
+    id: 117
     result: null
-    serverId: 795
-    timeCost: 355
-    totalBytes: 11492064
-    totalFiles: 23
-  - createdAt: 2018-06-20T13:17:57.090Z
-    downloadBytes: 11490847
-    downloadFiles: 6
-    id: 143
-    result: null
-    serverId: 795
+    serverId: 444
     timeCost: 359
-    totalBytes: 11491350
-    totalFiles: 21
-  - createdAt: 2018-06-20T13:17:54.300Z
-    downloadBytes: 11490169
+    totalBytes: 11431515
+    totalFiles: 23
+  - createdAt: 2018-07-06T13:31:19.070Z
+    downloadBytes: 11430293
     downloadFiles: 6
-    id: 142
+    id: 116
     result: null
-    serverId: 795
-    timeCost: 373
-    totalBytes: 11490638
+    serverId: 444
+    timeCost: 382
+    totalBytes: 11430796
+    totalFiles: 21
+  - createdAt: 2018-07-06T13:31:16.170Z
+    downloadBytes: 11429605
+    downloadFiles: 6
+    id: 115
+    result: null
+    serverId: 444
+    timeCost: 361
+    totalBytes: 11430074
     totalFiles: 19
-  jobErrors: []
-  mem: 674.63MB
-  mysqlDumps:
-  - createdAt: 2018-06-20T13:17:48.160Z
-    fileSize: 658408
-    id: 124
-    result: SUCCESS
-    serverId: 795
-    timeCost: 0
+  mem: 675.74MB
+  mysqlDumps: []
   mysqlFlushs:
-  - createdAt: 2018-06-20T13:17:51.470Z
+  - createdAt: 2018-07-06T13:31:13.310Z
     fileNumber: 4
     fileSize: 528
-    id: 141
+    id: 118
     result: null
-    serverId: 795
-    timeCost: 316
-  - createdAt: 2018-06-20T13:17:50.050Z
+    serverId: 444
+    timeCost: 291
+  - createdAt: 2018-07-06T13:31:11.880Z
     fileNumber: 3
     fileSize: 408
-    id: 140
+    id: 117
     result: null
-    serverId: 795
-    timeCost: 285
-  - createdAt: 2018-06-20T13:17:48.640Z
+    serverId: 444
+    timeCost: 294
+  - createdAt: 2018-07-06T13:31:10.460Z
     fileNumber: 2
     fileSize: 288
-    id: 139
+    id: 116
     result: null
-    serverId: 795
-    timeCost: 371
+    serverId: 444
+    timeCost: 312
   server:
     borgDescription:
       archiveCron: null
       archiveFormat: yyyy-MM-dd-HH-mm-ss
       archiveNamePrefix: ARCHIVE-
-      createdAt: 2018-06-20T13:17:47.750Z
+      createdAt: 2018-07-06T13:31:08.690Z
       excludes: []
-      id: 227
+      id: 175
       includes:
       - /etc
       pruneCron: null
       repo: /opt/borgrepos/repo
-      serverId: 795
+      serverId: 444
     coreNumber: 2
-    createdAt: 2018-06-20T13:17:47.740Z
+    createdAt: 2018-07-06T13:31:08.670Z
     diskfreeCron: null
     host: 192.168.33.110
-    id: 795
+    id: 444
     mysqlInstance:
       clientBin: null
-      createdAt: 2018-06-20T13:17:47.740Z
+      createdAt: 2018-07-06T13:31:08.680Z
       dumpFileName: /tmp/mysqldump.sql
       flushLogCron: 0 0 0 1/1 * ?
       host: localhost
-      id: 301
+      id: 196
       logBinSetting:
         map:
           log_bin_index: /var/lib/mysql/hm-log-bin.index
@@ -232,7 +225,7 @@ servers:
       - log_bin_index=/var/lib/mysql/hm-log-bin.index
       password: '123456'
       port: 3306
-      serverId: 795
+      serverId: 444
       username: root
     name: a server.
     os: null
@@ -243,84 +236,84 @@ servers:
     uptimeCron: null
     username: root
   serverStates:
-  - averageLoad: 8
-    createdAt: 2018-06-20T13:18:05.510Z
-    id: 279
-    memFree: 195469312
+  - averageLoad: 11
+    createdAt: 2018-07-06T13:31:24.370Z
+    id: 128
+    memFree: 196632576
     memUsed: 511934464
-    serverId: 795
-  - averageLoad: 8
-    createdAt: 2018-06-20T13:18:03.850Z
-    id: 278
-    memFree: 195497984
+    serverId: 444
+  - averageLoad: 11
+    createdAt: 2018-07-06T13:31:25.780Z
+    id: 129
+    memFree: 196608000
     memUsed: 511934464
-    serverId: 795
-  - averageLoad: 8
-    createdAt: 2018-06-20T13:18:02.410Z
-    id: 277
-    memFree: 195514368
+    serverId: 444
+  - averageLoad: 11
+    createdAt: 2018-07-06T13:31:27.400Z
+    id: 130
+    memFree: 196800512
     memUsed: 511934464
-    serverId: 795
+    serverId: 444
   storageStates:
-  - available: 51576827904
-    createdAt: 2018-06-20T13:18:06.040Z
-    id: 826
+  - available: 51574542336
+    createdAt: 2018-07-06T13:31:24.650Z
+    id: 160
     root: /
-    serverId: 795
-    used: 2084048896
+    serverId: 444
+    used: 2086334464
   - available: 30007910400
-    createdAt: 2018-06-20T13:18:06.040Z
-    id: 827
+    createdAt: 2018-07-06T13:31:24.650Z
+    id: 161
     root: /home
-    serverId: 795
+    serverId: 444
     used: 33796096
-  - available: 162662764544
-    createdAt: 2018-06-20T13:18:06.040Z
-    id: 828
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:24.650Z
+    id: 162
     root: /vagrant
-    serverId: 795
-    used: 86443237376
-  - available: 51576827904
-    createdAt: 2018-06-20T13:18:04.370Z
-    id: 823
+    serverId: 444
+    used: 86785458176
+  - available: 51574542336
+    createdAt: 2018-07-06T13:31:26.280Z
+    id: 163
     root: /
-    serverId: 795
-    used: 2084048896
+    serverId: 444
+    used: 2086334464
   - available: 30007910400
-    createdAt: 2018-06-20T13:18:04.370Z
-    id: 824
+    createdAt: 2018-07-06T13:31:26.280Z
+    id: 164
     root: /home
-    serverId: 795
+    serverId: 444
     used: 33796096
-  - available: 162662764544
-    createdAt: 2018-06-20T13:18:04.370Z
-    id: 825
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:26.280Z
+    id: 165
     root: /vagrant
-    serverId: 795
-    used: 86443237376
-  - available: 51576827904
-    createdAt: 2018-06-20T13:18:02.720Z
-    id: 820
+    serverId: 444
+    used: 86785458176
+  - available: 51574542336
+    createdAt: 2018-07-06T13:31:27.920Z
+    id: 166
     root: /
-    serverId: 795
-    used: 2084048896
+    serverId: 444
+    used: 2086334464
   - available: 30007910400
-    createdAt: 2018-06-20T13:18:02.720Z
-    id: 821
+    createdAt: 2018-07-06T13:31:27.920Z
+    id: 167
     root: /home
-    serverId: 795
+    serverId: 444
     used: 33796096
-  - available: 162662764544
-    createdAt: 2018-06-20T13:18:02.720Z
-    id: 822
+  - available: 162320543744
+    createdAt: 2018-07-06T13:31:27.920Z
+    id: 168
     root: /vagrant
-    serverId: 795
-    used: 86443237376
+    serverId: 444
+    used: 86785458176
 tplUtil: {}
 user:
-  createdAt: 2018-06-20T13:17:47.740Z
+  createdAt: 2018-07-06T13:31:08.670Z
   description: null
   email: jianglibo@gmail.com
-  id: 137
-  mobile: 6c8a2d66-2809-4628-9691-9d0eb51733e0
+  id: 130
+  mobile: 3b7f84fb-cc9d-4255-9ce9-79d5066784d8
   name: 江立波

@@ -180,10 +180,16 @@ task packmyzip(type: Zip) {
 bootJar.dependsOn bootBuildInfo
 copyFilesToArchive.dependsOn bootJar
 packmyzip.dependsOn copyFilesToArchive
+test.dependsOn bootBuildInfo
 
 task writeVersionFile() << {
    def props = new Properties()
-   def writer = new FileWriter(file(project['buildDir'] + "/merged.properties"))
+   props["version"] = project.version
+   props["build-time"] = java.time.Instant.now().toString()
+   def f = file("${project['buildDir']}/../src/main/resources/app.version");
+   println f
+   def writer = new FileWriter(f)
+   
    try {
       props.store(writer, 'Some comment')
       writer.flush()
@@ -194,4 +200,28 @@ task writeVersionFile() << {
 
 task (v) << {
 	println project['buildDir']
+	println project['version']
 }
+
+task hello {
+    doLast {
+        println 'Hello world!'
+    }
+}
+
+task helloShort << {
+    println 'Hello world!'
+}
+
+/*
+task versionInfo(type:Exec){
+    commandLine 'hg id -i -b -t'.split()
+    ext.versionfile = new File('bin/$baseName-buildinfo.properties')
+    standardOutput = new ByteArrayOutputStream()
+
+    doLast {
+        versionfile.text = 'build.revision=' + standardOutput.toString()
+    }
+}
+*/
+// gradle test --tests *TestUpgradeUtil

@@ -2,14 +2,9 @@ package com.go2wheel.mysqlbackup.tplcontext;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
@@ -18,46 +13,12 @@ import java.util.Set;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.mail.ServerContext;
-import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.value.ServerStateAvg;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 
 public class TestServerState {
-	
-	
-	@Test
-	public void t() throws IOException {
-		Path pa = Paths.get("templates", "tplcontext.1.yml");
-		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
-		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
-		
-		List<ServerContext> scs = m.getServers();
-		assertThat(scs.size(), greaterThan(0));
-		List<ServerState> ss = scs.get(0).getServerStates();
-		assertThat(ss.size(), greaterThan(0));
-		
-		ServerContext sc = scs.get(0);
-		Map<String, Map<String, ServerStateAvg>> byHours = sc.getServerStatebyHours();
-		
-		assertThat(byHours.size(), greaterThan(1));
-	}
-	
-	@Test
-	public void tStorageStateByDate() throws IOException {
-		Path pa = Paths.get("templates", "tplcontext.1.yml");
-		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
-		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
-		
-		List<ServerContext> scs = m.getServers();
-		
-		ServerContext sc = scs.get(0);
-		Map<String, Map<String, StorageState>> byDate = sc.getStorageStateByDate();
-		
-		assertThat(byDate.size(), greaterThan(0));
-	}
 	
 	private List<StorageState> createDemoStorageStates(int startYear, int startMonth, int startDay, int numberOfDays) {
 		List<StorageState> lss = Lists.newArrayList();
@@ -76,13 +37,7 @@ public class TestServerState {
 
 	@Test
 	public void tStorageStateByRoot() throws IOException {
-		Path pa = Paths.get("templates", "tplcontext.1.yml");
-		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
-		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
-		List<ServerContext> scs = m.getServers();
-		ServerContext sc = scs.get(0);
-
-		sc = new ServerContext(Lists.newArrayList(), null, createDemoStorageStates(2018, 11, 3, 4), null, null);
+		ServerContext sc = new ServerContext(Lists.newArrayList(), null, createDemoStorageStates(2018, 11, 3, 4), null, null);
 		Map<String, Map<String, StorageState>> byRoot = sc.getStorageStateByRoot();
 		Map<String, StorageState> date_percent = byRoot.entrySet().iterator().next().getValue();
 		Set<String> dates = date_percent.keySet();
@@ -116,11 +71,11 @@ public class TestServerState {
 	
 	@Test
 	public void tServerStateByHours() {
-		ServerContext sc = new ServerContext(createDemoServerStates(3, 2), null, null, null, null);
+		ServerContext sc = new ServerContext(createDemoServerStates(6, 3), null, null, null, null); // sample number must greater than 4. If less than 4, serverContext will ignore that day.
 		Map<String, Map<String, ServerStateAvg>> result = sc.getServerStatebyHours();
 		assertThat(result.size(), equalTo(1));
 		
-		sc = new ServerContext(createDemoServerStates(3, 3), null, null, null, null);
+		sc = new ServerContext(createDemoServerStates(6, 6), null, null, null, null);
 		result = sc.getServerStatebyHours();
 		assertThat(result.size(), equalTo(2));
 

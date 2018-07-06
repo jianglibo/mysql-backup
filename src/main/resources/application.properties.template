@@ -90,7 +90,7 @@ dv.default-count.mysql-dump=2
 dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20
 
-menus.groups[0].name=g2
+menus.groups[0].name=g1
 menus.groups[0].order=1000
 menus.groups[0].items[0].name=menu.home
 menus.groups[0].items[0].order=1

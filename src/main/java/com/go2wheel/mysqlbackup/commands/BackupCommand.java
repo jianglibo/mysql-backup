@@ -456,10 +456,16 @@ public class BackupCommand {
 		}
 		try {
 			UpgradeUtil uu = new UpgradeUtil(zp);
-			UpgradeFile uf = uu.writeUpgradeFile();
-			if (!uf.isUpgradeable()) {
-				return FacadeResult.showMessageExpected("command.upgrade.degrade", uf.getNewVersion(),
-						uf.getCurrentVersion());
+			boolean writed = uu.writeUpgradeFile();
+			if (!writed) {
+				UpgradeFile uf = uu.getUpgradeFile();
+				if (uf != null) {
+					return FacadeResult.showMessageExpected("command.upgrade.degrade", uf.getNewVersion(),
+							uf.getCurrentVersion());
+				} else {
+					return FacadeResult.showMessageExpected("command.upgrade.degrade", "unknown",
+							"unknown");
+				}
 			}
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);

@@ -36,18 +36,25 @@ public class UpgradeUtil {
 
 	public static final String UPGRADE_FLAG_FILE = "_upgrade.properties";
 
-	public static final String BUILD_PROPERTIES_FILE = "BOOT-INF/classes/META-INF/build-info.properties";
+	public static final String APP_VERSION_PROPERTIES_FILE_1 = "BOOT-INF/classes/app.version";
+	public static final String APP_VERSION_PROPERTIES_FILE_2 = "app.version";
+	public static final String APP_VERSION_PROPERTIES_FILE_3 = "/BOOT-INF/classes/app.version";
+	public static final String APP_VERSION_PROPERTIES_FILE_4 = "/app.version";
 
 	public static final Pattern JAR_FILE_PTN = Pattern.compile("mysql-backup-[^-]*-boot.jar");
 
+	public static final String BUILD_INFO_VERSION_KEY = "version";
+	public static final String BUILD_INFO_TIME_KEY = "build-time";
 
 	private final Path tmpPath;
 
 	private String jarFile;
 
-	private BuildInfo buildInfo;
+	private Properties newAppVersion;
 
 	private SortedMap<String, String> migs = new TreeMap<>();
+	
+	private UpgradeFile upgradeFile;
 
 	public UpgradeUtil(Path zipFile) throws IOException {
 		if (zipFile != null) {
@@ -56,12 +63,12 @@ public class UpgradeUtil {
 				printme("Can't find boot jarFile in " + zipFile.toString());
 				return;
 			}
-			this.setBuildInfo(createBuildInfo());
+			this.setNewAppVersion(findNewAppInfo());
 		} else {
 			this.tmpPath = null;
 		}
 	}
-	
+
 	public static void doUpgrade(Path curPath, String[] args) throws IOException {
 		// --spring.datasource.url=jdbc:hsqldb:file:%wdirslash%%_db%;shutdown=true
 		curPath = curPath.toAbsolutePath();
@@ -106,52 +113,59 @@ public class UpgradeUtil {
 			// This pattern is fixed.
 			logger.info("db path: {}", dbPath);
 			if (!Files.exists(Paths.get(dbPath))) {
-				logger.info("Find db path {}. But doesn't exists.", dbPath);				
+				logger.info("Find db path {}. But doesn't exists.", dbPath);
 			}
 		}
-		
+
 		Path dbDir = Paths.get(dbPath).getParent();
 		doChange(curPath, zipPath, currentJar, newJar, dbDir, newVersion);
-		
-    	Path upgrade = curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE);
-    	if (Files.exists(upgrade)) {
-    		try {
+
+		Path upgrade = curPath.resolve(UpgradeUtil.UPGRADE_FLAG_FILE);
+		if (Files.exists(upgrade)) {
+			try {
 				Files.delete(upgrade);
 				System.exit(BackupCommand.RESTART_CODE);
 			} catch (IOException e) {
 				ExceptionUtil.logErrorException(logger, e);
 			}
-    	}
+		}
+	}
+	
+	public boolean writeUpgradeFile(boolean force) throws IOException {
+		return writeUpgradeFile(Paths.get(""), force);
 	}
 
-
-	public UpgradeFile writeUpgradeFile() throws IOException {
-		return writeUpgradeFile(Paths.get(""));
+	public boolean writeUpgradeFile() throws IOException {
+		return writeUpgradeFile(Paths.get(""), false);
 	}
 
-	public UpgradeFile writeUpgradeFile(Path dir) throws IOException {
-		return writeUpgradeFile(dir, buildInfo);
+	public boolean writeUpgradeFile(Path dir, boolean force) throws IOException {
+		return writeUpgradeFile(dir, newAppVersion, force);
 	}
 
-	public UpgradeFile writeUpgradeFile(Path dir, BuildInfo buildInfo) throws IOException {
-		Properties p = new Properties();
-		p.setProperty(UpgradeFile.NEW_VESION, buildInfo.getVersion());
-		p.setProperty(UpgradeFile.UPGRADE_JAR, tmpPath.resolve(jarFile).toAbsolutePath().toString());
+	public boolean writeUpgradeFile(Path dir, Properties newAppInfoInfo, boolean force) throws IOException {
+		Properties upgradeProperties = new Properties();
+		upgradeProperties.setProperty(UpgradeFile.NEW_VESION, newAppInfoInfo.getProperty(BUILD_INFO_VERSION_KEY));
+		upgradeProperties.setProperty(UpgradeFile.UPGRADE_JAR, tmpPath.resolve(jarFile).toAbsolutePath().toString());
 		String f = tmpPath.toAbsolutePath().toString();
 		if (!f.endsWith("\\")) {
 			f = f + "\\";
 		}
-		p.setProperty(UpgradeFile.UPGRADE_FOLDER, f);
-		
+		upgradeProperties.setProperty(UpgradeFile.UPGRADE_FOLDER, f);
+
+		String[] ss = new String[] { APP_VERSION_PROPERTIES_FILE_1, APP_VERSION_PROPERTIES_FILE_2,
+				APP_VERSION_PROPERTIES_FILE_3, APP_VERSION_PROPERTIES_FILE_4 };
 		InputStream is = null;
 		try {
-			is = ClassLoader.class.getResourceAsStream("/META-INF/build-info.properties");
-			if (is == null) {
-				is = ClassLoader.class.getResourceAsStream("/BOOT-INF/classes/META-INF/build-info.properties");
+			for (String s : ss) {
+				is = ClassLoader.class.getResourceAsStream(s);
+				if (is != null)
+					break;
 			}
 			if (is != null) {
-				BuildInfo bi = new BuildInfo(is);
-				p.setProperty(UpgradeFile.CURRENT_VESION, bi.getVersion());
+				Properties tp = new Properties();
+				tp.load(is);
+				upgradeProperties.setProperty(UpgradeFile.CURRENT_VESION, tp.getProperty(BUILD_INFO_VERSION_KEY));
 			} else {
 				throw new UnExpectedInputException(null, "upgrade.cannotdetermineversion", "");
 			}
@@ -160,14 +174,15 @@ public class UpgradeUtil {
 				is.close();
 			}
 		}
-		
-		UpgradeFile uf = new UpgradeFile(p);
-		if (uf.isUpgradeable()) {
-			List<String> lines = p.entrySet().stream().map(et -> et.getKey() + "=" + et.getValue())
+
+		this.upgradeFile = new UpgradeFile(upgradeProperties);
+		if (this.upgradeFile.isUpgradeable() || force) {
+			List<String> lines = upgradeProperties.entrySet().stream().map(et -> et.getKey() + "=" + et.getValue())
 					.collect(Collectors.toList());
 			Files.write(dir.resolve(UPGRADE_FLAG_FILE), lines);
+			return true;
 		}
-		return uf;
+		return false;
 	}
 
 	public UpgradeFile getUpgradeFilẹ() throws IOException {
@@ -182,38 +197,20 @@ public class UpgradeUtil {
 		return null;
 	}
 
-//	private void iterateJarFile() {
-//		try (JarFile jfile = new JarFile(tmpPath.resolve(jarFile).toFile())) {
-//			Enumeration<?> zipFileEntries = jfile.entries();
-//			// Process each entry
-//			while (zipFileEntries.hasMoreElements()) {
-//				// grab a zip file entry
-//				ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
-//				String currentEntry = entry.getName();
-//				if (MIGS_PTN.matcher(currentEntry).matches()) {
-//					try (InputStream is = jfile.getInputStream(entry)) {
-//						String mig = StringUtil.inputstreamToString(is);
-//						migs.put(Paths.get(currentEntry).getFileName().toString(), mig);
-//					}
-//				}
-//			}
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
-//	}
-
-	private BuildInfo createBuildInfo() throws IOException {
+	private Properties findNewAppInfo() throws IOException {
 		if (this.tmpPath == null) {
 			return null;
 		}
 		Path jarPath = tmpPath.resolve(jarFile);
 		try (JarFile jfile = new JarFile(jarPath.toFile())) {
-			JarEntry jentry = jfile.getJarEntry(BUILD_PROPERTIES_FILE);
+			JarEntry jentry = jfile.getJarEntry(APP_VERSION_PROPERTIES_FILE_1);
 			if (jentry == null) {
 				return null;
 			}
 			try (InputStream is = jfile.getInputStream(jentry)) {
-				return new BuildInfo(is);
+				Properties p = new Properties();
+				p.load(is);
+				return p;
 			}
 		}
 	}
@@ -278,8 +275,12 @@ public class UpgradeUtil {
 		return null;
 	}
 
-	public BuildInfo getBuildInfo() {
-		return buildInfo;
+	public Properties getNewAppVersion() {
+		return newAppVersion;
+	}
+
+	public void setNewAppVersion(Properties newAppVersion) {
+		this.newAppVersion = newAppVersion;
 	}
 
 	public SortedMap<String, String> getMigs() {
@@ -290,12 +291,7 @@ public class UpgradeUtil {
 		this.migs = migs;
 	}
 
-	public void setBuildInfo(BuildInfo buildInfo) {
-		this.buildInfo = buildInfo;
-	}
-
 	public static class UpgradeFile {
-
 		public static final String NEW_VESION = "new-version";
 		public static final String CURRENT_VESION = "current-version";
 		public static final String UPGRADE_JAR = "upgrade-jar";
@@ -352,42 +348,6 @@ public class UpgradeUtil {
 		}
 	}
 
-	public static class BuildInfo {
-
-		private Properties properties;
-
-		public BuildInfo() {
-			properties = new Properties();
-		}
-
-		public BuildInfo(InputStream is) throws IOException {
-			properties = new Properties();
-			properties.load(is);
-		}
-
-		public String getArtifact() {
-			return properties.getProperty("build.artifact", "");
-		}
-
-		public String getGroup() {
-			return properties.getProperty("build.group", "");
-		}
-
-		public String getName() {
-			return properties.getProperty("build.name", "");
-		}
-
-		public String getVersion() {
-			return properties.getProperty("build.version", "");
-		}
-
-		public String getTime() {
-			return properties.getProperty("build.time", "");
-		}
-
-	}
-
-
 	protected static void doChange(Path curPath, Path unZippedPath, Path currentJar, Path newJar, Path dbDir,
 			String newVersion) throws IOException {
 		backupDb(dbDir);
@@ -406,14 +366,14 @@ public class UpgradeUtil {
 	private static void backupBat(Path curPath, Path unZippedPath) throws IOException {
 		Path curBat = curPath.resolve(CommonFileNames.START_BATCH);
 		Path newBat = unZippedPath.resolve(CommonFileNames.START_BATCH);
-		FileUtil.backup(curBat,3, false);
+		FileUtil.backup(curBat, 3, false);
 		Files.copy(newBat, curBat);
 	}
-	
+
 	private static void backupTemplates(Path curPath, Path unZippedPath) throws IOException {
 		Path curTemplatesFolder = curPath.resolve("templates");
 		Path newTemplateFolder = unZippedPath.resolve("templates");
-		FileUtil.backup(curTemplatesFolder,3, false);
+		FileUtil.backup(curTemplatesFolder, 3, false);
 		FileUtil.copyDirectory(newTemplateFolder, curTemplatesFolder);
 	}
 
@@ -422,19 +382,31 @@ public class UpgradeUtil {
 		Properties pros = new Properties();
 		Properties npros = new Properties();
 		try (InputStream is = Files.newInputStream(currentApplicationProperties);
-				InputStream isn = Files.newInputStream(unZippedPath.resolve(CommonFileNames.APPLICATION_CONFIGURATION))) {
+				InputStream isn = Files
+						.newInputStream(unZippedPath.resolve(CommonFileNames.APPLICATION_CONFIGURATION))) {
 			pros.load(is);
 			npros.load(isn);
 			npros.putAll(pros);
+			is.close();
+			isn.close();
 		}
 		FileUtil.backup(currentApplicationProperties, 3, true);
 		try (OutputStream os = Files.newOutputStream(currentApplicationProperties)) {
 			npros.store(os, newVersion);
+			os.close();
 		}
 	}
 
 	private static void backupDb(Path dbPath) throws IOException {
 		FileUtil.backup(dbPath, 3, true);
+	}
+
+	public UpgradeFile getUpgradeFile() {
+		return upgradeFile;
+	}
+
+	public void setUpgradeFile(UpgradeFile upgradeFile) {
+		this.upgradeFile = upgradeFile;
 	}
 
 }

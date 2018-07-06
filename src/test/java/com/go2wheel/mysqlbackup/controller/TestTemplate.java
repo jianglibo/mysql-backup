@@ -19,7 +19,7 @@ public class TestTemplate extends SpringBaseTWithWeb {
 	
 	@Test
 	public void testModelAttribute() throws Exception {
-		this.mvc.perform(get("/dynamic/ctx.html").accept(MediaType.TEXT_PLAIN))
+		this.mvc.perform(get("/dynamic/fort/helloworld.html").accept(MediaType.TEXT_PLAIN))
 		.andExpect(status().isOk()).andExpect(content().string("Hello World!"));
 	}
 

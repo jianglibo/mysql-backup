@@ -38,6 +38,7 @@ public class TestStaticUpgradeUtil {
 		}
 		try (OutputStream os = Files.newOutputStream(parent.resolve(CommonFileNames.APPLICATION_CONFIGURATION))) {
 			p.store(os, "");
+			os.close();
 		}
 	}
 	
@@ -69,7 +70,11 @@ public class TestStaticUpgradeUtil {
 	@After
 	public void a() throws IOException {
 		FileUtil.deleteFolder(unZippedPath);
-		FileUtil.deleteFolder(curPath);
+		try {
+			FileUtil.deleteFolder(curPath);
+		} catch (Exception e) {
+			long c = Files.list(curPath).count();
+		}
 	}
 	
 	@Test

@@ -1,21 +1,16 @@
 package com.go2wheel.mysqlbackup.rc;
 
-import java.security.MessageDigest;
 import java.time.Instant;
-import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.hibernate.validator.internal.util.privilegedactions.GetInstancesFromServiceLoader;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.google.common.base.Charsets;
 import com.google.common.hash.HashCode;
 import com.google.common.hash.HashFunction;

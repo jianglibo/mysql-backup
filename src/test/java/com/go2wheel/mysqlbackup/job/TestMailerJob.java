@@ -19,6 +19,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
@@ -44,6 +45,9 @@ public class TestMailerJob extends JobBaseFort {
 	private StorageStateJob storageStateJob;
 	
 	@Autowired
+	private BorgService borgService;
+	
+	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;
 	
 	@Autowired
@@ -64,6 +68,10 @@ public class TestMailerJob extends JobBaseFort {
 		
 		createBorgDescription();
 		deleteAllJobs();
+		
+		createSession();
+		borgService.install(session);
+		
 		
 		ServerGrp sg = new ServerGrp("default");
 		sg = serverGrpDbService.save(sg);
@@ -124,7 +132,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void t() throws MessagingException, SchedulerException, InterruptedException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException {
 		
 		UserServerGrp usg = simulation();
 		
