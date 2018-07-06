@@ -28,7 +28,7 @@ import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 @Component
 public class MyAppSettings {
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	public static final String MYAPP_PREFIX = "myapp";
 
 	private SshConfig ssh;
@@ -40,54 +40,51 @@ public class MyAppSettings {
 	private String downloadFolder;
 
 	private Path downloadRoot;
-	
+
 	private Set<String> storageExcludes;
-	
+
 	private CacheTimes cache;
 	
-//	myapp.dataDir=boxes
-//	myapp.downloadFolder=notingit
-//	myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
-//	myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
-//	myapp.jp.maxThreads=3
-//	myapp.jp.waitPause=10
-//	myapp.jp.maxWait=10000
-//	myapp.jp.remoteMode=false
-//	myapp.storage_excludes[0]=/dev
-//	myapp.storage_excludes[1]=/dev/shm
-//	myapp.storage_excludes[2]=/run
-//	myapp.storage_excludes[3]=/sys/fs/cgroup
-//	myapp.storage_excludes[4]=/boot
-//	myapp.storage_excludes[5]=/run/user/0
-//	myapp.storage_excludes[6]=/run/user/1000
-//	myapp.storage_excludes[7]=挂载点
-//	myapp.cache.combo=0
-	
+	private KeyValueProperties kvp;
+
+	// myapp.dataDir=boxes
+	// myapp.downloadFolder=notingit
+	// myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
+	// myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
+	// myapp.jp.maxThreads=3
+	// myapp.jp.waitPause=10
+	// myapp.jp.maxWait=10000
+	// myapp.jp.remoteMode=false
+	// myapp.storage_excludes[0]=/dev
+	// myapp.storage_excludes[1]=/dev/shm
+	// myapp.storage_excludes[2]=/run
+	// myapp.storage_excludes[3]=/sys/fs/cgroup
+	// myapp.storage_excludes[4]=/boot
+	// myapp.storage_excludes[5]=/run/user/0
+	// myapp.storage_excludes[6]=/run/user/1000
+	// myapp.storage_excludes[7]=挂载点
+	// myapp.cache.combo=0
+
 	@Autowired
 	private KeyValueDbService keyValueDbService;
-	
+
 	@Autowired
 	private KeyValueService keyValueService;
 
 	@PostConstruct
 	public void post() throws IOException {
+		setupProperties();
+		setupSsh();
+		setupDirectories();
+
+	}
+
+	private void setupProperties() {
+		kvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX);
+	}
+
+	private void setupDirectories() {
 		try {
-			KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");
-			
-			if (!sshKvp.containsKey(SshConfig.SSH_ID_RSA_KEY)) {
-				KeyValue kv = new KeyValue(new String[] {MYAPP_PREFIX, "ssh", SshConfig.SSH_ID_RSA_KEY}, getSsh().getSshIdrsa());
-				keyValueDbService.save(kv);
-			} else {
-				getSsh().setSshIdrsa(sshKvp.getProperty(SshConfig.SSH_ID_RSA_KEY));
-			}
-			
-			if (!sshKvp.containsKey(SshConfig.KNOWN_HOSTS_KEY)) {
-				KeyValue kv = new KeyValue(new String[] {MYAPP_PREFIX, "ssh", SshConfig.KNOWN_HOSTS_KEY}, getSsh().getKnownHosts());
-				keyValueDbService.save(kv);
-			} else {
-				getSsh().setKnownHosts(sshKvp.getProperty(SshConfig.KNOWN_HOSTS_KEY));
-			}
-			
 			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
 				this.dataDir = "boxes";
 			}
@@ -106,10 +103,31 @@ public class MyAppSettings {
 				Files.createDirectories(tmp);
 			}
 			this.downloadRoot = tmp;
-//			this.sshMap = keyKeyValueDbService.getGroup("myapp").getNestedMap("ssh");
 		} catch (Exception e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}
+
+	}
+
+	private void setupSsh() {
+		KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");
+
+		if (!sshKvp.containsKey(SshConfig.SSH_ID_RSA_KEY)) {
+			KeyValue kv = new KeyValue(new String[] { MYAPP_PREFIX, "ssh", SshConfig.SSH_ID_RSA_KEY },
+					getSsh().getSshIdrsa());
+			keyValueDbService.save(kv);
+		} else {
+			getSsh().setSshIdrsa(sshKvp.getProperty(SshConfig.SSH_ID_RSA_KEY));
+		}
+
+		if (!sshKvp.containsKey(SshConfig.KNOWN_HOSTS_KEY)) {
+			KeyValue kv = new KeyValue(new String[] { MYAPP_PREFIX, "ssh", SshConfig.KNOWN_HOSTS_KEY },
+					getSsh().getKnownHosts());
+			keyValueDbService.save(kv);
+		} else {
+			getSsh().setKnownHosts(sshKvp.getProperty(SshConfig.KNOWN_HOSTS_KEY));
+		}
+
 	}
 
 	private Path getHostDir(Server server) {
@@ -199,7 +217,7 @@ public class MyAppSettings {
 	public void setStorageExcludes(Set<String> storageExcludes) {
 		this.storageExcludes = storageExcludes;
 	}
-	
+
 	public CacheTimes getCache() {
 		return cache;
 	}
@@ -220,9 +238,9 @@ public class MyAppSettings {
 			this.combo = combo;
 		}
 	}
-	
+
 	public static class SshConfig implements Serializable {
-		
+
 		public static final String SSH_ID_RSA_KEY = "sshIdrsa";
 		public static final String KNOWN_HOSTS_KEY = "knownHosts";
 		/**
@@ -233,7 +251,7 @@ public class MyAppSettings {
 		private String sshIdrsa;
 		@NotEmpty
 		private String knownHosts;
-		
+
 		public SshConfig() {
 		}
 

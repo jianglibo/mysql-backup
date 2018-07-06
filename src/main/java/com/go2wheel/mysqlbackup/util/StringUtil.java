@@ -17,52 +17,77 @@ import org.quartz.JobKey;
 import org.quartz.TriggerKey;
 
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
 
 public class StringUtil {
-	
+
 	public static String NEWLINE_PTN = "[\\r\\n]+";
-	
+
 	public static Pattern ALL_DIGITS_PTN = Pattern.compile("^\\d+$");
-	
+
 	public static Pattern NUMBER_HEADED = Pattern.compile("\\s*(\\d+).*");
-	
+
 	public static final long KB = 1024;
 	public static final long MB = KB * 1024;
 	public static final long GB = MB * 1024;
-	
+
+	private static final Converter<String, String> c1 = 
+			CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN)
+			.andThen(CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN))
+			.andThen(CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN));
+
+	/**
+	 * if not contains underscore, skip it.
+	 * @param value
+	 * @return
+	 */
+	public static String convertToLowerHyphen(String value) {
+		if (value.indexOf('-') != -1) {
+			value = value.toLowerCase();
+		}
+
+		if (value.indexOf('_') != -1) {
+			value = value.replace('_', '-');
+		}
+		return c1.convert(value);
+	}
+
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
 	}
-	
+
 	/**
 	 * input a=b\nc:d or a=b,c=d
+	 * 
 	 * @param lines
 	 * @return
 	 */
 	public static Map<String, String> toPair(List<String> lines) {
-		return lines.stream().map(line -> line.split("=", 2)).filter(ss -> ss.length == 2).collect(Collectors.toMap(ss -> ss[0], ss -> ss[1]));
+		return lines.stream().map(line -> line.split("=", 2)).filter(ss -> ss.length == 2)
+				.collect(Collectors.toMap(ss -> ss[0], ss -> ss[1]));
 	}
-	
+
 	public static List<String> toLines(Map<String, String> pairs) {
 		return pairs.entrySet().stream().map(es -> es.getKey() + "=" + es.getValue()).collect(Collectors.toList());
 	}
-	
+
 	public static String toOneLine(Map<String, String> pairs, String separator) {
-		return pairs.entrySet().stream().map(es -> es.getKey() + "=" + es.getValue()).collect(Collectors.joining(separator));
+		return pairs.entrySet().stream().map(es -> es.getKey() + "=" + es.getValue())
+				.collect(Collectors.joining(separator));
 	}
-	
+
 	public static String toOneLine(Map<String, String> pairs) {
 		return toOneLine(pairs, ",");
 	}
 
-	
 	public static List<String> toLines(String line) {
 		return toLines(line, ",");
 	}
 
-	
 	/**
 	 * input a=b,c=d
+	 * 
 	 * @param line
 	 * @return
 	 */
@@ -70,11 +95,11 @@ public class StringUtil {
 		Pattern ptn = Pattern.compile(String.format("^[a-zA-Z]+=|%s[a-zA-Z]+=", separator));
 		Matcher m = ptn.matcher(line);
 		List<String> lines = new ArrayList<>();
-		int pos=0;
+		int pos = 0;
 		String key = null;
 		String value = null;
 		int count = 0;
-		while(m.find()) {
+		while (m.find()) {
 			int start = m.start();
 			if (start > pos) { // it's value.
 				value = line.substring(pos, start);
@@ -94,8 +119,7 @@ public class StringUtil {
 		}
 		return lines;
 	}
-	
-	
+
 	public static String formatJobkey(JobKey jobkey) {
 		return String.format("%s-%s", jobkey.getName(), jobkey.getGroup());
 	}
@@ -103,7 +127,7 @@ public class StringUtil {
 	public static String formatTriggerkey(TriggerKey triggerkey) {
 		return String.format("%s-%s", triggerkey.getName(), triggerkey.getGroup());
 	}
-	
+
 	public static Optional<String> notEmptyValue(String maybeEmpty) {
 		if (maybeEmpty == null || maybeEmpty.trim().isEmpty() || "null".equals(maybeEmpty)) {
 			return Optional.empty();
@@ -111,12 +135,12 @@ public class StringUtil {
 			return Optional.of(maybeEmpty);
 		}
 	}
-	
+
 	public static String getLastPartOfUrl(String url) {
 		int i = url.lastIndexOf('/');
 		return url.substring(i + 1);
 	}
-	
+
 	public static int parseInt(String numberHeaded) {
 		Matcher m = NUMBER_HEADED.matcher(numberHeaded);
 		if (m.matches()) {
@@ -133,25 +157,25 @@ public class StringUtil {
 		} else {
 			return 0;
 		}
-	}	
-	
+	}
+
 	public static String[] matchGroupValues(Matcher m) {
 		int c = m.groupCount();
 		String[] ss = new String[c];
-		for(int i = 0; i<c; i++) {
+		for (int i = 0; i < c; i++) {
 			ss[i] = m.group(i + 1);
 		}
 		return ss;
 	}
-	
+
 	public static boolean hasAnyNonBlankWord(String s) {
 		return s != null && !(s.trim().isEmpty());
 	}
-	
-	public static Object[] matchGroupReplace(Matcher m, Object...replaces) {
+
+	public static Object[] matchGroupReplace(Matcher m, Object... replaces) {
 		Object[] oo = matchGroupValues(m);
 		int l = oo.length;
-		for(int i = 0; i< l; i++) {
+		for (int i = 0; i < l; i++) {
 			if (replaces[i] == null) {
 				continue;
 			} else {
@@ -160,11 +184,12 @@ public class StringUtil {
 		}
 		return oo;
 	}
-	
-//	private static String placeHoderPtn = "\\(.*?\\)";
-	
-	public static String replacePattern(String origin, String pattern,String fmt, Object...replaces) throws StringReplaceException {
-		Pattern ptn = Pattern.compile(pattern); // 
+
+	// private static String placeHoderPtn = "\\(.*?\\)";
+
+	public static String replacePattern(String origin, String pattern, String fmt, Object... replaces)
+			throws StringReplaceException {
+		Pattern ptn = Pattern.compile(pattern); //
 		Matcher m = ptn.matcher(origin);
 		if (!m.matches()) {
 			throw new StringReplaceException(origin, pattern);
@@ -172,12 +197,11 @@ public class StringUtil {
 		if (m.groupCount() != replaces.length) {
 			throw new StringReplaceException(origin, pattern, replaces);
 		}
-//		String fmt = pattern.replaceAll(placeHoderPtn, "%s");
+		// String fmt = pattern.replaceAll(placeHoderPtn, "%s");
 		return String.format(fmt, matchGroupReplace(m, replaces));
-		
+
 	}
 
-	
 	public static String formatSize(Long size) {
 		if (size == null) {
 			size = 0L;
@@ -185,7 +209,6 @@ public class StringUtil {
 		return formatSize(size, 2);
 	}
 
-	
 	public static String formatSize(long size, int digits) {
 		String fs = "%." + digits + "f";
 		long unit = 1;
@@ -202,17 +225,16 @@ public class StringUtil {
 			unit = GB;
 			ext = "GB";
 		}
-		return String.format(fs, (double)size/ unit) + ext;
+		return String.format(fs, (double) size / unit) + ext;
 	}
-	
-	
+
 	public static String inputstreamToString(InputStream inputStream) {
 		try {
 			ByteArrayOutputStream result = new ByteArrayOutputStream();
 			byte[] buffer = new byte[1024];
 			int length;
 			while ((length = inputStream.read(buffer)) != -1) {
-			    result.write(buffer, 0, length);
+				result.write(buffer, 0, length);
 			}
 			// StandardCharsets.UTF_8.name() > JDK 7
 			return result.toString("UTF-8");
@@ -225,8 +247,7 @@ public class StringUtil {
 	public static boolean isNullString(String str) {
 		return "null".equalsIgnoreCase(str);
 	}
-	
-	
+
 	public static String getTimeCost(long delta, TimeUnit unit) {
 		switch (unit) {
 		case SECONDS:
@@ -248,7 +269,7 @@ public class StringUtil {
 		}
 		return "";
 	}
-	
+
 	public static String getTimeCost(long delta) {
 		TimeUnit unit = TimeUnit.MILLISECONDS;
 		long properValue = delta;

@@ -20,9 +20,32 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
 
 public class TestStringUtil {
 	
+	@Test
+	public void tCaseConvert() {
+		Converter<String, String> c1 = CaseFormat.LOWER_UNDERSCORE.converterTo(CaseFormat.LOWER_HYPHEN)
+				.andThen(CaseFormat.UPPER_UNDERSCORE.converterTo(CaseFormat.LOWER_HYPHEN))
+				.andThen(CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN))
+				.andThen(CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN))
+				.andThen(CaseFormat.LOWER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN));
+		
+		String kk = StringUtil.convertToLowerHyphen("ab_dddLick");
+		assertThat(kk, equalTo("ab-ddd-lick"));
+		
+		kk = StringUtil.convertToLowerHyphen("ab-dddLick");
+		assertThat(kk, equalTo("ab-dddlick"));
+		
+		kk = StringUtil.convertToLowerHyphen("AB-DDD");
+		assertThat(kk, equalTo("ab-ddd"));
+		
+		kk = StringUtil.convertToLowerHyphen("AbDDD");
+		assertThat(kk, equalTo("ab-d-d-d"));
+
+	}
 	
 	@Test
 	public void tGetLastPartOfUrl() {

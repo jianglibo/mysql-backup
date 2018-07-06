@@ -25,6 +25,9 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
 	@Autowired
 	private ApplicationContext applicationContext;
 	
+	@Autowired
+	private MyAppSettings myAppSettings;
+	
 	@Bean
 	public WebMvcConfigurer corsConfigurer() {
 		return new WebMvcConfigurer() {
@@ -122,10 +125,8 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         .setCachePeriod(31536000);
 
         registry.addResourceHandler("/freact/**")
-        .addResourceLocations("classpath:/cache-forever/freact")
-        .setCachePeriod(31536000);
-
-//        .setCacheControl(CacheControl.maxAge(1000, TimeUnit.DAYS).cachePublic());
+        .addResourceLocations("classpath:/cache-forever/freact/")
+        .setCachePeriod(myAppSettings.getCache().getCombo());
 	}
 	
 //	@Override

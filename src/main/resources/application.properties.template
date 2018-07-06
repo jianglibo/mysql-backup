@@ -94,7 +94,13 @@ menus.groups[0].name=g2
 menus.groups[0].order=1000
 menus.groups[0].items[0].name=menu.home
 menus.groups[0].items[0].order=1
-menus.groups[0].items[0].path=/
+menus.groups[0].items[0].path=/item1
+
+menus.groups[1].name=g2
+menus.groups[1].order=2
+menus.groups[1].items[0].name=item2
+menus.groups[1].items[0].order=1
+menus.groups[1].items[0].path=/
 
 only.you=true
 

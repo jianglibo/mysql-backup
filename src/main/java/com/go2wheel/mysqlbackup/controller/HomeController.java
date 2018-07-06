@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.util.TplUtil;
 
 
 @Controller
@@ -28,9 +29,10 @@ public class HomeController extends ControllerBase {
 	private ServerDbService serverDbService;
 
 	@ModelAttribute
-	public void populateMainMenu(Model model, HttpServletRequest request) {
+	public void populateContext(Model model, HttpServletRequest request) {
 		Server myself = serverDbService.findByHost("localhost");
 		model.addAttribute("myself", templateContextService.prepareServerContext(myself));
+		model.addAttribute("tplUtil", new TplUtil());
 	}
 
 	@GetMapping("/")

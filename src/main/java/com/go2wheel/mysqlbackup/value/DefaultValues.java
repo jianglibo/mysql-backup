@@ -20,12 +20,12 @@ import com.google.common.base.CaseFormat;
 @Component
 public class DefaultValues {
 	
-	public static final String SERVER_STATE_CN = "serverState";
-	public static final String STORAGE_STATE_CN = "storageState";
-	public static final String JOB_LOG_CN = "jobLog";
-	public static final String MYSQL_DUMP_CN = "mysqlDump";
-	public static final String BORG_DOWNLOAD_CN = "borgDownload";
-	public static final String MYSQL_FLUSH_CN = "mysqlFlush";
+	public static final String SERVER_STATE_CN = "server-state";
+	public static final String STORAGE_STATE_CN = "storage-state";
+	public static final String JOB_LOG_CN = "job-log";
+	public static final String MYSQL_DUMP_CN = "mysql-dump";
+	public static final String BORG_DOWNLOAD_CN = "borg-download";
+	public static final String MYSQL_FLUSH_CN = "mysql-flush";
 	
 	@Autowired
 	private KeyValueService keyValueService;
