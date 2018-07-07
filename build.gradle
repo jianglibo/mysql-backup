@@ -213,15 +213,35 @@ task helloShort << {
     println 'Hello world!'
 }
 
-/*
-task versionInfo(type:Exec){
-    commandLine 'hg id -i -b -t'.split()
-    ext.versionfile = new File('bin/$baseName-buildinfo.properties')
-    standardOutput = new ByteArrayOutputStream()
+ext {
+    freactFolder = "src/main/resources/cache-forever/freact"
+    templatesFolder = "src/main/resources/templates"
+    // templatesFolder = "src/test/resources/mail"
+}
 
-    doLast {
-        versionfile.text = 'build.revision=' + standardOutput.toString()
+// https://docs.gradle.org/current/userguide/working_with_files.html#sec:locating_files
+
+task freact << {
+    FileTree cssFiles = fileTree(templatesFolder) {
+        include "**/*.html"
+    }
+
+    def jss = files(file(freactFolder).listFiles()).filter { File f -> 
+        f.name.endsWith(".js")
+    }
+    // /freact/main.cb98d71c.js
+    String regex = '/freact/main\\.[^.]+\\.js'
+
+    jss.each { File jsf ->
+        cssFiles.each { File htmlFile ->
+            String content = htmlFile.getText("UTF-8")
+            def c = content.findAll(regex).size();
+            if (c > 0) {
+                content = content.replaceAll(regex, "/freact/${jsf.name}");
+                htmlFile.write(content, "UTF-8")
+            }
+        }
     }
 }
-*/
+
 // gradle test --tests *TestUpgradeUtil
