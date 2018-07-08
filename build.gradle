@@ -198,19 +198,10 @@ task writeVersionFile() << {
    }
 }
 
-task (v) << {
-	println project['buildDir']
-	println project['version']
-}
-
 task hello {
     doLast {
         println 'Hello world!'
     }
-}
-
-task helloShort << {
-    println 'Hello world!'
 }
 
 ext {
@@ -221,26 +212,28 @@ ext {
 
 // https://docs.gradle.org/current/userguide/working_with_files.html#sec:locating_files
 
-task freact << {
-    FileTree cssFiles = fileTree(templatesFolder) {
-        include "**/*.html"
-    }
-
-    def jss = files(file(freactFolder).listFiles()).filter { File f -> 
-        f.name.endsWith(".js")
-    }
-    // /freact/main.cb98d71c.js
-    String regex = '/freact/main\\.[^.]+\\.js'
-
-    jss.each { File jsf ->
-        cssFiles.each { File htmlFile ->
-            String content = htmlFile.getText("UTF-8")
-            def c = content.findAll(regex).size();
-            if (c > 0) {
-                content = content.replaceAll(regex, "/freact/${jsf.name}");
-                htmlFile.write(content, "UTF-8")
-            }
-        }
+task freact {
+	doLast {
+	    FileTree cssFiles = fileTree(templatesFolder) {
+	        include "**/*.html"
+	    }
+	
+	    def jss = files(file(freactFolder).listFiles()).filter { File f -> 
+	        f.name.endsWith(".js")
+	    }
+	    // /freact/main.cb98d71c.js
+	    String regex = '/freact/main\\.[^.]+\\.js'
+	
+	    jss.each { File jsf ->
+	        cssFiles.each { File htmlFile ->
+	            String content = htmlFile.getText("UTF-8")
+	            def c = content.findAll(regex).size();
+	            if (c > 0) {
+	                content = content.replaceAll(regex, "/freact/${jsf.name}");
+	                htmlFile.write(content, "UTF-8")
+	            }
+	        }
+	    }
     }
 }
 

@@ -48,3 +48,4 @@ notingit/
 **/jooqschema/
 dbdata/
 _upgrade.properties
+testfield/

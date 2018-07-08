@@ -5,6 +5,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -49,7 +50,6 @@ import com.go2wheel.mysqlbackup.service.ServerStateDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
-import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
@@ -153,9 +153,9 @@ public class SpringBaseFort {
 
 	protected String TMP_FILE_CONTENT = "abc";
 	
-	protected Path tmpDirectory;
+//	protected Path tmpDirectory;
 	
-	protected Path tmpFile;
+//	protected Path tmpFile;
 	
 	protected String remoteDemoFile;
 	
@@ -170,15 +170,15 @@ public class SpringBaseFort {
 	}
 	@After
 	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
-		if (tmpDirectory != null) {
-			try {
-				FileUtil.deleteFolder(tmpDirectory);
-			} catch (Exception e) {
-			}
-		}
-		if (tmpFile != null) {
-			Files.delete(tmpFile);
-		}
+//		if (tmpDirectory != null) {
+//			try {
+//				FileUtil.deleteFolder(tmpDirectory, false);
+//			} catch (Exception e) {
+//			}
+//		}
+//		if (tmpFile != null) {
+//			Files.delete(tmpFile);
+//		}
 		if (remoteDemoFile != null) {
 			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
 		}
@@ -319,13 +319,13 @@ public class SpringBaseFort {
 		}
 	}
 	
-	public void createALocalDir() throws IOException {
-		tmpDirectory = Files.createTempDirectory("tmpfortest");
-	}
+//	public void createALocalDir() throws IOException {
+//		tmpDirectory = Files.createTempDirectory("tmpfortest");
+//	}
 
-	public void createALocalFile(String content) throws IOException {
-		tmpFile = Files.createTempFile("sshbase", "txt");
+	public Path createALocalFile(Path tmpFile, String content) throws IOException {
 		Files.write(tmpFile, content.getBytes());
+		return tmpFile;
 	}
 
 	public Path createALocalFileDirectory(int number) throws IOException {

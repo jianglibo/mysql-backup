@@ -7,10 +7,10 @@ myself:
   server:
     borgDescription: null
     coreNumber: 4
-    createdAt: 2018-07-06T15:35:57.270Z
+    createdAt: 2018-07-08T06:03:30.360Z
     diskfreeCron: null
     host: localhost
-    id: 523
+    id: 207
     mysqlInstance: null
     name: a server.
     os: null
@@ -21,198 +21,198 @@ myself:
     uptimeCron: null
     username: root
   serverStates:
-  - averageLoad: 26
-    createdAt: 2018-07-06T15:35:59.960Z
-    id: 141
-    memFree: 9179906048
-    memUsed: 7939952640
-    serverId: 523
-  - averageLoad: 18
-    createdAt: 2018-07-06T15:36:05.680Z
-    id: 142
-    memFree: 9180164096
-    memUsed: 7939694592
-    serverId: 523
-  - averageLoad: 12
-    createdAt: 2018-07-06T15:36:11.390Z
-    id: 143
-    memFree: 9195765760
-    memUsed: 7924092928
-    serverId: 523
+  - averageLoad: 1
+    createdAt: 2018-07-08T06:03:33.050Z
+    id: 113
+    memFree: 9454432256
+    memUsed: 7665426432
+    serverId: 207
+  - averageLoad: 2
+    createdAt: 2018-07-08T06:03:38.260Z
+    id: 114
+    memFree: 9460199424
+    memUsed: 7659659264
+    serverId: 207
+  - averageLoad: 5
+    createdAt: 2018-07-08T06:03:43.600Z
+    id: 115
+    memFree: 9471569920
+    memUsed: 7648288768
+    serverId: 207
   storageStates:
-  - available: 79367954432
-    createdAt: 2018-07-06T15:36:03.650Z
-    id: 196
+  - available: 78580056064
+    createdAt: 2018-07-08T06:03:36.240Z
+    id: 136
     root: C:\
-    serverId: 523
-    used: 47324692480
-  - available: 34756501504
-    createdAt: 2018-07-06T15:36:03.650Z
-    id: 197
+    serverId: 207
+    used: 48112590848
+  - available: 34726293504
+    createdAt: 2018-07-08T06:03:36.240Z
+    id: 137
     root: E:\
-    serverId: 523
-    used: 214349500416
-  - available: 162297204736
-    createdAt: 2018-07-06T15:36:03.650Z
-    id: 198
+    serverId: 207
+    used: 214379708416
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:36.240Z
+    id: 138
     root: F:\
-    serverId: 523
-    used: 86808797184
+    serverId: 207
+    used: 86810259456
   - available: 139641114624
-    createdAt: 2018-07-06T15:36:03.650Z
-    id: 199
+    createdAt: 2018-07-08T06:03:36.240Z
+    id: 139
     root: G:\
-    serverId: 523
+    serverId: 207
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-07-06T15:36:03.650Z
-    id: 200
+    createdAt: 2018-07-08T06:03:36.240Z
+    id: 140
     root: H:\
-    serverId: 523
+    serverId: 207
     used: 108691607552
-  - available: 79367954432
-    createdAt: 2018-07-06T15:36:09.360Z
-    id: 201
+  - available: 78580056064
+    createdAt: 2018-07-08T06:03:41.580Z
+    id: 141
     root: C:\
-    serverId: 523
-    used: 47324692480
-  - available: 34756497408
-    createdAt: 2018-07-06T15:36:09.360Z
-    id: 202
+    serverId: 207
+    used: 48112590848
+  - available: 34726289408
+    createdAt: 2018-07-08T06:03:41.580Z
+    id: 142
     root: E:\
-    serverId: 523
-    used: 214349504512
-  - available: 162297204736
-    createdAt: 2018-07-06T15:36:09.360Z
-    id: 203
+    serverId: 207
+    used: 214379712512
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:41.580Z
+    id: 143
     root: F:\
-    serverId: 523
-    used: 86808797184
+    serverId: 207
+    used: 86810259456
   - available: 139641114624
-    createdAt: 2018-07-06T15:36:09.360Z
-    id: 204
+    createdAt: 2018-07-08T06:03:41.580Z
+    id: 144
     root: G:\
-    serverId: 523
+    serverId: 207
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-07-06T15:36:09.360Z
-    id: 205
+    createdAt: 2018-07-08T06:03:41.580Z
+    id: 145
     root: H:\
-    serverId: 523
+    serverId: 207
     used: 108691607552
-  - available: 79367847936
-    createdAt: 2018-07-06T15:36:14.670Z
-    id: 206
+  - available: 78580056064
+    createdAt: 2018-07-08T06:03:46.940Z
+    id: 146
     root: C:\
-    serverId: 523
-    used: 47324798976
-  - available: 34756476928
-    createdAt: 2018-07-06T15:36:14.670Z
-    id: 207
+    serverId: 207
+    used: 48112590848
+  - available: 34726289408
+    createdAt: 2018-07-08T06:03:46.940Z
+    id: 147
     root: E:\
-    serverId: 523
-    used: 214349524992
-  - available: 162297139200
-    createdAt: 2018-07-06T15:36:14.670Z
-    id: 208
+    serverId: 207
+    used: 214379712512
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:46.940Z
+    id: 148
     root: F:\
-    serverId: 523
-    used: 86808862720
+    serverId: 207
+    used: 86810259456
   - available: 139641114624
-    createdAt: 2018-07-06T15:36:14.670Z
-    id: 209
+    createdAt: 2018-07-08T06:03:46.940Z
+    id: 149
     root: G:\
-    serverId: 523
+    serverId: 207
     used: 109464887296
   - available: 144182976512
-    createdAt: 2018-07-06T15:36:14.670Z
-    id: 210
+    createdAt: 2018-07-08T06:03:46.940Z
+    id: 150
     root: H:\
-    serverId: 523
+    serverId: 207
     used: 108691607552
 serverGroup:
-  createdAt: 2018-07-06T15:35:37.300Z
+  createdAt: 2018-07-08T06:03:11.130Z
   ename: default
-  id: 209
+  id: 132
   msgkey: null
 servers:
 - borgDownloads:
-  - createdAt: 2018-07-06T15:35:50.260Z
-    downloadBytes: 11492238
+  - createdAt: 2018-07-08T06:03:23.310Z
+    downloadBytes: 11429648
     downloadFiles: 6
-    id: 122
+    id: 108
     result: null
-    serverId: 522
-    timeCost: 375
-    totalBytes: 11492775
+    serverId: 206
+    timeCost: 341
+    totalBytes: 11430185
     totalFiles: 23
-  - createdAt: 2018-07-06T15:35:47.390Z
-    downloadBytes: 11491514
+  - createdAt: 2018-07-08T06:03:20.330Z
+    downloadBytes: 11428961
     downloadFiles: 6
-    id: 121
+    id: 107
     result: null
-    serverId: 522
-    timeCost: 380
-    totalBytes: 11492017
+    serverId: 206
+    timeCost: 352
+    totalBytes: 11429464
     totalFiles: 21
-  - createdAt: 2018-07-06T15:35:44.440Z
-    downloadBytes: 11490790
+  - createdAt: 2018-07-08T06:03:17.600Z
+    downloadBytes: 11428274
     downloadFiles: 6
-    id: 120
+    id: 106
     result: null
-    serverId: 522
-    timeCost: 393
-    totalBytes: 11491259
+    serverId: 206
+    timeCost: 351
+    totalBytes: 11428743
     totalFiles: 19
-  mem: 674.85MB
+  mem: 675.41MB
   mysqlDumps: []
   mysqlFlushs:
-  - createdAt: 2018-07-06T15:35:41.070Z
+  - createdAt: 2018-07-08T06:03:14.840Z
     fileNumber: 4
     fileSize: 528
-    id: 122
+    id: 106
     result: null
-    serverId: 522
-    timeCost: 312
-  - createdAt: 2018-07-06T15:35:39.630Z
+    serverId: 206
+    timeCost: 278
+  - createdAt: 2018-07-08T06:03:13.440Z
     fileNumber: 3
     fileSize: 408
-    id: 121
+    id: 105
     result: null
-    serverId: 522
-    timeCost: 300
-  - createdAt: 2018-07-06T15:35:38.250Z
+    serverId: 206
+    timeCost: 341
+  - createdAt: 2018-07-08T06:03:11.970Z
     fileNumber: 2
     fileSize: 288
-    id: 120
+    id: 104
     result: null
-    serverId: 522
-    timeCost: 373
+    serverId: 206
+    timeCost: 356
   server:
     borgDescription:
       archiveCron: null
       archiveFormat: yyyy-MM-dd-HH-mm-ss
       archiveNamePrefix: ARCHIVE-
-      createdAt: 2018-07-06T15:35:36.440Z
+      createdAt: 2018-07-08T06:03:10.360Z
       excludes: []
-      id: 190
+      id: 124
       includes:
       - /etc
       pruneCron: null
       repo: /opt/borgrepos/repo
-      serverId: 522
+      serverId: 206
     coreNumber: 2
-    createdAt: 2018-07-06T15:35:36.430Z
+    createdAt: 2018-07-08T06:03:10.350Z
     diskfreeCron: null
     host: 192.168.33.110
-    id: 522
+    id: 206
     mysqlInstance:
       clientBin: null
-      createdAt: 2018-07-06T15:35:36.430Z
+      createdAt: 2018-07-08T06:03:10.350Z
       dumpFileName: /tmp/mysqldump.sql
       flushLogCron: 0 0 0 1/1 * ?
       host: localhost
-      id: 217
+      id: 127
       logBinSetting:
         map:
           log_bin_index: /var/lib/mysql/hm-log-bin.index
@@ -225,7 +225,7 @@ servers:
       - log_bin_index=/var/lib/mysql/hm-log-bin.index
       password: '123456'
       port: 3306
-      serverId: 522
+      serverId: 206
       username: root
     name: a server.
     os: null
@@ -236,84 +236,84 @@ servers:
     uptimeCron: null
     username: root
   serverStates:
-  - averageLoad: 10
-    createdAt: 2018-07-06T15:35:52.630Z
-    id: 138
-    memFree: 195698688
+  - averageLoad: 5
+    createdAt: 2018-07-08T06:03:25.790Z
+    id: 110
+    memFree: 196280320
     memUsed: 511934464
-    serverId: 522
-  - averageLoad: 10
-    createdAt: 2018-07-06T15:35:54.110Z
-    id: 139
-    memFree: 195743744
+    serverId: 206
+  - averageLoad: 6
+    createdAt: 2018-07-08T06:03:27.240Z
+    id: 111
+    memFree: 196202496
     memUsed: 511934464
-    serverId: 522
-  - averageLoad: 10
-    createdAt: 2018-07-06T15:35:55.750Z
-    id: 140
-    memFree: 195674112
+    serverId: 206
+  - averageLoad: 6
+    createdAt: 2018-07-08T06:03:28.870Z
+    id: 112
+    memFree: 196276224
     memUsed: 511934464
-    serverId: 522
+    serverId: 206
   storageStates:
-  - available: 51573837824
-    createdAt: 2018-07-06T15:35:52.960Z
-    id: 187
+  - available: 51566010368
+    createdAt: 2018-07-08T06:03:26.090Z
+    id: 127
     root: /
-    serverId: 522
-    used: 2087038976
+    serverId: 206
+    used: 2094866432
   - available: 30007910400
-    createdAt: 2018-07-06T15:35:52.960Z
-    id: 188
+    createdAt: 2018-07-08T06:03:26.090Z
+    id: 128
     root: /home
-    serverId: 522
+    serverId: 206
     used: 33796096
-  - available: 162297204736
-    createdAt: 2018-07-06T15:35:52.960Z
-    id: 189
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:26.090Z
+    id: 129
     root: /vagrant
-    serverId: 522
-    used: 86808797184
-  - available: 51573837824
-    createdAt: 2018-07-06T15:35:54.610Z
-    id: 190
+    serverId: 206
+    used: 86810259456
+  - available: 51566010368
+    createdAt: 2018-07-08T06:03:27.740Z
+    id: 130
     root: /
-    serverId: 522
-    used: 2087038976
+    serverId: 206
+    used: 2094866432
   - available: 30007910400
-    createdAt: 2018-07-06T15:35:54.610Z
-    id: 191
+    createdAt: 2018-07-08T06:03:27.740Z
+    id: 131
     root: /home
-    serverId: 522
+    serverId: 206
     used: 33796096
-  - available: 162297204736
-    createdAt: 2018-07-06T15:35:54.610Z
-    id: 192
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:27.740Z
+    id: 132
     root: /vagrant
-    serverId: 522
-    used: 86808797184
-  - available: 51573686272
-    createdAt: 2018-07-06T15:35:56.260Z
-    id: 193
+    serverId: 206
+    used: 86810259456
+  - available: 51566010368
+    createdAt: 2018-07-08T06:03:29.360Z
+    id: 133
     root: /
-    serverId: 522
-    used: 2087190528
+    serverId: 206
+    used: 2094866432
   - available: 30007910400
-    createdAt: 2018-07-06T15:35:56.260Z
-    id: 194
+    createdAt: 2018-07-08T06:03:29.360Z
+    id: 134
     root: /home
-    serverId: 522
+    serverId: 206
     used: 33796096
-  - available: 162297204736
-    createdAt: 2018-07-06T15:35:56.260Z
-    id: 195
+  - available: 162295742464
+    createdAt: 2018-07-08T06:03:29.360Z
+    id: 135
     root: /vagrant
-    serverId: 522
-    used: 86808797184
+    serverId: 206
+    used: 86810259456
 tplUtil: {}
 user:
-  createdAt: 2018-07-06T15:35:36.430Z
+  createdAt: 2018-07-08T06:03:10.350Z
   description: null
   email: jianglibo@gmail.com
-  id: 136
-  mobile: 247ef3b9-c710-447b-ac11-31bbbbb4ead4
+  id: 106
+  mobile: f340dcbd-8c01-4577-bb6a-102818398ad0
   name: 江立波

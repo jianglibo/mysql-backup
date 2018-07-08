@@ -69,9 +69,9 @@ public class TestStaticUpgradeUtil {
 	
 	@After
 	public void a() throws IOException {
-		FileUtil.deleteFolder(unZippedPath);
+		FileUtil.deleteFolder(unZippedPath, false);
 		try {
-			FileUtil.deleteFolder(curPath);
+			FileUtil.deleteFolder(curPath, false);
 		} catch (Exception e) {
 			long c = Files.list(curPath).count();
 		}

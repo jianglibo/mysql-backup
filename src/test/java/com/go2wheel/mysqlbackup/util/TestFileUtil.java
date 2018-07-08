@@ -12,75 +12,120 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 public class TestFileUtil {
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();
 
 	private Path dir;
 	private Path dir1;
+	
+	private void prepareDirs() throws IOException {
+		dir = tfolder.newFolder().toPath();
+		dir1 = tfolder.newFolder().toPath();
+	}
+	
 
-	@Before
-	public void before() throws IOException {
-		dir = Files.createTempDirectory("fileutil");
-		dir1 = Files.createTempDirectory("fileutil");
+	@Test
+	public void tBackupDirModoru() throws IOException {
+		prepareDirs();
+		Path folder = dir.resolve("a.b");
+		Files.createDirectories(folder);
+		Files.write(folder.resolve("afile.txt"), "abc".getBytes());
+		for(int i = 0; i < 11; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
+			FileUtil.backup(folder, 1, true);
+		}
+		assertThat(Files.list(dir).count(), equalTo(11L));
 	}
 
-	@After
-	public void after() throws IOException {
-		try {
-			Path tmp = dir.getParent();
-			Files.list(tmp).filter(p -> Files.isDirectory(p)).filter(p -> {
-				String fn = p.getFileName().toString(); 
-				return fn.startsWith("fileutil");
-			}).forEach(p -> {
-				try {
-					FileUtil.deleteFolder(p);
-				} catch (IOException e) {
-				}
-			});
-			FileUtil.deleteFolder(dir, dir1);
-		} catch (Exception e) {
+	
+	@Test
+	public void tCreateAndDeleteFolderTmpFile() throws IOException {
+		Path subfolder = tfolder.newFolder("kkk").toPath();
+		Files.createDirectories(subfolder);
+		Files.write(subfolder.resolve("kkk"), "abc".getBytes());
+		FileUtil.deleteFolder(subfolder, false);
+		Files.createDirectories(subfolder);
+	}
+
+
+	
+	@Test
+	public void tBackupFileModoru() throws IOException {
+		prepareDirs();
+		Path file = dir.resolve("a.b");
+		Files.write(file, "abc".getBytes());
+		for(int i = 0; i < 11; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
+			FileUtil.backup(file, 1, true);
 		}
+		assertThat(Files.list(dir).count(), equalTo(11L));
 	}
 
 	@Test(expected = FileAlreadyExistsException.class)
 	public void copyExists() throws IOException {
+		prepareDirs();
 		Files.copy(dir, dir1);
 		assertThat(Files.list(dir).count(), equalTo(0L));
-
 		Files.write(dir.resolve("a"), "abc".getBytes());
-
 		assertThat(Files.list(dir).count(), equalTo(1L));
-
 	}
 
 	@Test
-	public void tCopyDirectoryNoTarget() throws IOException {
-		String fn = "a.b.0";
-		Files.write(dir.resolve(fn), "abc".getBytes());
+	public void tCopyDirectoryToEmptyExistsDir() throws IOException {
+		prepareDirs();
+		String fn = "a.b.0.txt";
+		Path fp = dir.resolve(fn);
+		Files.write(fp, "abc".getBytes(), StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
 		Path dd = dir.resolve("dd");
 		Files.createDirectories(dd);
 		Files.write(dd.resolve(fn), "abc".getBytes());
+		
+		// dir1 exists and is empty.
+		FileUtil.copyDirectory(dir, dir1, false);
 
-		FileUtil.copyDirectory(dir, dir1);
+		assertTrue("level one file should copied.", Files.exists(dir1.resolve(fn)));
+		assertTrue("level two file should copied.", Files.exists(dir1.resolve("dd").resolve(fn)));
+
+	}
+	
+	@Test
+	public void tCopyDirectoryToExistsDirAndNotEmpty() throws IOException {
+		prepareDirs();
+		String fn = "a.b.0.txt";
+		Path fp = dir.resolve(fn);
+		Files.write(fp, "abc".getBytes());
+		Path dd = dir.resolve("dd");
+		Files.createDirectories(dd);
+		Files.write(dd.resolve(fn), "abc".getBytes());
+		
+		Files.write(dir1.resolve(fn), "abc".getBytes());
+		// dir1 exists and is empty.
+		FileUtil.copyDirectory(dir, dir1, true);
 
 		assertTrue("level one file should copied.", Files.exists(dir1.resolve(fn)));
 		assertTrue("level two file should copied.", Files.exists(dir1.resolve("dd").resolve(fn)));
 
 	}
 
+
 	@Test
-	public void tmove() throws IOException {
+	public void tBackupTwice() throws IOException {
+		prepareDirs();
 		Files.write(dir.resolve("a.b.0"), "abc".getBytes());
-		Path dst000 = dir.getParent().resolve(dir.getFileName().toString() + ".000");
-		Path dst001 = dir.getParent().resolve(dir.getFileName().toString() + ".001");
+		String dirName = dir.getFileName().toString();
+		Path dst000 = dir.getParent().resolve(dirName + ".000");
+		Path dst001 = dir.getParent().resolve(dirName + ".001");
 
 		Files.write(dir1.resolve("a.b.0"), "abc".getBytes());
-		Path dst1000 = dir1.getParent().resolve(dir1.getFileName().toString() + ".000");
-		Path dst1001 = dir1.getParent().resolve(dir1.getFileName().toString() + ".001");
+		String dir1Name = dir1.getFileName().toString();
+		Path dst1000 = dir1.getParent().resolve(dir1Name + ".000");
+		Path dst1001 = dir1.getParent().resolve(dir1Name + ".001");
 
 		FileUtil.backup(dir, 3, true);
 		FileUtil.backup(dir1, 3, true);
@@ -99,7 +144,7 @@ public class TestFileUtil {
 	}
 
 	@Test
-	public void t() {
+	public void tArrayIndexOutOfBoundsException() {
 		try {
 			int[][] ii = new int[2][];
 			ii[2][0] = 0;
@@ -118,10 +163,10 @@ public class TestFileUtil {
 	}
 
 	@Test(expected = DirectoryNotEmptyException.class)
-	public void tFailed() throws IOException {
+	public void tUnreleasedInputstreamWillCauseCopyFailed() throws IOException {
+		prepareDirs();
 		Path f = dir.resolve("a.b.0");
 		Files.write(f, "abc".getBytes());
-
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
@@ -138,9 +183,10 @@ public class TestFileUtil {
 	}
 
 	@Test
-	public void tmoveToExists() throws IOException {
-		Path f1 = Files.createTempFile("fileutil", ".txt");
-		Path f2 = Files.createTempFile("fileutil", ".txt");
+	public void tMoveToExists() throws IOException {
+		prepareDirs();
+		Path f1 = Files.write(dir.resolve("1.txt"), "abc".getBytes());
+		Path f2 = Files.write(dir.resolve("2.txt"), "abc".getBytes());
 		Files.write(f1, "abc".getBytes());
 		Files.write(f2, "abc".getBytes());
 		Files.move(f1, f2, StandardCopyOption.ATOMIC_MOVE);

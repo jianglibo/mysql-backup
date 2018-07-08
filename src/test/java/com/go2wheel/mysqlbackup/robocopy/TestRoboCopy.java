@@ -12,7 +12,9 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
@@ -24,6 +26,9 @@ public class TestRoboCopy extends SpringBaseFort {
 	private Path src = Paths.get("e:", "workspace-sts-2.9.1.RELEASE");
 	
 	private Path dst = Paths.get("e:", "workspace-sts-2.9.1.RELEASE.1");
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();	
 	
 	@Autowired
 	private ProcessExecUtil peu;
@@ -50,7 +55,7 @@ public class TestRoboCopy extends SpringBaseFort {
 	@Test
 	public void troboMirror() throws IOException, InterruptedException {
 		assumeTrue(Files.exists(src));
-		tmpFile = Files.createTempFile("robo", "log");
+		Path tmpFile = Files.createTempFile("robo", "log");
 		ProcessExecResult per = peu.roboCopy(src.toString(), dst.toString(), tmpFile);
 		assertTrue((!per.getTimeCost(TimeUnit.SECONDS).isEmpty()));
 		assertThat(per.getExitValue(), equalTo(0));

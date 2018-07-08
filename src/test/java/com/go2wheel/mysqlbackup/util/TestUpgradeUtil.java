@@ -23,7 +23,7 @@ public class TestUpgradeUtil {
 	
 	@Before
 	public void b() throws IOException {
-		Path p = Paths.get("build", "dist");
+		Path p = Paths.get("testfield", "distzip");
 		if (Files.exists(p)) {
 			zipFile = Files.list(p).filter(pp -> pp.toString().endsWith(".zip")).findAny().orElse(null);
 		}

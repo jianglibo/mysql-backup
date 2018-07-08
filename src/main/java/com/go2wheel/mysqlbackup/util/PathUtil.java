@@ -19,7 +19,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class PathUtil {
+	
+	private static Logger logger = LoggerFactory.getLogger(PathUtil.class);
 	
 	public static String replaceDotWithSlash(String origin) {
 		return origin.replace('.', '/');
@@ -40,6 +45,13 @@ public class PathUtil {
 		return new String(chars);
 	}
 	
+	/**
+	 * if length was 3 and v was 1 then return 001.
+	 * 
+	 * @param v
+	 * @param length
+	 * @return
+	 */
 	private static String prependZeros(int v, int length) {
 		String si = v + "";
 		int need = length - si.length();
@@ -50,31 +62,42 @@ public class PathUtil {
 		}
 	}
 	
-	public static Path getNextAvailable(Path file, int postfixNumber) {
-		Path parent = file.getParent();
-		String name = file.getFileName().toString();
+	public static Path getNextAvailable(Path fileOrDirToBackup, int postfixNumber) {
+		Path parent = fileOrDirToBackup.getParent();
+		String name = fileOrDirToBackup.getFileName().toString();
 		return getNextAvailable(parent, name, postfixNumber);
 	}
 	
-	public static Path getNextAvailable(Path dir, String name, int postfixNumber) {
-		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", name, postfixNumber));
+	/**
+	 * backup style is dump -> dump.000, if file goes dump.999, it should return 000.
+	 * 
+	 * @param parentDir
+	 * @param fileOrDirName
+	 * @param postfixNumber
+	 * @return
+	 */
+	protected static Path getNextAvailable(Path parentDir, String fileOrDirName, int postfixNumber) {
+		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", fileOrDirName, postfixNumber));
 		List<String> paths = null;
 		try {
-			paths = Files.list(dir).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString()).collect(Collectors.toList());
+			paths = Files.list(parentDir).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString()).collect(Collectors.toList());
 		} catch (IOException e) {
-			e.printStackTrace();
+			ExceptionUtil.logErrorException(logger, e);
+			return null;
 		}
 		Collections.sort(paths);
 		
 		if (paths.isEmpty()) {
-			return dir.resolve(name + "." + getZeros(postfixNumber));
+			return parentDir.resolve(fileOrDirName + "." + getZeros(postfixNumber));
 		} else {
 			Matcher m = ptn.matcher(paths.get(paths.size() - 1));
 			m.matches();
 			String nm = m.group(1);
-			int i = Integer.valueOf(nm);
-			return dir.resolve(name + "." + prependZeros(++i, postfixNumber));
-			
+			int i = Integer.valueOf(nm) + 1;
+			if (String.valueOf(i).length() > postfixNumber) {
+				i = 0;
+			}
+			return parentDir.resolve(fileOrDirName + "." + prependZeros(i, postfixNumber));
 		}
 	}
 	

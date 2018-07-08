@@ -4,10 +4,13 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.quartz.SchedulerException;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
@@ -19,6 +22,10 @@ import com.jcraft.jsch.JSchException;
 public class TestMysqlFlushLogExpect extends SpringBaseFort {
 	
 	private String oriPwd;
+	
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();	
 	
 	@Before
 	public void b() throws IOException, SchedulerException {
@@ -46,7 +53,7 @@ public class TestMysqlFlushLogExpect extends SpringBaseFort {
 		MysqlUtil mysqlUtil = new MysqlUtil();
 		mysqlUtil.setAppSettings(myAppSettings);
 		server.getMysqlInstance().setPassword("wrongpassword");
-		createALocalFile(" ");
+		Path tmpFile = createALocalFile(tfolder.newFile().toPath(), " ");
 		MysqlFlushLogExpect mfe = new MysqlFlushLogExpect(session, server);
 		
 		assertFalse(mfe.start().size() == 1);

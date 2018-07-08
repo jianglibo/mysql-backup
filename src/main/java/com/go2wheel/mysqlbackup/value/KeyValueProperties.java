@@ -20,6 +20,10 @@ public class KeyValueProperties extends Properties {
 	public void setNext(KeyValueProperties next) {
 		this.next = next;
 	}
+	public KeyValueProperties getNext() {
+		return next;
+	}
+
 
 	/**
 	 * 

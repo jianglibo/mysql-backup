@@ -17,7 +17,8 @@ public class KeyValueDbService extends DbServiceBase<KeyValueRecord, KeyValue> {
 		super(repo);
 	}
 
-	public KeyValue findOneByKey(String key) {
+	public KeyValue findOneByKey(String... keys) {
+		String key = String.join(".", keys);
 		return ((KeyValueRepository)repo).findOneByKey(key);
 	}
 

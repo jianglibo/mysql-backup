@@ -10,8 +10,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.google.common.base.CaseFormat;
@@ -26,6 +30,8 @@ public class DefaultValues {
 	public static final String MYSQL_DUMP_CN = "mysql-dump";
 	public static final String BORG_DOWNLOAD_CN = "borg-download";
 	public static final String MYSQL_FLUSH_CN = "mysql-flush";
+
+	public static final String DEFAULT_COUNT_PREFIX = "dv.default-count";
 	
 	@Autowired
 	private KeyValueService keyValueService;
@@ -34,7 +40,11 @@ public class DefaultValues {
 	
 	private Cron cron;
 	
+	private KeyValueProperties defaultCountOrigin;
+	
 	private KeyValueProperties defaultCount;
+	
+	private boolean starting = true;
 	
 	@PostConstruct
 	public void post() throws ParseException {
@@ -44,18 +54,53 @@ public class DefaultValues {
 		new CronExpression(cron.getMysqlFlush());
 		new CronExpression(cron.getServerState());
 		
-		KeyValueProperties kvp = keyValueService.getPropertiesByPrefix("dv", "default-count");
+		setDefaultCountOrigin(defaultCount);
+
+		KeyValueProperties kvp = keyValueService.getPropertiesByPrefix(DEFAULT_COUNT_PREFIX);
 		if (kvp.isEmpty()) {
-			defaultCount.keySet().forEach(k -> {
+			getDefaultCount().keySet().forEach(k -> {
 				String kk = (String) k;
 				kk = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN).convert(kk);
-				KeyValue kv = new KeyValue(new String[] {"dv", "default-count", kk}, defaultCount.getProperty(kk));
+				KeyValue kv = new KeyValue(new String[] {DEFAULT_COUNT_PREFIX, kk}, getDefaultCount().getProperty(kk));
 				keyValueService.save(kv);
 			});
+			starting = false;
 		}
-		kvp = keyValueService.getPropertiesByPrefix("dv", "default-count");
-		kvp.setNext(defaultCount);
-		defaultCount = kvp;
+		kvp = keyValueService.getPropertiesByPrefix(DEFAULT_COUNT_PREFIX);
+		kvp.setNext(getDefaultCount());
+		setDefaultCount(kvp);
+	}
+
+	private void reLoadDefaultCount() {
+		if (starting) return;
+		KeyValueProperties kvp = keyValueService.getPropertiesByPrefix(DEFAULT_COUNT_PREFIX);
+		kvp.setNext(getDefaultCount().getNext());
+		setDefaultCount(kvp);
+	}
+
+
+	@EventListener
+	public void whenBorgDescriptionCreated(ModelCreatedEvent<KeyValue> keyValueCreatedEvent) {
+		KeyValue kv = keyValueCreatedEvent.getModel();
+		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
+			reLoadDefaultCount();
+		}
+	}
+	
+	@EventListener
+	public void whenBorgDescriptionChanged(ModelChangedEvent<KeyValue> keyValueChangedEvent) {
+		KeyValue kv = keyValueChangedEvent.getAfter();
+		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
+			reLoadDefaultCount();
+		}
+	}
+	
+	@EventListener
+	public void whenBorgDescriptionDeleted(ModelDeletedEvent<KeyValue> keyValueDeletedEvent) {
+		KeyValue kv = keyValueDeletedEvent.getModel();
+		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
+			reLoadDefaultCount();
+		}
 	}
 
 	public Cron getCron() {
@@ -72,6 +117,14 @@ public class DefaultValues {
 
 	public void setDefaultCount(KeyValueProperties defaultCount) {
 		this.defaultCount = defaultCount;
+	}
+
+	public KeyValueProperties getDefaultCountOrigin() {
+		return defaultCountOrigin;
+	}
+
+	public void setDefaultCountOrigin(KeyValueProperties defaultCountOrigin) {
+		this.defaultCountOrigin = defaultCountOrigin;
 	}
 
 	public static class DefaultCount {

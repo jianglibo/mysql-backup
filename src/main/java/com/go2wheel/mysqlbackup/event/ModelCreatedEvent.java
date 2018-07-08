@@ -13,23 +13,18 @@ public class ModelCreatedEvent<T extends BaseModel> implements ResolvableTypePro
         this.model = model;
     }
 
-
 	@Override
 	public ResolvableType getResolvableType() {
         return ResolvableType.forClassWithGenerics(getClass(),
                 ResolvableType.forInstance(model));
 	}
 
-
 	public T getModel() {
 		return model;
 	}
 
-
 	public void setModel(T model) {
 		this.model = model;
 	}
-	
-	
 
 }

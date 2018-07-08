@@ -4,13 +4,17 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 import org.apache.logging.log4j.util.Strings;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -21,7 +25,8 @@ import com.jcraft.jsch.JSchException;
 
 public class TestScpTo extends SpringBaseFort {
 	
-	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();	
 	
 	@Before
 	public void before() {
@@ -31,7 +36,8 @@ public class TestScpTo extends SpringBaseFort {
 
 	@Test
 	public void scpToFileToFile() throws IOException, JSchException, ScpException, RunRemoteCommandException {
-		createALocalFile("abc");
+		Path tmpFile = tfolder.newFile().toPath();
+		Files.write(tmpFile, "abc".getBytes());
 		String rfile = "/tmp/" + tmpFile.getFileName().toString();
 		String lfile = tmpFile.toAbsolutePath().toString();
 
@@ -44,7 +50,8 @@ public class TestScpTo extends SpringBaseFort {
 	
 	@Test
 	public void scpToFileToDir() throws IOException, JSchException, ScpException, RunRemoteCommandException {
-		createALocalFile("abc");
+		Path tmpFile = tfolder.newFile().toPath();
+		Files.write(tmpFile, "abc".getBytes());
 		String rfile = "/tmp";
 		String lfile = tmpFile.toAbsolutePath().toString();
 

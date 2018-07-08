@@ -9,7 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.ScpException;
@@ -17,6 +19,10 @@ import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.jcraft.jsch.JSchException;
 
 public class TestScpFrom extends SpringBaseFort {
+	
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();
 	
 	@Before
 	public void before() {
@@ -28,7 +34,7 @@ public class TestScpFrom extends SpringBaseFort {
 	public void tFromFileToFile() throws IOException, JSchException, ScpException {
 		String rfile = "/tmp/xx.txt";
 		createAfileOnServer(rfile, "abc");
-		createALocalDir();
+		Path tmpDirectory = tfolder.newFolder().toPath();
 		String lfile = tmpDirectory.toAbsolutePath().toString();
 		ScpUtil.from(session, rfile, lfile);
 		Path lf = tmpDirectory.resolve("xx.txt");
