@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.convert.ConversionService;
 import org.springframework.core.env.Environment;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
@@ -75,6 +77,14 @@ public class TestSpringbeans extends SpringBaseFort {
 		
 		assertNotNull(lr);
 		
+	}
+
+	
+	@Test
+	public void testConvertService() {
+		Map<String, ConversionService> sc = applicationContext.getBeansOfType(ConversionService.class);
+		assertTrue("should contain mvcConversionService", sc.containsKey("mvcConversionService"));
+		assertTrue("should contain shellConversionService", sc.containsKey("shellConversionService"));
 	}
 
 	@TestConfiguration

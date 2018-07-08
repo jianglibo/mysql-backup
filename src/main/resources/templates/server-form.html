@@ -28,6 +28,7 @@
 					    </li>
 					</ul>
 					</aside>
+					<input th:if="${editing}" type="hidden" name="_method" value="PUT">
 					<fieldset>
 						<div class="pure-control-group">
 							<label for="name">名称</label>

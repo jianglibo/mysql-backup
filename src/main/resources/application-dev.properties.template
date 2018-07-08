@@ -86,7 +86,7 @@ dv.default-count.mysql-dump=2
 dv.default-count.mysql-flush=10
 dv.default-count.borg-download=20
 
-menus.groups[0].name=settings
+menus.groups[0].name=appmodel
 menus.groups[0].order=100
 menus.groups[0].items[0].name=menu.settings
 menus.groups[0].items[0].order=1

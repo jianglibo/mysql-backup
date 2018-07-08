@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -17,6 +18,8 @@ import org.springframework.web.servlet.config.annotation.ViewResolverRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.SessionLocaleResolver;
 import org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver;
+
+import com.go2wheel.mysqlbackup.convert.mvc.Id2Model;
 
 @Configuration
 @EnableWebMvc
@@ -55,6 +58,16 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         SessionLocaleResolver slr = new SessionLocaleResolver();
         slr.setDefaultLocale(Locale.CHINESE);
         return slr;
+    }
+    
+    @Bean
+    public Id2Model id2Model() {
+    	return new Id2Model();
+    }
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        registry.addConverterFactory(id2Model());
     }
     
 

@@ -11,6 +11,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -64,10 +65,20 @@ public class ServersController  extends ControllerBase {
 	    if (bindingResult.hasErrors()) {
 	    	model.addAttribute("oses", getOses());
 	        return FORM_TPL;
-	    }
+		}
+		
+		serverDbService.save(server);
 	    
 	    ras.addFlashAttribute("formProcessSuccessed", true);
 	    return "redirect:" + uri;
+	}
+
+	@GetMapping("/{id}/edit")
+	String getEdit(@PathVariable(name="id") Server server, Model model) {
+		model.addAttribute(OB_NAME, server);
+		model.addAttribute("editing", true);
+		model.addAttribute("oses", getOses());
+		return FORM_TPL;
 	}
 
 	@Override
