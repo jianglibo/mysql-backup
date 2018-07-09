@@ -29,7 +29,7 @@ public class ServerStateSchedule extends SchedulerBase {
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Server server = serverCreatedEvent.getModel();
 		createTrigger(server,
-				server.getUptimeCron(),
+				server.getServerStateCron(),
 				ServerStateJob.class,
 				jobKey(server.getHost(), SERVER_STATE_GROUP),
 				triggerKey(server.getHost(), SERVER_STATE_GROUP));
@@ -41,8 +41,8 @@ public class ServerStateSchedule extends SchedulerBase {
 		Server server = modelChangedEvent.getAfter();
 		
 		reschedule(server,
-				before.getUptimeCron(),
-				server.getUptimeCron(),
+				before.getServerStateCron(),
+				server.getServerStateCron(),
 				ServerStateJob.class,
 				jobKey(server.getHost(), SERVER_STATE_GROUP),
 				triggerKey(server.getHost(), SERVER_STATE_GROUP));

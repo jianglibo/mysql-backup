@@ -27,7 +27,7 @@ public class StorageStateSchedule extends SchedulerBase {
 	@EventListener
 	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Server server = serverCreatedEvent.getModel();
-		createTrigger(server, server.getDiskfreeCron(), StorageStateJob.class, jobKey(server.getHost(), STORAGE_STATE_GROUP), triggerKey(server.getHost(), STORAGE_STATE_GROUP));
+		createTrigger(server, server.getStorageStateCron(), StorageStateJob.class, jobKey(server.getHost(), STORAGE_STATE_GROUP), triggerKey(server.getHost(), STORAGE_STATE_GROUP));
 	}
 	
 	
@@ -37,8 +37,8 @@ public class StorageStateSchedule extends SchedulerBase {
 		Server server = modelChangedEvent.getAfter();
 		
 		reschedule(server,
-				before.getDiskfreeCron(),
-				server.getDiskfreeCron(),
+				before.getStorageStateCron(),
+				server.getStorageStateCron(),
 				StorageStateJob.class,
 				jobKey(server.getHost(), STORAGE_STATE_GROUP),
 				triggerKey(server.getHost(), STORAGE_STATE_GROUP));

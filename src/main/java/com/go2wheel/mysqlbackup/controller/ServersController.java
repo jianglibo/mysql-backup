@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.valueprovider.SharedValueProviderMethods;
@@ -36,6 +37,9 @@ public class ServersController  extends ControllerBase {
 	
 	@Autowired
 	private ServerDbService serverDbService;
+
+	@Autowired
+	private ReuseableCronDbService reuseableCronDbService;
 	
 	
 	private Set<String> getOses() {
@@ -78,6 +82,7 @@ public class ServersController  extends ControllerBase {
 		model.addAttribute(OB_NAME, server);
 		model.addAttribute("editing", true);
 		model.addAttribute("oses", getOses());
+		model.addAttribute("crons", reuseableCronDbService.findAll());
 		return FORM_TPL;
 	}
 

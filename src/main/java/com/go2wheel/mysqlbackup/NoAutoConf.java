@@ -36,8 +36,8 @@ import org.springframework.shell.standard.commands.StandardCommandsAutoConfigura
 		})
 public class NoAutoConf {
 
-	public static void main(String[] args) {
-		ConfigurableApplicationContext context = SpringApplication.run(NoAutoConf.class, args);
-	}
+	// public static void main(String[] args) {
+	// 	ConfigurableApplicationContext context = SpringApplication.run(NoAutoConf.class, args);
+	// }
 
 }

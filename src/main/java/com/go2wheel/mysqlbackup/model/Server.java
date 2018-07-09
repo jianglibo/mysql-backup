@@ -53,10 +53,10 @@ public class Server extends BaseModel {
 	private String serverRole;
 	
 	@CronExpressionConstraint(allowEmpty=true)
-	private String uptimeCron;
+	private String serverStateCron;
 	
 	@CronExpressionConstraint(allowEmpty=true)
-	private String diskfreeCron;
+	private String storageStateCron;
 	
 	public Server() {}
 	
@@ -159,22 +159,6 @@ public class Server extends BaseModel {
 		this.name = name;
 	}
 
-	public String getUptimeCron() {
-		return uptimeCron;
-	}
-
-	public void setUptimeCron(String uptimeCron) {
-		this.uptimeCron = uptimeCron;
-	}
-
-	public String getDiskfreeCron() {
-		return diskfreeCron;
-	}
-
-	public void setDiskfreeCron(String diskfreeCron) {
-		this.diskfreeCron = diskfreeCron;
-	}
-
 	public String getOs() {
 		return os;
 	}
@@ -188,6 +172,22 @@ public class Server extends BaseModel {
 			return true;
 		}
 		return getOs().contains("linux");
+	}
+
+	public String getServerStateCron() {
+		return serverStateCron;
+	}
+
+	public void setServerStateCron(String serverStateCron) {
+		this.serverStateCron = serverStateCron;
+	}
+
+	public String getStorageStateCron() {
+		return storageStateCron;
+	}
+
+	public void setStorageStateCron(String storageStateCron) {
+		this.storageStateCron = storageStateCron;
 	}
 
 }

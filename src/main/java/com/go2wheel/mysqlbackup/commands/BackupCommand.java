@@ -292,8 +292,8 @@ public class BackupCommand {
 			server = new Server(host, name);
 			server.setOs(os);
 			server.setServerRole(serverRole);
-			server.setUptimeCron(dvs.getCron().getServerState());
-			server.setDiskfreeCron(dvs.getCron().getStorageState());
+			server.setServerStateCron(dvs.getCron().getServerState());
+			server.setStorageStateCron(dvs.getCron().getStorageState());
 			server = serverDbService.save(server);
 		}
 		return FacadeResult.doneExpectedResultDone(server);
