@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class MysqlFlush extends BaseModel {
 	
@@ -12,7 +11,6 @@ public class MysqlFlush extends BaseModel {
 	/*log文件的数量*/
 	private Integer fileNumber;
 
-	private ResultEnum result;
 	private Long timeCost;
 	
 	
@@ -29,12 +27,6 @@ public class MysqlFlush extends BaseModel {
 		this.fileSize = fileSize;
 	}
 
-	public ResultEnum getResult() {
-		return result;
-	}
-	public void setResult(ResultEnum result) {
-		this.result = result;
-	}
 	public Long getTimeCost() {
 		return timeCost;
 	}

@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class MysqlDump extends BaseModel {
 	
@@ -9,9 +8,6 @@ public class MysqlDump extends BaseModel {
 	
 	/*文件长度*/
 	private Long fileSize;
-	
-	/*成功与否*/
-	private ResultEnum result;
 	
 	/*费时多少*/
 	private Long timeCost;
@@ -34,12 +30,6 @@ public class MysqlDump extends BaseModel {
 	}
 	public void setTimeCost(Long timeCost) {
 		this.timeCost = timeCost;
-	}
-	public ResultEnum getResult() {
-		return result;
-	}
-	public void setResult(ResultEnum result) {
-		this.result = result;
 	}
 	
 	@Override

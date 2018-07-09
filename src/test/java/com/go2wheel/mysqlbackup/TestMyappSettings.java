@@ -42,7 +42,7 @@ public class TestMyappSettings  extends SpringBaseFort {
 	
 	@Test
 	public void testmenu() {
-		assertThat(menuGroups.getGroups().size(), equalTo(3));
+		assertThat(menuGroups.getGroups().size(), equalTo(2));
 		assertThat(menuGroups.getGroups().get(0).getName(), equalTo("settings"));
 		
 		assertThat(menuGroups.getGroups().get(0).getItems().size(), equalTo(1));

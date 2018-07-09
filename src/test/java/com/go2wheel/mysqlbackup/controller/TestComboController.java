@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.asyncDispatch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -66,8 +67,8 @@ public class TestComboController extends SpringBaseTWithWeb {
 		Resource[] jsrs = wac.getResources("classpath:public/**/*.js");
 		Resource[] csrs = wac.getResources("classpath:public/**/*.css");
 
-		assertThat(jsrs.length, equalTo(28));
-		assertThat(csrs.length, equalTo(57));
+		assertThat(jsrs.length, greaterThan(27));
+		assertThat(csrs.length, greaterThan(96));
 	}
 
 }

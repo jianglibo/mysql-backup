@@ -127,8 +127,4 @@ public class TestKnownHosts extends SpringBaseFort {
 		assertThat(sl.size(), greaterThan(2));
 		session.disconnect();
 	}
-	
-
-
-
 }

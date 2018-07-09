@@ -1,12 +1,10 @@
 package com.go2wheel.mysqlbackup.model;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 public class BorgDownload extends BaseModel {
 	
 	private Integer serverId;
-	private ResultEnum result;
 	private long timeCost;
 	private int totalFiles;
 	private int downloadFiles;
@@ -56,14 +54,6 @@ public class BorgDownload extends BaseModel {
 
 	public void setServerId(Integer serverId) {
 		this.serverId = serverId;
-	}
-
-	public ResultEnum getResult() {
-		return result;
-	}
-
-	public void setResult(ResultEnum result) {
-		this.result = result;
 	}
 
 	public long getTimeCost() {

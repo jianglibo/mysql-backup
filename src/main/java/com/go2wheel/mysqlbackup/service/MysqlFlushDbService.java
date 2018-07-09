@@ -18,7 +18,6 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.MysqlFlushRepository;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.ResultEnum;
 
 @Service
 @Validated
@@ -54,13 +53,10 @@ public class MysqlFlushDbService extends DbServiceBase<MysqlFlushRecord, MysqlFl
 					}
 				}).sum();
 				mf.setFileSize(ts);
-
 			} catch (IOException e) {
 				ExceptionUtil.logErrorException(logger, e);
-				mf.setResult(ResultEnum.FAIL);
 			}
 		} else {
-			mf.setResult(ResultEnum.FAIL);
 		}
 		save(mf);
 	}
