@@ -2,15 +2,14 @@
 <html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title th:text="((${singleItem.id} != null) and (${singleItem.id} gt 0))? '编辑' + ${entityName} : '新建' + ${entityName}">编辑或新建</title>
+	<title th:text="${editing} ? '编辑' : '新建' + ${entityName}">编辑或新建</title>
 </head>
 
 <body>
 	<div id="layout">
 		<div id="main">
 			<div class="header">
-				<h1 th:text="((${singleItem.id} != null) and (${singleItem.id} gt 0))? '编辑' + ${entityName} : '新建' + ${entityName}">编辑或新建</h1>
-
+				<h1 th:text="${editing} ? '编辑' : '新建' + ${entityName}">编辑或新建</h1>
 			</div>
 			<div class="content">
 				<h2 id="common-layouts" class="content-subhead">

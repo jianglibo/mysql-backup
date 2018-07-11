@@ -31,17 +31,15 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	private final String mappingUrl;
 	
-	private final String entityName;
 	
 	private Converter<String, String> cf = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN);
 	
 	public static final String LIST_OB_NAME = "listItems";
 	public static final String OB_NAME = "singleItem";
 	
-	public CRUDController(Class<T> clazz,D dbService, String mappingUrl, String entityName) {
+	public CRUDController(Class<T> clazz,D dbService, String mappingUrl) {
 		this.clazz = clazz;
 		this.dbService = dbService;
-		this.entityName = entityName;
 		this.lowerHyphenPlural = English.plural(cf.convert(clazz.getSimpleName()));
 		this.mappingUrl = mappingUrl;
 		Assert.isTrue(mappingUrl.endsWith(lowerHyphenPlural), "requestmapping url should match classname.");
@@ -49,25 +47,33 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	abstract void copyProperties(T entityFromForm, T entityFromDb);
 	
+	private void commonAttribute(Model model) {
+		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("entityName", clazz.getName());
+	}
+	
 	@GetMapping("")
 	String getListPage(Model model) {
 		model.addAttribute(LIST_OB_NAME, getItemList());
-		model.addAttribute("mapping", mappingUrl);
-		model.addAttribute("entityName", entityName);
+		commonAttribute(model);
+		listExtraAttributes(model);
 		return getListTpl();
 	}
 	
 	@GetMapping("/create")
 	String getCreate(Model model) {
 		model.addAttribute(OB_NAME, newModel());
-		model.addAttribute("mapping", mappingUrl);
-		model.addAttribute("entityName", entityName);
+		model.addAttribute("editting", false);
+		commonAttribute(model);
+		formAttribute(model);
 		return getFormTpl();
 	}
 	
+
 	@PostMapping("/create")
 	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
 	    if (bindingResult.hasErrors()) {
+	    	formAttribute(model);
 	        return getFormTpl();
 		}
 		save(entityFromForm);
@@ -75,18 +81,23 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	    return "redirect:" + mappingUrl;
 	}
 
+	protected abstract void formAttribute(Model model);
+	protected abstract void listExtraAttributes(Model model);
+
 	@GetMapping("/{id}/edit")
 	String getEdit(@PathVariable(name="id") T entityFromDb, Model model) {
 		model.addAttribute(OB_NAME, entityFromDb);
 		model.addAttribute("editing", true);
-		model.addAttribute("mapping", mappingUrl);
-		model.addAttribute("entityName", entityName);
+		commonAttribute(model);
+		formAttribute(model);
 		return getFormTpl();
 	}
+
 
 	@PutMapping("/{id}/edit")
 	String putEdit(@Validated @ModelAttribute(OB_NAME) T entityFromForm, @PathVariable(name="id") T entityFromDb,  final BindingResult bindingResult,Model model, RedirectAttributes ras) {
 		if (bindingResult.hasErrors()) {
+			formAttribute(model);
 			return getFormTpl();
 		}
 		copyProperties(entityFromForm, entityFromDb);
@@ -121,5 +132,9 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 
 	public String getLowerHyphenPlural() {
 		return lowerHyphenPlural;
+	}
+
+	public D getDbService() {
+		return dbService;
 	}
 }

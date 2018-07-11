@@ -2,15 +2,14 @@
 <html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title th:text="((${server.id} != null) and (${server.id} gt 0))? '编辑服务器' : '新建服务器'">编辑或新建服务器</title>
+	<title th:text="(${editing} ? '编辑' : '新建') + #{${entityName}}">编辑或新建</title>
 </head>
 
 <body>
 	<div id="layout">
 		<div id="main">
 			<div class="header">
-				<h1 th:text="((${server.id} != null) and (${server.id} gt 0))? '编辑服务器' : '新建服务器'">编辑或新建服务器</h1>
-
+				<h1 th:text="(${editing} ? '编辑' : '新建') + #{${entityName}}">编辑或新建</h1>
 			</div>
 			<div class="content">
 				<h2 id="common-layouts" class="content-subhead">
@@ -19,7 +18,7 @@
 					<aside class="success" th:if="${formProcessSuccessed}">
 						<p>修改成功。</p>
 					</aside>
-				<form class="pure-form pure-form-aligned" action="#" th:action="@{${#request.getRequestURI()}}" th:object="${server}" method="POST">
+				<form class="pure-form pure-form-aligned" action="#" th:action="@{${#request.getRequestURI()}}" th:object="${singleItem}" method="POST">
 					<aside class="warn" th:if="${#fields.hasErrors('*')}">
 					<ul>
 					    <li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
@@ -58,7 +57,7 @@
 								<option th:each="one : ${crons}"
 									th:value="${one.expression}"
 									th:text="${one.description}"
-									th:selected="${one.expression} == ${server.serverStateCron}">AL</option>
+									th:selected="${one.expression} == ${singleItem.serverStateCron}">AL</option>
 								<option>CA</option>
 								<option>IL</option>
 							</select>
@@ -72,7 +71,7 @@
 								<option th:each="one : ${crons}"
 									th:value="${one.expression}"
 									th:text="${one.description}"
-									th:selected="${one.expression} == ${server.serverStateCron}">AL</option>
+									th:selected="${one.expression} == ${singleItem.storageStateCron}">AL</option>
 								<option>CA</option>
 								<option>IL</option>
 							</select>
@@ -90,7 +89,7 @@
 								<option th:each="one : ${new String[]{'GET', 'SET'}}"
 									th:value="${one}"
 									th:text="${one}"
-									th:selected="${one} == ${server.serverRole}">AL</option>
+									th:selected="${one} == ${singleItem.serverRole}">AL</option>
 								<option>GET</option>
 								<option>SET</option>
 							</select>
@@ -103,7 +102,7 @@
 								<option th:each="one : ${oses}"
 									th:value="${one}"
 									th:text="${one}"
-									th:selected="${one} == ${server.os}">AL</option>
+									th:selected="${one} == ${singleItem.os}">AL</option>
 								<option>CA</option>
 								<option>IL</option>
 							</select>

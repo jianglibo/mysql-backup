@@ -9,19 +9,16 @@
 	<div id="layout">
 		<div id="main">
 			<div class="header">
-				<h1>服务器列表</h1>
+				<h1 th:text="#{${entityName}} + '列表'">服务器列表</h1>
 				<h2>服务器包括：需要备份的服务器、运行此程序的服务器以及回放内容的服务器。</h2>
 			</div>
 			<div class="content">
 				<div id="action-menu-bar"></div>
-				<!--/*-->
-				<div th:replace="servers-menu :: actionmenu"></div>
-				<!--*/-->
 				<table class="pure-table pure-table-bordered item-list">
 					<thead>
 						<tr>
 							<th>
-								<input id="server-all" th:id="server-all" type="checkbox">
+								<input id="item-all" th:id="item-all" type="checkbox">
 							</th>
 							<th>名称</th>
 							<th>主机名|IP</th>
@@ -31,14 +28,14 @@
 					</thead>
 
 					<tbody th:remove="all-but-first">
-						<tr th:each="server: ${servers}">
+						<tr th:each="item: ${listItems}">
 							<td>
-								<input id="particular-server" th:id="|server-${server.id}|" type="checkbox">
+								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
 							</td>
-							<td th:text="${server.name}">Honda</td>
-							<td th:text="${server.host}">Accord</td>
-							<td th:text="${server.os}">2009</td>
-							<td th:text="${server.serverRole} ?: 'GET'">2009</td>
+							<td th:text="${item.name}">Honda</td>
+							<td th:text="${item.host}">Accord</td>
+							<td th:text="${item.os}">2009</td>
+							<td th:text="${item.serverRole} ?: 'GET'">2009</td>
 						</tr>
 						<tr>
 							<td>2</td>
@@ -63,21 +60,12 @@
 	</div>
 
 	<script th:src="@{/freact/main.b242d40f.js}" src="../cache-forever/freact/main.b242d40f.js"></script>
-	<script>
-		window.freact.renderActionMenuBar("/app/servers",
+	<script th:inline="javascript">
+		window.freact.renderActionMenuBar(/*[[${mapping}]]*/ "/app/listItems",
 			".item-list",
 			["create", "edit", "delete"]);
 	</script>
 
-	<!--/*-->
-	<script th:replace="servers-menu :: menujs (baseUrl='/app/servers')"></script>
-	<script id="per-page-script">
-	</script>
-
-	<script>
-		var s = 5;
-	</script>
-	<!--*/-->
 </body>
 
 </html>
