@@ -32,8 +32,6 @@ public class ServerGrpDbService extends DbServiceBase<ServerGrpRecord, ServerGrp
 		((ServerGrpRepository)repo).removeServer(serverGrp, serverId);
 	}
 
-
-
 	public List<Server> getServers(ServerGrp serverGrp) {
 		return ((ServerGrpRepository)repo).getServers(serverGrp);
 	}

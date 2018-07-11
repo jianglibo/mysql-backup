@@ -120,6 +120,9 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.jsoup/jsoup
 	compile group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
 	
+	// https://mvnrepository.com/artifact/org.atteo/evo-inflector
+	compile group: 'org.atteo', name: 'evo-inflector', version: '1.2.2'
+	
 	
 	// https://mvnrepository.com/artifact/org.flywaydb/flyway-core
 	compile group: 'org.flywaydb', name: 'flyway-core', version: '5.0.7'

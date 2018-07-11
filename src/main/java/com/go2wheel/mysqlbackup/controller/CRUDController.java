@@ -1,0 +1,125 @@
+package com.go2wheel.mysqlbackup.controller;
+
+import java.util.Arrays;
+import java.util.List;
+
+import org.atteo.evo.inflector.English;
+import org.springframework.ui.Model;
+import org.springframework.util.Assert;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.service.DbServiceBase;
+import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Converter;
+
+public abstract class CRUDController<T extends BaseModel, D extends DbServiceBase<?, T>> extends ControllerBase {
+	
+	private final Class<T> clazz;
+	
+	private final String lowerHyphenPlural;
+	
+	private final D dbService;
+	
+	private final String mappingUrl;
+	
+	private final String entityName;
+	
+	private Converter<String, String> cf = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN);
+	
+	public static final String LIST_OB_NAME = "listItems";
+	public static final String OB_NAME = "singleItem";
+	
+	public CRUDController(Class<T> clazz,D dbService, String mappingUrl, String entityName) {
+		this.clazz = clazz;
+		this.dbService = dbService;
+		this.entityName = entityName;
+		this.lowerHyphenPlural = English.plural(cf.convert(clazz.getSimpleName()));
+		this.mappingUrl = mappingUrl;
+		Assert.isTrue(mappingUrl.endsWith(lowerHyphenPlural), "requestmapping url should match classname.");
+	}
+	
+	abstract void copyProperties(T entityFromForm, T entityFromDb);
+	
+	@GetMapping("")
+	String getListPage(Model model) {
+		model.addAttribute(LIST_OB_NAME, getItemList());
+		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("entityName", entityName);
+		return getListTpl();
+	}
+	
+	@GetMapping("/create")
+	String getCreate(Model model) {
+		model.addAttribute(OB_NAME, newModel());
+		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("entityName", entityName);
+		return getFormTpl();
+	}
+	
+	@PostMapping("/create")
+	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
+	    if (bindingResult.hasErrors()) {
+	        return getFormTpl();
+		}
+		save(entityFromForm);
+	    ras.addFlashAttribute("formProcessSuccessed", true);
+	    return "redirect:" + mappingUrl;
+	}
+
+	@GetMapping("/{id}/edit")
+	String getEdit(@PathVariable(name="id") T entityFromDb, Model model) {
+		model.addAttribute(OB_NAME, entityFromDb);
+		model.addAttribute("editing", true);
+		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("entityName", entityName);
+		return getFormTpl();
+	}
+
+	@PutMapping("/{id}/edit")
+	String putEdit(@Validated @ModelAttribute(OB_NAME) T entityFromForm, @PathVariable(name="id") T entityFromDb,  final BindingResult bindingResult,Model model, RedirectAttributes ras) {
+		if (bindingResult.hasErrors()) {
+			return getFormTpl();
+		}
+		copyProperties(entityFromForm, entityFromDb);
+		save(entityFromDb);
+        ras.addFlashAttribute("formProcessSuccessed", true);
+	    return "redirect:" + mappingUrl;
+	}
+
+	
+	@Override
+	public List<MainMenuItem> getMenuItems() {
+		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), mappingUrl, 200));
+	}
+	
+	public List<T> getItemList() {
+		return dbService.findAll();
+	}
+	
+	public void save(T entity) {
+		dbService.save(entity);
+	}
+	
+	public abstract T newModel();
+	
+	public String getFormTpl() {
+		return lowerHyphenPlural + "-form";
+	}
+	
+	public String getListTpl() {
+		return lowerHyphenPlural + "-list";
+	}
+
+	public String getLowerHyphenPlural() {
+		return lowerHyphenPlural;
+	}
+}
