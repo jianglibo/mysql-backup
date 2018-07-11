@@ -3,11 +3,14 @@ package com.go2wheel.mysqlbackup;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
+import javax.servlet.Filter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.format.FormatterRegistry;
+import org.springframework.web.filter.HiddenHttpMethodFilter;
 import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -51,6 +54,12 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
     public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
         configurer.favorPathExtension(false);
 
+    }
+
+    @Bean
+    public Filter hiddenHttpMethodFilter() {
+        HiddenHttpMethodFilter filter = new HiddenHttpMethodFilter();
+        return filter;
     }
     
     @Bean

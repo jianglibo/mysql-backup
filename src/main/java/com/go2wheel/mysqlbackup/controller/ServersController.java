@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -85,7 +86,26 @@ public class ServersController  extends ControllerBase {
 		model.addAttribute("crons", reuseableCronDbService.findAll());
 		return FORM_TPL;
 	}
-
+	
+	@PutMapping("/{id}/edit")
+	String putEdit(@Validated @ModelAttribute(OB_NAME) Server serverUpdated, @PathVariable(name="id") Server serverOrigin,  final BindingResult bindingResult,Model model, RedirectAttributes ras) {
+		if (bindingResult.hasErrors()) {
+	        return FORM_TPL;
+		}
+		serverOrigin.setName(serverUpdated.getName());
+		serverOrigin.setHost(serverUpdated.getHost());
+		
+		serverOrigin.setUsername(serverUpdated.getUsername());
+		serverOrigin.setPassword(serverUpdated.getPassword());
+		serverOrigin.setServerStateCron(serverUpdated.getServerStateCron());
+		serverOrigin.setStorageStateCron(serverUpdated.getStorageStateCron());
+		serverOrigin.setSshKeyFile(serverUpdated.getSshKeyFile());
+		serverOrigin.setServerRole(serverUpdated.getServerRole());
+		serverOrigin.setOs(serverUpdated.getOs());
+		serverDbService.save(serverOrigin);
+        ras.addFlashAttribute("formProcessSuccessed", true);
+	    return "redirect:" + uri;
+	}
 	@Override
 	public List<MainMenuItem> getMenuItems() {
 		return Arrays.asList(new MainMenuItem("appmodel", "servers", uri, 100));

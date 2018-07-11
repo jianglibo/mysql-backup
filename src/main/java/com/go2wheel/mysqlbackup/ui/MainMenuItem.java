@@ -2,15 +2,17 @@ package com.go2wheel.mysqlbackup.ui;
 
 public class MainMenuItem implements Comparable<MainMenuItem> {
 	
-	private static final String DIVIDED = "menu-item-divided";
-	private static final String ACTIVE = "menu-item-divided";
+//	private static final String DIVIDED = "menu-item-divided";
+//	private static final String ACTIVE = "menu-item-divided";
 	
 	private String name;
 	
 	private Integer order = 0;
 	
 	private String path;
-	
+	/**
+	 * groupName is a necessary, Cause there need a way for controller to define which group it belongs to.
+	 */
 	private String groupName;
 	
 	private boolean active = false;

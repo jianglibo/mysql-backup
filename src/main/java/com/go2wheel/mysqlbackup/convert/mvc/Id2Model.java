@@ -6,12 +6,15 @@ import org.springframework.core.convert.converter.ConverterFactory;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 
 public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	
 	@Autowired
 	private ServerDbService serverDbService;
+	@Autowired
+	private UserAccountDbService userAccountDbService;
 	
 
 	public <T extends BaseModel> Converter<String, T> getConverter(Class<T> targetType) {
@@ -31,6 +34,9 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 			switch (modelType.getSimpleName()) {
 			case "Server":
 				model = (T) serverDbService.findById(source);
+				return model;
+			case "UserAccount":
+				model = (T) userAccountDbService.findById(source);
 				return model;
 			default:
 				break;

@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
@@ -18,12 +20,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
 import com.go2wheel.mysqlbackup.controller.ControllerBase;
+import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ConfigurationProperties(prefix = "menus")
 @Component
 public class MainMenuGroups implements ApplicationContextAware {
 
 	private ApplicationContext applicationContext;
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	List<MenuGroup> groups = new ArrayList<>();
 
@@ -73,6 +78,16 @@ public class MainMenuGroups implements ApplicationContextAware {
 	 */
 	@PostConstruct
 	public void after() {
+		// add groupName to menu-item in application.properties file.
+		getGroups().forEach(g -> {
+			g.getItems().forEach(it -> {
+				it.setGroupName(g.getName());
+				if (!it.getName().startsWith("menu.")) {
+					it.setName("menu." + it.getName());
+				}
+			});
+		});
+		
 		Map<String, ? extends ControllerBase> cbs = applicationContext.getBeansOfType(ControllerBase.class);
 		cbs.values().stream().map(cb -> cb.getMenuItems()).filter(Objects::nonNull).flatMap(mis -> mis.stream())
 				.map(mi -> {
@@ -90,6 +105,17 @@ public class MainMenuGroups implements ApplicationContextAware {
 					}
 					mgOp.get().getItems().add(mi);
 				});
+		
+		// remove duplication items.
+		getGroups().forEach(g -> {
+			Map<String, List<MainMenuItem>> m = g.getItems().stream().collect(Collectors.groupingBy(mi -> {
+				return mi.getName();
+			}));
+			
+			List<MainMenuItem> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
+			g.setItems(lm);
+		});
+		logger.info(YamlInstance.INSTANCE.yaml.dumpAsMap(groups));
 	}
 
 	@Override
