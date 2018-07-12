@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.service.DbServiceBase;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
 
@@ -84,9 +85,10 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 			save(entityFromForm);
 		} catch (Exception e) {
 			if (e instanceof DuplicateKeyException) {
-				parseDuplicateKeyException(bindingResult);
+				DuplicateKeyException de = (DuplicateKeyException) e;
+				parseDuplicateKeyException(de, ExceptionUtil.parseDuplicateException(de), bindingResult);
 			} else {
-				bindingResult.addError(new ObjectError(clazz.getSimpleName(), "保存失败！"));
+				bindingResult.addError(new ObjectError(clazz.getSimpleName(), cf.convert(e.getClass().getName())));
 			}
 	    	commonAttribute(model);
 	    	formAttribute(model);
@@ -96,8 +98,8 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	    return "redirect:" + mappingUrl;
 	}
 
-	private void parseDuplicateKeyException(BindingResult bindingResult) {
-		bindingResult.addError(new ObjectError(clazz.getSimpleName(), "保存失败！"));
+	protected void parseDuplicateKeyException(DuplicateKeyException de, String unique, BindingResult bindingResult) {
+		bindingResult.addError(new ObjectError(clazz.getSimpleName(), cf.convert(de.getClass().getName())));
 	}
 
 	protected abstract void formAttribute(Model model);

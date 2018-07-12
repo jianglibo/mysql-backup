@@ -23,7 +23,7 @@
 				<ul>
 					<li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
 						<span th:text="${e.global}? '*' : ${e.fieldName}">The field name</span> |
-						<span th:text="${e.message}">The error message</span>
+						<span th:text="#{${e.message}}">The error message</span>
 					</li>
 				</ul>
 			</aside>
