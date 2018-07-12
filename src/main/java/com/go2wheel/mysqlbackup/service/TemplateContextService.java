@@ -20,7 +20,7 @@ import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 
 @Service
@@ -32,7 +32,7 @@ public class TemplateContextService {
 	private ServerStateDbService serverStateDbService;
 
 	@Autowired
-	private UserServerGrpDbService userServerGrpDbService;
+	private SubscribeDbService userServerGrpDbService;
 
 	@Autowired
 	private UserAccountDbService userAccountDbService;
@@ -61,7 +61,7 @@ public class TemplateContextService {
 	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
 	
-	public ServerGroupContext createMailerContext(UserServerGrp userServerGrp) {
+	public ServerGroupContext createMailerContext(Subscribe userServerGrp) {
 		ServerGrp sg = serverGrpDbService.findById(userServerGrp.getServerGrpId());
 		UserAccount ua = userAccountDbService.findById(userServerGrp.getUserAccountId());
 
@@ -81,7 +81,7 @@ public class TemplateContextService {
 	}
 	
 	public ServerGroupContext createMailerContext(int userServerGrpId) {
-		UserServerGrp usg = userServerGrpDbService.findById(userServerGrpId);
+		Subscribe usg = userServerGrpDbService.findById(userServerGrpId);
 		return createMailerContext(usg);
 	}
 	

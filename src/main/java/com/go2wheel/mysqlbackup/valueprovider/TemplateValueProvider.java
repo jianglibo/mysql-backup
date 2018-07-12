@@ -54,7 +54,10 @@ public class TemplateValueProvider implements ValueProvider {
 		if (input.startsWith("-")) {
 			return new ArrayList<>();
 		}
-
+		return findTopTemplates(input).stream().map(CompletionProposal::new).collect(Collectors.toList());
+	}
+	
+	public List<String> findTopTemplates(String input) {
 		List<String> ls = new ArrayList<>();
 
 		if (freemarkerPath != null) {
@@ -77,7 +80,6 @@ public class TemplateValueProvider implements ValueProvider {
 			}
 		}
 		ls.addAll(ls1);
-
-		return ls.stream().map(CompletionProposal::new).collect(Collectors.toList());
+		return ls;
 	}
 }

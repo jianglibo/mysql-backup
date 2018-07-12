@@ -10,17 +10,17 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
-import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
+import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 
 public class UserServerGrpValueProvider  implements ValueProvider {
 	
 	@Autowired
-	private UserServerGrpDbService userServerGrpDbService;
+	private SubscribeDbService userServerGrpDbService;
 
     @Override
     public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
-        return parameter.getParameterType().equals(UserServerGrp.class);
+        return parameter.getParameterType().equals(Subscribe.class);
     }
 
     @Override
@@ -31,7 +31,7 @@ public class UserServerGrpValueProvider  implements ValueProvider {
         if (input.startsWith("-")) {
         	return new ArrayList<>();
         }
-        List<UserServerGrp> servers = userServerGrpDbService.findAll(); 
+        List<Subscribe> servers = userServerGrpDbService.findAll(); 
         return servers.stream().map(sv -> sv.toListRepresentation()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     

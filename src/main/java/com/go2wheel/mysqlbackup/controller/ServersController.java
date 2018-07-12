@@ -46,6 +46,11 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 		return new Server();
 	}
 	
+	@Override
+	protected int getMenuOrder() {
+		return 100;
+	}
+	
 	
 	private Set<String> getOses() {
 		List<String> oses = getDbService().findDistinctOsType("");
@@ -64,64 +69,5 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	@Override
 	protected void listExtraAttributes(Model model) {
 	}
-	
-//	@GetMapping("")
-//	String getPage(Model model) {
-//		List<Server> servers = serverDbService.findAll();
-//		model.addAttribute(LIST_OB_NAME, servers);
-//		return LIST_TPL;
-//	}
-//	
-//	@GetMapping("/create")
-//	String getCreate(Model model) {
-//		model.addAttribute(OB_NAME, new Server());
-//		model.addAttribute("oses", getOses());
-//		return FORM_TPL;
-//	}
-//	
-//	@PostMapping("/create")
-//	String postCreate(@Validated @ModelAttribute(OB_NAME) Server server, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
-//	    if (bindingResult.hasErrors()) {
-//	    	model.addAttribute("oses", getOses());
-//	        return FORM_TPL;
-//		}
-//		
-//		serverDbService.save(server);
-//	    
-//	    ras.addFlashAttribute("formProcessSuccessed", true);
-//	    return "redirect:" + uri;
-//	}
-//
-//	@GetMapping("/{id}/edit")
-//	String getEdit(@PathVariable(name="id") Server server, Model model) {
-//		model.addAttribute(OB_NAME, server);
-//		model.addAttribute("editing", true);
-//		model.addAttribute("oses", getOses());
-//		model.addAttribute("crons", reuseableCronDbService.findAll());
-//		return FORM_TPL;
-//	}
-//	
-//	@PutMapping("/{id}/edit")
-//	String putEdit(@Validated @ModelAttribute(OB_NAME) Server serverUpdated, @PathVariable(name="id") Server serverOrigin,  final BindingResult bindingResult,Model model, RedirectAttributes ras) {
-//		if (bindingResult.hasErrors()) {
-//	        return FORM_TPL;
-//		}
-//		serverOrigin.setName(serverUpdated.getName());
-//		serverOrigin.setHost(serverUpdated.getHost());
-//		
-//		serverOrigin.setUsername(serverUpdated.getUsername());
-//		serverOrigin.setPassword(serverUpdated.getPassword());
-//		serverOrigin.setServerStateCron(serverUpdated.getServerStateCron());
-//		serverOrigin.setStorageStateCron(serverUpdated.getStorageStateCron());
-//		serverOrigin.setSshKeyFile(serverUpdated.getSshKeyFile());
-//		serverOrigin.setServerRole(serverUpdated.getServerRole());
-//		serverOrigin.setOs(serverUpdated.getOs());
-//		serverDbService.save(serverOrigin);
-//        ras.addFlashAttribute("formProcessSuccessed", true);
-//	    return "redirect:" + uri;
-//	}
-//	@Override
-//	public List<MainMenuItem> getMenuItems() {
-//		return Arrays.asList(new MainMenuItem("appmodel", "servers", uri, 100));
-//	}
+
 }

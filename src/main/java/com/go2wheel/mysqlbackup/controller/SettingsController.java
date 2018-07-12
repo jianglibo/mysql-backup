@@ -24,8 +24,8 @@ import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
 
-@Controller
-@RequestMapping(SettingsController.uri)
+//@Controller
+//@RequestMapping(SettingsController.uri)
 public class SettingsController  extends ControllerBase {
 	
 	public static final String uri = "/app/settings";

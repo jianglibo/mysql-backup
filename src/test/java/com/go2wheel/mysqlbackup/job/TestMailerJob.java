@@ -26,7 +26,7 @@ import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.Session;
 
@@ -57,7 +57,7 @@ public class TestMailerJob extends JobBaseFort {
 	private MysqlService mysqlService;
 	
 	
-	private UserServerGrp simulation() throws SchedulerException, InterruptedException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -78,7 +78,7 @@ public class TestMailerJob extends JobBaseFort {
 		
 		serverGrpDbService.addServer(sg, server);
 		
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
+		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
 		usg = userServerGrpDbService.save(usg);
 		deleteAllJobs();
 		createServerData();
@@ -134,7 +134,7 @@ public class TestMailerJob extends JobBaseFort {
 	@Test
 	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException {
 		
-		UserServerGrp usg = simulation();
+		Subscribe usg = simulation();
 		
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, usg.getId());

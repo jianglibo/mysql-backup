@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MenuGroup implements Comparable<MenuGroup>{
+public class MainMenuGroup implements Comparable<MainMenuGroup>{
 	
 	private String name;
 	
@@ -13,14 +13,14 @@ public class MenuGroup implements Comparable<MenuGroup>{
 	private List<MainMenuItem> items = new ArrayList<>();
 	
 	
-	public MenuGroup() {}
+	public MainMenuGroup() {}
 	
-	public MenuGroup(String name) {
+	public MainMenuGroup(String name) {
 		this.name = name;
 	}
 	
-	public MenuGroup clone() {
-		MenuGroup nmg = new MenuGroup();
+	public MainMenuGroup clone() {
+		MainMenuGroup nmg = new MainMenuGroup();
 		nmg.setName(getName());
 		nmg.setOrder(getOrder());
 		nmg.setItems(getItems().stream().map(it -> it.clone()).collect(Collectors.toList()));
@@ -28,7 +28,7 @@ public class MenuGroup implements Comparable<MenuGroup>{
 	}
 
 	@Override
-	public int compareTo(MenuGroup o) {
+	public int compareTo(MainMenuGroup o) {
 		return this.getOrder().compareTo(o.getOrder());
 	}
 

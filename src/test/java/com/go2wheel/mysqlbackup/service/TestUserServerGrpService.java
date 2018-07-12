@@ -10,7 +10,7 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 
 public class TestUserServerGrpService extends ServiceTbase {
 
@@ -18,7 +18,7 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tCreate() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId() , A_VALID_CRON_EXPRESSION, "amnese")
+		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId() , A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
 		usg = userServerGrpDbService.save(usg);
 		assertThat(usg.getId(), greaterThan(99));
@@ -28,16 +28,16 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tFindByUser() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "amnese")
+		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
 		usg = userServerGrpDbService.save(usg);
 		
 		ServerGrp sg1 = createAServerGrp("kku");
-		usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg1.getId(), A_VALID_CRON_EXPRESSION, "amenese")
+		usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg1.getId(), A_VALID_CRON_EXPRESSION, "amenese")
 				.build();
 		usg = userServerGrpDbService.save(usg);
 		
-		List<UserServerGrp> usgs = userServerGrpDbService.findByUser(ua);
+		List<Subscribe> usgs = userServerGrpDbService.findByUser(ua);
 		assertThat(usgs.size(), equalTo(2));
 
 	}

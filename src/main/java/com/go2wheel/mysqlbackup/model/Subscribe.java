@@ -5,7 +5,7 @@ import java.util.Date;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 
-public class UserServerGrp extends BaseModel {
+public class Subscribe extends BaseModel {
 	
 	private Integer userAccountId;
 	private Integer serverGrpId;
@@ -61,8 +61,8 @@ public class UserServerGrp extends BaseModel {
 		}
 		
 		
-		public UserServerGrp build() {
-			UserServerGrp usg = new UserServerGrp();
+		public Subscribe build() {
+			Subscribe usg = new Subscribe();
 			usg.setCreatedAt(new Date());
 			usg.setCronExpression(cronExpression);
 			usg.setServerGrpId(serverGrpId);

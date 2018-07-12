@@ -78,7 +78,7 @@ import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MySqlInstaller;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
@@ -95,7 +95,7 @@ import com.go2wheel.mysqlbackup.service.SqlService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
-import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -192,7 +192,7 @@ public class BackupCommand {
 	private BorgDescriptionDbService borgDescriptionDbService;
 
 	@Autowired
-	private UserServerGrpDbService userServerGrpDbService;
+	private SubscribeDbService userServerGrpDbService;
 
 	@Autowired
 	private ReuseableCronDbService reusableCronDbService;
@@ -884,13 +884,13 @@ public class BackupCommand {
 		return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
 	}
 
-	private UserServerGrpVo getusgvo(UserServerGrp usgl) {
+	private UserServerGrpVo getusgvo(Subscribe usgl) {
 		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),
 				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
 	}
 
 	@ShellMethod(value = "列出用户和服务器组的关系。")
-	public FacadeResult<?> userServerGroupList() {
+	public FacadeResult<?> subscribeList() {
 		List<UserServerGrpVo> vos = userServerGrpDbService.findAll().stream().map(usgl -> getusgvo(usgl))
 				.collect(Collectors.toList());
 
@@ -898,21 +898,21 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "添加用户和服务器组的关系。")
-	public FacadeResult<?> userServerGroupCreate(
+	public FacadeResult<?> subscribeCreate(
 			@ShellOption(help = "用户名") UserAccount user,
 			@ShellOption(help = "服务器组") ServerGrp serverGroup,
 			@ShellOption(help = "一个有意义的名称") String name,
 			@TemplateIndicator
 			@ShellOption(help = "邮件的模板名称") String template,
 			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
-		UserServerGrp usg;
+		Subscribe usg;
 		if (user == null) {
 			return parameterRequired("user");
 		}
 		if (serverGroup == null) {
 			return parameterRequired("server-group");
 		}
-		usg = new UserServerGrp.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
+		usg = new Subscribe.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
 				.withTemplate(template)
 				.build();
 		usg = userServerGrpDbService.save(usg);
@@ -920,8 +920,8 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "删除用户和服务器组的关系。")
-	public FacadeResult<?> userServerGroupDelete(
-			@ShellOption(help = "要删除的User和ServerGrp关系。") UserServerGrp usg) {
+	public FacadeResult<?> subscribeDelete(
+			@ShellOption(help = "要删除的User和ServerGrp关系。") Subscribe usg) {
 		userServerGrpDbService.delete(usg);
 		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
 	}
@@ -1130,7 +1130,7 @@ public class BackupCommand {
 			@ShellOption(help = "邮件地址") @Email String email,
 			@TemplateIndicator
 			@ShellOption(help = "邮件模板") String template,
-			@ShellOption(help = "用户服务器组") UserServerGrp userServerGrp,
+			@ShellOption(help = "用户服务器组") Subscribe userServerGrp,
 			@ShellOption(help = "真的发送") boolean sendTruely
 			) throws ClassNotFoundException, IOException {
 		ServerGroupContext sgctx = templateContextService.createMailerContext(userServerGrp);

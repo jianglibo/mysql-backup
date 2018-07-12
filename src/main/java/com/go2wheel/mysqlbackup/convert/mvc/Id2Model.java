@@ -7,9 +7,11 @@ import org.springframework.core.convert.converter.ConverterFactory;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 
 public class Id2Model implements ConverterFactory<String, BaseModel> {
@@ -22,9 +24,11 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	@Autowired
 	private ServerGrpDbService serverGrpDbService;
 	
+	@Autowired
+	private SubscribeDbService subscribeDbService;
 
 	public <T extends BaseModel> Converter<String, T> getConverter(Class<T> targetType) {
-		return new StringToModelConverter(targetType);
+		return new StringToModelConverter<T>(targetType);
 	}
 
 	private final class StringToModelConverter<T extends BaseModel> implements Converter<String, T> {
@@ -42,6 +46,8 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) userAccountDbService.findById(source);
 			} else if (modelType == ServerGrp.class) {
 				return (T) serverGrpDbService.findById(source);
+			} else if (modelType == Subscribe.class) {
+				return (T) subscribeDbService.findById(source);
 			}
 			return (T) null;
 		}

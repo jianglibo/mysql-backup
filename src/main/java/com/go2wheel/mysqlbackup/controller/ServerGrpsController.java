@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 
 
 @Controller
@@ -41,5 +40,9 @@ public class ServerGrpsController  extends CRUDController<ServerGrp, ServerGrpDb
 	}
 
 
+	@Override
+	protected int getMenuOrder() {
+		return 200;
+	}
 
 }

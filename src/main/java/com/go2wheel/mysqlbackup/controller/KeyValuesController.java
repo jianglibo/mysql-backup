@@ -1,0 +1,46 @@
+package com.go2wheel.mysqlbackup.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.go2wheel.mysqlbackup.service.KeyValueDbService;
+
+
+@Controller
+@RequestMapping(KeyValuesController.MAPPING_PATH)
+public class KeyValuesController  extends CRUDController<KeyValue, KeyValueDbService> {
+	
+	public static final String MAPPING_PATH = "/app/key-values";
+	
+	@Autowired
+	public KeyValuesController(KeyValueDbService dbService) {
+		super(KeyValue.class, dbService, MAPPING_PATH);
+	}
+
+	@Override
+	void copyProperties(KeyValue entityFromForm, KeyValue entityFromDb) {
+		entityFromDb.setItemKey(entityFromForm.getItemKey());
+		entityFromDb.setItemValue(entityFromForm.getItemValue());
+	}
+
+	@Override
+	public KeyValue newModel() {
+		return new KeyValue();
+	}
+
+	@Override
+	protected void formAttribute(Model model) {
+		
+	}
+
+	@Override
+	protected void listExtraAttributes(Model model) {
+	}
+	
+	protected int getMenuOrder() {
+		return 1000;
+	}
+}

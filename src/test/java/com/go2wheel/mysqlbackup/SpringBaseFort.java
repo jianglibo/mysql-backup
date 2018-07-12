@@ -5,7 +5,6 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -49,7 +48,7 @@ import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
-import com.go2wheel.mysqlbackup.service.UserServerGrpDbService;
+import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
@@ -105,7 +104,7 @@ public class SpringBaseFort {
 	protected PlayBackDbService playBackDbService;
 	
 	@Autowired
-	protected UserServerGrpDbService userServerGrpDbService;
+	protected SubscribeDbService userServerGrpDbService;
 	
 	@Autowired
 	protected MysqlInstanceDbService mysqlInstanceDbService;

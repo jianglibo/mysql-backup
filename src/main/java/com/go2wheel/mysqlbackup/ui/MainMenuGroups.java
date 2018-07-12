@@ -30,24 +30,24 @@ public class MainMenuGroups implements ApplicationContextAware {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	List<MenuGroup> groups = new ArrayList<>();
+	List<MainMenuGroup> groups = new ArrayList<>();
 
 	private boolean cloned = false;
 
-	public List<MenuGroup> getGroups() {
+	public List<MainMenuGroup> getGroups() {
 		return groups;
 	}
 
-	public void setGroups(List<MenuGroup> groups) {
+	public void setGroups(List<MainMenuGroup> groups) {
 		this.groups = groups;
 	}
 
 	public MainMenuGroups clone() {
 		MainMenuGroups mgps = new MainMenuGroups();
 		mgps.cloned = true;
-		List<MenuGroup> clonedGroup = getGroups().stream().map(g -> g.clone()).collect(Collectors.toList());
-		Collections.sort(clonedGroup);
-		mgps.setGroups(clonedGroup);
+		List<MainMenuGroup> clonedGroups = getGroups().stream().map(g -> g.clone()).collect(Collectors.toList());
+		Collections.sort(clonedGroups);
+		mgps.setGroups(clonedGroups);
 		return mgps;
 	}
 
@@ -64,7 +64,7 @@ public class MainMenuGroups implements ApplicationContextAware {
 		}
 
 		for (int i = 1; i < getGroups().size(); i++) {
-			MenuGroup mg = getGroups().get(i);
+			MainMenuGroup mg = getGroups().get(i);
 			if (mg.getItems().size() > 0) {
 				mg.getItems().get(0).setGroupFirst(true);
 			}
@@ -96,10 +96,10 @@ public class MainMenuGroups implements ApplicationContextAware {
 					}
 					return mi;
 				}).forEach(mi -> {
-					Optional<MenuGroup> mgOp = groups.stream().filter(gp -> mi.getGroupName().equals(gp.getName()))
+					Optional<MainMenuGroup> mgOp = groups.stream().filter(gp -> mi.getGroupName().equals(gp.getName()))
 							.findFirst();
 					if (!mgOp.isPresent()) {
-						MenuGroup mg = new MenuGroup(mi.getGroupName());
+						MainMenuGroup mg = new MainMenuGroup(mi.getGroupName());
 						groups.add(mg);
 						mgOp = Optional.of(mg);
 					}
@@ -113,6 +113,7 @@ public class MainMenuGroups implements ApplicationContextAware {
 			}));
 			
 			List<MainMenuItem> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
+			Collections.sort(lm);
 			g.setItems(lm);
 		});
 		logger.info(YamlInstance.INSTANCE.yaml.dumpAsMap(groups));

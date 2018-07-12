@@ -4,9 +4,11 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.atteo.evo.inflector.English;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.ui.Model;
 import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -73,12 +75,29 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	@PostMapping("/create")
 	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
 	    if (bindingResult.hasErrors()) {
+	    	commonAttribute(model);
+	    	formAttribute(model);
+	    	model.addAttribute("editting", false);
+	        return getFormTpl();
+		}
+		try {
+			save(entityFromForm);
+		} catch (Exception e) {
+			if (e instanceof DuplicateKeyException) {
+				parseDuplicateKeyException(bindingResult);
+			} else {
+				bindingResult.addError(new ObjectError(clazz.getSimpleName(), "保存失败！"));
+			}
+	    	commonAttribute(model);
 	    	formAttribute(model);
 	        return getFormTpl();
 		}
-		save(entityFromForm);
 	    ras.addFlashAttribute("formProcessSuccessed", true);
 	    return "redirect:" + mappingUrl;
+	}
+
+	private void parseDuplicateKeyException(BindingResult bindingResult) {
+		bindingResult.addError(new ObjectError(clazz.getSimpleName(), "保存失败！"));
 	}
 
 	protected abstract void formAttribute(Model model);
@@ -109,7 +128,11 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	@Override
 	public List<MainMenuItem> getMenuItems() {
-		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), mappingUrl, 200));
+		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), mappingUrl, getMenuOrder()));
+	}
+	
+	protected int getMenuOrder() {
+		return 100000;
 	}
 	
 	public List<T> getItemList() {

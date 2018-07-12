@@ -8,7 +8,7 @@ import org.quartz.SchedulerException;
 
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.model.UserServerGrp;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 
 public class TestUserAndServerGrp extends JobBaseFort {
 
@@ -22,7 +22,7 @@ public class TestUserAndServerGrp extends JobBaseFort {
 
 		assertThat(countJobs(), equalTo(0L));
 
-		UserServerGrp usg = new UserServerGrp.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION,
+		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION,
 				"aname").build(); // no cron expression.
 		usg = userServerGrpDbService.save(usg);
 		assertThat(countJobs(), equalTo(1L));
