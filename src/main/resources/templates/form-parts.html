@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+    <th:block th:fragment="title">
+        <title th:text="(${editing} ? '编辑' : '新建') + #{${entityName}}">编辑或新建</title>
+    </th:block>
+
+    <th:block th:fragment="header">
+        <h1 th:text="(${editing} ? '编辑' : '新建') + #{${entityName}}">编辑或新建</h1>
+    </th:block>
+
+    	<div th:fragment="content (fields)" class="content">
+				<h2 id="common-layouts" class="content-subhead">
+				</h2>
+					<aside class="success" th:if="${formProcessSuccessed}">
+						<p>修改成功。</p>
+					</aside>
+				<form class="pure-form pure-form-aligned" action="#" th:action="@{${#request.getRequestURI()}}" th:object="${singleItem}" method="POST">
+					<aside class="warn" th:if="${#fields.hasErrors('*')}">
+					<ul>
+					    <li th:each="e : ${#fields.detailedErrors()}" th:class="${e.global}? globalerr : fielderr">
+					        <span th:text="${e.global}? '*' : ${e.fieldName}">The field name</span> |
+					        <span th:text="${e.message}">The error message</span>
+					    </li>
+					</ul>
+					</aside>
+					<input th:if="${editing}" type="hidden" name="_method" value="PUT">
+					<fieldset>
+                        <th:block th:replace="${fields}"></th:block>
+						<div class="pure-controls">
+							<button type="submit" class="pure-button pure-button-primary" th:text="发送">Submit</button>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+</body>
