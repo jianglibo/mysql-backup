@@ -21,9 +21,10 @@ public class KeyValuesController  extends CRUDController<KeyValue, KeyValueDbSer
 	}
 
 	@Override
-	void copyProperties(KeyValue entityFromForm, KeyValue entityFromDb) {
+	boolean copyProperties(KeyValue entityFromForm, KeyValue entityFromDb) {
 		entityFromDb.setItemKey(entityFromForm.getItemKey());
 		entityFromDb.setItemValue(entityFromForm.getItemValue());
+		return true;
 	}
 
 	@Override

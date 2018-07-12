@@ -13,19 +13,19 @@
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group})" class="content">
 				<div class="pure-control-group">
-					<label for="name">名称</label>
-					<input th:field="*{name}" type="text" placeholder="">
-					<span class="pure-form-message-inline">必须.</span>
+					<label for="jobClass">Job類名称</label>
+					<input th:field="*{jobClass}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
 				</div>
 
 				<div class="pure-control-group">
-					<label for="email">邮件地址</label>
-					<input th:field="*{email}" type="text" placeholder="">
-					<span class="pure-form-message-inline">必须.</span>
+					<label for="ctx">Context</label>
+					<input th:field="*{ctx}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
 				</div>
 				<div class="pure-control-group">
-					<label for="mobile">手机账号</label>
-					<input th:field="*{mobile}" type="text" placeholder="">
+					<label for="ctx">Context</label>
+					<textarea th:field="*{exp}" placeholder=""></textarea>
 					<span class="pure-form-message-inline"></span>
 				</div>
 			</div>

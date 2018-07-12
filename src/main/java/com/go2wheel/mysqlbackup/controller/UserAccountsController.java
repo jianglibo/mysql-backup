@@ -21,10 +21,11 @@ public class UserAccountsController  extends CRUDController<UserAccount, UserAcc
 	}
 
 	@Override
-	void copyProperties(UserAccount entityFromForm, UserAccount entityFromDb) {
+	boolean copyProperties(UserAccount entityFromForm, UserAccount entityFromDb) {
 		entityFromDb.setEmail(entityFromForm.getEmail());
 		entityFromDb.setMobile(entityFromForm.getMobile());
 		entityFromDb.setName(entityFromForm.getName());
+		return true;
 	}
 
 	@Override

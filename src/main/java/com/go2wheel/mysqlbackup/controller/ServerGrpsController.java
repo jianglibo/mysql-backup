@@ -26,9 +26,10 @@ public class ServerGrpsController  extends CRUDController<ServerGrp, ServerGrpDb
 	}
 
 	@Override
-	void copyProperties(ServerGrp entityFromForm, ServerGrp entityFromDb) {
+	boolean copyProperties(ServerGrp entityFromForm, ServerGrp entityFromDb) {
 		entityFromDb.setEname(entityFromForm.getEname());
 		entityFromDb.setMsgkey(entityFromForm.getMsgkey());
+		return true;
 	}
 
 	@Override

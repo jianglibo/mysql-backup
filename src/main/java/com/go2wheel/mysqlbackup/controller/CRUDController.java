@@ -48,7 +48,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		Assert.isTrue(mappingUrl.endsWith(lowerHyphenPlural), "requestmapping url should match classname.");
 	}
 	
-	abstract void copyProperties(T entityFromForm, T entityFromDb);
+	abstract boolean copyProperties(T entityFromForm, T entityFromDb);
 	
 	private void commonAttribute(Model model) {
 		model.addAttribute("mapping", mappingUrl);
@@ -121,8 +121,9 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 			formAttribute(model);
 			return getFormTpl();
 		}
-		copyProperties(entityFromForm, entityFromDb);
-		save(entityFromDb);
+		if (copyProperties(entityFromForm, entityFromDb)) {
+			save(entityFromDb);
+		}
         ras.addFlashAttribute("formProcessSuccessed", true);
 	    return "redirect:" + mappingUrl;
 	}

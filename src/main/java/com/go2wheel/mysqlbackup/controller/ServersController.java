@@ -29,7 +29,7 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	private ReuseableCronDbService reuseableCronDbService;
 
 	@Override
-	void copyProperties(Server entityFromForm, Server entityFromDb) {
+	boolean copyProperties(Server entityFromForm, Server entityFromDb) {
 		entityFromDb.setName(entityFromForm.getName());
 		entityFromDb.setHost(entityFromForm.getHost());
 		entityFromDb.setUsername(entityFromForm.getUsername());
@@ -39,6 +39,7 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 		entityFromDb.setSshKeyFile(entityFromForm.getSshKeyFile());
 		entityFromDb.setServerRole(entityFromForm.getServerRole());
 		entityFromDb.setOs(entityFromForm.getOs());
+		return true;
 	}
 
 	@Override

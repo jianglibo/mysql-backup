@@ -37,12 +37,13 @@ public class SubscribesController  extends CRUDController<Subscribe, SubscribeDb
 	}
 
 	@Override
-	void copyProperties(Subscribe entityFromForm, Subscribe entityFromDb) {
+	boolean copyProperties(Subscribe entityFromForm, Subscribe entityFromDb) {
 		entityFromDb.setName(entityFromForm.getName());
 		entityFromDb.setCronExpression(entityFromForm.getCronExpression());
 		entityFromDb.setServerGrpId(entityFromForm.getServerGrpId());
 		entityFromDb.setTemplate(entityFromForm.getTemplate());
 		entityFromDb.setUserAccountId(entityFromForm.getUserAccountId());
+		return true;
 	}
 
 	@Override
