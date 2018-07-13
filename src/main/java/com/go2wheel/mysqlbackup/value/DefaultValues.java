@@ -80,7 +80,7 @@ public class DefaultValues {
 
 
 	@EventListener
-	public void whenBorgDescriptionCreated(ModelCreatedEvent<KeyValue> keyValueCreatedEvent) {
+	public void whenKeyValueCreated(ModelCreatedEvent<KeyValue> keyValueCreatedEvent) {
 		KeyValue kv = keyValueCreatedEvent.getModel();
 		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
 			reLoadDefaultCount();
@@ -88,7 +88,7 @@ public class DefaultValues {
 	}
 	
 	@EventListener
-	public void whenBorgDescriptionChanged(ModelChangedEvent<KeyValue> keyValueChangedEvent) {
+	public void whenKeyValueChanged(ModelChangedEvent<KeyValue> keyValueChangedEvent) {
 		KeyValue kv = keyValueChangedEvent.getAfter();
 		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
 			reLoadDefaultCount();
@@ -96,7 +96,7 @@ public class DefaultValues {
 	}
 	
 	@EventListener
-	public void whenBorgDescriptionDeleted(ModelDeletedEvent<KeyValue> keyValueDeletedEvent) {
+	public void whenKeyValueDeleted(ModelDeletedEvent<KeyValue> keyValueDeletedEvent) {
 		KeyValue kv = keyValueDeletedEvent.getModel();
 		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
 			reLoadDefaultCount();
