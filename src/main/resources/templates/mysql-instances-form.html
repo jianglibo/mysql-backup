@@ -1,0 +1,81 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title th:replace="form-parts :: title"></title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:replace="form-parts :: header">编辑或新建</h1>
+			</div>
+			<div th:replace="form-parts :: content(~{::div.pure-control-group})" class="content">
+				<div class="pure-control-group">
+					<label for="host">MYSQL主機</label>
+					<input th:field="*{host}" type="text" placeholder="">
+					<span class="pure-form-message-inline">必须.</span>
+				</div>
+
+				<div class="pure-control-group">
+					<label for="port">監聽端口</label>
+					<input th:field="*{port}" type="text" placeholder="">
+					<span class="pure-form-message-inline">必须.</span>
+				</div>
+				<div class="pure-control-group">
+					<label for="username">用戶賬號</label>
+					<input th:field="*{username}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="password">賬號密碼</label>
+					<input th:field="*{password}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="mycnfFile">配置文件</label>
+					<input th:field="*{mycnfFile}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="clientBin">MYSQL clientBin</label>
+					<input th:field="*{clientBin}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="dumpFileName">dump文件名</label>
+					<input th:field="*{dumpFileName}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="serverId">服務器ID</label>
+					<input th:field="*{serverId}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>				
+				<div class="pure-control-group pure-combo">
+					<label for="flushLogCron">日志刷新計劃</label>
+					<input th:field="*{flushLogCron}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.flushLogCron}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+
+				<div class="pure-control-group">
+					<label for="mysqlSettings">Mysql配置</label>
+					<textarea th:field="*{mysqlSettings}" placeholder=""></textarea>
+					<span class="pure-form-message-inline"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script th:src="@{/freact/main.9e9434a5.js}" src="../cache-forever/freact/main.9e9434a5.js"></script>
+	<script>
+		window.freact.pureCombo();
+	</script>
+</body>
+
+</html>

@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.controller;
 import java.util.Arrays;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.atteo.evo.inflector.English;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.ui.Model;
@@ -50,9 +52,13 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	abstract boolean copyProperties(T entityFromForm, T entityFromDb);
 	
-	private void commonAttribute(Model model) {
+	protected void commonAttribute(Model model) {
 		model.addAttribute("mapping", mappingUrl);
 		model.addAttribute("entityName", clazz.getName());
+	}
+	
+	protected String getLowerHyphenClassName(Class<?> clz) {
+		return cf.convert(clz.getName());
 	}
 	
 	@GetMapping("")
@@ -64,7 +70,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 	
 	@GetMapping("/create")
-	String getCreate(Model model) {
+	String getCreate(Model model, HttpServletRequest httpRequest ) {
 		model.addAttribute(OB_NAME, newModel());
 		model.addAttribute("editting", false);
 		commonAttribute(model);
@@ -88,7 +94,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 				DuplicateKeyException de = (DuplicateKeyException) e;
 				parseDuplicateKeyException(de, ExceptionUtil.parseDuplicateException(de), bindingResult);
 			} else {
-				bindingResult.addError(new ObjectError(clazz.getSimpleName(), cf.convert(e.getClass().getName())));
+				bindingResult.addError(new ObjectError(OB_NAME, getLowerHyphenClassName(e.getClass())));
 			}
 	    	commonAttribute(model);
 	    	formAttribute(model);
@@ -125,7 +131,11 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 			save(entityFromDb);
 		}
         ras.addFlashAttribute("formProcessSuccessed", true);
-	    return "redirect:" + mappingUrl;
+	    return redirectMappingUrl();
+	}
+	
+	public String redirectMappingUrl() {
+		return "redirect:" + mappingUrl;
 	}
 
 	

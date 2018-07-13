@@ -184,20 +184,22 @@ copyFilesToArchive.dependsOn bootJar
 packmyzip.dependsOn copyFilesToArchive
 test.dependsOn bootBuildInfo
 
-task writeVersionFile() << {
-   def props = new Properties()
-   props["version"] = project.version
-   props["build-time"] = java.time.Instant.now().toString()
-   def f = file("${project['buildDir']}/../src/main/resources/app.version");
-   println f
-   def writer = new FileWriter(f)
-   
-   try {
-      props.store(writer, 'Some comment')
-      writer.flush()
-   } finally {
-      writer.close()
-   }
+task writeVersionFile {
+   doLast {
+	   def props = new Properties()
+	   props["version"] = project.version
+	   props["build-time"] = java.time.Instant.now().toString()
+	   def f = file("${project['buildDir']}/../src/main/resources/app.version");
+	   println f
+	   def writer = new FileWriter(f)
+	   
+	   try {
+	      props.store(writer, 'Some comment')
+	      writer.flush()
+	   } finally {
+	      writer.close()
+	   }
+	}
 }
 
 task hello {

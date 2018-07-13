@@ -6,9 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -16,8 +20,9 @@ public class MysqlInstance extends BaseModel {
 	
 	public static final String VAR_DATADIR = "datadir";
 	
-	private String host;
-	private int port;
+	private String host = "localhost";
+	private int port = 3306;
+	@NotEmpty(message = CommonMessageKeys.VALIDATOR_NOTNULL)
 	private String username;
 	private String password;
 	private String mycnfFile;
@@ -28,7 +33,8 @@ public class MysqlInstance extends BaseModel {
 	@CronExpressionConstraint(allowEmpty=true)
 	private String flushLogCron;
 	
-	private int serverId;
+	@NotNull(message=CommonMessageKeys.VALIDATOR_NOTNULL)
+	private Integer serverId;
 	
 	private List<String> mysqlSettings = new ArrayList<>();
 	
@@ -94,11 +100,11 @@ public class MysqlInstance extends BaseModel {
 		return null;
 	}
 
-	public int getServerId() {
+	public Integer getServerId() {
 		return serverId;
 	}
 
-	public void setServerId(int serverId) {
+	public void setServerId(Integer serverId) {
 		this.serverId = serverId;
 	}
 	

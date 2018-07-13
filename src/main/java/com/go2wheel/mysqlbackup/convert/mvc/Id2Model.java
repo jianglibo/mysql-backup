@@ -6,11 +6,13 @@ import org.springframework.core.convert.converter.ConverterFactory;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.JobLog;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.service.JobLogDbService;
+import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.SubscribeDbService;
@@ -28,6 +30,9 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	@Autowired
 	private SubscribeDbService subscribeDbService;
+	
+	@Autowired
+	private MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
 	private JobLogDbService jobLogDbService;
@@ -55,8 +60,11 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) subscribeDbService.findById(source);
 			} else if (modelType == JobLog.class) {
 				return (T) jobLogDbService.findById(source);
+			} else if (modelType == MysqlInstance.class) {
+				return (T) mysqlInstanceDbService.findById(source);
+			} else {
+				return (T) null;
 			}
-			return (T) null;
 		}
 	}
 
