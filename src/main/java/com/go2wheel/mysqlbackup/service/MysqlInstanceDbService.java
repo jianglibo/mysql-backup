@@ -18,4 +18,8 @@ public class MysqlInstanceDbService extends DbServiceBase<MysqlInstanceRecord, M
 	public MysqlInstance findByServerId(Integer id) {
 		return ((MysqlInstanceRepository)repo).findByServerId(id);
 	}
+
+	public MysqlInstance findByServerId(String serverId) {
+		return findByServerId(Integer.parseInt(serverId));
+	}
 }

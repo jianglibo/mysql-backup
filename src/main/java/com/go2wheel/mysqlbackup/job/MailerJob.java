@@ -43,43 +43,6 @@ public class MailerJob implements Job {
 		mail(sgctx.getUser().getEmail(), userServerGrp.getTemplate(), sgctx);
 	}
 	
-//	public ServerGroupContext createMailerContext(UserServerGrp userServerGrp) {
-//		ServerGrp sg = serverGrpDbService.findById(userServerGrp.getServerGrpId());
-//		UserAccount ua = userAccountDbService.findById(userServerGrp.getUserAccountId());
-//
-//		List<Server> servers = serverGrpDbService.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
-//				.collect(Collectors.toList());
-//
-//		List<ServerContext> oscs = new ArrayList<>();
-//
-//		for (Server server : servers) {
-//			ServerContext osc = makeServerContext(server);
-//			oscs.add(osc);
-//		}
-//		Server myself = serverDbService.findByHost("localhost");
-//		return new ServerGroupContext(oscs, ua, sg, makeServerContext(myself));
-//
-//	}
-	
-//	public ServerGroupContext createMailerContext(int userServerGrpId) {
-//		UserServerGrp usg = userServerGrpDbService.findById(userServerGrpId);
-//		return createMailerContext(usg);
-//
-//	}
-
-//	private ServerContext makeServerContext(Server server) {
-//		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getDefaultCount().getServerState());
-//		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlFlush());
-//		List<StorageState> storageStates = storageStateDbService.getItemsInDays(server, dvs.getDefaultCount().getStorageState());
-////		List<JobError> jobErrors = jobErrorDbService.getRecentItems(server, dvs.getDefaultCount().getJobError());
-//		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, dvs.getDefaultCount().getMysqlDump());
-//		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, dvs.getDefaultCount().getBorgDownload());
-//		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, null, mysqlDumps,
-//				borgDownloads);
-//		osc.setServer(server);
-//		return osc;
-//	}
-
 	@Autowired
 	public void setMailer(Mailer mailer) {
 		this.mailer = mailer;

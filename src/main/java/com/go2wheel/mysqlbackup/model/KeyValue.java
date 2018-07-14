@@ -1,8 +1,15 @@
 package com.go2wheel.mysqlbackup.model;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
+
 public class KeyValue extends BaseModel {
 	
+	@NotEmpty(message=CommonMessageKeys.VALIDATOR_NOTNULL)
 	private String itemKey;
+	@NotNull(message=CommonMessageKeys.VALIDATOR_NOTNULL)
 	private String itemValue;
 	
 	public KeyValue() {}

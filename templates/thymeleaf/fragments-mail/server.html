@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+
+<html xmlns:th="http://www.thymeleaf.org">
+
+<body>
+  <div th:fragment="detail (tplUtil, serverCtx)">
+    <div th:text="|服务器名称： ${serverCtx.server.name}, CPU核数: ${serverCtx.server.coreNumber}, 物理内存: ${serverCtx.mem}|"></div>
+
+    <div th:insert="~{fragments-mail/storage-state.html :: detail}"></div>
+    <div th:insert="~{fragments-mail/server-state.html :: detail}"></div>
+    <div th:insert="~{fragments-mail/mysql-dump.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
+    <div th:insert="~{fragments-mail/mysql-flush.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
+    <div th:insert="~{fragments-mail/borg-download.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
+  </div>
+</body>
+</html>

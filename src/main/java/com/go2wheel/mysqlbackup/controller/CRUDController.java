@@ -137,6 +137,10 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	public String redirectMappingUrl() {
 		return "redirect:" + mappingUrl;
 	}
+	
+	protected String redirectEditGet(Integer id) {
+		return "redirect:" + mappingUrl + "/" + id + "/edit";
+	}
 
 	
 	@Override

@@ -8,17 +8,21 @@
 	<p>---------------------- 服务器健康状况-------------------------------</p>
     <div th:each="daily: ${byHours}">
       <p th:text="${daily.key}">日期</p>
-      <table>
+      <table class="pure-table pure-table-bordered">
+        <thead>
         <tr>
           <th>时段</th>
           <th>内存使用率</th>
           <th>负载状况</th>
         </tr>
+      </thead>
+      <tbody>
         <tr th:each="serverStateHourly: ${daily.value}" th:with="hour=${serverStateHourly.key}, serverState=${serverStateHourly.value}">
           <td th:text="${hour}">Onions</td>
           <td th:text="|${#numbers.formatDecimal(serverState.avgMemused,0,2)}%|">2.41</td>
           <td th:text="|${#numbers.formatDecimal(serverState.avgLoad,0,2)}%|">Onions</td>
         </tr>
+      </tbody>
       </table>
     </div>
 	<p>---------------------- 服务器健康状况-------------------------------</p>
