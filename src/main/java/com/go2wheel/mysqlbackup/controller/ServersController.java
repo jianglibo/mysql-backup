@@ -2,6 +2,9 @@ package com.go2wheel.mysqlbackup.controller;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,8 +12,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.valueprovider.SharedValueProviderMethods;
 import com.google.common.collect.Sets;
 
@@ -27,6 +32,9 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 
 	@Autowired
 	private ReuseableCronDbService reuseableCronDbService;
+	
+	@Autowired
+	private ServerGrpDbService serverGrpDbService;
 
 	@Override
 	boolean copyProperties(Server entityFromForm, Server entityFromDb) {
@@ -50,6 +58,26 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	@Override
 	protected int getMenuOrder() {
 		return 100;
+	}
+	
+	@Override
+	String getListPage(Model model, HttpServletRequest httpRequest) {
+		String serverGrpId = httpRequest.getParameter("server-grp");
+		if (serverGrpId == null) {
+			return super.getListPage(model, httpRequest);
+		} else {
+			ServerGrp serverGrp = serverGrpDbService.findById(serverGrpId);
+			List<Server> grpServers = serverGrpDbService.getServers(serverGrp);
+			model.addAttribute(LIST_OB_NAME, grpServers);
+			List<Server> otherServers = getDbService().findAll().stream().filter(s -> 
+				!(grpServers.stream().anyMatch(ss -> ss.getId().equals(s.getId())))
+				).collect(Collectors.toList());
+			model.addAttribute("otherServers", otherServers);
+			model.addAttribute("serverGrp", serverGrp);
+			commonAttribute(model);
+			listExtraAttributes(model);
+			return getListTpl();
+		}
 	}
 	
 	

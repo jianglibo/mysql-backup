@@ -67,4 +67,11 @@ public class ServerDbService extends DbServiceBase<ServerRecord, Server> {
 	public List<Server> findLikeHostAndRoleIs(String input, String role) {
 		return ((ServerRepository)repo).findLikeHostAndRoleIs(input, role);
 	}
+
+	public Object findByGrpId(String serverGrpId) {
+		Integer id = Integer.parseInt(serverGrpId);
+		return ((ServerRepository)repo).findByGrpId(id);
+	}
+
+
 }

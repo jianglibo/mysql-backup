@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.repository;
 
 import static com.go2wheel.mysqlbackup.jooqschema.tables.Server.SERVER;
+import static com.go2wheel.mysqlbackup.jooqschema.tables.ServergrpAndServer.SERVERGRP_AND_SERVER;
 
 import java.util.List;
 
@@ -37,6 +38,15 @@ public class JOOQServerRepository extends RepositoryBaseImpl<ServerRecord, Serve
 	@Override
 	public List<Server> findLikeHostAndRoleIs(String partOfHostName, String role) {
 		String likeStr = partOfHostName.indexOf('%') == -1 ? '%' + partOfHostName + '%' : partOfHostName;
-		return jooq.selectFrom(SERVER).where(SERVER.HOST.likeIgnoreCase(likeStr).and(SERVER.SERVER_ROLE.eq(role))).fetchInto(Server.class);
+		return jooq.selectFrom(SERVER).where(SERVER.HOST.likeIgnoreCase(likeStr).and(SERVER.SERVER_ROLE.eq(role)))
+				.fetchInto(Server.class);
 	}
+
+	@Override
+	public Object findByGrpId(Integer grpId) {
+		return jooq.select(SERVER.fields()).from(SERVER).join(SERVERGRP_AND_SERVER)
+				.on(SERVER.ID.eq(SERVERGRP_AND_SERVER.SERVER_ID))
+				.where(SERVERGRP_AND_SERVER.GRP_ID.eq(grpId)).fetch().into(Server.class);
+	}
+
 }

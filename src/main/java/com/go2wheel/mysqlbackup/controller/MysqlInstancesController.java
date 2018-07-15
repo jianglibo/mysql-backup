@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +12,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 
 @Controller
@@ -21,6 +26,9 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	
 	@Autowired
 	private ReuseableCronDbService reuseableCronDbService;
+	
+	@Autowired
+	private ServerDbService serverDbService;
 	
 	@Autowired
 	public MysqlInstancesController(MysqlInstanceDbService dbService) {
@@ -69,8 +77,12 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		model.addAttribute("crons", reuseableCronDbService.findAll());
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void listExtraAttributes(Model model) {
+		List<MysqlInstance> mis = (List<MysqlInstance>) model.asMap().get(LIST_OB_NAME);
+		List<Server> servers = serverDbService.findByIds(mis.stream().map(MysqlInstance::getServerId).toArray(size -> new Integer[size]));
+		model.addAttribute(ID_ENTITY_MAP, servers.stream().collect(Collectors.toMap(Server::getId, s -> s)));
 	}
 	
 	protected int getMenuOrder() {

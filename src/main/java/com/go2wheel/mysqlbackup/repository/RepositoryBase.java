@@ -23,5 +23,7 @@ public interface RepositoryBase<R extends UpdatableRecord<R>, P extends BaseMode
 	List<P> findAll(Condition eq, int offset, int limit);
 
 	List<P> getRecentItems(int number);
+	
+	List<P> findByIds(Integer[] array);
 
 }

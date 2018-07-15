@@ -24,5 +24,7 @@ public class CommonMessageKeys {
 	public static final String DB_RECORD_DELETED = "db.record.deleted";
 	
 	public static final String VALIDATOR_NOTNULL = "validator.notnull";
+	
+	public static final String FUNCTION_NOT_IMPLEMENTED = "common.notimplemented";
 
 }

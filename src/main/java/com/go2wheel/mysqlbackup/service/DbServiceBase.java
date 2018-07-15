@@ -95,5 +95,9 @@ public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends Base
 	public List<P> findAll(Condition eq, int offset, int limit) {
 		return repo.findAll(eq, offset, limit);
 	}
+	
+	public List<P> findByIds(Integer[] array) {
+		return repo.findByIds(array);
+	}
 
 }

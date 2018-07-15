@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.repository;
 
+import java.util.Arrays;
 import java.util.List;
 
 import org.jooq.Condition;
@@ -58,6 +59,12 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	
 	public 	List<P> findAll(Condition eq, int offset, int limit) {
 		return jooq.selectFrom(getTable()).where(eq).orderBy(getTable().field("CREATED_AT").desc()).offset(offset).limit(limit).fetchInto(getType());
+	}
+	
+	@Override
+	public List<P> findByIds(Integer[] array) {
+		Field<?> idf = getTable().field("ID");
+		return jooq.selectFrom(getTable()).where(idf.in(Arrays.asList(array))).fetchInto(getType());
 	}
 	
 	@Override

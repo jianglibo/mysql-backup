@@ -12,6 +12,7 @@ import org.springframework.util.Assert;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +24,10 @@ import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.service.DbServiceBase;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
+import com.google.common.base.Splitter;
 
 public abstract class CRUDController<T extends BaseModel, D extends DbServiceBase<?, T>> extends ControllerBase {
 	
@@ -40,6 +43,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	private Converter<String, String> cf = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN);
 	
 	public static final String LIST_OB_NAME = "listItems";
+	public static final String ID_ENTITY_MAP = "idEntityMap";
 	public static final String OB_NAME = "singleItem";
 	
 	public CRUDController(Class<T> clazz,D dbService, String mappingUrl) {
@@ -62,7 +66,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 	
 	@GetMapping("")
-	String getListPage(Model model) {
+	String getListPage(Model model, HttpServletRequest httpRequest) {
 		model.addAttribute(LIST_OB_NAME, getItemList());
 		commonAttribute(model);
 		listExtraAttributes(model);
@@ -78,6 +82,19 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		return getFormTpl();
 	}
 	
+	@DeleteMapping
+	String delete(HttpServletRequest request, RedirectAttributes ras) {
+		String ids = request.getParameter("ids");
+		Integer[] intIds =  Splitter.on(',').trimResults().omitEmptyStrings().splitToList(ids).stream().map(Integer::parseInt).toArray(size -> new Integer[size]);
+		List<T> entities = dbService.findByIds(intIds);
+		ras.addFlashAttribute("deleteResult", deleteEntities(entities));
+		return redirectMappingUrl();
+	}
+	
+
+	protected String deleteEntities(List<T> entities) {
+		return CommonMessageKeys.FUNCTION_NOT_IMPLEMENTED;
+	}
 
 	@PostMapping("/create")
 	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
@@ -101,7 +118,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	        return getFormTpl();
 		}
 	    ras.addFlashAttribute("formProcessSuccessed", true);
-	    return "redirect:" + mappingUrl;
+	    return redirectMappingUrl();
 	}
 
 	protected void parseDuplicateKeyException(DuplicateKeyException de, String unique, BindingResult bindingResult) {
