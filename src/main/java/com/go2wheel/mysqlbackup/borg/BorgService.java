@@ -265,9 +265,11 @@ public class BorgService {
 			BorgDescription borgDescription = server.getBorgDescription();
 			List<String> cmdparts = new ArrayList<>();
 			cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
-			for (String f : borgDescription.getExcludes()) {
-				cmdparts.add("--exclude");
-				cmdparts.add("'" + f + "'");
+			if (borgDescription.getExcludes() != null) {
+				for (String f : borgDescription.getExcludes()) {
+					cmdparts.add("--exclude");
+					cmdparts.add("'" + f + "'");
+				}
 			}
 			cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
 					+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
@@ -313,6 +315,18 @@ public class BorgService {
 			BorgDescription bd = server.getBorgDescription();
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", bd.getRepo())); 
 			return FacadeResult.doneExpectedResult(new BorgListResult(rcr), CommonActionResult.DONE);
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
+	}
+	
+//	borg info /path/to/repo::2017-06-29T11:00-srv
+	public FacadeResult<List<String>> archiveInfo(Session session, Server server, String archive) {
+		try {
+			BorgDescription bd = server.getBorgDescription();
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg info %s::%s", bd.getRepo(), archive));
+			return FacadeResult.doneExpectedResult(rcr.getAllTrimedNotEmptyLines(), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);

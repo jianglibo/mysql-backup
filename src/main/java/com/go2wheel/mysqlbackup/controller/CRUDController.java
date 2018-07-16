@@ -110,7 +110,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	        return getFormTpl();
 		}
 		try {
-			save(entityFromForm);
+			entityFromForm = save(entityFromForm);
 		} catch (Exception e) {
 			if (e instanceof DuplicateKeyException) {
 				DuplicateKeyException de = (DuplicateKeyException) e;
@@ -123,6 +123,10 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	        return getFormTpl();
 		}
 	    ras.addFlashAttribute("formProcessSuccessed", true);
+	    return afterCreate(entityFromForm);
+	}
+
+	protected String afterCreate(T entityFromForm) {
 	    return redirectMappingUrl();
 	}
 
@@ -178,8 +182,8 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		return dbService.findAllSortByCreatedAtDesc();
 	}
 	
-	public void save(T entity) {
-		dbService.save(entity);
+	public T save(T entity) {
+		return dbService.save(entity);
 	}
 	
 	public abstract T newModel();

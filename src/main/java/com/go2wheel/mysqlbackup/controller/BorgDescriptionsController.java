@@ -8,10 +8,12 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -53,6 +55,8 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		entityFromDb.setArchiveNamePrefix(entityFromForm.getArchiveNamePrefix());
 		entityFromDb.setPruneCron(entityFromForm.getPruneCron());
 		entityFromDb.setRepo(entityFromForm.getRepo());
+		entityFromDb.setIncludes(entityFromForm.getIncludes());
+		entityFromDb.setExcludes(entityFromForm.getExcludes());
 		return true;
 	}
 	
@@ -74,6 +78,11 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		commonAttribute(model);
 		formAttribute(model);
 		return getFormTpl();
+	}
+	
+	@Override
+	protected String afterCreate(BorgDescription entityFromForm) {
+		return "redirect:" + MAPPING_PATH + "/" + entityFromForm.getId() + "/edit";
 	}
 
 	@Override
