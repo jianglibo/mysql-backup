@@ -99,5 +99,9 @@ public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends Base
 	public List<P> findByIds(Integer[] array) {
 		return repo.findByIds(array);
 	}
+	
+	public List<P> findAllSortByCreatedAtDesc() {
+		return repo.findAllSortByCreatedAtDesc();
+	}
 
 }

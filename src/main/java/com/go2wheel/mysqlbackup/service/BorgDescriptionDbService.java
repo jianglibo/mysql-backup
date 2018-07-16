@@ -18,4 +18,8 @@ public class BorgDescriptionDbService extends DbServiceBase<BorgDescriptionRecor
 	public BorgDescription findByServerId(Integer id) {
 		return ((BorgDescriptionRepository)repo).findByServerId(id);
 	}
+
+	public BorgDescription findByServerId(String serverId) {
+		return findByServerId(Integer.parseInt(serverId));
+	}
 }

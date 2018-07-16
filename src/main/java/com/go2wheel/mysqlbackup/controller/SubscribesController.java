@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -58,7 +60,12 @@ public class SubscribesController  extends CRUDController<Subscribe, SubscribeDb
 		model.addAttribute("serverGroups", serverGrpDbService.findAll());
 		model.addAttribute("templates", tvp.findTopTemplates(""));
 	}
-
+	
+	@Override
+	protected String deleteEntities(List<Subscribe> entities, boolean execute) {
+		return super.deleteEntities(entities, true);
+	}
+	
 	@Override
 	protected void listExtraAttributes(Model model) {
 	}

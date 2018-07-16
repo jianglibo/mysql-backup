@@ -22,6 +22,7 @@ import com.google.common.base.Converter;
 
 public class StringUtil {
 
+//	Pattern.compile("\r?\n")).
 	public static String NEWLINE_PTN = "[\\r\\n]+";
 
 	public static Pattern ALL_DIGITS_PTN = Pattern.compile("^\\d+$");

@@ -61,9 +61,9 @@ public class TemplateContextService {
 	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
 	
-	public ServerGroupContext createMailerContext(Subscribe userServerGrp) {
-		ServerGrp sg = serverGrpDbService.findById(userServerGrp.getServerGrpId());
-		UserAccount ua = userAccountDbService.findById(userServerGrp.getUserAccountId());
+	public ServerGroupContext createMailerContext(Subscribe subscribe) {
+		ServerGrp sg = serverGrpDbService.findById(subscribe.getServerGrpId());
+		UserAccount ua = userAccountDbService.findById(subscribe.getUserAccountId());
 
 		List<Server> servers = serverGrpDbService.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
 				.collect(Collectors.toList());
@@ -80,8 +80,8 @@ public class TemplateContextService {
 
 	}
 	
-	public ServerGroupContext createMailerContext(int userServerGrpId) {
-		Subscribe usg = userServerGrpDbService.findById(userServerGrpId);
+	public ServerGroupContext createMailerContext(int subscribeId) {
+		Subscribe usg = userServerGrpDbService.findById(subscribeId);
 		return createMailerContext(usg);
 	}
 	

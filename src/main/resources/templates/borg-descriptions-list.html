@@ -2,7 +2,7 @@
 <html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>订阅者列表</title>
+	<title>MYSQL設置列表</title>
 </head>
 
 <body>
@@ -12,6 +12,9 @@
 				<h1 th:text="#{${entityName}} + '列表'"></h1>
 			</div>
 			<div class="content">
+				<aside class="success" th:if="${deleteResult}">
+					<p th:text="${deleteResult}">修改成功。</p>
+				</aside>
 				<div id="action-menu-bar"></div>
 				<table class="pure-table pure-table-bordered item-list">
 					<thead>
@@ -19,8 +22,9 @@
 							<th>
 								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
 							</th>
-							<th>键</th>
-							<th>值</th>
+							<th>服務器</th>
+							<th>仓库路径</th>
+							<th>卷前缀</th>
 						</tr>
 					</thead>
 
@@ -29,19 +33,22 @@
 							<td>
 								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
 							</td>
-							<td th:text="${item.itemKey}">Honda</td>
-							<td th:text="${item.itemValue}">Accord</td>
+							<td><a th:text="${idEntityMap.get(item.serverId).name}" th:href="@{/app/servers/{serverId}/edit(serverId=${item.serverId})}" href="#">Honda</a></td>
+							<td th:text="${item.repo}">Accord</td>
+							<td th:text="${item.archiveNamePrefix}">2009</td>
 						</tr>
 						<tr>
 							<td>2</td>
 							<td>Toyota</td>
 							<td>Camry</td>
+							<td>2012</td>
 						</tr>
 
 						<tr>
 							<td>3</td>
 							<td>Hyundai</td>
 							<td>Elantra</td>
+							<td>2010</td>
 						</tr>
 					</tbody>
 				</table>
@@ -55,7 +62,7 @@
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
-			["create", "edit", "delete"]);
+			["edit", "delete"]);
 	</script>
 </body>
 

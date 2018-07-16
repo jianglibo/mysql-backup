@@ -68,6 +68,12 @@ public abstract class RepositoryBaseImpl<R extends UpdatableRecord<R>, P extends
 	}
 	
 	@Override
+	public List<P> findAllSortByCreatedAtDesc() {
+		SortField<?> sf = getTable().field("CREATED_AT").desc();
+		return findAll(sf, 0, 1000);
+	}
+	
+	@Override
 	public P insertAndReturn(P pojo) {
 		if (pojo.getId() != null) {
 			update(pojo);

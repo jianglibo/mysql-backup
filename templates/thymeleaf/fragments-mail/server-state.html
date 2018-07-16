@@ -5,7 +5,6 @@
 <body>
   <div th:fragment="detail" th:with="byHours=${serverCtx.getServerStatebyHours()}">
     <div th:if="${not #maps.isEmpty(byHours)}">
-	<p>---------------------- 服务器健康状况-------------------------------</p>
     <div th:each="daily: ${byHours}">
       <p th:text="${daily.key}">日期</p>
       <table class="pure-table pure-table-bordered">
@@ -25,7 +24,6 @@
       </tbody>
       </table>
     </div>
-	<p>---------------------- 服务器健康状况-------------------------------</p>
 	</div>
   </div>
 </body>

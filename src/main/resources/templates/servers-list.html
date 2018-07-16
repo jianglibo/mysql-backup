@@ -83,6 +83,11 @@
 				name: '管理MYSQL',
 				activeOn: 'SINGLE',
 				onClick: { react: 'GET', url: '/app/mysql-instances/create?server={id}' }
+			},{
+				actionId: 'createborg',
+				name: '备份目录',
+				activeOn: 'SINGLE',
+				onClick: { react: 'GET', url: '/app/borg-descriptions/create?server={id}' }
 			}, {
 				actionId: 'removeFromGrp',
 				name: '离开此群组',

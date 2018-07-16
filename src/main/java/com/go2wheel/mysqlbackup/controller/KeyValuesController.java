@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -30,6 +32,12 @@ public class KeyValuesController  extends CRUDController<KeyValue, KeyValueDbSer
 	@Override
 	public KeyValue newModel() {
 		return new KeyValue();
+	}
+	
+	
+	@Override
+	protected String deleteEntities(List<KeyValue> entities, boolean execute) {
+		return super.deleteEntities(entities, true);
 	}
 
 	@Override

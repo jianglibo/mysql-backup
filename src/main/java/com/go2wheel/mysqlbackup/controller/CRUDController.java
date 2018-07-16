@@ -87,13 +87,18 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		String ids = request.getParameter("ids");
 		Integer[] intIds =  Splitter.on(',').trimResults().omitEmptyStrings().splitToList(ids).stream().map(Integer::parseInt).toArray(size -> new Integer[size]);
 		List<T> entities = dbService.findByIds(intIds);
-		ras.addFlashAttribute("deleteResult", deleteEntities(entities));
+		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
 		return redirectMappingUrl();
 	}
 	
 
-	protected String deleteEntities(List<T> entities) {
-		return CommonMessageKeys.FUNCTION_NOT_IMPLEMENTED;
+	protected String deleteEntities(List<T> entities, boolean execute) {
+		if (execute) {
+			entities.forEach(en -> dbService.delete(en));
+			return CommonMessageKeys.MISSION_ACCOMPLISHED;
+		} else {
+			return CommonMessageKeys.FUNCTION_NOT_IMPLEMENTED;
+		}
 	}
 
 	@PostMapping("/create")
@@ -170,7 +175,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 	
 	public List<T> getItemList() {
-		return dbService.findAll();
+		return dbService.findAllSortByCreatedAtDesc();
 	}
 	
 	public void save(T entity) {

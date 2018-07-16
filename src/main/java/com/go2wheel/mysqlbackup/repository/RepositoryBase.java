@@ -26,4 +26,6 @@ public interface RepositoryBase<R extends UpdatableRecord<R>, P extends BaseMode
 	
 	List<P> findByIds(Integer[] array);
 
+	List<P> findAllSortByCreatedAtDesc();
+
 }
