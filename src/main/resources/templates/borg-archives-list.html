@@ -12,14 +12,29 @@
 				<h1>Borg卷列表</h1>
 			</div>
 			<div class="content">
+				<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+					<div class="modal-header">
+						<h1 id="myModalLabel">卷的详细信息</h1>
+					</div>
+
+					<div class="modal-body">
+						<pre class="code" data-language="html"><code>
+
+						</code></pre>
+					</div>
+
+					<div class="modal-footer">
+						<button class="pure-button" data-dismiss="modal" aria-hidden="true">Close</button>
+					</div>
+				</div>
 				<div id="action-menu-bar"></div>
-				<table class="pure-table pure-table-bordered item-list">
+				<table class="pure-table pure-table-bordered item-list item-list-single-select">
 					<thead>
 						<tr>
 							<th>
 								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
 							</th>
-							<th>JOB類</th>
+							<th>卷名称</th>
 						</tr>
 					</thead>
 
@@ -47,21 +62,34 @@
 	</div>
 
 	<script th:src="@{/freact/main.78d4e0c7.js}" src="../cache-forever/freact/main.78d4e0c7.js"></script>
+	<script th:src="@{/combo/1.18.13?/js/bootstrap.js}" src="../public/js/bootstrap.js"></script>
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var serverId = /*[[${server.id}]]*/ "0";
+		var cache = {};
+		var modal = jQuery('#myModal');
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			[{
 				actionId: 'removeFromGrp',
 				name: '详细内容',
 				activeOn: 'SINGLE',
-				onClick: function() {
+				onClick: function () {
 					console.log(this);
 					var item = this.state.selectedItems[0].id;
 					var url = '/app/borg/info/' + serverId + '/' + item;
-					console.log(url);
-					// $.ajax('/app/borg/info/' + serverId + )
+					
+					if (cache[url]) {
+						modal.find('.code').html(cache[url]);
+						modal.modal('show');
+					} else {
+						jQuery.ajax(url, {method: 'GET'}).done(function(data, textStatus, jqXHR){
+							cache[url] = data;
+							modal.find('.code').html(cache[url]);
+							modal.modal('show');
+						});
+					}
+
 				}
 			}]);
 	</script>

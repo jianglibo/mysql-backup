@@ -61,6 +61,9 @@ public class BorgController extends ControllerBase {
 	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+		if (!frSession.isExpected()) {
+			
+		}
 		Session session = frSession.getResult();
 		try {
 			FacadeResult<BorgListResult> fr = borgService.listArchives(session, server);

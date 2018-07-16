@@ -1,0 +1,24 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}" xmlns:th="http://www.thymeleaf.org">
+<head>
+	<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>出错啦</h1>
+				<h2>Problems are not stop signs,they are guidelines. Robert H.Schuller</h2>
+			</div>
+
+			<div class="content">
+				<h2 id="common-layouts" class="content-subhead" th:text="|服务器返回值: ${status}|">
+					状态值
+				</h2>
+
+				<aside>
+					<p th:text=${reason}>原因</p>
+				</aside>
+			</div>
+</body>
+</html>
