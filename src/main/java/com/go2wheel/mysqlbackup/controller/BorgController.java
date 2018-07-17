@@ -12,8 +12,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -21,7 +24,9 @@ import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
+import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.RedirectAjaxBody;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
@@ -79,8 +84,25 @@ public class BorgController extends ControllerBase {
 		return "borg-archives-list";
 	}
 	
+	@PutMapping("/archives/{server}")
+	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) {
+		server = serverDbService.loadFull(server);
+		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+		Session session = frSession.getResult();
+		try {
+			FacadeResult<BorgPruneResult> fr = borgService.pruneRepo(session, server);
+		} finally {
+			if (session != null && session.isConnected()) {
+				session.disconnect();
+			}
+		}
+		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
+		String uri = ucb.build().toUriString();
+		return "redirect:" + uri;
+	}
+	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server) {
+	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
@@ -91,7 +113,9 @@ public class BorgController extends ControllerBase {
 				session.disconnect();
 			}
 		}
-		return "redirect:/app/borg/archives/" + server.getId();
+		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
+		String uri = ucb.build().toUriString();
+		return "redirect:" + uri;
 	}
 
 	@Override
