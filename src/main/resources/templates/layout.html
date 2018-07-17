@@ -18,28 +18,21 @@
 	<link rel="stylesheet" href="../public/pure/1.0.0/built/pure-min.css" th:href="@{/pure/1.0.0/built/pure-min.css}">
 
 
-<!--
+	<!--
 	<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Raleway:200">
 -->
 	<!--[if lte IE 8]>
-   <link rel="stylesheet" href="/combo/1.18.13?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css&/css/customize.css">
-<![endif]-->
+   		<link rel="stylesheet" href="/combo/1.1.2?/css/main-grid-old-ie.css&/css/main-old-ie.css&/css/layouts.css&/css/rainbow/baby-blue.css&/css/customize.css">
+	<![endif]-->
 
 	<!--[if gt IE 8]><!-->
-	<link rel="stylesheet" href="/combo/1.18.13?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/bootstrap/modal.css&/css/rainbow/baby-blue.css&/css/customize.css">
+	<link rel="stylesheet" href="/combo/1.1.2?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/bootstrap/modal.css&/css/rainbow/baby-blue.css&/css/customize.css">
 	<!--<![endif]-->
-	<!--/*-->
-	<link rel="stylesheet" href="../public/css/main-grid.css">
-	<link rel="stylesheet" href="../public/css/main.css">
-	<link rel="stylesheet" href="../public/css/layouts.css">
-	<link rel="stylesheet" href="../public/css/rainbow/baby-blue.css">
-	<link rel="stylesheet" href="../public/css/customize.css">
-	<!--*/-->
-	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.1.0/css/all.css" integrity="sha384-lKuwvrZot6UHsBSfcMvOkWwlCMgc0TaWr+30HWe3a4ltaBwTZhyTEggF5tJv8tbt"
-	 crossorigin="anonymous">
+
+	<link rel="stylesheet" href="/cache-forever/fontawesome-free-5.1.1-web/css/all.min.css">
 	<!--[if lt IE 9]>
-        <script src="http://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7/html5shiv.js"></script>
-<![endif]-->
+        <script src="/combo/1.1.2?/js/html5shiv.js"></script>
+	<![endif]-->
 	<script src="../public/jquery/3.3.1/jquery.min.js" th:src="@{/jquery/3.3.1/jquery.min.js}"></script>
 	<!--/* Per-page placeholder for additional links */-->
 	<th:block th:replace="${links}" />
@@ -225,16 +218,15 @@
 
 						<p>
 							<a href="/layouts/gallery/" class="pure-button pure-button-primary">View</a>
-							<a download href="/layouts/gallery/download" onclick="return Pure.trackDownload.call(this, 'layouts', 'gallery');"
-							 class="pure-button">Download</a>
+							<a download href="/layouts/gallery/download" onclick="return Pure.trackDownload.call(this, 'layouts', 'gallery');" class="pure-button">Download</a>
 						</p>
 					</div>
 				</div>
 				<div class="layout-item l-wrap pure-g">
 					<div class="layout-item-screenshot content pure-u-1 u-sm-1-2">
 						<a href="/layouts/marketing/">
-							<img th:src="@{/img/layouts/marketing@2x.jpg}" src="../public/img/layouts/marketing@2x.jpg" class="pure-img-responsive"
-							 width="400" height="214" alt="Screenshot of Landing Page example layout.">
+							<img th:src="@{/img/layouts/marketing@2x.jpg}" src="../public/img/layouts/marketing@2x.jpg" class="pure-img-responsive" width="400"
+							 height="214" alt="Screenshot of Landing Page example layout.">
 						</a>
 					</div>
 
@@ -262,8 +254,7 @@
 
 						<p>
 							<a href="/layouts/marketing/" class="pure-button pure-button-primary">View</a>
-							<a download href="/layouts/marketing/download" onclick="return Pure.trackDownload.call(this, 'layouts', 'marketing');"
-							 class="pure-button">Download</a>
+							<a download href="/layouts/marketing/download" onclick="return Pure.trackDownload.call(this, 'layouts', 'marketing');" class="pure-button">Download</a>
 						</p>
 					</div>
 				</div>
@@ -302,17 +293,7 @@
 		</div>
 	</div>
 
-	<!--/*-->
-	<script>
-		var two = $(".pure-button-group button:eq(1)");
-		$(".pure-button-group button:first").on("click", function (event) {
-			two.toggleClass('pure-button-disabled');
-		});
-
-
-	</script>
-	<!--*/-->
-	<script src="/combo/1.18.13?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
+	<script src="/combo/1.1.2?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
 
 	<th:block th:replace="${script}" />
 </body>

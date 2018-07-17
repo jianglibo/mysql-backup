@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.valueprovider.SharedValueProviderMethods;
@@ -31,7 +31,7 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	public static final String MAPPING_PATH = "/app/servers";
 
 	@Autowired
-	private ReuseableCronDbService reuseableCronDbService;
+	private ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
 	private ServerGrpDbService serverGrpDbService;

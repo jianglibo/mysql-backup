@@ -146,8 +146,8 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         .addResourceLocations("classpath:/public/jquery/")
         .setCachePeriod(31536000);
 
-        registry.addResourceHandler("/freact/**")
-        .addResourceLocations("classpath:/cache-forever/freact/")
+        registry.addResourceHandler("/cache-forever/**")
+        .addResourceLocations("classpath:/cache-forever/")
         .setCachePeriod(myAppSettings.getCache().getCombo());
 	}
 	

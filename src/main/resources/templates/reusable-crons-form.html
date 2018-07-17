@@ -1,0 +1,34 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title th:replace="form-parts :: title"></title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:replace="form-parts :: header">编辑或新建</h1>
+			</div>
+			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{})" class="content">
+						<div class="pure-control-group">
+							<label for="expression">表达式</label>
+							<input th:field="*{expression}"  type="text" placeholder="">
+							<span class="pure-form-message-inline">必须.</span>
+						</div>
+
+						<div class="pure-control-group">
+							<label for="description">名称</label>
+							<input th:field="*{description}"  type="text" placeholder="">
+							<span class="pure-form-message-inline"></span>
+						</div>
+		</div>
+	</div>
+	<script th:src="@{/cache-forever/freact/main.275c55ce.js}" src="../cache-forever/freact/main.275c55ce.js"></script>
+	<script>
+		window.freact.pureCombo();
+	</script>
+</body>
+
+</html>

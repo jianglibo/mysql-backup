@@ -87,7 +87,7 @@ import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
@@ -195,7 +195,7 @@ public class BackupCommand {
 	private SubscribeDbService userServerGrpDbService;
 
 	@Autowired
-	private ReuseableCronDbService reusableCronDbService;
+	private ReusableCronDbService reusableCronDbService;
 
 	@Autowired
 	private MySqlInstaller mySqlInstaller;

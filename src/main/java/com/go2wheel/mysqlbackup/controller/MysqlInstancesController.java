@@ -17,7 +17,7 @@ import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 
@@ -28,7 +28,7 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	public static final String MAPPING_PATH = "/app/mysql-instances";
 	
 	@Autowired
-	private ReuseableCronDbService reuseableCronDbService;
+	private ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
 	private ServerDbService serverDbService;

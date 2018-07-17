@@ -241,4 +241,24 @@ task freact {
     }
 }
 
+task combo {
+	doLast {
+	    FileTree htmlFiles = fileTree(templatesFolder) {
+	        include "**/*.html"
+	    }
+	
+	    // /freact/main.cb98d71c.js
+	    String regex = '"/combo/[0-9.]+\\?';
+
+		htmlFiles.each { File htmlFile ->
+			String content = htmlFile.getText("UTF-8")
+			def c = content.findAll(regex).size();
+			if (c > 0) {
+				content = content.replaceAll(regex, "\"/combo/${project.version}?");
+				htmlFile.write(content, "UTF-8")
+			}
+		}
+	}
+    
+}
 // gradle test --tests *TestUpgradeUtil

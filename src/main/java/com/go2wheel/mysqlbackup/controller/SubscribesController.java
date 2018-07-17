@@ -8,7 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
@@ -22,7 +22,7 @@ public class SubscribesController  extends CRUDController<Subscribe, SubscribeDb
 	public static final String MAPPING_PATH = "/app/subscribes";
 	
 	@Autowired
-	private ReuseableCronDbService reuseableCronDbService;
+	private ReusableCronDbService reuseableCronDbService;
 
 	@Autowired
 	private UserAccountDbService userAccountDbService;

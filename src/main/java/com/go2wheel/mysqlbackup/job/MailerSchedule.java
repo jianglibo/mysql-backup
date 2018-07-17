@@ -22,25 +22,36 @@ public class MailerSchedule extends SchedulerBase {
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String MAILER_UA_SVG_GROUP = "MAILER_UA_SVG_GROUP";
+	public static final String MAILER_SUBSCRIBE = "MAILER_UA_SVG_GROUP";
 
 	@EventListener
-	public void whenUserServerGrpChanged(ModelChangedEvent<Subscribe> usgChangedEvent) {
+	public void whenSubscribeChanged(ModelChangedEvent<Subscribe> subscribeChangedEvent) throws SchedulerException, ParseException {
+		Subscribe before = subscribeChangedEvent.getBefore();
+		Subscribe after = subscribeChangedEvent.getAfter();
+		
+		TriggerKey tk = triggerKey(before.getId() + "", MAILER_SUBSCRIBE);
+		scheduler.unscheduleJob(tk);
+		
+		createTrigger(after
+				,after.getCronExpression()
+				,MailerJob.class
+				,jobKey(after.getId() + "", MAILER_SUBSCRIBE)
+				,triggerKey(after.getId() + "", MAILER_SUBSCRIBE));
 	}
 
 	@EventListener
-	public void whenUserServerGrpCreated(ModelCreatedEvent<Subscribe> usgCreatedEvent) throws SchedulerException, ParseException {
-		Subscribe usg = usgCreatedEvent.getModel(); 
-		createTrigger(usg
-				,usg.getCronExpression()
+	public void whenSubscribeCreated(ModelCreatedEvent<Subscribe> subscribeCreatedEvent) throws SchedulerException, ParseException {
+		Subscribe subscribe = subscribeCreatedEvent.getModel(); 
+		createTrigger(subscribe
+				,subscribe.getCronExpression()
 				,MailerJob.class
-				,jobKey(usg.getId() + "", MAILER_UA_SVG_GROUP)
-				,triggerKey(usg.getId() + "", MAILER_UA_SVG_GROUP));
+				,jobKey(subscribe.getId() + "", MAILER_SUBSCRIBE)
+				,triggerKey(subscribe.getId() + "", MAILER_SUBSCRIBE));
 	}
 	
 	@EventListener
-	public void whenUserServerGrpDeleted(ModelDeletedEvent<Subscribe> usgDeletedEvent) throws SchedulerException {
-		TriggerKey tk = triggerKey(usgDeletedEvent.getModel().getId() + "", MAILER_UA_SVG_GROUP);
+	public void whenSubscribeDeleted(ModelDeletedEvent<Subscribe> subscribeDeletedEvent) throws SchedulerException {
+		TriggerKey tk = triggerKey(subscribeDeletedEvent.getModel().getId() + "", MAILER_SUBSCRIBE);
 		scheduler.unscheduleJob(tk);
 	}
 }

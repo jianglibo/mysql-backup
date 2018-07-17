@@ -19,7 +19,7 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 
@@ -30,7 +30,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	public static final String MAPPING_PATH = "/app/borg-descriptions";
 	
 	@Autowired
-	private ReuseableCronDbService reuseableCronDbService;
+	private ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
 	private ServerDbService serverDbService;

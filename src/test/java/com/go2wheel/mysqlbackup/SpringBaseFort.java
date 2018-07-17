@@ -42,7 +42,7 @@ import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackDbService;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
@@ -128,7 +128,7 @@ public class SpringBaseFort {
 	protected MysqlDumpDbService mysqlDumpDbService;
 	
 	@Autowired
-	protected ReuseableCronDbService reuseableCronDbService;
+	protected ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
 	protected BorgDownloadDbService borgDownloadDbService;

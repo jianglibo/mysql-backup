@@ -24,7 +24,7 @@ import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
+import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
@@ -35,7 +35,7 @@ public class SharedValueProviderMethods {
 			Arrays.asList("linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"));
 
 	@Autowired
-	private ReuseableCronDbService reusableCronDbService;
+	private ReusableCronDbService reusableCronDbService;
 
 	@Autowired
 	private ServerDbService serverDbService;
