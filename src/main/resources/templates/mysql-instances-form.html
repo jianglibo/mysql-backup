@@ -11,7 +11,16 @@
 			<div class="header">
 				<h1 th:replace="form-parts :: header">编辑或新建</h1>
 			</div>
-			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{})" class="content">
+			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
+				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
+					<form action="#" method="POST" th:action="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}">
+						<input type="hidden" name="enable" value="true" th:value="${!singleItem.isReadyForBackup()}"/>
+						<input type="hidden" name="_method" value="PUT"/>
+						<button class="pure-button" type="submit" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGINBIN'">启用LOGBIN</button>
+						<button class="pure-button"><a href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a></button>
+					</form>
+				</div>
+
 				<div class="pure-control-group">
 					<label for="host">MYSQL主機</label>
 					<input th:field="*{host}" type="text" placeholder="">

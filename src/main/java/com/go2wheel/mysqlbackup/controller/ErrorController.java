@@ -16,7 +16,7 @@ import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 public class ErrorController extends ControllerBase {
 	
 	
-	@GetMapping("")
+	@GetMapping()
 	public String processError(Model model, HttpServletRequest request) {
         model.addAttribute("status", request.getAttribute("javax.servlet.error.status_code"));
         model.addAttribute("reason", request.getAttribute("javax.servlet.error.message"));

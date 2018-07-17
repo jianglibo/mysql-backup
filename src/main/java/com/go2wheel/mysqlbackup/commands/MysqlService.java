@@ -269,7 +269,7 @@ public class MysqlService {
 			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
+		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}

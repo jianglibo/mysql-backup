@@ -136,7 +136,7 @@ public class MysqlUtil {
 //	}
 
 	public LogBinSetting getLogbinState(Session session, Server server)
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlNotStartedException {
 		return getLogbinState(session, server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword());
 	}

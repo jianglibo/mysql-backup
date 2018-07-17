@@ -65,6 +65,7 @@ public class StringUtil {
 	 * @return
 	 */
 	public static Map<String, String> toPair(List<String> lines) {
+		if (lines == null) lines = new ArrayList<>();
 		return lines.stream().map(line -> line.split("=", 2)).filter(ss -> ss.length == 2)
 				.collect(Collectors.toMap(ss -> ss[0], ss -> ss[1]));
 	}

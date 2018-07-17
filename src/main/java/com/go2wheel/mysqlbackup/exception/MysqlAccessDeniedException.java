@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public class MysqlAccessDeniedException extends Exception {
+public class MysqlAccessDeniedException extends RuntimeException {
 
 	/**
 	 * 

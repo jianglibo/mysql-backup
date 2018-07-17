@@ -26,5 +26,6 @@ public class CommonMessageKeys {
 	public static final String VALIDATOR_NOTNULL = "validator.notnull";
 	
 	public static final String FUNCTION_NOT_IMPLEMENTED = "common.notimplemented";
+	public static final String AUTHENTICATION_FAILED = "common.authentication.failed.";
 
 }

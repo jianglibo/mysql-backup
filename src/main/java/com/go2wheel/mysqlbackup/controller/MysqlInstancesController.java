@@ -8,11 +8,14 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReuseableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -34,6 +37,11 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	public MysqlInstancesController(MysqlInstanceDbService dbService) {
 		super(MysqlInstance.class, dbService, MAPPING_PATH);
 	}
+	
+    @InitBinder
+    public void initBinder(WebDataBinder binder) {
+    	binder.registerCustomEditor(List.class, new ListStringToLinesEditor());
+    }
 
 	@Override
 	boolean copyProperties(MysqlInstance entityFromForm, MysqlInstance entityFromDb) {

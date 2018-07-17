@@ -10,6 +10,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
@@ -84,7 +85,7 @@ public class MysqlInstance extends BaseModel {
 
 
 	public boolean isReadyForBackup() {
-		return getMysqlSettings().size() > 0;
+		return getMysqlSettings() != null && getMysqlSettings().size() > 0;
 	}
 
 	public String getFlushLogCron() {
@@ -97,7 +98,7 @@ public class MysqlInstance extends BaseModel {
 
 	@Override
 	public String toListRepresentation(String... fields) {
-		return null;
+		return ObjectUtil.toListRepresentation(this, fields);
 	}
 
 	public Integer getServerId() {

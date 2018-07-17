@@ -46,6 +46,8 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	public static final String ID_ENTITY_MAP = "idEntityMap";
 	public static final String OB_NAME = "singleItem";
 	
+	public static final String ERROR_MESSAGE_KEY = "errorMessage";
+	
 	public CRUDController(Class<T> clazz,D dbService, String mappingUrl) {
 		this.clazz = clazz;
 		this.dbService = dbService;
