@@ -85,7 +85,7 @@ public class MysqlInstance extends BaseModel {
 
 
 	public boolean isReadyForBackup() {
-		return getMysqlSettings() != null && getMysqlSettings().size() > 0;
+		return getMysqlSettings() != null && getMysqlSettings().size() > 0 && getLogBinSetting().isEnabled();
 	}
 
 	public String getFlushLogCron() {

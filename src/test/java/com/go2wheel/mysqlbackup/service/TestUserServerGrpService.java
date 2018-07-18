@@ -18,9 +18,9 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tCreate() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId() , A_VALID_CRON_EXPRESSION, "amnese")
+		Subscribe usg = new Subscribe.SubscribeBuilder(ua.getId(), sg.getId() , A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
-		usg = userServerGrpDbService.save(usg);
+		usg = subscribeDbService.save(usg);
 		assertThat(usg.getId(), greaterThan(99));
 	}
 	
@@ -28,16 +28,16 @@ public class TestUserServerGrpService extends ServiceTbase {
 	public void tFindByUser() {
 		UserAccount ua = createAUser();
 		ServerGrp sg = createAServerGrp();
-		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "amnese")
+		Subscribe usg = new Subscribe.SubscribeBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "amnese")
 				.build();
-		usg = userServerGrpDbService.save(usg);
+		usg = subscribeDbService.save(usg);
 		
 		ServerGrp sg1 = createAServerGrp("kku");
-		usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg1.getId(), A_VALID_CRON_EXPRESSION, "amenese")
+		usg = new Subscribe.SubscribeBuilder(ua.getId(), sg1.getId(), A_VALID_CRON_EXPRESSION, "amenese")
 				.build();
-		usg = userServerGrpDbService.save(usg);
+		usg = subscribeDbService.save(usg);
 		
-		List<Subscribe> usgs = userServerGrpDbService.findByUser(ua);
+		List<Subscribe> usgs = subscribeDbService.findByUser(ua);
 		assertThat(usgs.size(), equalTo(2));
 
 	}

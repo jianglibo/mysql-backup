@@ -12,13 +12,12 @@
 				<h1 th:replace="form-parts :: header">编辑或新建</h1>
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
-				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
-					<form action="#" method="POST" th:action="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}">
-						<input type="hidden" name="enable" value="true" th:value="${!singleItem.isReadyForBackup()}"/>
-						<input type="hidden" name="_method" value="PUT"/>
-						<button class="pure-button" type="submit" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGINBIN'">启用LOGBIN</button>
-						<button class="pure-button"><a href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a></button>
-					</form>
+				<div class="pure-button-group form-buttons" style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
+
+				<a id="form-button-logbin" class="pure-button" href="#" th:href="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGINBIN'">启用LOGBIN</a>
+				<a class="pure-button" href="#" th:href="@{/app/mysql/{serverId}/dumps(serverId=${singleItem.serverId})}">DUMP列表</a>
+				<a class="pure-button" href="#" th:href="@{/app/mysql/{serverId}/flushes(serverId=${singleItem.serverId})}">MYSQL日志列表</a>
+
 				</div>
 
 				<div class="pure-control-group">
@@ -61,7 +60,7 @@
 					<label for="serverId">服務器ID</label>
 					<input th:field="*{serverId}" type="text" placeholder="">
 					<span class="pure-form-message-inline"></span>
-				</div>				
+				</div>
 				<div class="pure-control-group pure-combo">
 					<label for="flushLogCron">日志刷新計劃</label>
 					<input th:field="*{flushLogCron}" type="text" placeholder="">
@@ -81,9 +80,17 @@
 			</div>
 		</div>
 	</div>
-	<script th:src="@{/cache-forever/freact/main.275c55ce.js}" src="../cache-forever/freact/main.275c55ce.js"></script>
+	<script th:src="@{/cache-forever/freact/main.d1a8cdaf.js}" src="../cache-forever/freact/main.d1a8cdaf.js"></script>
 	<script>
 		window.freact.pureCombo();
+		var enabled = /*[[${singleItem.isReadyForBackup()}]]*/ false;
+		jQuery('#form-button-logbin').on('click', function (e) {
+			e.preventDefault();
+			var url = jQuery(e.target).attr("href");
+			if (window.confirm("确认" + (enabled ? '关闭' : '开启') + 'LOGBIN?')) {
+				window.freact.formUtil.createFormSubmit({ action: url, method: 'PUT' }, {});
+			}
+		});
 	</script>
 </body>
 

@@ -71,5 +71,8 @@ public class BorgBackupSchedule extends SchedulerBase {
 		Server server = serverDbService.findById(bd.getServerId());
 		scheduler.unscheduleJob(triggerKey(server.getHost(), BORG_ARCHIVE_GROUP));
 		scheduler.unscheduleJob(triggerKey(server.getHost(), BORG_PRUNE_GROUP));
+		
+		scheduler.deleteJob(jobKey(server.getHost(), BORG_ARCHIVE_GROUP));
+		scheduler.deleteJob(jobKey(server.getHost(), BORG_PRUNE_GROUP));
 	}
 }

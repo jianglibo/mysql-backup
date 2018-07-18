@@ -912,7 +912,7 @@ public class BackupCommand {
 		if (serverGroup == null) {
 			return parameterRequired("server-group");
 		}
-		usg = new Subscribe.UserServerGrpBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
+		usg = new Subscribe.SubscribeBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
 				.withTemplate(template)
 				.build();
 		usg = userServerGrpDbService.save(usg);

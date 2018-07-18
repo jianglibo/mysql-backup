@@ -37,10 +37,10 @@ public class MailerJob implements Job {
 	@TrapException(MailerJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
-		int userServerGrpId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-		Subscribe userServerGrp = userServerGrpDbService.findById(userServerGrpId);
-		ServerGroupContext sgctx = templateContextService.createMailerContext(userServerGrp);
-		mail(sgctx.getUser().getEmail(), userServerGrp.getTemplate(), sgctx);
+		int subscribeId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
+		Subscribe subscribe = userServerGrpDbService.findById(subscribeId);
+		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
+		mail(sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
 	}
 	
 	@Autowired

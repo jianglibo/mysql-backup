@@ -60,3 +60,7 @@ aside.success {
   padding: 15px;
   overflow-y: auto;
 }
+
+.content {
+    min-height: 600px;
+}

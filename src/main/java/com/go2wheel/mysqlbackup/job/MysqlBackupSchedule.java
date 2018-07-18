@@ -59,5 +59,6 @@ public class MysqlBackupSchedule extends SchedulerBase {
 		MysqlInstance mi = mysqlInstanceDeletedEvent.getModel();
 		Server server = serverDbService.findById(mi.getServerId());
 		scheduler.unscheduleJob(triggerKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
+		scheduler.deleteJob(jobKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
 	}
 }

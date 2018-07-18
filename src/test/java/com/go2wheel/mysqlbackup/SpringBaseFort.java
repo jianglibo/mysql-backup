@@ -104,7 +104,7 @@ public class SpringBaseFort {
 	protected PlayBackDbService playBackDbService;
 	
 	@Autowired
-	protected SubscribeDbService userServerGrpDbService;
+	protected SubscribeDbService subscribeDbService;
 	
 	@Autowired
 	protected MysqlInstanceDbService mysqlInstanceDbService;
@@ -201,7 +201,7 @@ public class SpringBaseFort {
 		storageStateDbService.deleteAll();
 		borgDownloadDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
-		userServerGrpDbService.deleteAll();
+		subscribeDbService.deleteAll();
 		userAccountDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		serverDbService.deleteAll();

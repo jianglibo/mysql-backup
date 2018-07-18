@@ -78,8 +78,8 @@ public class TestMailerJob extends JobBaseFort {
 		
 		serverGrpDbService.addServer(sg, server);
 		
-		Subscribe usg = new Subscribe.UserServerGrpBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
-		usg = userServerGrpDbService.save(usg);
+		Subscribe usg = new Subscribe.SubscribeBuilder(ua.getId(), sg.getId(), A_VALID_CRON_EXPRESSION, "aname").build();
+		usg = subscribeDbService.save(usg);
 		deleteAllJobs();
 		createServerData();
 		createMyselfData();

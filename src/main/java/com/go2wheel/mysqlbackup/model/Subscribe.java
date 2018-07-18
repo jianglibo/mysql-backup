@@ -38,7 +38,7 @@ public class Subscribe extends BaseModel {
 	
 	
 	
-	public static class UserServerGrpBuilder {
+	public static class SubscribeBuilder {
 		
 		private final Integer userAccountId;
 		private final Integer serverGrpId;
@@ -47,7 +47,7 @@ public class Subscribe extends BaseModel {
 		
 		private String template;
 		
-		public UserServerGrpBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression, String name) {
+		public SubscribeBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression, String name) {
 			super();
 			this.userAccountId = userAccountId;
 			this.serverGrpId = serverGrpId;
@@ -55,7 +55,7 @@ public class Subscribe extends BaseModel {
 			this.name = name;
 		}
 		
-		public UserServerGrpBuilder withTemplate(String template) {
+		public SubscribeBuilder withTemplate(String template) {
 			this.template = template;
 			return this;
 		}

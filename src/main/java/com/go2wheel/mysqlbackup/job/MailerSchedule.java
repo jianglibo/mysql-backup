@@ -5,6 +5,7 @@ import static org.quartz.TriggerKey.triggerKey;
 
 import java.text.ParseException;
 
+import org.quartz.JobKey;
 import org.quartz.SchedulerException;
 import org.quartz.TriggerKey;
 import org.slf4j.Logger;
@@ -53,5 +54,7 @@ public class MailerSchedule extends SchedulerBase {
 	public void whenSubscribeDeleted(ModelDeletedEvent<Subscribe> subscribeDeletedEvent) throws SchedulerException {
 		TriggerKey tk = triggerKey(subscribeDeletedEvent.getModel().getId() + "", MAILER_SUBSCRIBE);
 		scheduler.unscheduleJob(tk);
+		JobKey jk = jobKey(tk.getName(), tk.getGroup());
+		scheduler.deleteJob(jk);
 	}
 }

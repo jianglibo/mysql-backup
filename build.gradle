@@ -57,7 +57,7 @@ flyway {
 }
 
 archivesBaseName = 'mysql-backup'
-version = '1.1.2'
+version = '1.1.3'
 
 sourceSets {
     main {
@@ -179,11 +179,6 @@ task packmyzip(type: Zip) {
     from "${buildDir}/archive"
 }
 
-bootJar.dependsOn bootBuildInfo
-copyFilesToArchive.dependsOn bootJar
-packmyzip.dependsOn copyFilesToArchive
-test.dependsOn bootBuildInfo
-
 task writeVersionFile {
    doLast {
 	   def props = new Properties()
@@ -261,4 +256,9 @@ task combo {
 	}
     
 }
+bootBuildInfo.dependsOn writeVersionFile
+bootJar.dependsOn bootBuildInfo 
+copyFilesToArchive.dependsOn bootJar
+packmyzip.dependsOn copyFilesToArchive
+test.dependsOn bootBuildInfo
 // gradle test --tests *TestUpgradeUtil

@@ -15,7 +15,7 @@
 				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
 					<form action="#" method="POST" th:action="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">
 						<button class="pure-button" type="submit">创建一个卷</button>
-						<button class="pure-button"><a href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a></button>
+						<a class="pure-button" href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a>
 					</form>
 				</div>
 				<div class="pure-control-group">
@@ -72,7 +72,7 @@
 			</div>
 		</div>
 	</div>
-	<script th:src="@{/cache-forever/freact/main.275c55ce.js}" src="../cache-forever/freact/main.275c55ce.js"></script>
+	<script th:src="@{/cache-forever/freact/main.d1a8cdaf.js}" src="../cache-forever/freact/main.d1a8cdaf.js"></script>
 	<script>
 		window.freact.pureCombo();
 		$('aside.success').fadeOut(3000);
