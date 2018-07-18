@@ -40,7 +40,7 @@ public class MailerJob implements Job {
 		int subscribeId = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 		Subscribe subscribe = userServerGrpDbService.findById(subscribeId);
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
-		mail(sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
+		mail(subscribe, sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
 	}
 	
 	@Autowired
@@ -48,9 +48,9 @@ public class MailerJob implements Job {
 		this.mailer = mailer;
 	}
 	
-	public void mail(String email, String template, ServerGroupContext sgctx) {
+	public void mail(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) {
 		try {
-			this.mailer.sendMailWithInline(email, template, sgctx);
+			this.mailer.sendMailWithInline(subscribe, email, template, sgctx);
 		} catch (MessagingException e) {
 			ExceptionUtil.logErrorException(logger, e);
 		}

@@ -1130,12 +1130,12 @@ public class BackupCommand {
 			@ShellOption(help = "邮件地址") @Email String email,
 			@TemplateIndicator
 			@ShellOption(help = "邮件模板") String template,
-			@ShellOption(help = "用户服务器组") Subscribe userServerGrp,
+			@ShellOption(help = "用户服务器组") Subscribe subscribe,
 			@ShellOption(help = "真的发送") boolean sendTruely
 			) throws ClassNotFoundException, IOException {
-		ServerGroupContext sgctx = templateContextService.createMailerContext(userServerGrp);
+		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		if (sendTruely) {
-			mailerJob.mail(email, template, sgctx);
+			mailerJob.mail(subscribe, email, template, sgctx);
 			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
 		} else {
 			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));

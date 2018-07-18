@@ -1,13 +1,20 @@
 package com.go2wheel.mysqlbackup.mail;
 
+import java.io.File;
+import java.nio.file.Path;
+
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
 
 @Service
 public class MailerImpl implements Mailer {
@@ -20,6 +27,9 @@ public class MailerImpl implements Mailer {
 	
 	@Value("${spring.mail.username}")
 	private String mailFrom;
+	
+	@Autowired
+	private ChromePDFWriter pdfWriter;
 	
 //	public void sendMailWithInline(final String recipientName, final String recipientEmail,
 //			final String imageResourceName, final byte[] imageBytes, final String imageContentType, final Locale locale)
@@ -55,14 +65,22 @@ public class MailerImpl implements Mailer {
 //
 //	}
 
-	public void sendMailWithInline(String email, String template, ServerGroupContext sgctx) throws MessagingException {
+	public void sendMailWithInline(Subscribe subscribe,
+			String email, String template, ServerGroupContext sgctx) throws MessagingException {
 		final MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
+		mimeMessage.setSubject("服务器备份报表。", "UTF-8");
 		final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
-		message.setSubject("服务器备份报表。");
 		message.setFrom(mailFrom);
 		message.setTo(email);
 		String htmlContent = emailViewRender.render(template, sgctx);
 		message.setText(htmlContent, true); // true = isHtml
+		
+		Path pdf = pdfWriter.writePdf("http://localhost:8080/app/report/html/" + subscribe.getId());
+		if (pdf != null) {
+		    FileSystemResource file 
+		      = new FileSystemResource(pdf.toFile());
+		    message.addAttachment("report.pdf", file);
+		}
 		this.javaMailSender.send(mimeMessage);
 	}
 

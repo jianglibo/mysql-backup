@@ -134,15 +134,15 @@ public class TestMailerJob extends JobBaseFort {
 	@Test
 	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException {
 		
-		Subscribe usg = simulation();
+		Subscribe subscribe = simulation();
 		
 		JobDataMap jdm = new JobDataMap();
-		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, usg.getId());
+		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, subscribe.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
 		
 		mailerJob.setMailer(new Mailer() {
 			@Override
-			public void sendMailWithInline(String email, String template, ServerGroupContext sgctx) throws MessagingException {
+			public void sendMailWithInline(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) throws MessagingException {
 				System.out.println(sgctx);
 				try {
 					Path pa = Paths.get("templates", "tplcontext.yml");

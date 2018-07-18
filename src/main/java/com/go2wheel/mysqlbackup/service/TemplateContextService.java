@@ -81,8 +81,8 @@ public class TemplateContextService {
 	}
 	
 	public ServerGroupContext createMailerContext(int subscribeId) {
-		Subscribe usg = userServerGrpDbService.findById(subscribeId);
-		return createMailerContext(usg);
+		Subscribe subscribe = userServerGrpDbService.findById(subscribeId);
+		return createMailerContext(subscribe);
 	}
 	
 	public ServerContext prepareServerContext(Server server) {

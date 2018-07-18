@@ -59,15 +59,33 @@
 		window.freact.renderActionMenuBar(/*[[${mapping}]]*/ "/app/listItems",
 			".item-list",
 			["create", "edit", "delete",{
-				actionId: 'sendMail',
-				name: '发送报表',
+				actionId: 'emailReport',
+				name: 'email报表',
 				activeOn: 'SINGLE',
-				onClick: { react: 'POST', url: '/report/mail', data: function() {
+				onClick: { react: 'POST', url: '/app/report/mail', data: function() {
 					return {id: this.state.selectedItems[0].id};
 				}, settings: {dataType: 'json'},
 				 done: function(data) {
 					window.alert('已发送至：' + data.email);
 				}}
+			}, {
+				actionId: 'htmlReport',
+				name: 'html报表',
+				activeOn: 'SINGLE',
+				onClick: function() {
+					var subscribe = this.state.selectedItems[0].id;
+					var url = window.freact.strUtil.format('/app/report/html/{subscribe}', {subscribe: subscribe});
+					window.location.href = url;
+				}
+			}, {
+				actionId: 'pdfReport',
+				name: 'pdf报表',
+				activeOn: 'SINGLE',
+				onClick: function() {
+					var subscribe = this.state.selectedItems[0].id;
+					var url = window.freact.strUtil.format('/app/report/pdf/{subscribe}', {subscribe: subscribe});
+					window.location.href = url;
+				}
 			}]);
 	</script>
 </body>
