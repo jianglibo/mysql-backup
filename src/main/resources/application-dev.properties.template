@@ -20,7 +20,7 @@ spring.quartz.jdbc.initialize-schema=never
 
 spring.flyway.locations=classpath:/dev/db/migration
 
-
+spring.mail.default-encoding=UTF-8
 spring.mail.host=smtp.qq.com
 #465
 spring.mail.port=587
@@ -41,6 +41,7 @@ logging.level.com.go2wheel.mysqlbackup.job.SampleJobService=ERROR
 logging.level.org.jooq=DEBUG
 logging.level.org.flywaydb=DEBUG
 logging.level.com.zaxxer.hikari=DEBUG
+logging.level.com.sun.mail.smtp=DEBUG
 
 myapp.dataDir=boxes
 myapp.downloadFolder=notingit

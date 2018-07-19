@@ -17,6 +17,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -1132,7 +1133,7 @@ public class BackupCommand {
 			@ShellOption(help = "邮件模板") String template,
 			@ShellOption(help = "用户服务器组") Subscribe subscribe,
 			@ShellOption(help = "真的发送") boolean sendTruely
-			) throws ClassNotFoundException, IOException {
+			) throws ClassNotFoundException, IOException, MessagingException {
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		if (sendTruely) {
 			mailerJob.mail(subscribe, email, template, sgctx);

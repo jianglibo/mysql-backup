@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Date;
 
 import org.quartz.Job;
@@ -9,12 +11,16 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.IOExceptionWrapper;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -34,6 +40,12 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private ServerDbService serverDbService;
+	
+	@Autowired
+	private MyAppSettings appSettings;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	@Override
 	@TrapException(BorgArchiveJob.class)
@@ -62,6 +74,11 @@ public class BorgArchiveJob implements Job {
 			bd.setCreatedAt(new Date());
 			bd.setTimeCost(ts);
 			borgDownloadDbService.save(bd);
+			
+			final Path localRepo = appSettings.getBorgRepoDir(sv);
+			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
+		} catch (IOException e) {
+			throw new IOExceptionWrapper(e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

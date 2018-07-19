@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.job;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
+
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +25,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	private BorgDownloadDbService borgDownloadDbService;
 	
 	@Test
-	public void testJobFunction() throws SchedulerException {
+	public void testJobFunction() throws SchedulerException, IOException {
 		clearDb();
 		long jc = countJobs();
 		assertThat(jc, equalTo(0L));
@@ -33,6 +35,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		deleteAllJobs();
 		borgService.install(session);
 		borgArchiveJob.execute(context);
+		
 		borgDownloadDbService.count();
 		assertThat(borgDownloadDbService.count(), equalTo(1L));
 	}
@@ -49,8 +52,8 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		assertThat(countJobs(), equalTo(1L)); // cause only set archiveCron.
 		assertThat(countTriggers(), equalTo(1L)); // cause only set archiveCron.
 		
-		borgDescriptionDbService.delete(bd);
-		assertThat(countJobs(), equalTo(1L));
+		borgDescriptionDbService.delete(bd); // deleting borgdescription will delete job too.
+		assertThat(countJobs(), equalTo(0L));
 		assertThat(countTriggers(), equalTo(0L));
 	}
 	
@@ -68,8 +71,9 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		assertThat(countJobs(), equalTo(2L)); // cause only set archiveCron.
 		assertThat(countTriggers(), equalTo(2L)); // cause only set archiveCron.
 		
-		borgDescriptionDbService.delete(bd);
-		assertThat(countJobs(), equalTo(2L));
+		borgDescriptionDbService.delete(bd); // deleting borgdescription will delete job too. 
+		assertThat(countJobs(), equalTo(0L));
+		
 		assertThat(countTriggers(), equalTo(0L));
 	}
 	

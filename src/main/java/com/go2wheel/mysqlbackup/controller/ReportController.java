@@ -3,23 +3,29 @@ package com.go2wheel.mysqlbackup.controller;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.mail.MailProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.EnvironmentAware;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +39,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.go2wheel.mysqlbackup.JavaMailSendPropertiesOverrider;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Subscribe;
@@ -45,10 +52,16 @@ import com.google.common.io.ByteStreams;
 
 @Controller
 @RequestMapping("/app/report")
-public class ReportController implements ApplicationContextAware {
+public class ReportController implements ApplicationContextAware, EnvironmentAware {
 
 	private ApplicationContext applicationContext;
+	
+	private Environment environment;
+	
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	@Autowired
+	private MailProperties mailProperties;
 	
 	@Autowired
 	private MailerJob mailerJob;
@@ -67,18 +80,6 @@ public class ReportController implements ApplicationContextAware {
 		ExceptionUtil.logErrorException(logger, ex);
 		return ResponseEntity.ok("OK");
 	}
-
-
-//	@ModelAttribute
-//	public void populateServerGroup(@RequestParam(required = false) String ctxFile, Model model) throws IOException {
-//		if (ctxFile == null) {
-//			ctxFile = "tplcontext.yml";
-//		}
-//		Path pa = Paths.get("templates", ctxFile);
-//		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
-//		ServerGroupContext m = YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
-//		model.addAllAttributes(m.toMap());
-//	}
 
 	@GetMapping("/{tplName}")
 	public String ft(@PathVariable String tplName, @RequestParam Subscribe subscribe, Model model) {
@@ -116,10 +117,21 @@ public class ReportController implements ApplicationContextAware {
 		}, headers, HttpStatus.OK);
 
 	}
+	
+
+	
+	@GetMapping("/mailsettings")
+	@ResponseBody
+	public Map<String, String> mailSettings() {
+		Map<String, String> map = new HashMap<>();
+		map.put(JavaMailSendPropertiesOverrider.SPRING_MAIL_HOST, mailProperties.getHost());
+		map.put(JavaMailSendPropertiesOverrider.SPRING_MAIL_USERNAME, mailProperties.getUsername());
+		return map;
+	}
 
 	@PostMapping("/mail")
 	@ResponseBody
-	public Map<String, String> sendSubscribeMail(@ModelAttribute IdBinder idBinder, Model model) {
+	public Map<String, String> sendSubscribeMail(@ModelAttribute IdBinder idBinder, Model model) throws UnsupportedEncodingException, MessagingException {
 		Subscribe subscribe = subscribeDbService.findById(idBinder.getId());
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		mailerJob.mail(subscribe, sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
@@ -128,21 +140,14 @@ public class ReportController implements ApplicationContextAware {
 		return map;
 	}
 	
-	
-//	@GetMapping("/createctx/{userServerGrpId}")
-//	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
-//		templateContextService.createMailerContext(userServerGrpId);
-//		return ResponseEntity.ok("done");
-//	}
-
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.applicationContext = applicationContext;
 	}
 
-//	@GetMapping("/curdir")
-//	public ResponseEntity<String> getInfo() {
-//		return ResponseEntity.ok(Paths.get("").toAbsolutePath().toString());
-//	}
+	@Override
+	public void setEnvironment(Environment environment) {
+		this.environment = environment;
+	}
 
 }

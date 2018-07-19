@@ -157,6 +157,11 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, boolean keepOrigin) throws IOException {
+		int roundNumber = (int) Math.pow(10, postfixNumber);
+		backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
+	}
+	
+	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, int roundNumber, boolean keepOrigin) throws IOException {
 		if (!Files.exists(fileOrDirectoryToBackup)) {
 			logger.error("Source file: '{}' does't exists.", fileOrDirectoryToBackup.toAbsolutePath().toString());
 			return;

@@ -38,7 +38,7 @@ public class TestFileUtil {
 		Path folder = dir.resolve("a.b");
 		Files.createDirectories(folder);
 		Files.write(folder.resolve("afile.txt"), "abc".getBytes());
-		for(int i = 0; i < 11; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
+		for(int i = 0; i < 15; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
 			FileUtil.backup(folder, 1, true);
 		}
 		assertThat(Files.list(dir).count(), equalTo(11L));

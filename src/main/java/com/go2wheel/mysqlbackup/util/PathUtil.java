@@ -62,21 +62,28 @@ public class PathUtil {
 		}
 	}
 	
+	/**
+	 * 
+	 * @param fileOrDirToBackup
+	 * @param postfixNumber
+	 * @param roundNumber when the number reaches, return to start. 
+	 * @return
+	 */
+	public static Path getNextAvailable(Path fileOrDirToBackup, int postfixNumber, int roundNumber) {
+		Path parent = fileOrDirToBackup.getParent();
+		String name = fileOrDirToBackup.getFileName().toString();
+		return getNextAvailable(parent, name, postfixNumber, roundNumber);
+	}
+	
+	
 	public static Path getNextAvailable(Path fileOrDirToBackup, int postfixNumber) {
 		Path parent = fileOrDirToBackup.getParent();
 		String name = fileOrDirToBackup.getFileName().toString();
 		return getNextAvailable(parent, name, postfixNumber);
 	}
 	
-	/**
-	 * backup style is dump -> dump.000, if file goes dump.999, it should return 000.
-	 * 
-	 * @param parentDir
-	 * @param fileOrDirName
-	 * @param postfixNumber
-	 * @return
-	 */
-	protected static Path getNextAvailable(Path parentDir, String fileOrDirName, int postfixNumber) {
+	
+	protected static Path getNextAvailable(Path parentDir, String fileOrDirName, int postfixNumber, int roundNumber) {
 		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", fileOrDirName, postfixNumber));
 		List<String> paths = null;
 		try {
@@ -94,11 +101,24 @@ public class PathUtil {
 			m.matches();
 			String nm = m.group(1);
 			int i = Integer.valueOf(nm) + 1;
-			if (String.valueOf(i).length() > postfixNumber) {
+			if (i > roundNumber) {
 				i = 0;
 			}
 			return parentDir.resolve(fileOrDirName + "." + prependZeros(i, postfixNumber));
 		}
+	}
+	
+	/**
+	 * backup style is dump -> dump.000, if file goes dump.999, it should return 000.
+	 * 
+	 * @param parentDir
+	 * @param fileOrDirName
+	 * @param postfixNumber
+	 * @return
+	 */
+	protected static Path getNextAvailable(Path parentDir, String fileOrDirName, int postfixNumber) {
+		int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
+		return getNextAvailable(parentDir, fileOrDirName, postfixNumber, roundNumber);
 	}
 	
 	public static void archiveLocalFile(Path origin, int postfixLength) {
