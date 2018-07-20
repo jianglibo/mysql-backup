@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.mysqlinstaller;
+package com.go2wheel.mysqlbackup.installer;
 
 import static net.sf.expectit.matcher.Matchers.contains;
 
@@ -18,6 +18,7 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.mysqlinstaller.MysqlYumRepo;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
@@ -112,7 +113,7 @@ public class MySqlInstaller {
 					
 					try {
 						expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("Access denied"));
-						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在。");
+						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在�??");
 					} catch (ExpectIOException e) {
 					}
 					

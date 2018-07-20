@@ -11,7 +11,7 @@
 			<div class="header">
 				<h1 th:text="${serverGrp != null ? serverGrp.ename + '的' : ''} + '服务器列表'">服务器列表</h1>
 
-				<form class="pure-form" th:if="${serverGrp != null}" method="POST" action="/app/server-grps/100/servers" th:action="@{/app/server-grps/{serverGrpId}/servers(serverGrpId=${serverGrp.id})}">
+				<form style="display: none;" class="pure-form add-member-form" th:if="${serverGrp != null}" method="POST" action="/app/server-grps/100/servers" th:action="@{/app/server-grps/{serverGrpId}/servers(serverGrpId=${serverGrp.id})}">
 					<fieldset>
 						<legend>添加成员</legend>
 						<select th:remove="all-but-first" name="serverId">
@@ -75,7 +75,7 @@
 	<script th:src="@{/cache-forever/freact/main.d1a8cdaf.js}" src="../cache-forever/freact/main.d1a8cdaf.js"></script>
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
-		var grpId = /*[[${serverGrp != null ? serverGrp.id : ''}]]*/ 100;
+		var grpId = /*[[${serverGrp != null ? serverGrp.id : ''}]]*/ 0;
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			["create", "edit", "delete", {
@@ -89,8 +89,17 @@
 				activeOn: 'SINGLE',
 				onClick: { react: 'GET', url: '/app/borg-descriptions/create?server={id}' }
 			}, {
+				actionId: 'showAddMember',
+				name: '添加成员',
+				activeOn: function() {
+					return grpId;
+				},
+				onClick: function(e) {
+					jQuery('.add-member-form').toggle();
+				}
+			}, {
 				actionId: 'removeFromGrp',
-				name: '离开此群组',
+				name: '离开群组',
 				activeOn: function() {
 					return !!this.urlParametesMap['server-grp'] && this.props.selectedItems.length > 0;
 				},
