@@ -6,6 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import javax.servlet.http.HttpSession;
+
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -17,8 +19,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -29,6 +34,9 @@ public class SampleController implements ApplicationContextAware {
 	
 	@Autowired
 	private TemplateContextService templateContextService;
+	
+	@Autowired
+	private GlobalStore globalStore;
 
 
 	@ModelAttribute
@@ -67,5 +75,23 @@ public class SampleController implements ApplicationContextAware {
 	public ResponseEntity<String> getInfo() {
 		return ResponseEntity.ok(Paths.get("").toAbsolutePath().toString());
 	}
+	
+	@GetMapping("/quotes")
+	@ResponseBody
+	public DeferredResult<String> quotes(HttpSession session, @RequestParam long timeout) {
+		DeferredResult<String> deferredResult = new DeferredResult<String>(timeout, "timeout");
+		globalStore.saveDeferred("test", "http", deferredResult);
+		return deferredResult;
+	}
+	
+	@GetMapping("/quotesfill")
+	@ResponseBody
+	public String quotesfill(HttpSession session) {
+		DeferredResult<String> deferredResult = (DeferredResult<String>) globalStore.getDeferred("test", "http");
+		deferredResult.setResult("yes");
+		return "yes";
+	}
+
+
 
 }
