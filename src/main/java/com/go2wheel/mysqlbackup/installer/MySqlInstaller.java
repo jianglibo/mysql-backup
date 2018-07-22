@@ -4,9 +4,14 @@ import static net.sf.expectit.matcher.Matchers.contains;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+
+import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,17 +23,20 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MysqlYumRepo;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -38,7 +46,7 @@ import net.sf.expectit.ExpectBuilder;
 import net.sf.expectit.ExpectIOException;
 
 @Service
-public class MySqlInstaller {
+public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -52,6 +60,9 @@ public class MySqlInstaller {
 	private FileDownloader fileDownloader;
 
 	private MysqlUtil mysqlUtil;
+	
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
 
 	public FacadeResult<MysqlInstallInfo> install(Session session, Server box, String twoDigitVersion, String initPassword) {
 		try {
@@ -113,7 +124,7 @@ public class MySqlInstaller {
 					
 					try {
 						expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("Access denied"));
-						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在�??");
+						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在�??");
 					} catch (ExpectIOException e) {
 					}
 					
@@ -184,6 +195,48 @@ public class MySqlInstaller {
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
 		this.mysqlUtil = mysqlUtil;
+	}
+
+	@Override
+	public FacadeResult<MysqlInstallInfo> install(Server server, Map<String, String> parasMap) {
+		Session session = sshSessionFactory.getConnectedSession(server).getResult();
+		FacadeResult<MysqlInstallInfo> fr = install(session, server, parasMap.get("version"), parasMap.get("initPassword"));
+		return fr;
+	}
+	
+	@PostConstruct
+	public void saveInstaller() {
+		Software software = new Software();
+		software.setName("MYSQL");
+		software.setVersion("56");
+		software.setTargetEnv("linux_centos");
+		
+		List<String> ls = Lists.newArrayList();
+		ls.add("initPassword=123456");
+		software.setSettings(ls);
+		saveToDb(software);
+		
+		software = new Software();
+		software.setName("MYSQL");
+		software.setVersion("57");
+		software.setTargetEnv("linux_centos");
+		
+		ls = Lists.newArrayList();
+		ls.add("initPassword=123456");
+		software.setSettings(ls);
+		saveToDb(software);
+	}
+
+	@Override
+	public CompletableFuture<FacadeResult<MysqlInstallInfo>> installAsync(Server server, Map<String, String> parasMap) {
+		return CompletableFuture.supplyAsync(() -> {
+			return install(server, parasMap);
+		});
+	}
+
+	@Override
+	public boolean canHandle(Software software) {
+		return false;
 	}
 
 }

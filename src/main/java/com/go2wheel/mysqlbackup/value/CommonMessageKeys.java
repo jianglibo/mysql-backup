@@ -28,4 +28,6 @@ public class CommonMessageKeys {
 	public static final String FUNCTION_NOT_IMPLEMENTED = "common.notimplemented";
 	public static final String AUTHENTICATION_FAILED = "common.authentication.failed.";
 
+	public static final String TASK_SUBMITTED = "common.taks.submitted";
+
 }

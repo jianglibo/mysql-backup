@@ -5,4 +5,6 @@ import com.go2wheel.mysqlbackup.model.Software;
 
 public interface SoftwareRepository extends RepositoryBase<SoftwareRecord, Software>{
 
+	Software findByUniqueField(Software software);
+
 }

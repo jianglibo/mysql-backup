@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -9,15 +8,18 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
-import com.go2wheel.mysqlbackup.valueprovider.SharedValueProviderMethods;
-import com.google.common.collect.Sets;
 
 
 @Controller
@@ -35,6 +37,9 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	
 	@Autowired
 	private ServerGrpDbService serverGrpDbService;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	@Override
 	boolean copyProperties(Server entityFromForm, Server entityFromDb) {
@@ -80,18 +85,15 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 		}
 	}
 	
-	
-	private Set<String> getOses() {
-		List<String> oses = getDbService().findDistinctOsType("");
-		Set<String> orderedUnique = Sets.newTreeSet();
-		orderedUnique.addAll(oses);
-		orderedUnique.addAll(SharedValueProviderMethods.predefines);
-		return orderedUnique;
+	@PostMapping("/{server}/install")
+	public String installSoftware(@PathVariable Server server, @RequestParam Software software) {
+		
+		return redirectMappingUrl();
 	}
 
 	@Override
 	protected void formAttribute(Model model) {
-		model.addAttribute("oses", getOses());
+		model.addAttribute("oses", settingsInDb.getListString(SettingsInDb.OSTYPE_PREFIX));
 		model.addAttribute("crons", reuseableCronDbService.findAll());
 	}
 

@@ -7,6 +7,7 @@ CREATE TABLE software
   website VARCHAR(256),
   dlurl VARCHAR(256),
   installer VARCHAR(256),
+  settings VARCHAR(256) ARRAY DEFAULT ARRAY[],
   created_at TIMESTAMP(2),
-  CONSTRAINT unique_sf_name_version UNIQUE (name, version)
+  CONSTRAINT unique_sf_name_version_env UNIQUE (name, version, target_env)
 );

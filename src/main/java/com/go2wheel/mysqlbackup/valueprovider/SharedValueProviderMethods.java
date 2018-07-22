@@ -6,10 +6,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,7 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
@@ -31,8 +30,9 @@ import com.go2wheel.mysqlbackup.util.ObjectUtil;
 @Service
 public class SharedValueProviderMethods {
 
-	public static Set<String> predefines = new HashSet<>(
-			Arrays.asList("linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"));
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	@Autowired
 	private ReusableCronDbService reusableCronDbService;
@@ -44,9 +44,7 @@ public class SharedValueProviderMethods {
 	private ApplicationState applicationState;
 
 	public List<CompletionProposal> getOstypeProposals(String input) {
-		Set<String> oses = new HashSet<>(serverDbService.findDistinctOsType(input));
-		oses.addAll(predefines);
-		return oses.stream().map(CompletionProposal::new).collect(Collectors.toList());
+		return settingsInDb.getListString(SettingsInDb.OSTYPE_PREFIX).stream().map(CompletionProposal::new).collect(Collectors.toList());
 	}
 
 	public Object filedHasAnnotation(CompletionContext completionContext, MethodParameter parameter,
@@ -66,8 +64,6 @@ public class SharedValueProviderMethods {
 		return null;
 	}
 	
-
-
 	// public Object filedHasAnnotation(CompletionContext completionContext,
 	// MethodParameter parameter, List<Class<? extends Annotation>> al) {
 	// ObjectFieldIndicator sv =

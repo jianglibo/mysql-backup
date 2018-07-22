@@ -26,14 +26,17 @@
 	<![endif]-->
 
 	<!--[if gt IE 8]><!-->
-	<link rel="stylesheet" href="/combo/1.1.2?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/bootstrap/modal.css&/css/rainbow/baby-blue.css&/css/customize.css">
+	<link rel="stylesheet" href="/combo/1.1.2?/css/main-grid.css&/css/main.css&/css/layouts.css&/css/rainbow/baby-blue.css&/css/customize.css">
 	<!--<![endif]-->
 
 	<link rel="stylesheet" href="/cache-forever/fontawesome-free-5.1.1-web/css/all.min.css">
+	<link rel="stylesheet" href="/cache-forever/4.1.2/bootstrap.min.css">
 	<!--[if lt IE 9]>
         <script src="/combo/1.1.2?/js/html5shiv.js"></script>
 	<![endif]-->
+	<!--
 	<script src="../public/jquery/3.3.1/jquery.min.js" th:src="@{/jquery/3.3.1/jquery.min.js}"></script>
+	-->
 	<!--/* Per-page placeholder for additional links */-->
 	<th:block th:replace="${links}" />
 	<script>
@@ -41,10 +44,18 @@
 </head>
 
 <body>
-
-	<script>
-	</script>
 	<div id="layout">
+		<div class="card" id="poll-result" style="width: 18rem; display: none; position: fixed; right: 0px; top: 0px; z-index: 10000;">
+			<div class="card-body">
+				<h5 class="card-title">Card title</h5>
+				<h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+				<p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+				<a href="#" class="card-link">Card link</a>
+				<a href="#" class="card-link">Another link</a>
+			</div>
+		</div>
+
+		<div id="bs-confirm-container"></div>
 		<a href="#menu" id="menuLink" class="menu-link">
 			<span></span>
 		</a>
@@ -297,8 +308,50 @@
 	</div>
 
 	<script src="/combo/1.1.2?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
+	<script th:src="@{/cache-forever/freact/main.1e7ec7ab.js}" src="../cache-forever/freact/main.1e7ec7ab.js"></script>
+	<!--
+	<script th:src="@{/combo/1.18.13?/js/bootstrap.js}" src="../public/js/bootstrap.js"></script>
+	-->
 
+	<script>
+		var bsConfirm = function(callback) {
+			window.freact.confirm('bs-confirm-container', '确认操作', '继续或放弃？', callback);
+		}
+
+		var pollResult = function() {
+			jQuery('#poll-result').show(1000);
+			setTimeout(() => {
+				jQuery('#poll-result').hide(1000);
+			}, 3000);
+		}
+	</script>
 	<th:block th:replace="${script}" />
+	<script>
+		(function poll() {
+			jQuery.ajax({
+				url: "/app/polling",
+				method: 'GET',
+				// success: function (data) {
+				// 	window.alert(data);
+				// },
+				// dataType: "json",
+				// complete: poll,
+				timeout: 0
+			}).done(
+				function (data, textStatus, jqXHR) {
+					console.log(data);
+				}
+			)
+				.fail(
+					function (jqXHR, textStatus, errorThrown) {
+						console.log('a');
+					}
+				)
+				.always(
+					poll
+				);
+		})();
+	</script>
 </body>
 
 </html>

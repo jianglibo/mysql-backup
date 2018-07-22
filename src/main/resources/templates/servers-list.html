@@ -11,6 +11,7 @@
 			<div class="header">
 				<h1 th:text="${serverGrp != null ? serverGrp.ename + '的' : ''} + '服务器列表'">服务器列表</h1>
 
+
 				<form style="display: none;" class="pure-form add-member-form" th:if="${serverGrp != null}" method="POST" action="/app/server-grps/100/servers" th:action="@{/app/server-grps/{serverGrpId}/servers(serverGrpId=${serverGrp.id})}">
 					<fieldset>
 						<legend>添加成员</legend>
@@ -72,7 +73,6 @@
 		</div>
 	</div>
 
-	<script th:src="@{/cache-forever/freact/main.d1a8cdaf.js}" src="../cache-forever/freact/main.d1a8cdaf.js"></script>
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var grpId = /*[[${serverGrp != null ? serverGrp.id : ''}]]*/ 0;
@@ -106,6 +106,11 @@
 				onClick: { react: 'DELETE', url: '/app/server-grps/' + grpId + '/servers', data: function() {
 					return {id: this.state.selectedItems[0].id};
 				}}
+			}, {
+				actionId: 'installSoftware',
+				name: '安装程序',
+				activeOn: 'SINGLE',
+				onClick: { react: 'GET', url: '/app/software-install/{id}' }
 			}]);
 	</script>
 

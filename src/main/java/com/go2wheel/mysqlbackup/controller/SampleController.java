@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 
 import javax.servlet.http.HttpSession;
 
@@ -24,7 +26,9 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
+import com.go2wheel.mysqlbackup.util.FutureUtil;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @Controller
@@ -80,16 +84,40 @@ public class SampleController implements ApplicationContextAware {
 	@ResponseBody
 	public DeferredResult<String> quotes(HttpSession session, @RequestParam long timeout) {
 		DeferredResult<String> deferredResult = new DeferredResult<String>(timeout, "timeout");
-		globalStore.saveDeferred("test", "http", deferredResult);
+		globalStore.saveObject("test", "http", Gobject.newGobject("name", deferredResult));
 		return deferredResult;
 	}
 	
 	@GetMapping("/quotesfill")
 	@ResponseBody
 	public String quotesfill(HttpSession session) {
-		DeferredResult<String> deferredResult = (DeferredResult<String>) globalStore.getDeferred("test", "http");
+		DeferredResult<String> deferredResult =  globalStore.removeObject("test", "http").as(DeferredResult.class);
 		deferredResult.setResult("yes");
 		return "yes";
+	}
+	
+	
+	@GetMapping("/quotesfuture")
+	@ResponseBody
+	public CompletableFuture<String> quotesfuture(HttpSession session, @RequestParam long timeout) {
+		CompletableFuture<String> ftw;
+		CompletableFuture<String> ft = new CompletableFuture<String>();
+		ftw = FutureUtil.within(ft, Duration.ofMillis(timeout)).exceptionally(throwable -> {
+			return "timeout";
+		});
+		globalStore.saveObject("test", "future", Gobject.newGobject("name", ft));
+		return ftw;
+	}
+	
+	@GetMapping("/quotesfuturefill")
+	@ResponseBody
+	public String quotesfillfuture(HttpSession session) {
+		CompletableFuture<String>  future =  globalStore.removeObject("test", "future").as(CompletableFuture.class);
+		if (future != null) {
+			future.complete("future");
+			return "yes";
+		}
+		return "no";
 	}
 
 

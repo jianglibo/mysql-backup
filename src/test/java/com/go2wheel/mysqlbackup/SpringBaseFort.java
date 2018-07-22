@@ -46,6 +46,7 @@ import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
+import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
 import com.go2wheel.mysqlbackup.service.SubscribeDbService;
@@ -135,6 +136,9 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected ServerGrpDbService serverGrpDbService;
+	
+	@Autowired
+	protected SoftwareDbService softwareDbService;
 
 	protected Server server;
 	
@@ -152,9 +156,6 @@ public class SpringBaseFort {
 
 	protected String TMP_FILE_CONTENT = "abc";
 	
-//	protected Path tmpDirectory;
-	
-//	protected Path tmpFile;
 	
 	protected String remoteDemoFile;
 	
@@ -169,15 +170,6 @@ public class SpringBaseFort {
 	}
 	@After
 	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
-//		if (tmpDirectory != null) {
-//			try {
-//				FileUtil.deleteFolder(tmpDirectory, false);
-//			} catch (Exception e) {
-//			}
-//		}
-//		if (tmpFile != null) {
-//			Files.delete(tmpFile);
-//		}
 		if (remoteDemoFile != null) {
 			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
 		}
@@ -189,6 +181,7 @@ public class SpringBaseFort {
 	}
 	
 	protected void clearDb() {
+		softwareDbService.deleteAll();
 		keyValueDbService.deleteAll();
 		jobLogDbService.deleteAll();
 		bigObDbService.deleteAll();

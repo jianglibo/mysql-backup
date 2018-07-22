@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.repository;
 
-
 import static com.go2wheel.mysqlbackup.jooqschema.tables.Software.SOFTWARE;
 
 import org.jooq.DSLContext;
@@ -16,6 +15,13 @@ public class JOOQSoftwareRepository extends RepositoryBaseImpl<SoftwareRecord, S
 	@Autowired
 	protected JOOQSoftwareRepository(DSLContext jooq) {
 		super(SOFTWARE, Software.class, jooq);
+	}
+
+	@Override
+	public Software findByUniqueField(Software software) {
+		return jooq.selectFrom(SOFTWARE).where(SOFTWARE.NAME.eq(software.getName())
+				.and(SOFTWARE.VERSION.eq(software.getVersion()).and(SOFTWARE.TARGET_ENV.eq(software.getTargetEnv()))))
+				.fetchOneInto(Software.class);
 	}
 
 }

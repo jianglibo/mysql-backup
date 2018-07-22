@@ -315,4 +315,14 @@ public class StringUtil {
 		}
 		return sb.toString();
 	    }
+
+	public static boolean stringEqual(String str1, String str2) {
+		if (str1 == null && str2 == null) {
+			return true;
+		} else if (str1 == null || str2 == null) {
+			return false;
+		} else {
+			return str1.equals(str2);
+		}
+	}
 }

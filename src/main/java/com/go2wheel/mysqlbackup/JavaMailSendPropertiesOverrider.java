@@ -36,7 +36,7 @@ public class JavaMailSendPropertiesOverrider implements EnvironmentAware {
 	public static final String SPRING_MAIL_HOST= "spring.mail.host";
 	public static final String SPRING_MAIL_PASSWORD= "spring.mail.password";
 	public static final String SPRING_MAIL_PROTOCOL= "spring.mail.protocol";
-	public static final String SPRING_MAIL_PROPERTIES_SMTP_AUTH= "spring.mail.properties.mail.smtp.auth"; // mail.smtp.auth -> JavaMailSenderImpl　の　mailproperites.
+	public static final String SPRING_MAIL_PROPERTIES_SMTP_AUTH= "spring.mail.properties.mail.smtp.auth"; // mail.smtp.auth -> JavaMailSenderImpl mailproperites.
 
 	@Autowired
 	private MailProperties mailProperties;

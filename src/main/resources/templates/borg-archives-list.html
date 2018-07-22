@@ -61,12 +61,11 @@
 		</div>
 	</div>
 
-	<script th:src="@{/cache-forever/freact/main.d1a8cdaf.js}" src="../cache-forever/freact/main.d1a8cdaf.js"></script>
-	<script th:src="@{/combo/1.18.13?/js/bootstrap.js}" src="../public/js/bootstrap.js"></script>
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var serverId = /*[[${server.id}]]*/ "0";
 		var cache = {};
+		confirmDeleteModal('abc');
 		var modal = jQuery('#myModal');
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
@@ -82,11 +81,13 @@
 					if (cache[url]) {
 						modal.find('.code').html(cache[url]);
 						modal.modal('show');
+//						modal.modal({show: true, backdrop: false});
 					} else {
 						jQuery.ajax(url, {method: 'GET'}).done(function(data, textStatus, jqXHR){
 							cache[url] = data;
 							modal.find('.code').html(cache[url]);
 							modal.modal('show');
+//							modal.modal({show: true, backdrop: false});
 						});
 					}
 
@@ -109,14 +110,6 @@
 					window.freact.formUtil.createFormSubmit({action: url, method: 'PUT'}, {});
 				}
 			}]);
-
-					// jQuery.ajax(url, {method: 'PUT'}).done(function(data, textStatus, jqXHR){
-					// 	if (data.reload) {
-					// 		window.location.reload(true);
-					// 	} else {
-					// 		alert(data);
-					// 	}
-					// });
 	</script>
 </body>
 

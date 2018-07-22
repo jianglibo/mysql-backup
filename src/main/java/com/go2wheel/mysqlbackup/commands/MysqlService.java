@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -85,6 +86,14 @@ public class MysqlService {
 	public boolean isMysqlNotReadyForBackup(Server server) {
 		 return server == null || server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null || server.getMysqlInstance().getLogBinSetting().isEmpty();
 	}
+	
+	
+	public CompletableFuture<FacadeResult<LinuxLsl>> mysqlDumpAsync(Session session, Server server, boolean force) {
+		return CompletableFuture.supplyAsync(() -> {
+			return this.mysqlDump(session, server, force);
+		});
+	}
+	
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost

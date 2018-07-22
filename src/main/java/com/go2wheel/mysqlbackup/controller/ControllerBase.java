@@ -11,12 +11,20 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.util.EncodeConvertor;
 
 public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	protected ApplicationContext applicationContext;
+	
+	@Autowired
+	protected EncodeConvertor encodeConvertor;
+	
+	@Autowired
+	protected GlobalStore globalStore;
 	
 	@Autowired
 	private MainMenuGroups menuGroups;

@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
@@ -83,6 +84,8 @@ import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -131,6 +134,9 @@ public class BackupCommand {
 	private SecurityService securityService;
 
 	@Autowired
+	private GlobalStore globalStore;
+
+	@Autowired
 	private SqlService sqlService;
 
 	@Autowired
@@ -138,7 +144,7 @@ public class BackupCommand {
 
 	@Autowired
 	private ServerStateService serverStateService;
-	
+
 	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
 
@@ -178,7 +184,7 @@ public class BackupCommand {
 
 	@Autowired
 	private MailerJob mailerJob;
-	
+
 	@Autowired
 	private TemplateContextService templateContextService;
 
@@ -699,11 +705,29 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump() throws JSchException, IOException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
-		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
-		return mysqlService.saveDumpResult(server, fr);
+		if (async) {
+			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(getSession(), server, false);
+			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
+			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
+		} else {
+			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
+			return mysqlService.saveDumpResult(server, fr);
+		}
+	}
+	
+	@ShellMethod(value = "列出后台任务")
+	public FacadeResult<?> asyncList() throws JSchException, IOException {
+		List<Gobject> gobjects = globalStore.getGroupObjects(BackupCommand.class.getName());
+		
+		List<String> ls =  gobjects.stream()
+				.filter(go -> go.getObject() instanceof CompletableFuture)
+				.map(go -> go.getName() + "的状态: " + go.as(CompletableFuture.class).isDone())
+				.collect(Collectors.toList());
+		return FacadeResult.doneExpectedResultDone(ls);
+		
 	}
 	
 	/**
@@ -714,15 +738,21 @@ public class BackupCommand {
 	 * @throws IOException
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlDumpAgain(@ShellOption(defaultValue = ShellOption.NULL) String iknow)
+	public FacadeResult<?> mysqlDumpAgain(@ShellOption(help="异步执行") boolean async, @ShellOption(defaultValue = ShellOption.NULL) String iknow)
 			throws JSchException, IOException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (!DANGEROUS_ALERT.equals(iknow)) {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
-		FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
-		return mysqlService.saveDumpResult(server, fr);
+		if (async) {
+			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(getSession(), server, true);
+			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
+			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
+		} else {
+			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
+			return mysqlService.saveDumpResult(server, fr);
+		}
 	}
 
 

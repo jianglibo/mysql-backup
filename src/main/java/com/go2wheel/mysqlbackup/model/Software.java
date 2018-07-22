@@ -1,5 +1,11 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class Software extends BaseModel {
 	
 	private String name;
@@ -8,6 +14,8 @@ public class Software extends BaseModel {
 	private String website;
 	private String dlurl;
 	private String installer;
+	
+	private List<String> settings;
 	
 	public String getName() {
 		return name;
@@ -45,7 +53,15 @@ public class Software extends BaseModel {
 	public void setInstaller(String installer) {
 		this.installer = installer;
 	}
+	public List<String> getSettings() {
+		return settings;
+	}
+	public void setSettings(List<String> settings) {
+		this.settings = settings;
+	}
 	
-	
+	public Map<String, String> getSettingsMap() {
+		return StringUtil.toPair(getSettings());
+	}
 	
 }

@@ -1,0 +1,49 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>安装程序</title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:text="|安装程序-${server.name}|">安装程序</h1>
+			</div>
+			<div class="content">
+				<aside class="success" th:if="${formProcessSuccessed}">
+				<p th:text="${formProcessSuccessed}">修改成功。</p>
+				</aside>
+				<form class="pure-form install-software-form" method="POST" action="/app/software-install" th:action="@{/app/software-install/{server}(server=${server.id})}">
+					<fieldset>
+						<legend>安装程序</legend>
+						<select th:remove="all-but-first" name="software">
+							<option th:each="one : ${softwares}" th:value="${one.id}" th:text="|${one.name}-${one.version}-${one.targetEnv}|" th:selected="${one.id} == ${software.id}">AL</option>
+							<option>CA</option>
+							<option>IL</option>
+						</select>
+
+						<button type="submit" class="pure-button pure-button-primary">安装</button>
+						<p>其它安装所需的参数：</p>
+						<div class="pure-control-group" th:each="kv : ${software.getSettingsMap()}">
+							<label for="" th:for="${kv.getKey()}" th:text="${kv.getKey()}">SSH_KEY_FILE</label>
+							<input th:name="${kv.getKey()}" type="text" placeholder="" th:placeholder="${kv.getValue()}">
+							<span class="pure-form-message-inline"></span>
+						</div>
+					</fieldset>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		var server = /*[[${server.id}]]*/ 0;
+		jQuery('.install-software-form').on('change', function(e) {
+			var id = jQuery(e.target).val();
+			window.location.href = "/app/software-install/" + server + "?software=" + id;
+		});
+	</script>
+</body>
+
+</html>

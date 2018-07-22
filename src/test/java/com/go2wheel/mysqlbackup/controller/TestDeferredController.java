@@ -17,14 +17,14 @@ public class TestDeferredController extends SpringBaseTWithWeb {
 	
 	@Autowired
 	private GlobalStore globalStore;
-
+	
 
 	@Test
 	public void testDeferredSuccess() throws Exception {
 
 		MvcResult result = this.mockMvc.perform(get("/quotes").param("timeout", "3000")).andReturn();
 		
-		DeferredResult<String> df = (DeferredResult<String>) globalStore.getDeferred("test", "http");
+		DeferredResult<String> df = globalStore.removeObject("test", "http").as(DeferredResult.class);
 		
 		new Thread(new Runnable() {
 			@Override
@@ -48,7 +48,7 @@ public class TestDeferredController extends SpringBaseTWithWeb {
 
 		MvcResult result = this.mockMvc.perform(get("/quotes").param("timeout", "1000")).andReturn();
 		
-		DeferredResult<String> df = (DeferredResult<String>) globalStore.getDeferred("test", "http");
+		DeferredResult<String> df = globalStore.removeObject("test", "http").as(DeferredResult.class);
 		
 		new Thread(new Runnable() {
 			@Override
