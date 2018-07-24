@@ -16,7 +16,6 @@ import org.springframework.shell.result.TypeHierarchyResultHandler;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.UtilForTe;
-import com.go2wheel.mysqlbackup.resulthandler.TypeHierarchyResultHandlerMine;
 
 public class TestShell extends SpringBaseFort {
 	

@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
+import com.go2wheel.mysqlbackup.value.AjaxErrorResult;
+import com.go2wheel.mysqlbackup.value.AjaxResult;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -30,7 +32,7 @@ public class GlobalStore {
 
 	private LoadingCache<String, Lock> lockCache;
 	
-	private Cache<String, CompletableFuture<AjaxDataResult>> groupListernerCache;
+	public Cache<String, CompletableFuture<AjaxResult>> groupListernerCache;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -45,10 +47,7 @@ public class GlobalStore {
 	}
 
 	private Map<String, Gobject> obStore = new HashMap<>();
-
-	public Map<String, CompletableFuture<AjaxDataResult>> getGroupListerners() {
-		return groupListernerCache.asMap();
-	}
+	
 
 	public Lock getLock(String group) {
 		try {
@@ -57,10 +56,6 @@ public class GlobalStore {
 			ExceptionUtil.logErrorException(logger, e);
 		}
 		return null;
-	}
-
-	public void addListerner(String group, CompletableFuture<AjaxDataResult> cf) {
-		this.groupListernerCache.put(group, cf);
 	}
 
 	private String combine(String group, String key) {
@@ -78,7 +73,7 @@ public class GlobalStore {
 		Lock lock = getLock(group);
 		try {
 			lock.lock();
-			CompletableFuture<AjaxDataResult> lis = groupListernerCache.getIfPresent(group);
+			CompletableFuture<AjaxResult> lis = groupListernerCache.getIfPresent(group);
 			if (lis != null) {
 				if (lis.isDone()) {
 					return;
@@ -86,10 +81,15 @@ public class GlobalStore {
 				@SuppressWarnings("unchecked")
 				CompletableFuture<Object> cf1 = (CompletableFuture<Object>) value.getObject();
 				cf1.thenAccept(r -> {
-					AjaxDataResult fr = new AjaxDataResult();
+					AjaxDataResult<?> fr = new AjaxDataResult<>();
 					fr.addObject(r);
 					removeObject(cf1);
 					lis.complete(fr);
+				}).exceptionally(throwable -> {
+					ExceptionUtil.logThrowable(logger, throwable);
+					removeObject(cf1);
+					lis.complete(AjaxErrorResult.exceptionResult(throwable));
+					return null;
 				});
 			}
 			obStore.put(combine(group, key), value);

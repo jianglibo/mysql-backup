@@ -28,7 +28,7 @@
 						<p>其它安装所需的参数：</p>
 						<div class="pure-control-group" th:each="kv : ${software.getSettingsMap()}">
 							<label for="" th:for="${kv.getKey()}" th:text="${kv.getKey()}">SSH_KEY_FILE</label>
-							<input th:name="${kv.getKey()}" type="text" placeholder="" th:placeholder="${kv.getValue()}">
+							<input th:name="${kv.getKey()}" type="text" th:value="${kv.getValue()}" placeholder="">
 							<span class="pure-form-message-inline"></span>
 						</div>
 					</fieldset>

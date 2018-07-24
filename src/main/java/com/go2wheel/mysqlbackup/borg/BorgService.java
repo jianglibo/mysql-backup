@@ -22,12 +22,12 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
+import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
@@ -35,7 +35,6 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
-//import com.go2wheel.mysqlbackup.value.Box;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
@@ -71,8 +70,8 @@ public class BorgService {
 
 	private FileDownloader fileDownloader;
 
-	private InstallationInfo getInstallationInfo(Session session) throws RunRemoteCommandException {
-		InstallationInfo ii = new InstallationInfo();
+	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException {
+		BorgInstallInfo ii = new BorgInstallInfo();
 		RemoteCommandResult rcr;
 		rcr = SSHcommonUtil.runRemoteCommand(session, "which borg;borg -V");
 		if (rcr.getExitValue() == 0) {
@@ -84,12 +83,12 @@ public class BorgService {
 		return ii;
 	}
 
-	public FacadeResult<InstallationInfo> unInstall(Session session) {
+	public FacadeResult<BorgInstallInfo> unInstall(Session session) {
 		try {
-			InstallationInfo ii = getInstallationInfo(session);
+			BorgInstallInfo ii = getBorgInstallInfo(session);
 			if (ii.isInstalled()) {
 				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
-				return FacadeResult.doneExpectedResult(getInstallationInfo(session), CommonActionResult.DONE);
+				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
 			} else {
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
@@ -99,15 +98,15 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<InstallationInfo> install(Session session) {
-		InstallationInfo ii;
+	public FacadeResult<BorgInstallInfo> install(Session session) {
+		BorgInstallInfo ii;
 		try {
-			ii = getInstallationInfo(session);
+			ii = getBorgInstallInfo(session);
 			if (!ii.isInstalled()) {
 				uploadBinary(session);
 				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
-				ii = getInstallationInfo(session);
+				ii = getBorgInstallInfo(session);
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
 			} else {
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
@@ -350,44 +349,7 @@ public class BorgService {
 	}
 	
 	
-	public static class InstallationInfo {
-		
-		private boolean installed;
-		private String executable;
-		private String version;
-		
-		
-		@Override
-		public String toString() {
-			return ObjectUtil.dumpObjectAsMap(this);
-		}
-		
-		public static InstallationInfo notInstalled() {
-			InstallationInfo ii = new InstallationInfo();
-			ii.setInstalled(false);
-			return ii;
-		}
-		
-		public boolean isInstalled() {
-			return installed;
-		}
-		public void setInstalled(boolean installed) {
-			this.installed = installed;
-		}
-		public String getExecutable() {
-			return executable;
-		}
-		public void setExecutable(String executable) {
-			this.executable = executable;
-		}
-		public String getVersion() {
-			return version;
-		}
-		public void setVersion(String version) {
-			this.version = version;
-		}
 
-	}
 	//@formatter:on
 
 	/**

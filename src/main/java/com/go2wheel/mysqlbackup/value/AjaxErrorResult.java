@@ -7,21 +7,34 @@ import org.assertj.core.util.Lists;
 
 import com.google.common.collect.Maps;
 
-public class AjaxError {
-	
+public class AjaxErrorResult implements AjaxResult {
+
 	private String message;
 	
 	private Map<String, List<ErrorItem>> errors = Maps.newHashMap();
 	
-	
-	public AjaxError(String message) {
+	public static AjaxErrorResult exceptionResult(Throwable throwable) {
+		AjaxErrorResult ar = new AjaxErrorResult(throwable.getMessage());
+		return ar;
+	}
+
+	public static AjaxErrorResult errorResult(String message) {
+		AjaxErrorResult ar = new AjaxErrorResult(message);
+		return ar;
+	}
+
+	public AjaxErrorResult() {
+		this.errors.put("_global", Lists.newArrayList());
+	}
+
+	public AjaxErrorResult(String message) {
 		this.message = message;
 		this.errors.put("_global", Lists.newArrayList());
 	}
 	
 	
-	public static AjaxError getTimeOutError() {
-		return new AjaxError("timeout");
+	public static AjaxErrorResult getTimeOutError() {
+		return new AjaxErrorResult("timeout");
 	}
 	
 	
@@ -66,31 +79,4 @@ public class AjaxError {
 			this.message = message;
 		}
 	}
-
 }
-
-
-
-
-
-//{
-//    "message": "Validation Failed",
-//    "errors": {
-//        "title": [
-//        {
-//                    "code": "required_field",
-//                    "message": "The title field is required."
-//        },
-//        {
-//            "code": "max_field_error",
-//            " message": "The title may not be greater than 50 characters."
-//        }   
-//    ],
-//        "author":[
-//        {
-//                "code": "required_field",
-//                "message": "The author field is required."
-//            }
-//    ]
-//    }
-//}

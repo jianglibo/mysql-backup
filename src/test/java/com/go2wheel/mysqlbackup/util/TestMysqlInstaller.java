@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
@@ -12,8 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
+import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
-import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.google.common.collect.Maps;
 
@@ -42,7 +42,9 @@ public class TestMysqlInstaller extends SpringBaseFort {
 		Map<String, String> parasMap = Maps.newHashMap();
 		parasMap.put("version", "56");
 		parasMap.put("initPassword", "123456");
-		CompletableFuture<FacadeResult<MysqlInstallInfo>> cfm = mii.installAsync(server, parasMap);
+		Software sf = new Software();
+		sf.setVersion("56");
+		CompletableFuture<FacadeResult<MysqlInstallInfo>> cfm = mii.installAsync(server,sf, parasMap);
 		
 		Thread t = Thread.currentThread();
 		

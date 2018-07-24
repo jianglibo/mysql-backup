@@ -18,6 +18,7 @@ import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.SQLCandiatesValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.SoftwareValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TemplateValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TriggerKeyProvider;
 import com.go2wheel.mysqlbackup.valueprovider.UserAccountValueProvider;
@@ -42,6 +43,10 @@ public class StandardAPIAutoConfigurationMine {
 		return new KeyValueValueProvider();
 	}
 	
+	@Bean
+	public ValueProvider softwareValueProvider() {
+		return new SoftwareValueProvider();
+	}
 	
 	@Bean
 	public ValueProvider candidatesFromSQLProvider() {

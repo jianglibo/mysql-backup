@@ -9,9 +9,9 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 public interface Installer<I extends InstallInfo> {
 
-	FacadeResult<I> install(Server server, Map<String, String> parasMap);
+	FacadeResult<I> install(Server server, Software software, Map<String, String> parasMap);
 	
-	CompletableFuture<FacadeResult<I>> installAsync(Server server, Map<String, String> parasMap);
+	CompletableFuture<FacadeResult<I>> installAsync(Server server, Software software, Map<String, String> parasMap);
 	
 	boolean canHandle(Software software);
 }

@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.model;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
@@ -62,6 +61,11 @@ public class Software extends BaseModel {
 	
 	public Map<String, String> getSettingsMap() {
 		return StringUtil.toPair(getSettings());
+	}
+	
+	@Override
+	public String toListRepresentation(String... fields) {
+		return super.toListRepresentation("id", "name", "version", "targetEnv");
 	}
 	
 }

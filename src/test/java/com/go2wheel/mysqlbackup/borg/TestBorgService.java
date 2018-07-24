@@ -15,9 +15,9 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.borg.BorgService.InstallationInfo;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
@@ -37,7 +37,7 @@ public class TestBorgService extends SpringBaseFort {
 		createSession();
 		createBorgDescription();
 		deleteAllJobs();
-		InstallationInfo ii = borgService.unInstall(session).getResult();
+		BorgInstallInfo ii = borgService.unInstall(session).getResult();
 		assertFalse(ii.isInstalled());
 	}
 

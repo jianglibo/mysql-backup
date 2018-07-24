@@ -12,7 +12,6 @@ import org.springframework.shell.CommandRegistry;
 import org.springframework.shell.result.TerminalAwareResultHandler;
 
 import com.go2wheel.mysqlbackup.LocaledMessageService;
-import com.go2wheel.mysqlbackup.cfgoverrides.jlineshellautoconfig.InteractiveShellApplicationRunnerMine;
 import com.go2wheel.mysqlbackup.exception.HasErrorIdAndMsgkey;
 
 public class HasErrorIdAndMsgkeyResultHandler extends TerminalAwareResultHandler<HasErrorIdAndMsgkey>
@@ -34,9 +33,6 @@ public class HasErrorIdAndMsgkeyResultHandler extends TerminalAwareResultHandler
 	@Autowired
 	private LocaledMessageService messageService;
 
-	@Autowired
-	@Lazy
-	private InteractiveShellApplicationRunnerMine interactiveRunner;
 
 	@Value("line.separator")
 	private String lineSeparator;

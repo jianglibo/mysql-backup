@@ -59,3 +59,7 @@ aside.success {
     margin-top: 3px;
     margin-bottom: 5px;
 }
+
+#menu a:hover {
+    text-decoration: none;
+}

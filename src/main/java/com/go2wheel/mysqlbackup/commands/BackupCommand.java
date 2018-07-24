@@ -78,6 +78,7 @@ import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.ServerState;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
@@ -598,12 +599,11 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
-	public String mysqlInstall(@ShowPossibleValue({ "55", "56", "57",
-			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") String twoDigitVersion,
+	public String mysqlInstall(Software software,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
-		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, twoDigitVersion, initPassword);
+		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, software, initPassword);
 		if (!fr.isExpected()) {
 			if (StringUtil.hasAnyNonBlankWord(fr.getMessage())) {
 				return fr.getMessage();
@@ -616,6 +616,27 @@ public class BackupCommand {
 		}
 		return "安装成功。";
 	}
+	
+//	@ShellMethod(value = "安装MYSQL到目标机器")
+//	public String mysqlInstall(@ShowPossibleValue({ "55", "56", "57",
+//			"80" }) @ShellOption(help = "两位数的版本号比如，55,56,57,80。") String twoDigitVersion,
+//			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
+//		sureServerSelected();
+//		Server server = appState.getCurrentServer();
+//		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, null, twoDigitVersion, initPassword);
+//		if (!fr.isExpected()) {
+//			if (StringUtil.hasAnyNonBlankWord(fr.getMessage())) {
+//				return fr.getMessage();
+//			} else if (fr.getException() != null) {
+//				ExceptionUtil.logErrorException(logger, fr.getException());
+//				return fr.getException().getMessage();
+//			} else {
+//				return "安装失败";
+//			}
+//		}
+//		return "安装成功。";
+//	}
+	
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
 	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {

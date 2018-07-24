@@ -20,6 +20,7 @@ import com.go2wheel.mysqlbackup.SpringBaseTWithWeb;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
+import com.go2wheel.mysqlbackup.value.AjaxResult;
 
 public class TestLongPollingController extends SpringBaseTWithWeb {
 	
@@ -32,13 +33,13 @@ public class TestLongPollingController extends SpringBaseTWithWeb {
 
 		MvcResult result = this.mockMvc.perform(get("/app/polling").param("sid", "123").accept(MediaType.APPLICATION_JSON_UTF8)).andReturn();
 		
-		assertThat(globalStore.getGroupListerners().size(), equalTo(1));
+		assertThat(globalStore.groupListernerCache.asMap().size(), equalTo(1));
 		
-		CompletableFuture<AjaxDataResult> listener = globalStore.getGroupListerners().values().iterator().next();
+		CompletableFuture<AjaxResult> listener = globalStore.groupListernerCache.asMap().values().iterator().next();
 		
 		listener.thenAccept(o -> {
-			assertThat(o.getData().size(), equalTo(1));
-			assertThat(o.getData().get(0), equalTo("hello"));
+			assertThat(((AjaxDataResult<?>)o).getData().size(), equalTo(1));
+			assertThat(((AjaxDataResult<?>)o).getData().get(0), equalTo("hello"));
 		});
 		
 		// add a future task which take 2500 ms.

@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.installer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -10,6 +11,9 @@ public abstract class InstallerBase<I extends InstallInfo> implements Installer<
 	
 	@Autowired
 	protected SoftwareDbService softwareDbService;
+	
+	@Autowired
+	protected FileDownloader fileDownloader;
 	
 	protected void saveToDb(Software software) {
 		Software indb = softwareDbService.findByUniqueField(software);

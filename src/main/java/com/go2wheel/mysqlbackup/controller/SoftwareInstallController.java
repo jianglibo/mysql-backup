@@ -68,12 +68,12 @@ public class SoftwareInstallController extends ControllerBase {
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<?> cf = il.installAsync(server, parameters);
+				CompletableFuture<?> cf = il.installAsync(server, software, parameters);
 				String sid = request.getSession(true).getId();
 				globalStore.saveObject(sid, server.getId() + "-" + software.getId(), Gobject.newGobject("MYSQL安装", cf));
 			}
 		}
-		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已经发送，一旦完成会通知您。"));
+		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		String uri = ucb.replaceQueryParam("software", software.getId()).build().toUriString();
 		return "redirect:" + uri;

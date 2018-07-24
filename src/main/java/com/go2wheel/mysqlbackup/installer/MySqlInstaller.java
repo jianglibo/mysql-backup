@@ -27,7 +27,6 @@ import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MysqlYumRepo;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
-import com.go2wheel.mysqlbackup.util.MysqlUtil.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -50,9 +49,9 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String MYSQL_COMMUNITY_RELEASE_BINARY_URL = "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm";
+	private static final String MYSQL_COMMUNITY_RELEASE_BINARY_URL = "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm";
 
-	public static final String REMOTE_FILE = "/tmp/" + StringUtil.getLastPartOfUrl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
+//	public static final String REMOTE_FILE = "/tmp/" + StringUtil.getLastPartOfUrl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
 
 	public static final String MYSQL_REPO = "/etc/yum.repos.d/mysql-community.repo";
 	
@@ -64,18 +63,21 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 
-	public FacadeResult<MysqlInstallInfo> install(Session session, Server box, String twoDigitVersion, String initPassword) {
+	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software, String initPassword) {
 		try {
-			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(twoDigitVersion))) {
-				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", twoDigitVersion));
+			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(software.getVersion()))) {
+				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", software.getVersion()));
 			}
-			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
+			String remote_file = "/tmp/" + StringUtil.getLastPartOfUrl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
+			
+			// if didn't install mysql yet, how can I get the info?
+			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 
 			if (!info.isInstalled()) {
-				Path localPath = fileDownloader.download(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
-				ScpUtil.to(session, localPath.toString(), REMOTE_FILE);
+				Path localPath = fileDownloader.download(software.getDlurl());
+				ScpUtil.to(session, localPath.toString(), remote_file);
 
-				String command = String.format("rpm -Uvh %s", REMOTE_FILE);
+				String command = String.format("rpm -Uvh %s", remote_file);
 				
 				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 				
@@ -87,7 +89,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 					myp.setConfigValue(cv, "0");
 				});
 
-				Optional<ConfigValue> cv = Stream.of(SUPPORTED_VERSIONS).filter(v -> twoDigitVersion.equals(v))
+				Optional<ConfigValue> cv = Stream.of(SUPPORTED_VERSIONS).filter(v -> software.getVersion().equals(v))
 						.map(v -> String.format("mysql%s-community", v)).map(b -> myp.getConfigValue(b, "enabled"))
 						.findFirst();
 
@@ -152,7 +154,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 					expect = null;
 				}
 
-				info = mysqlUtil.getInstallInfo(session, box);
+				info = mysqlUtil.getInstallInfo(session, server);
 			}
 			return FacadeResult.doneExpectedResult(info, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | JSchException | IOException | ScpException e) {
@@ -198,9 +200,9 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> install(Server server, Map<String, String> parasMap) {
+	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) {
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
-		FacadeResult<MysqlInstallInfo> fr = install(session, server, parasMap.get("version"), parasMap.get("initPassword"));
+		FacadeResult<MysqlInstallInfo> fr = install(session, server, software, parasMap.get("initPassword"));
 		return fr;
 	}
 	
@@ -210,6 +212,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		software.setName("MYSQL");
 		software.setVersion("56");
 		software.setTargetEnv("linux_centos");
+		software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
 		
 		List<String> ls = Lists.newArrayList();
 		ls.add("initPassword=123456");
@@ -220,6 +223,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		software.setName("MYSQL");
 		software.setVersion("57");
 		software.setTargetEnv("linux_centos");
+		software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
 		
 		ls = Lists.newArrayList();
 		ls.add("initPassword=123456");
@@ -228,15 +232,15 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<FacadeResult<MysqlInstallInfo>> installAsync(Server server, Map<String, String> parasMap) {
+	public CompletableFuture<FacadeResult<MysqlInstallInfo>> installAsync(Server server, Software software, Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
-			return install(server, parasMap);
+			return install(server, software, parasMap);
 		});
 	}
 
 	@Override
 	public boolean canHandle(Software software) {
-		return false;
+		return software.getName().equals("MYSQL");
 	}
 
 }
