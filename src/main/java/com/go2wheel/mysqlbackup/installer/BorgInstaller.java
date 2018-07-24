@@ -1,9 +1,6 @@
 package com.go2wheel.mysqlbackup.installer;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -12,23 +9,17 @@ import javax.annotation.PostConstruct;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.util.ScpUtil;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.Session;
 
@@ -37,48 +28,71 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	private static final String BORG_BINARY_URL = "https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64";
-	
-	private static final String REMOTE_BORG_BINARY = "/usr/local/bin/borg";
-	
-	@Autowired
-	private SshSessionFactory sshSessionFactory;
-	
-	@Autowired
-	private SettingsInDb settingsInDb;
-	
-	private Path downloadPath;
+	private static final String REMOTE_BORG_BINARY_KEY = "remote-borg-binary";
 	
 	@PostConstruct
 	public void post() throws IOException {
-		downloadPath = Paths.get(settingsInDb.getString("installer.download", "notingit/download"));
-		if (!Files.exists(downloadPath)) {
-			Files.createDirectories(downloadPath);
-		}
-		
 		Software software = new Software();
 		software.setName("BORG");
 		software.setVersion("1.1.5");
 		software.setTargetEnv("linux_centos");
-		software.setDlurl(BORG_BINARY_URL);
-		
+		software.setDlurl("https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64");
+		software.setInstaller("borg-linux64-1.1.5");
+		List<String> settings = Lists.newArrayList();
+		settings.add(REMOTE_BORG_BINARY_KEY + "=/usr/local/bin/borg");
+		software.setSettings(settings);
 		saveToDb(software);
+		fileDownloader.downloadAsync(software.getDlurl(), settingsInDb.getDownloadPath().resolve(software.getInstaller()));
 	}
+	
+	public FacadeResult<BorgInstallInfo> unInstall(Session session, Software software) {
+		try {
+			BorgInstallInfo ii = getBorgInstallInfo(session);
+			String rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
+			
+			if (ii.isInstalled()) {
+				SSHcommonUtil.deleteRemoteFile(session, rbb);
+				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
+			} else {
+				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
+			}
+		} catch (RunRemoteCommandException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return FacadeResult.unexpectedResult(e);
+		}
+	}
+	
 	
 	public FacadeResult<InstallInfo> install(Session session, Server server, Software software, Map<String, String> parasMap) {
 		BorgInstallInfo ii;
 		try {
+			String rbb = null;
+			if (parasMap != null && parasMap.containsKey(REMOTE_BORG_BINARY_KEY)) {
+				String v = parasMap.get(REMOTE_BORG_BINARY_KEY);
+				if (v.trim().length() > 0) {
+					rbb = v.trim();
+				}
+			}
+			if (rbb == null) {
+				rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
+			}
 			ii = getBorgInstallInfo(session);
 			if (!ii.isInstalled()) {
-				uploadBinary(session);
-				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
+//				uploadBinary(session);
+				String cmd = String.format("chown root:root %s;chmod 755 %s", rbb, rbb);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getBorgInstallInfo(session);
-				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
+				if (ii.isInstalled()) {
+					SoftwareInstallation si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
+					softwareInstallationDbService.save(si);
+					return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
+				} else {
+					return FacadeResult.unexpectedResult("unknown");
+				}
 			} else {
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
-		} catch (RunRemoteCommandException | IOException | ScpException e) {
+		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
@@ -86,7 +100,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 
 	@Override
 	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap) {
-		return null;
+		return install(getSession(server), server, software, parasMap);
 	}
 
 	@Override
@@ -97,7 +111,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 
 	@Override
 	public boolean canHandle(Software software) {
-		return false;
+		return software.getName().equals("BORG");
 	}
 	
 	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException {
@@ -111,15 +125,6 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			ii.setInstalled(true);
 		}
 		return ii;
-	}
-	
-	public void uploadBinary(Session session) throws ScpException, IOException {
-		Path localPath = downloadPath.resolve(StringUtil.getLastPartOfUrl(BORG_BINARY_URL));
-		if (Files.exists(localPath)) {
-			ScpUtil.to(session, localPath.toString(), REMOTE_BORG_BINARY);
-		} else {
-			fileDownloader.download(BORG_BINARY_URL);
-		}
 	}
 
 }

@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.repository;
 
 import static com.go2wheel.mysqlbackup.jooqschema.tables.Software.SOFTWARE;
 
+import java.util.List;
+
 import org.jooq.DSLContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -22,6 +24,11 @@ public class JOOQSoftwareRepository extends RepositoryBaseImpl<SoftwareRecord, S
 		return jooq.selectFrom(SOFTWARE).where(SOFTWARE.NAME.eq(software.getName())
 				.and(SOFTWARE.VERSION.eq(software.getVersion()).and(SOFTWARE.TARGET_ENV.eq(software.getTargetEnv()))))
 				.fetchOneInto(Software.class);
+	}
+
+	@Override
+	public List<Software> findByName(String name) {
+		return jooq.selectFrom(SOFTWARE).where(SOFTWARE.NAME.eq(name)).fetchInto(Software.class);
 	}
 
 }

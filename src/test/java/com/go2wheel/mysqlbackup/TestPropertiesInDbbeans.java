@@ -8,12 +8,7 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-
-import com.go2wheel.mysqlbackup.TestSpringbeans.Mc;
-import com.go2wheel.mysqlbackup.TestSpringbeans.Tenv;
-import com.go2wheel.mysqlbackup.value.DbProperties;
 
 @Import(com.go2wheel.mysqlbackup.TestPropertiesInDbbeans.Tcc.class)
 public class TestPropertiesInDbbeans extends SpringBaseFort {

@@ -10,19 +10,23 @@ import org.junit.Test;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
+import com.go2wheel.mysqlbackup.model.Software;
 
 public class TestBorgDownloadDbService extends JobBaseFort {
 
 	@Autowired
 	private BorgArchiveJob borgArchiveJob;
 	
+	
 	@Autowired
-	private BorgService borgService;
+	private BorgInstaller borgInstaller;
+	
+	private Software software;
 	
 	@Before
 	public void b() {
@@ -30,7 +34,9 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 		createSession();
 		createBorgDescription();
 		createContext();
-		borgService.unInstall(session);
+		software = softwareDbService.findByName("BORG").get(0);
+		
+		borgInstaller.install(session, server, software, null);
 	}
 
 	@Test(expected=UnExpectedContentException.class)
@@ -40,7 +46,9 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 	
 	@Test
 	public void tBorgInstalled() throws JobExecutionException {
-		borgService.install(session);
+		software = softwareDbService.findByName("BORG").get(0);
+		
+		borgInstaller.install(session, server, software, null);
 		borgArchiveJob.execute(context);
 		List<BorgDownload> downloads = borgDownloadDbService.getItemsInDays(server, 3);
 

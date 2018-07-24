@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -18,7 +19,9 @@ import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
+import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -30,6 +33,11 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Autowired
 	private BorgService borgService;
+	
+	@Autowired
+	private BorgInstaller borgInstaller;
+	
+	private Software software;
 
 	@Before
 	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
@@ -37,7 +45,9 @@ public class TestBorgService extends SpringBaseFort {
 		createSession();
 		createBorgDescription();
 		deleteAllJobs();
-		BorgInstallInfo ii = borgService.unInstall(session).getResult();
+		List<Software> sfs = softwareDbService.findByName("BORG");
+		software = sfs.get(0);
+		BorgInstallInfo ii = borgInstaller.unInstall(session, software).getResult();
 		assertFalse(ii.isInstalled());
 	}
 
@@ -45,7 +55,7 @@ public class TestBorgService extends SpringBaseFort {
 	@Test
 	public void tRepoInit() throws RunRemoteCommandException {
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
-		borgService.install(session);
+		borgInstaller.install(session, server, software, null);
 		
 		FacadeResult<?> fr = borgService.initRepo(session, "");
 		assertFalse(fr.isExpected());
@@ -68,12 +78,12 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test(expected = UnExpectedContentException.class)
 	public void testArchive() {
-		borgService.unInstall(session);
+		borgInstaller.unInstall(session, software);
 		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
 		assertThat(fr.getMessage(), equalTo("common.application.notinstalled"));
 
-		fr = borgService.install(session);
+		fr = borgInstaller.install(session, server, software, null);
 		assertTrue(fr.isExpected());
 
 		fr = borgService.archive(session, server);
@@ -83,7 +93,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test
 	public void tArchive() throws RunRemoteCommandException, InterruptedException {
-		borgService.install(session);
+		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));
 		RemoteCommandResult rcr1 = borgService.initRepo(session, server.getBorgDescription().getRepo()).getResult();
 		assertThat(rcr1.getExitValue(), equalTo(0));
@@ -113,7 +123,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test
 	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException {
-		borgService.install(session);
+		borgInstaller.install(session, server, software, null);
 		BorgDescription bd = server.getBorgDescription();
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", bd.getRepo()));
 		RemoteCommandResult rcr1 = borgService.initRepo(session, bd.getRepo()).getResult();

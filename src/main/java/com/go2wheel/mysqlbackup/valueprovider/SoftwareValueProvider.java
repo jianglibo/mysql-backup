@@ -10,6 +10,7 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.annotation.MetaAnno;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 
@@ -31,10 +32,17 @@ public class SoftwareValueProvider  implements ValueProvider {
         if (input.startsWith("-")) {
         	return new ArrayList<>();
         }
-
-        List<Software> software = softwareDbService.findAll();
         
-        return software.stream().map(sv -> sv.toListRepresentation()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
+        MetaAnno ma = parameter.getMethodAnnotation(MetaAnno.class);
+
+        List<Software> softwares;
+        if (ma != null && !ma.value().trim().isEmpty()) {
+        	softwares = softwareDbService.findByName(ma.value());
+        } else {
+        	softwares = softwareDbService.findAll();
+        }
+        
+        return softwares.stream().map(sv -> sv.toListRepresentation()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     
 }

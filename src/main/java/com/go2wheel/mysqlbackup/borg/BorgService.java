@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
+import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -30,7 +31,6 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
@@ -53,6 +53,10 @@ public class BorgService {
 	public static final String UNKNOWN = "borg.archive.unknown";
 	
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
+	
+	
+	@Autowired
+	private BorgInstaller borgInstaller;
 	
 	
 
@@ -83,48 +87,48 @@ public class BorgService {
 		return ii;
 	}
 
-	public FacadeResult<BorgInstallInfo> unInstall(Session session) {
-		try {
-			BorgInstallInfo ii = getBorgInstallInfo(session);
-			if (ii.isInstalled()) {
-				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
-				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
-			} else {
-				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
-			}
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
+//	public FacadeResult<BorgInstallInfo> unInstall(Session session) {
+//		try {
+//			BorgInstallInfo ii = getBorgInstallInfo(session);
+//			if (ii.isInstalled()) {
+//				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
+//				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
+//			} else {
+//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
+//			}
+//		} catch (RunRemoteCommandException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			return FacadeResult.unexpectedResult(e);
+//		}
+//	}
 
-	public FacadeResult<BorgInstallInfo> install(Session session) {
-		BorgInstallInfo ii;
-		try {
-			ii = getBorgInstallInfo(session);
-			if (!ii.isInstalled()) {
-				uploadBinary(session);
-				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
-				SSHcommonUtil.runRemoteCommand(session, cmd);
-				ii = getBorgInstallInfo(session);
-				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
-			} else {
-				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
-			}
-		} catch (RunRemoteCommandException | IOException | ScpException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
+//	public FacadeResult<BorgInstallInfo> install(Session session) {
+//		BorgInstallInfo ii;
+//		try {
+//			ii = getBorgInstallInfo(session);
+//			if (!ii.isInstalled()) {
+//				uploadBinary(session);
+//				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
+//				SSHcommonUtil.runRemoteCommand(session, cmd);
+//				ii = getBorgInstallInfo(session);
+//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
+//			} else {
+//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
+//			}
+//		} catch (RunRemoteCommandException | IOException | ScpException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//			return FacadeResult.unexpectedResult(e);
+//		}
+//	}
 
-	public void uploadBinary(Session session) throws ScpException, IOException {
-		Path localPath = appSettings.getDownloadRoot().resolve(StringUtil.getLastPartOfUrl(BORG_BINARY_URL));
-		if (Files.exists(localPath)) {
-			ScpUtil.to(session, localPath.toString(), REMOTE_BORG_BINARY);
-		} else {
-			fileDownloader.download(BORG_BINARY_URL);
-		}
-	}
+//	public void uploadBinary(Session session) throws ScpException, IOException {
+//		Path localPath = appSettings.getDownloadRoot().resolve(StringUtil.getLastPartOfUrl(BORG_BINARY_URL));
+//		if (Files.exists(localPath)) {
+//			ScpUtil.to(session, localPath.toString(), REMOTE_BORG_BINARY);
+//		} else {
+//			fileDownloader.download(BORG_BINARY_URL);
+//		}
+//	}
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
@@ -256,10 +260,10 @@ public class BorgService {
 
 	@Exclusive(TaskLocks.TASK_BORG)
 	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) {
-		if (solveProblems) {
-			install(session);
-			initRepo(session, server.getBorgDescription().getRepo());
-		}
+//		if (solveProblems) {
+//			install(session);
+//			initRepo(session, server.getBorgDescription().getRepo());
+//		}
 		try {
 			BorgDescription borgDescription = server.getBorgDescription();
 			List<String> cmdparts = new ArrayList<>();

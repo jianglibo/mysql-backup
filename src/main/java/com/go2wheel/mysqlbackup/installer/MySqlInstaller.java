@@ -56,7 +56,6 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	public static final String MYSQL_REPO = "/etc/yum.repos.d/mysql-community.repo";
 	
 	public static final String[] SUPPORTED_VERSIONS = new String[] {"55", "56", "57", "80"};
-	private FileDownloader fileDownloader;
 
 	private MysqlUtil mysqlUtil;
 	
@@ -74,9 +73,8 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 
 			if (!info.isInstalled()) {
-				Path localPath = fileDownloader.download(software.getDlurl());
+				Path localPath = getLocalInstallerPath(software);  
 				ScpUtil.to(session, localPath.toString(), remote_file);
-
 				String command = String.format("rpm -Uvh %s", remote_file);
 				
 				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);

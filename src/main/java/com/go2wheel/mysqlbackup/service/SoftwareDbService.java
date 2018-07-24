@@ -1,10 +1,6 @@
 package com.go2wheel.mysqlbackup.service;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.annotation.PostConstruct;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -24,6 +20,10 @@ public class SoftwareDbService extends DbServiceBase<SoftwareRecord, Software> {
 
 	public Software findByUniqueField(Software software) {
 		return  ((SoftwareRepository)repo).findByUniqueField(software);
+	}
+
+	public List<Software> findByName(String name) {
+		return  ((SoftwareRepository)repo).findByName(name);
 	}
 
 }

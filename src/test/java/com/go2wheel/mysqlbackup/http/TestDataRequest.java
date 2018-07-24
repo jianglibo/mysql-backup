@@ -1,8 +1,5 @@
 package com.go2wheel.mysqlbackup.http;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertThat;
-
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -114,7 +111,7 @@ public class TestDataRequest {
 
 		HttpResponse response = client.execute(post);
 		if (response.getStatusLine().getStatusCode() == 302) {
-			System.out.println("请检查Session值。");
+			System.out.println("请检查Session值�??");
 			return false;
 			
 		}

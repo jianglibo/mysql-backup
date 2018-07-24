@@ -1,5 +1,9 @@
 package com.go2wheel.mysqlbackup;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -28,6 +32,8 @@ public class SettingsInDb {
 	
 	private static String[] predefines = new String[] {"linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"};
 	
+	public static final String DOWNLOAD_FOLDER_KEY = "installer.download";
+	
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -37,9 +43,11 @@ public class SettingsInDb {
 	private LoadingCache<String, String> singleValueLc;
 
 	private LoadingCache<String, List<String>> listValueLc;
-
+	
+	private Path downloadPath;
+	
 	@PostConstruct
-	private void post() {
+	private void post() throws IOException {
 		singleValueLc = CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<String, String>() {
 			public String load(String key) {
 				KeyValue kv = keyValueDbService.findOneByKey(key);
@@ -59,6 +67,10 @@ public class SettingsInDb {
 		
 		checkOsType();
 		
+		downloadPath = Paths.get(getString(SettingsInDb.DOWNLOAD_FOLDER_KEY, "notingit/download"));
+		if (!Files.exists(downloadPath)) {
+			Files.createDirectories(downloadPath);
+		}
 	}
 	
 	private void checkOsType() {
@@ -127,4 +139,10 @@ public class SettingsInDb {
 	public int getInteger(String key) {
 		return getInteger(key, 0);
 	}
+	
+	public Path getDownloadPath() {
+		return downloadPath;
+	}
+
+
 }

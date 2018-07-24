@@ -55,32 +55,32 @@ public class TestCookie {
 	}
 	
 	/*
-	{"res":1,"resMsg":"数据获取成功","obj":{"appVo":[{"applyId":null,"appName":"宁波市统一受理平台","appKey":"2d0bcfb18a394f67b38404080f3e3add"
+	{"res":1,"resMsg":"数据获取成功","obj":{"appVo":[{"applyId":null,"appName":"宁波市统�?受理平台","appKey":"2d0bcfb18a394f67b38404080f3e3add"
 		,"interfaceName":null,"interfaceCode":null,"applyStatus":null,"transferDataCount":0,"accessCount":0,"maxAccessCount"
 		:0,"maxDataCount":0,"remaindAccessCount":0,"remaindDataCount":0,"startDate":null,"endDate":null,"accessDate"
-		:null,"count":null,"datecount":null},{"applyId":null,"appName":"奉化区权利运行系统","appKey":"7d8ed6af56104c8bb6857e58ee08128a"
+		:null,"count":null,"datecount":null},{"applyId":null,"appName":"奉化区权利运行系�?","appKey":"7d8ed6af56104c8bb6857e58ee08128a"
 		,"interfaceName":null,"interfaceCode":null,"applyStatus":null,"transferDataCount":0,"accessCount":0,"maxAccessCount"
 		:0,"maxDataCount":0,"remaindAccessCount":0,"remaindDataCount":0,"startDate":null,"endDate":null,"accessDate"
-		:null,"count":null,"datecount":null}],"applist":[{"applyId":null,"appName":"宁波市统一受理平台","appKey":"2d0bcfb18a394f67b38404080f3e3add"
+		:null,"count":null,"datecount":null}],"applist":[{"applyId":null,"appName":"宁波市统�?受理平台","appKey":"2d0bcfb18a394f67b38404080f3e3add"
 		,"interfaceName":null,"interfaceCode":null,"applyStatus":null,"transferDataCount":0,"accessCount":666
 		,"maxAccessCount":0,"maxDataCount":0,"remaindAccessCount":-666,"remaindDataCount":0,"startDate":null
 		,"endDate":null,"accessDate":null,"count":0,"datecount":0}],"listdep":[{"id":null,"interfaceCode":"PopulationInfo"
 		,"interfaceName":"人口信息","interfaceDepartment":null,"departmentName":null,"useDepartment":null,"accessCount"
 		:563,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate":null,"formatDate"
 		:null,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode":"bnpmrbd3c4945G03"
-		,"interfaceName":"省公安厅居民户口簿（个人）","interfaceDepartment":null,"departmentName":null,"useDepartment":null
+		,"interfaceName":"省公安厅居民户口簿（个人�?","interfaceDepartment":null,"departmentName":null,"useDepartment":null
 		,"accessCount":3,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate":null
 		,"formatDate":null,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode"
 		:"PubSecDeptPopInfo","interfaceName":"公安户籍信息","interfaceDepartment":null,"departmentName":null,"useDepartment"
 		:null,"accessCount":2,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate"
 		:null,"formatDate":null,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode"
-		:"2s3sb9do8S3VDaj5","interfaceName":"省公安厅居民身份证","interfaceDepartment":null,"departmentName":null,"useDepartment"
+		:"2s3sb9do8S3VDaj5","interfaceName":"省公安厅居民身份�?","interfaceDepartment":null,"departmentName":null,"useDepartment"
 		:null,"accessCount":2,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate"
 		:null,"formatDate":null,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode"
 		:"3sb8c6d027ZhDW04","interfaceName":"省公安厅居民身份证（新）","interfaceDepartment":null,"departmentName":null,"useDepartment"
 		:null,"accessCount":1,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate"
 		:null,"formatDate":null,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode"
-		:"SecurityGuardInfo","interfaceName":"保安员信息","interfaceDepartment":null,"departmentName":null,"useDepartment"
+		:"SecurityGuardInfo","interfaceName":"保安员信�?","interfaceDepartment":null,"departmentName":null,"useDepartment"
 		:null,"accessCount":1,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate"
 		:null,"formatDate":null,"status":0,"startDate":null,"endDate":null,"appKey":null}],"list":{"pageNum"
 		:1,"pageSize":5,"totalRecord":7,"totalPage":2,"results":[{"id":null,"interfaceCode":null,"interfaceName"
@@ -96,7 +96,7 @@ public class TestCookie {
 		:null,"interfaceDepartment":"001003003","departmentName":"省卫生计生委","useDepartment":null,"accessCount"
 		:3,"beAccessdCount":0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate":null,"formatDate":null
 		,"status":0,"startDate":null,"endDate":null,"appKey":null},{"id":null,"interfaceCode":null,"interfaceName"
-		:null,"interfaceDepartment":"001021001","departmentName":"省高院","useDepartment":null,"accessCount":1,"beAccessdCount"
+		:null,"interfaceDepartment":"001021001","departmentName":"省高�?","useDepartment":null,"accessCount":1,"beAccessdCount"
 		:0,"transferDataCount":0,"beTransferdDataCount":0,"accessDate":null,"formatDate":null,"status":0,"startDate"
 		:null,"endDate":null,"appKey":null}]}}}
 		*/

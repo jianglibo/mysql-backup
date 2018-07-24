@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup;
 
 import org.springframework.shell.standard.commands.Quit;
 import org.springframework.shell.ExitRequest;
-import org.springframework.shell.standard.ShellComponent;
 import org.springframework.shell.standard.ShellMethod;
 
 //@ShellComponent

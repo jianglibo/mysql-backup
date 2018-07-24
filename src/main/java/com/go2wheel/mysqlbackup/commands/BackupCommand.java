@@ -47,6 +47,7 @@ import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
+import com.go2wheel.mysqlbackup.annotation.MetaAnno;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
@@ -61,6 +62,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
@@ -177,6 +179,9 @@ public class BackupCommand {
 
 	@Autowired
 	private MysqlService mysqlService;
+	
+	@Autowired
+	private BorgInstaller borgInstaller;
 
 	private Session _session;
 
@@ -529,9 +534,10 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "安装borg。")
-	public FacadeResult<?> borgInstall() {
+	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) {
 		sureBorgConfigurated();
-		return borgService.install(getSession());
+		Server server = appState.getCurrentServer();
+		return borgInstaller.install(getSession(), server, software, null);
 	}
 
 	@ShellMethod(value = "创建Borg的描述")
@@ -599,7 +605,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
-	public String mysqlInstall(Software software,
+	public String mysqlInstall(@MetaAnno("MYSQL") Software software,
 			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();

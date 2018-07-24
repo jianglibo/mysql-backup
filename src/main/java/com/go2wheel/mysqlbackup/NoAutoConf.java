@@ -1,9 +1,7 @@
 package com.go2wheel.mysqlbackup;
 
 import org.jline.builtins.Commands;
-import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Import;
 import org.springframework.shell.SpringShellAutoConfiguration;
 import org.springframework.shell.jcommander.JCommanderParameterResolverAutoConfiguration;

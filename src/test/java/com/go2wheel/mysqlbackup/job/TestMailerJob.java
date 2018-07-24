@@ -21,10 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -57,6 +59,12 @@ public class TestMailerJob extends JobBaseFort {
 	private MysqlService mysqlService;
 	
 	
+	@Autowired
+	private BorgInstaller borgInstaller;
+	
+	private Software software;
+	
+	
 	private Subscribe simulation() throws SchedulerException, InterruptedException {
 		clearDb();
 		UserAccount ua = createUser();
@@ -70,7 +78,9 @@ public class TestMailerJob extends JobBaseFort {
 		deleteAllJobs();
 		
 		createSession();
-		borgService.install(session);
+		software = softwareDbService.findByName("BORG").get(0);
+		
+		borgInstaller.install(session, server, software, null);
 		
 		
 		ServerGrp sg = new ServerGrp("default");

@@ -12,6 +12,9 @@ public class Software extends BaseModel {
 	private String targetEnv;
 	private String website;
 	private String dlurl;
+	
+	// it's the name of local package or executable in the setting download folder.
+	
 	private String installer;
 	
 	private List<String> settings;

@@ -3,7 +3,6 @@ package com.go2wheel.mysqlbackup.job;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-import static org.quartz.JobKey.jobKey;
 import static org.quartz.TriggerKey.triggerKey;
 
 import org.junit.Before;

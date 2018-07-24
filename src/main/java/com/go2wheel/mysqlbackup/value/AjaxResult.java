@@ -1,12 +1,5 @@
 package com.go2wheel.mysqlbackup.value;
 
-import java.util.List;
-import java.util.Map;
-
-import org.assertj.core.util.Lists;
-
-import com.google.common.collect.Maps;
-
 public interface AjaxResult {
 	
 
