@@ -56,6 +56,9 @@ public class SoftwareInstallController extends ControllerBase {
 		}
 		model.addAttribute("software", software);
 		model.addAttribute("softwares", softwares);
+		
+		List<Software> installed = softwareDbService.findByServer(server);
+		model.addAttribute("listItems", installed);
 		return "software-install";
 	}
 

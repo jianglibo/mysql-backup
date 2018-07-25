@@ -45,6 +45,7 @@ public class TestBorgService extends SpringBaseFort {
 		createSession();
 		createBorgDescription();
 		deleteAllJobs();
+		borgInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("BORG");
 		software = sfs.get(0);
 		BorgInstallInfo ii = borgInstaller.unInstall(session, software).getResult();
@@ -81,7 +82,7 @@ public class TestBorgService extends SpringBaseFort {
 		borgInstaller.unInstall(session, software);
 		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
-		assertThat(fr.getMessage(), equalTo("common.application.notinstalled"));
+		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.APPLICATION_NOTINSTALLED));
 
 		fr = borgInstaller.install(session, server, software, null);
 		assertTrue(fr.isExpected());

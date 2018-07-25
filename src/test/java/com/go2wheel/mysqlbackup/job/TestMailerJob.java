@@ -19,7 +19,6 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.mail.Mailer;
@@ -27,8 +26,8 @@ import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.Session;
 
@@ -45,9 +44,6 @@ public class TestMailerJob extends JobBaseFort {
 	
 	@Autowired
 	private StorageStateJob storageStateJob;
-	
-	@Autowired
-	private BorgService borgService;
 	
 	@Autowired
 	private MysqlFlushLogJob mysqlFlushLogJob;
@@ -78,6 +74,7 @@ public class TestMailerJob extends JobBaseFort {
 		deleteAllJobs();
 		
 		createSession();
+		borgInstaller.syncToDb();
 		software = softwareDbService.findByName("BORG").get(0);
 		
 		borgInstaller.install(session, server, software, null);

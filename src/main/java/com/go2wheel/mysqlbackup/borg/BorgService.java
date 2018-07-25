@@ -21,9 +21,6 @@ import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
-import com.go2wheel.mysqlbackup.http.FileDownloader;
-import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
-import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -54,81 +51,7 @@ public class BorgService {
 	
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
 	
-	
-	@Autowired
-	private BorgInstaller borgInstaller;
-	
-	
-
-	// https://borgbackup.readthedocs.io/en/stable/quickstart.html
-	// sudo cp borg-linux64 /usr/local/bin/borg
-
-	// sudo chown root:root /usr/local/bin/borg
-	// sudo chmod 755 /usr/local/bin/borg
-	// ln -s /usr/local/bin/borg /usr/local/bin/borgfs
-
-	public static final String BORG_BINARY_URL = "https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64";
-	public static final String REMOTE_BORG_BINARY = "/usr/local/bin/borg";
-
 	private MyAppSettings appSettings;
-
-	private FileDownloader fileDownloader;
-
-	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException {
-		BorgInstallInfo ii = new BorgInstallInfo();
-		RemoteCommandResult rcr;
-		rcr = SSHcommonUtil.runRemoteCommand(session, "which borg;borg -V");
-		if (rcr.getExitValue() == 0) {
-			List<String> lines = rcr.getAllTrimedNotEmptyLines();
-			ii.setExecutable(lines.get(0));
-			ii.setVersion(lines.get(1));
-			ii.setInstalled(true);
-		}
-		return ii;
-	}
-
-//	public FacadeResult<BorgInstallInfo> unInstall(Session session) {
-//		try {
-//			BorgInstallInfo ii = getBorgInstallInfo(session);
-//			if (ii.isInstalled()) {
-//				SSHcommonUtil.deleteRemoteFile(session, REMOTE_BORG_BINARY);
-//				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
-//			} else {
-//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
-//			}
-//		} catch (RunRemoteCommandException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			return FacadeResult.unexpectedResult(e);
-//		}
-//	}
-
-//	public FacadeResult<BorgInstallInfo> install(Session session) {
-//		BorgInstallInfo ii;
-//		try {
-//			ii = getBorgInstallInfo(session);
-//			if (!ii.isInstalled()) {
-//				uploadBinary(session);
-//				String cmd = String.format("chown root:root %s;chmod 755 %s", REMOTE_BORG_BINARY, REMOTE_BORG_BINARY);
-//				SSHcommonUtil.runRemoteCommand(session, cmd);
-//				ii = getBorgInstallInfo(session);
-//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
-//			} else {
-//				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
-//			}
-//		} catch (RunRemoteCommandException | IOException | ScpException e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			return FacadeResult.unexpectedResult(e);
-//		}
-//	}
-
-//	public void uploadBinary(Session session) throws ScpException, IOException {
-//		Path localPath = appSettings.getDownloadRoot().resolve(StringUtil.getLastPartOfUrl(BORG_BINARY_URL));
-//		if (Files.exists(localPath)) {
-//			ScpUtil.to(session, localPath.toString(), REMOTE_BORG_BINARY);
-//		} else {
-//			fileDownloader.download(BORG_BINARY_URL);
-//		}
-//	}
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
@@ -160,6 +83,15 @@ public class BorgService {
 				
 				if (alreadyExists) {
 					return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_ALREADY_EXISTS, repoPath);
+				}
+				
+				//	Cannot open self
+				
+				//Repository /abc already exists.
+				boolean cannotOpenSelf = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("Cannot open self"));
+				
+				if (cannotOpenSelf) {
+					return FacadeResult.showMessageUnExpected(CommonMessageKeys.EXECUTABLE_DAMAGED, repoPath);
 				}
 				
 				logger.error(command);
@@ -346,13 +278,6 @@ public class BorgService {
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
-
-	@Autowired
-	public void setFileDownloader(FileDownloader fileDownloader) {
-		this.fileDownloader = fileDownloader;
-	}
-	
-	
 
 	//@formatter:on
 

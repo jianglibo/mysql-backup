@@ -12,11 +12,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -32,17 +34,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	
 	@PostConstruct
 	public void post() throws IOException {
-		Software software = new Software();
-		software.setName("BORG");
-		software.setVersion("1.1.5");
-		software.setTargetEnv("linux_centos");
-		software.setDlurl("https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64");
-		software.setInstaller("borg-linux64-1.1.5");
-		List<String> settings = Lists.newArrayList();
-		settings.add(REMOTE_BORG_BINARY_KEY + "=/usr/local/bin/borg");
-		software.setSettings(settings);
-		saveToDb(software);
-		fileDownloader.downloadAsync(software.getDlurl(), settingsInDb.getDownloadPath().resolve(software.getInstaller()));
+		syncToDb();
 	}
 	
 	public FacadeResult<BorgInstallInfo> unInstall(Session session, Software software) {
@@ -77,8 +69,9 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 				rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
 			}
 			ii = getBorgInstallInfo(session);
+			
 			if (!ii.isInstalled()) {
-//				uploadBinary(session);
+				ScpUtil.to(session, getLocalInstallerPath(software).toString(), rbb);
 				String cmd = String.format("chown root:root %s;chmod 755 %s", rbb, rbb);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getBorgInstallInfo(session);
@@ -90,9 +83,15 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 					return FacadeResult.unexpectedResult("unknown");
 				}
 			} else {
+					SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
+					if (si == null) {
+						si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
+						softwareInstallationDbService.save(si);
+					}
+					softwareInstallationDbService.save(si);
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
-		} catch (RunRemoteCommandException e) {
+		} catch (RunRemoteCommandException | ScpException | IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
@@ -106,7 +105,9 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	@Override
 	public CompletableFuture<FacadeResult<InstallInfo>> installAsync(Server server, Software software,
 			Map<String, String> parasMap) {
-		return null;
+		return CompletableFuture.supplyAsync(() -> {
+			return install(server, software, parasMap);
+		});
 	}
 
 	@Override
@@ -125,6 +126,25 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			ii.setInstalled(true);
 		}
 		return ii;
+	}
+
+	@Override
+	public void syncToDb() {
+		try {
+			Software software = new Software();
+			software.setName("BORG");
+			software.setVersion("1.1.5");
+			software.setTargetEnv("linux_centos");
+			software.setDlurl("https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64");
+			software.setInstaller("borg-linux64-1.1.5");
+			List<String> settings = Lists.newArrayList();
+			settings.add(REMOTE_BORG_BINARY_KEY + "=/usr/local/bin/borg");
+			software.setSettings(settings);
+			saveToDb(software);
+			fileDownloader.downloadAsync(software.getDlurl(), settingsInDb.getDownloadPath().resolve(software.getInstaller()));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 }

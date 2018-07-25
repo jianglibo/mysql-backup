@@ -13,7 +13,7 @@
 			</div>
 			<div class="content">
 				<aside class="success" th:if="${formProcessSuccessed}">
-				<p th:text="${formProcessSuccessed}">修改成功。</p>
+					<p th:text="${formProcessSuccessed}">修改成功。</p>
 				</aside>
 				<form class="pure-form install-software-form" method="POST" action="/app/software-install" th:action="@{/app/software-install/{server}(server=${server.id})}">
 					<fieldset>
@@ -33,16 +33,70 @@
 						</div>
 					</fieldset>
 				</form>
+
+				<div id="action-menu-bar"></div>
+				<table class="pure-table pure-table-bordered item-list">
+					<thead>
+						<tr>
+							<th>
+								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
+							</th>
+							<th>名称</th>
+							<th>版本</th>
+							<th>环境</th>
+						</tr>
+					</thead>
+
+					<tbody th:remove="all-but-first">
+						<tr th:each="item: ${listItems}">
+							<td>
+								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
+							</td>
+							<td th:text="${item.name}">Honda</td>
+							<td th:text="${item.version}">Accord</td>
+							<td th:text="${item.targetEnv}">Accord</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>Toyota</td>
+							<td>Camry</td>
+							<td>Camry</td>
+						</tr>
+
+						<tr>
+							<td>3</td>
+							<td>Hyundai</td>
+							<td>Elantra</td>
+							<td>Elantra</td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>
 
 	<script th:inline="javascript">
 		var server = /*[[${server.id}]]*/ 0;
-		jQuery('.install-software-form').on('change', function(e) {
+		jQuery('.install-software-form').on('change', function (e) {
 			var id = jQuery(e.target).val();
 			window.location.href = "/app/software-install/" + server + "?software=" + id;
 		});
+
+		window.freact.renderActionMenuBar("/app/software-install",
+			".item-list",
+			[{
+				actionId: 'delete',
+				name: '卸载程序',
+				activeOn: 'SINGLE',
+				onClick: function(e) {
+					var id = this.state.selectedItems[0].id;
+					window.freact.formUtil.createFormSubmit({
+						action: "/app/software-install",
+						method: "DELETE"},
+						{server: server,
+						software: id});
+				}
+			}]);
 	</script>
 </body>
 

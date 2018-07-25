@@ -14,4 +14,6 @@ public interface Installer<I extends InstallInfo> {
 	CompletableFuture<FacadeResult<I>> installAsync(Server server, Software software, Map<String, String> parasMap);
 	
 	boolean canHandle(Software software);
+	
+	void syncToDb();
 }

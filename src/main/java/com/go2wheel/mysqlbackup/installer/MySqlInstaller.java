@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.installer;
 import static net.sf.expectit.matcher.Matchers.contains;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
 import com.go2wheel.mysqlbackup.mysqlinstaller.MysqlYumRepo;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -34,7 +36,6 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
@@ -51,34 +52,33 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	private static final String MYSQL_COMMUNITY_RELEASE_BINARY_URL = "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm";
 
-//	public static final String REMOTE_FILE = "/tmp/" + StringUtil.getLastPartOfUrl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
-
 	public static final String MYSQL_REPO = "/etc/yum.repos.d/mysql-community.repo";
-	
-	public static final String[] SUPPORTED_VERSIONS = new String[] {"55", "56", "57", "80"};
+
+	public static final String[] SUPPORTED_VERSIONS = new String[] { "55", "56", "57", "80" };
 
 	private MysqlUtil mysqlUtil;
-	
+
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 
-	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software, String initPassword) {
+	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software,
+			String initPassword) {
 		try {
 			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(software.getVersion()))) {
 				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", software.getVersion()));
 			}
 			String remote_file = "/tmp/" + StringUtil.getLastPartOfUrl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
-			
+
 			// if didn't install mysql yet, how can I get the info?
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 
 			if (!info.isInstalled()) {
-				Path localPath = getLocalInstallerPath(software);  
+				Path localPath = getLocalInstallerPath(software);
 				ScpUtil.to(session, localPath.toString(), remote_file);
 				String command = String.format("rpm -Uvh %s", remote_file);
-				
-				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
-				
+
+				SSHcommonUtil.runRemoteCommand(session, command);
+
 				String result = new String(ScpUtil.from(session, MYSQL_REPO).toByteArray());
 				MysqlYumRepo myp = new MysqlYumRepo(StringUtil.splitLines(result));
 				// mysql55-community, mysql56-community, mysql57-community, mysql80-community
@@ -93,22 +93,22 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 				myp.setConfigValue(cv.get(), "1");
 
-
 				result = String.join("\n", myp.getLines());
 				ScpUtil.to(session, MYSQL_REPO, result.getBytes());
-				
+
 				command = String.format("yum install -y %s", "mysql-community-server");
-				rcr = SSHcommonUtil.runRemoteCommand(session, command);
 				
+				SSHcommonUtil.runRemoteCommand(session, command);
+
 				command = "systemctl start mysqld";
-				
-				rcr = SSHcommonUtil.runRemoteCommand(session, command);
-				
+
+				SSHcommonUtil.runRemoteCommand(session, command);
+
 				command = "mysql_secure_installation";
-				
+
 				Channel channel = session.openChannel("shell");
 				channel.connect();
-				
+
 				Expect expect;
 				// @formatter:off
 				expect = new ExpectBuilder()
@@ -151,8 +151,9 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 					channel.disconnect();
 					expect = null;
 				}
-
 				info = mysqlUtil.getInstallInfo(session, server);
+				SoftwareInstallation si = SoftwareInstallation.newInstance(server, software);
+				softwareInstallationDbService.save(si);
 			}
 			return FacadeResult.doneExpectedResult(info, CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | JSchException | IOException | ScpException e) {
@@ -206,27 +207,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	
 	@PostConstruct
 	public void saveInstaller() {
-		Software software = new Software();
-		software.setName("MYSQL");
-		software.setVersion("56");
-		software.setTargetEnv("linux_centos");
-		software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
-		
-		List<String> ls = Lists.newArrayList();
-		ls.add("initPassword=123456");
-		software.setSettings(ls);
-		saveToDb(software);
-		
-		software = new Software();
-		software.setName("MYSQL");
-		software.setVersion("57");
-		software.setTargetEnv("linux_centos");
-		software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
-		
-		ls = Lists.newArrayList();
-		ls.add("initPassword=123456");
-		software.setSettings(ls);
-		saveToDb(software);
+		syncToDb();
 	}
 
 	@Override
@@ -239,6 +220,48 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	@Override
 	public boolean canHandle(Software software) {
 		return software.getName().equals("MYSQL");
+	}
+
+	@Override
+	public void syncToDb() {
+			Software software = new Software();
+			software.setName("MYSQL");
+			software.setVersion("56");
+			software.setTargetEnv("linux_centos");
+			software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
+			software.setInstaller("mysql57-community-release-el7-11.noarch.rpm");
+			List<String> ls = Lists.newArrayList();
+			ls.add("initPassword=123456");
+			software.setSettings(ls);
+			try {
+				saveToDb(software);
+			} catch (Exception e) {
+			}
+			
+			software = new Software();
+			software.setName("MYSQL");
+			software.setVersion("57");
+			software.setTargetEnv("linux_centos");
+			software.setDlurl(MYSQL_COMMUNITY_RELEASE_BINARY_URL);
+			software.setInstaller("mysql57-community-release-el7-11.noarch.rpm");
+			
+			ls = Lists.newArrayList();
+			ls.add("initPassword=123456");
+			software.setSettings(ls);
+			try {
+				saveToDb(software);
+			} catch (Exception e) {
+			}
+			Path local = settingsInDb.getDownloadPath().resolve(software.getInstaller());
+			
+			fileDownloader.downloadAsync(software.getDlurl(), local).exceptionally(throwable -> {
+				try {
+					Files.delete(local);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return null;
+			});
 	}
 
 }

@@ -10,6 +10,8 @@ public class CommonMessageKeys {
 	
 	public static final String OBJECT_ALREADY_EXISTS = "common.object.exists";
 	
+	public static final String EXECUTABLE_DAMAGED = "common.executable.damaged";
+	
 	public static final String OBJECT_NOT_EXISTS = "common.object.notexists";
 	
 	public static final String PARAMETER_REQUIRED = "parameter.required";

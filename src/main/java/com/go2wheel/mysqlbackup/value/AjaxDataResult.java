@@ -2,7 +2,7 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.util.List;
 
-import org.assertj.core.util.Lists;
+import com.google.common.collect.Lists;
 
 public class AjaxDataResult<T> implements AjaxResult {
 

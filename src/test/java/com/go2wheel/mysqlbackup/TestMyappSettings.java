@@ -41,15 +41,6 @@ public class TestMyappSettings  extends SpringBaseFort {
 	}
 	
 	@Test
-	public void testmenu() {
-		assertThat(menuGroups.getGroups().size(), equalTo(2));
-		assertThat(menuGroups.getGroups().get(0).getName(), equalTo("settings"));
-		
-		assertThat(menuGroups.getGroups().get(0).getItems().size(), equalTo(1));
-		assertThat(menuGroups.getGroups().get(0).getItems().get(0).getPath(), equalTo("/app/settings"));
-	}
-	
-	@Test
 	public void tappstate() {
 		String[] profiles = env.getActiveProfiles();
 		assertThat(profiles.length, equalTo(1));

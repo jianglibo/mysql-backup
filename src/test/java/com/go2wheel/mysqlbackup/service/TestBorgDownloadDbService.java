@@ -22,7 +22,6 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 	@Autowired
 	private BorgArchiveJob borgArchiveJob;
 	
-	
 	@Autowired
 	private BorgInstaller borgInstaller;
 	
@@ -34,13 +33,14 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 		createSession();
 		createBorgDescription();
 		createContext();
+		borgInstaller.syncToDb();
 		software = softwareDbService.findByName("BORG").get(0);
-		
 		borgInstaller.install(session, server, software, null);
 	}
 
 	@Test(expected=UnExpectedContentException.class)
 	public void tNoBorgInstalled() throws JobExecutionException {
+		borgInstaller.unInstall(session, software);
 		borgArchiveJob.execute(context);
 	}
 	

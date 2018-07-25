@@ -9,7 +9,6 @@ import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Software;
@@ -19,9 +18,6 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Autowired
 	private BorgArchiveJob borgArchiveJob;
-	
-	@Autowired
-	private BorgService borgService;
 	
 	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
@@ -40,6 +36,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		createBorgDescription();
 		createContext();
 		deleteAllJobs();
+		borgInstaller.syncToDb();
 		software = softwareDbService.findByName("BORG").get(0);
 		
 		borgInstaller.install(session, server, software, null);

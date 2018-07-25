@@ -83,19 +83,21 @@ public class TestDataRequest {
 
 	private String cookieDomain = "10.68.130.194";
 	private String cookiePath = "/";
+	
+	private int c = 0;
 
 
 	@Test
 	public void whenSettingCookiesOnTheHttpClient_thenCookieSentCorrectly()
 			throws ClientProtocolException, IOException {
 		ZwfuCookieStoreBuilder zsb = new ZwfuCookieStoreBuilder(cookieDomain, cookiePath);
-		BasicCookieStore bcs = zsb.withSession("9D394661DCC4DE1D9C696E7E9FEAF2F7").build();
+		BasicCookieStore bcs = zsb.withSession("A960DF41CA7695650187096D67E4BF77").build();
 		HttpClient client = HttpClientBuilder.create().setUserAgent("Mozilla/5.0 Firefox/26.0")
 				.setDefaultCookieStore(bcs).build();
 		
 		while(doOne(client)) {
 			try {
-				Thread.sleep(5000);
+				Thread.sleep(2000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -105,7 +107,7 @@ public class TestDataRequest {
 
 	private boolean doOne(HttpClient client)
 			throws UnsupportedEncodingException, IOException, ClientProtocolException {
-		
+		c++;
 		final HttpPost post = new HttpPost(url);
 		post.setEntity(new RequestFormData().getFromEntity());
 
@@ -116,6 +118,11 @@ public class TestDataRequest {
 			
 		}
 		String content = new String(ByteStreams.toByteArray(response.getEntity().getContent()));
+		if (content.contains("\"code\":\"18\"")) {
+			System.out.println("we get the daily limit.");
+			return false;
+		}
+		System.out.println(c);
 		System.out.println(content);
 		return true;
 	}
