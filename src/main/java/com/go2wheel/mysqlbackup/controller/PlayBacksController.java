@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,9 @@ public class PlayBacksController  extends CRUDController<PlayBack, PlayBackDbSer
 
 	@Override
 	boolean copyProperties(PlayBack entityFromForm, PlayBack entityFromDb) {
+		entityFromDb.setPlayWhat(entityFromForm.getPlayWhat());
+		entityFromDb.setSourceServerId(entityFromForm.getSourceServerId());
+		entityFromDb.setTargetServerId(entityFromForm.getTargetServerId());
 		return true;
 	}
 	
@@ -62,6 +66,11 @@ public class PlayBacksController  extends CRUDController<PlayBack, PlayBackDbSer
 		formAttribute(model);
 		return getFormTpl();
 	}
+	
+	@Override
+	protected String deleteEntities(List<PlayBack> entities, boolean execute) {
+		return super.deleteEntities(entities, true);
+	}
 
 	@Override
 	public PlayBack newModel() {
@@ -72,6 +81,7 @@ public class PlayBacksController  extends CRUDController<PlayBack, PlayBackDbSer
 	protected void formAttribute(Model model) {
 		model.addAttribute("getServers", serverDbService.findByRole("GET"));
 		model.addAttribute("setServers", serverDbService.findByRole("SET"));
+		model.addAttribute("playWhats", Arrays.asList(PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL));
 	}
 
 	@Override

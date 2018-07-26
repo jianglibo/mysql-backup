@@ -1,0 +1,60 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title th:replace="form-parts :: title"></title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:replace="form-parts :: header">编辑或新建</h1>
+			</div>
+			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{})" class="content">
+				<div class="pure-control-group pure-combo">
+					<label for="sourceServerId">源服务器</label>
+					<input th:field="*{sourceServerId}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${getServers}" th:value="${one.id}" th:text="${one.name}" th:selected="${one.id} == ${singleItem.id}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group pure-combo">
+					<label for="targetServerId">回放服务器</label>
+					<input th:field="*{targetServerId}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${setServers}" th:value="${one.id}" th:text="${one.name}" th:selected="${one.id} == ${singleItem.id}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+
+				<div class="pure-control-group pure-combo">
+					<label for="playWhat">回放内容</label>
+					<input th:field="*{playWhat}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${playWhats}" th:value="${one}" th:text="${one}" th:selected="${one} == ${singleItem.playWhat}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+
+				<div class="pure-control-group">
+					<label for="pairs">键值对</label>
+					<textarea th:field="*{pairs}" placeholder=""></textarea>
+					<span class="pure-form-message-inline"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		window.freact.pureCombo();
+	</script>
+</body>
+
+</html>

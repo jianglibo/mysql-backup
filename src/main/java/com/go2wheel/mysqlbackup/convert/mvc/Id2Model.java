@@ -9,6 +9,7 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Software;
@@ -18,6 +19,7 @@ import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.service.PlayBackDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
@@ -50,6 +52,9 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	private BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
+	private PlayBackDbService playBackDbService;
+	
+	@Autowired
 	private SoftwareDbService softwareDbService;
 
 	public <T extends BaseModel> Converter<String, T> getConverter(Class<T> targetType) {
@@ -64,6 +69,7 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 			this.modelType = modelType;
 		}
 
+		@SuppressWarnings("unchecked")
 		public T convert(String source) {
 			if (modelType == Server.class) {
 				return (T) serverDbService.findById(source);
@@ -83,6 +89,8 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) borgDescriptionDbService.findById(source);
 			} else if (modelType == Software.class) {
 				return (T) softwareDbService.findById(source);
+			} else if (modelType == PlayBack.class) {
+				return (T) playBackDbService.findById(source);
 			} else {
 				return (T) null;
 			}

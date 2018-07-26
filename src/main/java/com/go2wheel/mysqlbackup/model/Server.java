@@ -50,6 +50,7 @@ public class Server extends BaseModel {
 	
 	private BorgDescription borgDescription;
 	
+	@NotEmpty
 	private String serverRole;
 	
 	@CronExpressionConstraint(allowEmpty=true)
