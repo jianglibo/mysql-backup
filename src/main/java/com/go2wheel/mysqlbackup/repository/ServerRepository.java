@@ -15,5 +15,7 @@ public interface ServerRepository extends RepositoryBase<ServerRecord, Server>{
 
 	List<Server> findLikeHostAndRoleIs(String input, String role);
 
-	Object findByGrpId(Integer grpId);
+	List<Server> findByGrpId(Integer grpId);
+
+	List<Server> findByRole(String role);
 }

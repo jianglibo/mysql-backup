@@ -98,6 +98,7 @@ import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
+import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.SqlService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
@@ -221,6 +222,9 @@ public class BackupCommand {
 
 	@Autowired
 	private LocaledMessageService localedMessageService;
+	
+	@Autowired
+	private SoftwareDbService softwareDbService;
 
 	@PostConstruct
 	public void post() {
@@ -648,7 +652,13 @@ public class BackupCommand {
 	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
-		return mySqlInstaller.unInstall(getSession(), server);
+		List<Software> softwares = softwareDbService.findByServerAndName(server, "MYSQL");
+		if (softwares.size() > 0) {
+			return mySqlInstaller.unInstall(getSession(), server, softwares.get(0));
+		} else {
+			return FacadeResult.doneExpectedResult();
+		}
+		
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")

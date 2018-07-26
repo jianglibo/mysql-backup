@@ -43,10 +43,15 @@ public class JOOQServerRepository extends RepositoryBaseImpl<ServerRecord, Serve
 	}
 
 	@Override
-	public Object findByGrpId(Integer grpId) {
+	public List<Server> findByGrpId(Integer grpId) {
 		return jooq.select(SERVER.fields()).from(SERVER).join(SERVERGRP_AND_SERVER)
 				.on(SERVER.ID.eq(SERVERGRP_AND_SERVER.SERVER_ID))
 				.where(SERVERGRP_AND_SERVER.GRP_ID.eq(grpId)).fetch().into(Server.class);
+	}
+
+	@Override
+	public List<Server> findByRole(String role) {
+		return jooq.selectFrom(SERVER).where(SERVER.SERVER_ROLE.eq(role)).fetchInto(Server.class);
 	}
 
 }

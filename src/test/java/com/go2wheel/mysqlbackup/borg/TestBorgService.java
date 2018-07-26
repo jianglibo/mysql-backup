@@ -48,7 +48,7 @@ public class TestBorgService extends SpringBaseFort {
 		borgInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("BORG");
 		software = sfs.get(0);
-		BorgInstallInfo ii = borgInstaller.unInstall(session, software).getResult();
+		BorgInstallInfo ii = (BorgInstallInfo) borgInstaller.unInstall(session, server, software).getResult();
 		assertFalse(ii.isInstalled());
 	}
 
@@ -79,7 +79,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test(expected = UnExpectedContentException.class)
 	public void testArchive() {
-		borgInstaller.unInstall(session, software);
+		borgInstaller.unInstall(session, server, software);
 		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
 		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.APPLICATION_NOTINSTALLED));

@@ -14,4 +14,6 @@ public interface SoftwareRepository extends RepositoryBase<SoftwareRecord, Softw
 
 	List<Software> findByServer(Server server);
 
+	List<Software> findByServerAndName(Server server, String name);
+
 }

@@ -73,5 +73,9 @@ public class ServerDbService extends DbServiceBase<ServerRecord, Server> {
 		return ((ServerRepository)repo).findByGrpId(id);
 	}
 
+	public Object findByRole(String role) {
+		return ((ServerRepository)repo).findByRole(role);
+	}
+
 
 }

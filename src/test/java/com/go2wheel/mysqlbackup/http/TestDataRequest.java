@@ -85,13 +85,15 @@ public class TestDataRequest {
 	private String cookiePath = "/";
 	
 	private int c = 0;
+	
+	private String JsessionId = "B78E4F219509BB372C0AF0DC5F37A620";
 
 
 	@Test
 	public void whenSettingCookiesOnTheHttpClient_thenCookieSentCorrectly()
 			throws ClientProtocolException, IOException {
 		ZwfuCookieStoreBuilder zsb = new ZwfuCookieStoreBuilder(cookieDomain, cookiePath);
-		BasicCookieStore bcs = zsb.withSession("A960DF41CA7695650187096D67E4BF77").build();
+		BasicCookieStore bcs = zsb.withSession(JsessionId).build();
 		HttpClient client = HttpClientBuilder.create().setUserAgent("Mozilla/5.0 Firefox/26.0")
 				.setDefaultCookieStore(bcs).build();
 		

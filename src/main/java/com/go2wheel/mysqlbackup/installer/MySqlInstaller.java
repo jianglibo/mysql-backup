@@ -162,9 +162,9 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		}
 	}
 
-	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server box) {
+	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server server, Software software) {
 		try {
-			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, box);
+			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 			if (!info.isInstalled()) {
 				return FacadeResult.doneExpectedResult(info, CommonActionResult.DONE);
 			}
@@ -181,7 +181,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 			}
 			
-			return FacadeResult.doneExpectedResult(mysqlUtil.getInstallInfo(session, box), CommonActionResult.DONE);
+			return FacadeResult.doneExpectedResult(mysqlUtil.getInstallInfo(session, server), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException | JSchException | IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
@@ -262,6 +262,18 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				}
 				return null;
 			});
+	}
+
+	@Override
+	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) {
+		return unInstall(getSession(server), server, software);
+	}
+
+	@Override
+	public CompletableFuture<FacadeResult<MysqlInstallInfo>> uninstallAsync(Server server, Software software) {
+		return CompletableFuture.supplyAsync(() -> {
+			return uninstall(server, software);
+		});
 	}
 
 }

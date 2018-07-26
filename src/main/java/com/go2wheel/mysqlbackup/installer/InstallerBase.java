@@ -10,6 +10,7 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.SoftwareInstallationDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -18,32 +19,31 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.Session;
 
 public abstract class InstallerBase<I extends InstallInfo> implements Installer<I> {
-	
+
 	@Autowired
 	protected SoftwareDbService softwareDbService;
-	
+
 	@Autowired
 	protected SettingsInDb settingsInDb;
-	
+
 	@Autowired
 	protected SshSessionFactory sshSessionFactory;
-	
-	
+
 	@Autowired
 	protected SoftwareInstallationDbService softwareInstallationDbService;
-	
+
 	@Autowired
 	protected FileDownloader fileDownloader;
-	
+
 	protected void saveToDb(Software software) {
 		Software indb = softwareDbService.findByUniqueField(software);
-		
+
 		if (indb == null) {
 			softwareDbService.save(software);
 		} else {
-			if (!StringUtil.stringEqual(indb.getWebsite(), software.getWebsite()) ||
-					!StringUtil.stringEqual(indb.getDlurl(), software.getDlurl()) ||
-					!StringUtil.stringEqual(indb.getInstaller(), software.getInstaller())) {
+			if (!StringUtil.stringEqual(indb.getWebsite(), software.getWebsite())
+					|| !StringUtil.stringEqual(indb.getDlurl(), software.getDlurl())
+					|| !StringUtil.stringEqual(indb.getInstaller(), software.getInstaller())) {
 				indb.setDlurl(software.getDlurl());
 				indb.setInstaller(software.getInstaller());
 				indb.setWebsite(software.getWebsite());
@@ -51,19 +51,23 @@ public abstract class InstallerBase<I extends InstallInfo> implements Installer<
 			}
 		}
 	}
-	
+
 	public void getLocalBinaryOrDownload(Session session, Software software) throws ScpException, IOException {
 		Path localPath = settingsInDb.getDownloadPath().resolve(software.getInstaller());
-		if (!Files.exists(localPath)) { 
+		if (!Files.exists(localPath)) {
 			fileDownloader.download(software.getDlurl(), localPath);
 		}
-}
+	}
 	
-	
+	protected void removeInstallationInDb(Server server, Software software) {
+		SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
+		softwareInstallationDbService.delete(si);
+	}
+
 	public Path getLocalInstallerPath(Software software) {
 		return settingsInDb.getDownloadPath().resolve(software.getInstaller());
 	}
-	
+
 	public Session getSession(Server server) {
 		FacadeResult<Session> fr = sshSessionFactory.getConnectedSession(server);
 		if (fr.isExpected()) {

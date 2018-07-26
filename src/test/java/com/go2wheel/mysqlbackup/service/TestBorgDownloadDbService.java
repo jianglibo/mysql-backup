@@ -40,7 +40,7 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 
 	@Test(expected=UnExpectedContentException.class)
 	public void tNoBorgInstalled() throws JobExecutionException {
-		borgInstaller.unInstall(session, software);
+		borgInstaller.unInstall(session, server, software);
 		borgArchiveJob.execute(context);
 	}
 	

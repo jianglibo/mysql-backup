@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.google.common.collect.Maps;
 
 @Controller
 @RequestMapping("/app/software-install")
@@ -60,6 +62,26 @@ public class SoftwareInstallController extends ControllerBase {
 		List<Software> installed = softwareDbService.findByServer(server);
 		model.addAttribute("listItems", installed);
 		return "software-install";
+	}
+	
+	@DeleteMapping("")
+	public String unInstall(@RequestParam Server server,
+			@RequestParam Software software, HttpServletRequest request) {
+		
+		for(Installer<?> il: installers) {
+			if(il.canHandle(software)) {
+				CompletableFuture<?> cf = il.uninstallAsync(server, software);
+				String sid = request.getSession(true).getId();
+				globalStore.saveObject(sid, server.getId() + "-" + software.getId(), Gobject.newGobject(software.getName() + "的反安装", cf));
+			}
+		}
+		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
+		Map<String, Object> tmap = Maps.newHashMap();
+		tmap.put("server", server.getId());
+		
+		ucb.replacePath("/app/software-install/" + server.getId()).build();
+		String url = ucb.toUriString();
+		return "redirect:" + url;
 	}
 
 	@PostMapping("/{server}")

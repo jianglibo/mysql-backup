@@ -31,4 +31,8 @@ public class SoftwareDbService extends DbServiceBase<SoftwareRecord, Software> {
 		return  ((SoftwareRepository)repo).findByServer(server);
 	}
 
+	public List<Software> findByServerAndName(Server server, String name) {
+		return  ((SoftwareRepository)repo).findByServerAndName(server, name);
+	}
+
 }

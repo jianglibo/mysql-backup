@@ -40,4 +40,11 @@ public class JOOQSoftwareRepository extends RepositoryBaseImpl<SoftwareRecord, S
 			.where(SOFTWARE_INSTALLATION.SERVER_ID.eq(server.getId())).fetchInto(Software.class);
 	}
 
+	@Override
+	public List<Software> findByServerAndName(Server server, String name) {
+		return jooq.select(SOFTWARE.fields())
+			.from(SOFTWARE).join(SOFTWARE_INSTALLATION).on(SOFTWARE.ID.eq(SOFTWARE_INSTALLATION.SOFTWARE_ID))
+			.where(SOFTWARE_INSTALLATION.SERVER_ID.eq(server.getId()).and(SOFTWARE.NAME.eq(name))).fetchInto(Software.class);
+	}
+
 }

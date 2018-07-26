@@ -37,13 +37,14 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		syncToDb();
 	}
 	
-	public FacadeResult<BorgInstallInfo> unInstall(Session session, Software software) {
+	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) {
 		try {
 			BorgInstallInfo ii = getBorgInstallInfo(session);
 			String rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
 			
 			if (ii.isInstalled()) {
 				SSHcommonUtil.deleteRemoteFile(session, rbb);
+				removeInstallationInDb(server, software);
 				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
 			} else {
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
@@ -145,6 +146,18 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public FacadeResult<InstallInfo> uninstall(Server server, Software software) {
+		return unInstall(getSession(server), server, software);
+	}
+
+	@Override
+	public CompletableFuture<FacadeResult<InstallInfo>> uninstallAsync(Server server, Software software) {
+		return CompletableFuture.supplyAsync(() -> {
+			return uninstall(server, software);
+		});
 	}
 
 }
