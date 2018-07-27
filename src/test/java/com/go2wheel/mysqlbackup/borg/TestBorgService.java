@@ -11,10 +11,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
@@ -37,6 +39,10 @@ public class TestBorgService extends SpringBaseFort {
 	@Autowired
 	private BorgInstaller borgInstaller;
 	
+	@Rule
+	@Autowired
+	public ServerDataCleanerRule sdc; 
+	
 	private Software software;
 
 	@Before
@@ -55,6 +61,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test
 	public void tRepoInit() throws RunRemoteCommandException {
+		sdc.setHost(HOST_DEFAULT);
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 		borgInstaller.install(session, server, software, null);
 		
@@ -79,6 +86,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test(expected = UnExpectedContentException.class)
 	public void testArchive() {
+		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.unInstall(session, server, software);
 		FacadeResult<?> fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
@@ -94,6 +102,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test
 	public void tArchive() throws RunRemoteCommandException, InterruptedException {
+		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));
 		RemoteCommandResult rcr1 = borgService.initRepo(session, server.getBorgDescription().getRepo()).getResult();
@@ -124,6 +133,7 @@ public class TestBorgService extends SpringBaseFort {
 
 	@Test
 	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException {
+		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		BorgDescription bd = server.getBorgDescription();
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", bd.getRepo()));

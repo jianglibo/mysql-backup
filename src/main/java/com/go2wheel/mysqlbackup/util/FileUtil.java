@@ -165,7 +165,7 @@ public class FileUtil {
 			logger.error("Source file: '{}' does't exists.", fileOrDirectoryToBackup.toAbsolutePath().toString());
 			return;
 		}
-		Path target = PathUtil.getNextAvailable(fileOrDirectoryToBackup, postfixNumber);
+		Path target = PathUtil.getNextAvailable(fileOrDirectoryToBackup, postfixNumber, roundNumber);
 		if (Files.isDirectory(fileOrDirectoryToBackup)) {
 			copyDirectory(fileOrDirectoryToBackup, target, true);
 			if (!keepOrigin) {

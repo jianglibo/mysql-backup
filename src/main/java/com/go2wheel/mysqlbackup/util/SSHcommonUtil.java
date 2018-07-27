@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
+import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -174,6 +175,60 @@ public class SSHcommonUtil {
 		} else {
 			throw new Md5ChecksumException();
 		}
+	}
+	
+	public static boolean copy(Session session, Path local, String remote) {
+		try {
+			ScpUtil.to(session, local.toString(), remote);
+			return true;
+		} catch (ScpException | IOException e) {
+			return false;
+		}
+	}
+	
+	public static boolean copy(Session session, String remote, byte[] bytes) {
+			try {
+				ScpUtil.to(session, remote, bytes);
+			} catch (ScpException e) {
+				String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
+				runRemoteCommand(session, "mkdir -p " + rdir);
+				try {
+					ScpUtil.to(session, remote, bytes);
+				} catch (ScpException e1) {
+					return false;
+				}
+				return true;
+			}
+			return true;
+	}
+	
+	/**
+	 * The localFolder and remoteFolder are the same base directory.For example, /local/a -> /remote/b
+	 * @param localFolder
+	 * @param remoteFolder
+	 * @return
+	 * @throws IOException 
+	 */
+	public static List<FileToCopyInfo> uploadFolder(Session session, Path localFolder, String remoteFolder) throws IOException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFolder);
+		Path localFolderAbs = localFolder.toAbsolutePath();
+		String remoteFolderEndSlash = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
+		return Files.walk(localFolder).map(path -> {
+			String rel = localFolderAbs.relativize(path).toString().replace('\\', '/');
+			String rfile = remoteFolderEndSlash + rel;
+			return new FileToCopyInfo(path, rfile, Files.isDirectory(path));
+		}).map(fi -> {
+			try {
+				if (!fi.isDirectory()) {
+					ScpUtil.to(session, fi.getLfileAbs().toString(), fi.getRfileAbs());
+				}
+				fi.setDone(true);
+			} catch (ScpException | IOException e) {
+				e.printStackTrace();
+				fi.setDone(false);
+			}
+			return fi;
+		}).collect(Collectors.toList());
 	}
 
 	// @formatter:on

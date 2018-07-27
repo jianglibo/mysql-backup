@@ -1,7 +1,9 @@
 <!doctype html>
-<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}" xmlns:th="http://www.thymeleaf.org">
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
 <head>
-	<title>Index Page</title>
+<title>Index Page</title>
 </head>
 <body>
 	<div id="layout">
@@ -9,14 +11,19 @@
 			<div class="header">
 				<h1>Home</h1>
 
-				<h2>Problems are not stop signs,they are guidelines. Robert H.Schuller</h2>
+				<h2>Problems are not stop signs,they are guidelines. Robert
+					H.Schuller</h2>
 			</div>
 
 			<div class="content">
 				<h2 id="common-layouts" class="content-subhead">
-					本机状态显示<a href="#common-layouts" class="content-link" title="Heading anchor"></a>
+					本机状态显示<a href="#common-layouts" class="content-link"
+						title="Heading anchor"></a>
 				</h2>
-				<div th:insert="~{fragments/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"></div>
+				<div
+					th:insert="~{fragments/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"></div>
 			</div>
+		</div>
+	</div>
 </body>
 </html>

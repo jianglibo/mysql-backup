@@ -11,7 +11,6 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
@@ -40,9 +39,6 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private ServerDbService serverDbService;
-	
-	@Autowired
-	private MyAppSettings appSettings;
 	
 	@Autowired
 	private SettingsInDb settingsInDb;
@@ -75,7 +71,7 @@ public class BorgArchiveJob implements Job {
 			bd.setTimeCost(ts);
 			borgDownloadDbService.save(bd);
 			
-			final Path localRepo = appSettings.getBorgRepoDir(sv);
+			final Path localRepo = settingsInDb.getBorgRepoDir(sv);
 			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
 		} catch (IOException e) {
 			throw new IOExceptionWrapper(e);

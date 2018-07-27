@@ -134,45 +134,45 @@ public class MyAppSettings {
 		return getDataRoot().resolve(server.getHost());
 	}
 
-	public Path getLogBinDir(Server server) {
-		Path dstDir = getHostDir(server).resolve("logbin");
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			try {
-				Files.createDirectories(dstDir);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return dstDir;
-	}
+//	public Path getLogBinDir(Server server) {
+//		Path dstDir = getHostDir(server).resolve("logbin");
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			try {
+//				Files.createDirectories(dstDir);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return dstDir;
+//	}
 
-	public Path getBorgRepoDir(Server server) {
-		Path dstDir = getHostDir(server).resolve("repo");
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			try {
-				Files.createDirectories(dstDir);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return dstDir;
-	}
+//	public Path getBorgRepoDir(Server server) {
+//		Path dstDir = getHostDir(server).resolve("repo");
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			try {
+//				Files.createDirectories(dstDir);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
+//		return dstDir;
+//	}
 
-	public Path getDumpDir(Server server) throws IOException {
-		Path dstDir = getHostDir(server).resolve("dump");
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			Files.createDirectories(dstDir);
-		}
-		return dstDir;
-	}
+//	public Path getDumpDir(Server server) throws IOException {
+//		Path dstDir = getHostDir(server).resolve("dump");
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			Files.createDirectories(dstDir);
+//		}
+//		return dstDir;
+//	}
 
-	public Path getLocalMysqlDir(Server server) throws IOException {
-		Path dstDir = getHostDir(server).resolve("mysql");
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			Files.createDirectories(dstDir);
-		}
-		return dstDir;
-	}
+//	public Path getLocalMysqlDir(Server server) throws IOException {
+//		Path dstDir = getHostDir(server).resolve("mysql");
+//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+//			Files.createDirectories(dstDir);
+//		}
+//		return dstDir;
+//	}
 
 	public SshConfig getSsh() {
 		return ssh;

@@ -87,7 +87,6 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 					SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
 					if (si == null) {
 						si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
-						softwareInstallationDbService.save(si);
 					}
 					softwareInstallationDbService.save(si);
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);

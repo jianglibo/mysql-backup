@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -36,7 +36,7 @@ import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
-import com.go2wheel.mysqlbackup.value.FileInfo;
+import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
@@ -51,7 +51,9 @@ public class BorgService {
 	
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
 	
-	private MyAppSettings appSettings;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
@@ -139,9 +141,9 @@ public class BorgService {
 			fid.setMd5s(md5s);
 
 			final Path rRepo = Paths.get(bd.getRepo());
-			final Path localRepo = appSettings.getBorgRepoDir(server);
+			final Path localRepo = settingsInDb.getBorgRepoDir(server);
 
-			List<FileInfo> fis = fid.getFiles().stream().map(fi -> {
+			List<FileToCopyInfo> fis = fid.getFiles().stream().map(fi -> {
 				fi.setLfileAbs(localRepo.resolve(rRepo.relativize(Paths.get(fi.getRfileAbs()))));
 				return fi;
 			}).collect(Collectors.toList());
@@ -151,17 +153,17 @@ public class BorgService {
 			long totalBytes = 0;
 			long downloadBytes = 0;
 			int downloadFiles = 0;
-			for (FileInfo fi : fis) {
+			for (FileToCopyInfo fi : fis) {
 				if (Files.exists(fi.getLfileAbs())) {
 					String m = Md5Checksum.getMD5Checksum(fi.getLfileAbs());
 					if (m.equalsIgnoreCase(fi.getMd5())) {
-						fi.setDownloaded(true);
+						fi.setDone(true);
 						totalBytes += Files.size(fi.getLfileAbs());
 						continue;
 					}
 				}
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, fi.getRfileAbs(), fi.getLfileAbs());
-				fi.setDownloaded(true);
+				fi.setDone(true);
 				totalBytes += Files.size(fi.getLfileAbs());
 				downloadBytes += Files.size(fi.getLfileAbs());
 				downloadFiles += 1;
@@ -192,10 +194,6 @@ public class BorgService {
 
 	@Exclusive(TaskLocks.TASK_BORG)
 	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) {
-//		if (solveProblems) {
-//			install(session);
-//			initRepo(session, server.getBorgDescription().getRepo());
-//		}
 		try {
 			BorgDescription borgDescription = server.getBorgDescription();
 			List<String> cmdparts = new ArrayList<>();
@@ -238,11 +236,6 @@ public class BorgService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
-	}
-
-	@Autowired
-	public void setAppSettings(MyAppSettings appSettings) {
-		this.appSettings = appSettings;
 	}
 
 	public FacadeResult<BorgListResult> listArchives(Session session, Server server) {

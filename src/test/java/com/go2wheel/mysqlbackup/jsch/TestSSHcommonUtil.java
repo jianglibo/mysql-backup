@@ -7,14 +7,15 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 
+import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
@@ -25,7 +26,13 @@ import com.jcraft.jsch.JSchException;
 
 public class TestSSHcommonUtil extends SpringBaseFort {
 	
-	private List<String> remoteFiles = new ArrayList<>();
+	private String rf = "/t/t";
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();
+    
+    @Rule
+    public RemoteTfolder rtfoler = new RemoteTfolder(rf);
 	
 	@Before
 	public void before() {
@@ -33,18 +40,11 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		createSession();
 	}
 	
-	@After
-	public void after() throws IOException, JSchException, RunRemoteCommandException {
-		for(String fn : remoteFiles) {
-			SSHcommonUtil.runRemoteCommand(session, String.format("rm %s", fn));
-		}
-	}
-	
 	@Test
 	public void tWriteRemoteFile() throws IOException, ScpException, JSchException {
-		String rfn = "/tmp/hello.txt";
-		ScpUtil.to(session, rfn, "abc".getBytes());
-		ScpUtil.to(session, rfn, "abc".getBytes());
+		rtfoler.setSession(session);
+		String rfn = rtfoler.newFile("hello.txt");
+		SSHcommonUtil.copy(session, rfn, "abc".getBytes());
 		
 		String content = ScpUtil.from(session, rfn).toString();
 		assertThat(content, equalTo("abc"));
@@ -52,23 +52,26 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 
 	@Test
 	public void tBackupByMove() throws IOException, ScpException, JSchException, RunRemoteCommandException {
-		createADirOnServer(3);
-		SSHcommonUtil.runRemoteCommand(session, "rm -rf " + TMP_SERVER_DIR_NAME + ".1");
-		SSHcommonUtil.runRemoteCommand(session, "rm -rf " + TMP_SERVER_DIR_NAME + ".2");
-		SSHcommonUtil.backupFileByMove(session, TMP_SERVER_DIR_NAME);
-		assertFalse(SSHcommonUtil.fileExists(session, TMP_SERVER_DIR_NAME));
-		assertTrue(SSHcommonUtil.fileExists(session, TMP_SERVER_DIR_NAME + ".1"));
+		rtfoler.setSession(session);
+		String rf = rtfoler.newFile("abc");
+		
+		createADirOnServer(rf, "abc", 3);
+		
+		SSHcommonUtil.backupFileByMove(session, rf);
+		assertFalse(SSHcommonUtil.fileExists(session, rf));
+		assertTrue(SSHcommonUtil.fileExists(session, rf + ".1"));
 	}
 	
 	@Test
 	public void tbackupFileExist() throws IOException, JSchException, ScpException, RunRemoteCommandException {
-		String rfn = "/tmp/filetobackup.txt";
-		remoteFiles.add(rfn);
-		remoteFiles.add(rfn + ".1");
-		remoteFiles.add(rfn + ".2");
-		ScpUtil.to(session, rfn, "abc".getBytes());
+		rtfoler.setSession(session);
+		String rfn = rtfoler.newFile("hello.txt");
+		
+		SSHcommonUtil.copy(session, rfn, "abc".getBytes());
+		
 		SSHcommonUtil.backupFile(session, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
+		
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(2));
 		assertThat(fns.get(0), equalTo(rfn));
@@ -85,10 +88,8 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	
 	@Test
 	public void tbackupNotFileExist() throws IOException, JSchException, RunRemoteCommandException {
-		String rfn = "/tmp/filetobackup.txt";
-		remoteFiles.add(rfn);
-		remoteFiles.add(rfn + ".1");
-		remoteFiles.add(rfn + ".2");
+		rtfoler.setSession(session);
+		String rfn = rtfoler.newFile("hello.txt");
 		SSHcommonUtil.backupFile(session, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);

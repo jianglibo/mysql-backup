@@ -9,7 +9,7 @@ import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 
 public class FileInAdirectory {
 	
-	private List<FileInfo> files = new ArrayList<>();
+	private List<FileToCopyInfo> files = new ArrayList<>();
 	
 	
 	//@formatter:off
@@ -18,7 +18,7 @@ public class FileInAdirectory {
 			files = rcr.getAllTrimedNotEmptyLines().stream()
 					.map(line -> line.split("->", 2))
 					.filter(ss -> ss.length == 2)
-					.map(FileInfo::new)
+					.map(FileToCopyInfo::new)
 					.collect(Collectors.toList());
 		}
 	}
@@ -41,11 +41,11 @@ public class FileInAdirectory {
 		}
 	}
 
-	public List<FileInfo> getFiles() {
+	public List<FileToCopyInfo> getFiles() {
 		return files;
 	}
 
-	public void setFiles(List<FileInfo> files) {
+	public void setFiles(List<FileToCopyInfo> files) {
 		this.files = files;
 	}
 

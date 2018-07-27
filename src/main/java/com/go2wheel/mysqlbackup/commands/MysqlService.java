@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
@@ -55,7 +56,9 @@ public class MysqlService {
 
 	private MysqlUtil mysqlUtil;
 
-	private MyAppSettings appSettings;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 	
 	@Autowired
 	private MysqlDumpDbService mysqlDumpDbService;
@@ -66,11 +69,6 @@ public class MysqlService {
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
 		this.mysqlUtil = mysqlUtil;
-	}
-
-	@Autowired
-	public void setAppSettings(MyAppSettings appSettings) {
-		this.appSettings = appSettings;
 	}
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
@@ -99,8 +97,8 @@ public class MysqlService {
 	@MeasureTimeCost
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) {
 		try {
-			Path dumpDir = appSettings.getDumpDir(server);
-			Path logbinDir = appSettings.getLogBinDir(server);
+			Path dumpDir = settingsInDb.getDumpDir(server);
+			Path logbinDir = settingsInDb.getLogBinDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
 				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
@@ -173,7 +171,7 @@ public class MysqlService {
 
 			String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
 
-			Path localDir = appSettings.getLogBinDir(server);
+			Path localDir = settingsInDb.getLogBinDir(server);
 			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
 
 			if (Files.exists(localIndexFile)) {
@@ -259,7 +257,7 @@ public class MysqlService {
 			String mycnfFile = mfh.getMyCnfFile();
 			mfh.setVariables(lbs.getMap());
 			
-			Path mysqlSettingDir = appSettings.getLocalMysqlDir(server);
+			Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
 			Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());
 			
 			if (!lbs.isEnabled()) {

@@ -61,7 +61,9 @@ public abstract class InstallerBase<I extends InstallInfo> implements Installer<
 	
 	protected void removeInstallationInDb(Server server, Software software) {
 		SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
-		softwareInstallationDbService.delete(si);
+		if (si != null) {
+			softwareInstallationDbService.delete(si);
+		}
 	}
 
 	public Path getLocalInstallerPath(Software software) {

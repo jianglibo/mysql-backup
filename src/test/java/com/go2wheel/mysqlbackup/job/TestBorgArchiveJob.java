@@ -1,14 +1,20 @@
 package com.go2wheel.mysqlbackup.job;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Software;
@@ -25,10 +31,15 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	@Autowired
 	private BorgInstaller borgInstaller;
 	
+	@Rule
+	@Autowired
+	public ServerDataCleanerRule sdc; 
+	
 	private Software software;
 	
 	@Test
 	public void testJobFunction() throws SchedulerException, IOException {
+		sdc.setHost(HOST_DEFAULT);
 		clearDb();
 		long jc = countJobs();
 		assertThat(jc, equalTo(0L));
@@ -40,10 +51,24 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		software = softwareDbService.findByName("BORG").get(0);
 		
 		borgInstaller.install(session, server, software, null);
+
+		borgArchiveJob.execute(context);
+		borgArchiveJob.execute(context);
 		borgArchiveJob.execute(context);
 		
 		borgDownloadDbService.count();
-		assertThat(borgDownloadDbService.count(), equalTo(1L));
+		assertThat(borgDownloadDbService.count(), equalTo(3L));
+		
+		Path repop = settingsIndb.getBorgRepoDir(server);
+		assertThat(repop.getFileName().toString(), equalTo("repo"));
+		
+		long c = Files.list(repop.getParent()).count();
+		assertThat(c, equalTo(3L));
+		
+		assertTrue(Files.exists(repop.getParent().resolve("repo.0")));
+		assertTrue(Files.exists(repop.getParent().resolve("repo.1")));
+		assertFalse(Files.exists(repop.getParent().resolve("repo.2")));
+		
 	}
 	
 	@Test
@@ -85,6 +110,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testSchedulerBorgUpdate() throws SchedulerException {
+		sdc.setHost(HOST_DEFAULT);
 		clearDb();
 		long tc = countTriggers();
 		assertThat(tc, equalTo(0L));

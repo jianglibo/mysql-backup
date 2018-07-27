@@ -72,6 +72,9 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected MyAppSettings myAppSettings;
+
+	@Autowired
+	protected SettingsInDb settingsIndb;
 	
 	@Autowired
 	protected ObjectMapper objectMapper;
@@ -152,12 +155,12 @@ public class SpringBaseFort {
 	
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
 
-	protected String TMP_SERVER_DIR_NAME = "/tmp/abc";
+//	protected String TMP_SERVER_DIR_NAME = "/tmp/abc";
 
-	protected String TMP_FILE_CONTENT = "abc";
+//	protected String TMP_FILE_CONTENT = "abc";
 	
 	
-	protected String remoteDemoFile;
+//	protected String remoteDemoFile;
 	
 	@Autowired
 	protected FileDownloader fileDownloader;
@@ -168,15 +171,16 @@ public class SpringBaseFort {
 	@Before
 	public void beforeBase() throws SchedulerException {
 	}
+	
 	@After
 	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
-		if (remoteDemoFile != null) {
-			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
-		}
-
-		if (session != null) {
-			session.disconnect();
-		}
+//		if (remoteDemoFile != null) {
+//			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
+//		}
+//
+//		if (session != null) {
+//			session.disconnect();
+//		}
 		clearDb();
 	}
 	
@@ -262,7 +266,6 @@ public class SpringBaseFort {
 	}
 
 	protected void createAfileOnServer(String rfile, String content) throws IOException, JSchException {
-		remoteDemoFile = rfile;
 		final Channel channel = session.openChannel("exec");
 		try {
 			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", content,
@@ -273,7 +276,7 @@ public class SpringBaseFort {
 			channel.connect();
 
 			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
-			assertThat(cmdOut.getStdOut().trim(), equalTo(TMP_FILE_CONTENT));
+			assertThat(cmdOut.getStdOut().trim(), equalTo(content));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
 			channel.disconnect();
@@ -281,22 +284,28 @@ public class SpringBaseFort {
 	}
 
 
-
-	protected void createADirOnServer(int number) throws IOException, JSchException {
+	/**
+	 * create /dir /dir/aabbcc
+	 * @param dir
+	 * @param content
+	 * @param number
+	 * @throws IOException
+	 * @throws JSchException
+	 */
+	protected void createADirOnServer(String dir, String content, int number) throws IOException, JSchException {
 		final Channel channel = session.openChannel("exec");
-		StringBuilder sb = new StringBuilder(String.format("mkdir -p %s; rm -rf %s/*; mkdir %s/aabbcc",
-				TMP_SERVER_DIR_NAME, TMP_SERVER_DIR_NAME, TMP_SERVER_DIR_NAME));
+		StringBuilder sb = new StringBuilder(String.format("mkdir -p %s; mkdir %s/aabbcc",
+				dir, dir));
 		for (int i = 0; i < number; i++) {
 			sb.append(";");
-			String s = String.format("echo %s > %s/%s", TMP_FILE_CONTENT, TMP_SERVER_DIR_NAME,
+			String s = String.format("echo %s > %s/%s", content, dir,
 					"sshbasefile_" + i + ".txt");
 			sb.append(s);
 		}
 		sb.append(";");
-		String s = String.format("echo %s > %s/aabbcc/%s", TMP_FILE_CONTENT, TMP_SERVER_DIR_NAME, "sshbasefile_x.txt");
+		String s = String.format("echo %s > %s/aabbcc/%s", content, dir, "sshbasefile_x.txt");
 		sb.append(s);
 		try {
-			
 			((ChannelExec) channel).setCommand(sb.toString());
 			channel.setInputStream(null);
 			((ChannelExec) channel).setErrStream(System.err);
@@ -310,25 +319,21 @@ public class SpringBaseFort {
 			channel.disconnect();
 		}
 	}
-	
-//	public void createALocalDir() throws IOException {
-//		tmpDirectory = Files.createTempDirectory("tmpfortest");
-//	}
 
 	public Path createALocalFile(Path tmpFile, String content) throws IOException {
 		Files.write(tmpFile, content.getBytes());
 		return tmpFile;
 	}
 
-	public Path createALocalFileDirectory(int number) throws IOException {
+	public Path createALocalFileDirectory(String content, int number) throws IOException {
 		Path p = Files.createTempDirectory("sshbasedir");
 		for (int i = 0; i < number; i++) {
 			Path fp = p.resolve("sshbasefile_" + i + ".txt");
-			Files.write(fp, TMP_FILE_CONTENT.getBytes());
+			Files.write(fp, content.getBytes());
 		}
 		Path nested = p.resolve("nested");
 		Files.createDirectories(nested);
-		Files.write(nested.resolve("a.txt"), TMP_FILE_CONTENT.getBytes());
+		Files.write(nested.resolve("a.txt"), content.getBytes());
 
 		return p;
 	}

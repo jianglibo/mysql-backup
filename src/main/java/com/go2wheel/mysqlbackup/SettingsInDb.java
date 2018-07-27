@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.google.common.cache.CacheBuilder;
@@ -33,6 +34,8 @@ public class SettingsInDb {
 	private static String[] predefines = new String[] {"linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"};
 	
 	public static final String DOWNLOAD_FOLDER_KEY = "installer.download";
+	public static final String APP_BORG_LOCAL_DIR_KEY = "app.borg.local-dir";
+	public static final String APP_DATA_DIR_KEY = "app.data-dir";
 	
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
@@ -45,6 +48,8 @@ public class SettingsInDb {
 	private LoadingCache<String, List<String>> listValueLc;
 	
 	private Path downloadPath;
+	
+	private Path dataDir;
 	
 	@PostConstruct
 	private void post() throws IOException {
@@ -66,13 +71,22 @@ public class SettingsInDb {
 		});
 		
 		checkOsType();
-		
+		makeDirectories();
+	}
+	
+	private void makeDirectories() throws IOException {
 		downloadPath = Paths.get(getString(SettingsInDb.DOWNLOAD_FOLDER_KEY, "notingit/download"));
 		if (!Files.exists(downloadPath)) {
 			Files.createDirectories(downloadPath);
 		}
+		
+		dataDir = Paths.get(getString(SettingsInDb.DOWNLOAD_FOLDER_KEY, "servers"));
+		if (!Files.exists(dataDir)) {
+			Files.createDirectories(dataDir);
+		}
+
 	}
-	
+
 	private void checkOsType() {
 		List<KeyValue> kvs = keyValueDbService.findByKeyPrefix(OSTYPE_PREFIX);
 		if (kvs.isEmpty()) {
@@ -144,5 +158,36 @@ public class SettingsInDb {
 		return downloadPath;
 	}
 
-
+	public Path getDataDir() {
+		return dataDir;
+	}
+	
+	private Path getDirInHost(Server server, String relative) {
+		Path hostDir = getDataDir().resolve(server.getHost());
+		Path dstDir = hostDir.resolve(relative);
+		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
+			try {
+				Files.createDirectories(dstDir);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return dstDir;
+	}
+	
+	public Path getLogBinDir(Server server) {
+		return getDirInHost(server, "logbins/logbin");
+	}
+	
+	public Path getBorgRepoDir(Server server) {
+		return getDirInHost(server, "repos/repo");
+	}
+	
+	public Path getDumpDir(Server server) throws IOException {
+		return getDirInHost(server, "dumps/dump");
+	}
+	
+	public Path getLocalMysqlDir(Server server) throws IOException {
+		return getDirInHost(server, "mysql");
+	}
 }

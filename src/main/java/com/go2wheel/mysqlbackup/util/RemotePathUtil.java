@@ -8,6 +8,10 @@ public class RemotePathUtil {
 		return remotePath.substring(0, remotePath.lastIndexOf('/') + 1);
 	}
 	
+	public static String getParentWithoutEndingSlash(String remotePath) {
+		return remotePath.substring(0, remotePath.lastIndexOf('/'));
+	}
+	
 	public static String getRidOfLastSlash(String remotePath) {
 		if (remotePath.endsWith("/")) {
 			return remotePath.replaceAll("/+$", "");

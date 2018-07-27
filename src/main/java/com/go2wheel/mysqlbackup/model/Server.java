@@ -51,7 +51,7 @@ public class Server extends BaseModel {
 	private BorgDescription borgDescription;
 	
 	@NotEmpty
-	private String serverRole;
+	private String serverRole = ROLE_GET;
 	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String serverStateCron;
