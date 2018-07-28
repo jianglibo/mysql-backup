@@ -56,7 +56,15 @@
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
-			["create", "edit", "delete"]);
+			["create", "edit", "delete", {
+				actionId: 'playback',
+				name: '回放',
+				activeOn: 'SINGLE',
+				onClick: { 
+					react: 'GET',
+					url: mapping + '/{id}'
+				}
+			}]);
 	</script>
 </body>
 
