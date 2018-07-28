@@ -24,6 +24,7 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -107,13 +108,13 @@ public class SSHcommonUtil {
 			}
 		}
 	}
-	
+
 	public static String targzFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		String tarFile = RemotePathUtil.getRidOfLastSlash(remoteFile) + ".tar.gz";
 		String command = String.format("tar -czf %s %", tarFile, remoteFile);
-		RemoteCommandResult rcr =  runRemoteCommand(session, command);
+		RemoteCommandResult rcr = runRemoteCommand(session, command);
 		if (rcr.getExitValue() == 0) {
-			return tarFile;			
+			return tarFile;
 		} else {
 			return null;
 		}
@@ -182,13 +183,21 @@ public class SSHcommonUtil {
 			ScpUtil.to(session, local.toString(), remote);
 			return true;
 		} catch (ScpException | IOException e) {
-			return false;
+			String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
+			runRemoteCommand(session, "mkdir -p " + rdir);
+			try {
+				ScpUtil.to(session, local.toString(), remote);
+			} catch (ScpException | IOException e1) {
+				return false;
+			}
+			return true;
 		}
 	}
 	
 	public static boolean copy(Session session, String remote, byte[] bytes) {
 			try {
 				ScpUtil.to(session, remote, bytes);
+				return true;
 			} catch (ScpException e) {
 				String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
 				runRemoteCommand(session, "mkdir -p " + rdir);
@@ -199,7 +208,19 @@ public class SSHcommonUtil {
 				}
 				return true;
 			}
-			return true;
+	}
+	
+	/** find . -exec ls -ld {} \;
+	 *  find . -print0 | xargs -0 ls -ld , this is much fast.
+	 * @param session
+	 * @param remoteFolder
+	 * @return
+	 */
+	
+	public static List<LinuxLsl> listRemoteFiles(Session session, String remoteFolder) {
+		String command = String.format("find %s -print0 | xargs -0 ls -ld", remoteFolder);
+		RemoteCommandResult rcr = runRemoteCommand(session, command);
+		return rcr.getAllTrimedNotEmptyLines().stream().map(line -> LinuxLsl.matchAndReturnLinuxLsl(line)).filter(op -> op.isPresent()).map(op -> op.get()).collect(Collectors.toList());
 	}
 	
 	/**
@@ -218,14 +239,12 @@ public class SSHcommonUtil {
 			String rfile = remoteFolderEndSlash + rel;
 			return new FileToCopyInfo(path, rfile, Files.isDirectory(path));
 		}).map(fi -> {
-			try {
-				if (!fi.isDirectory()) {
-					ScpUtil.to(session, fi.getLfileAbs().toString(), fi.getRfileAbs());
+			if (!fi.isDirectory()) {
+				if (copy(session, fi.getLfileAbs(), fi.getRfileAbs())) {
+					fi.setDone(true);
+				} else {
+					fi.setDone(false);
 				}
-				fi.setDone(true);
-			} catch (ScpException | IOException e) {
-				e.printStackTrace();
-				fi.setDone(false);
 			}
 			return fi;
 		}).collect(Collectors.toList());
@@ -280,7 +299,7 @@ public class SSHcommonUtil {
 						return s1.length() - s2.length();
 					}
 				}
-				
+
 			});
 			if (fns.size() > 0) {
 				Matcher m = ptn.matcher(fns.get(fns.size() - 1));
@@ -327,7 +346,7 @@ public class SSHcommonUtil {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
 		}
 	}
-	
+
 	public static int coreNumber(Session session) {
 		String command = "grep 'model name' /proc/cpuinfo | wc -l";
 		try {

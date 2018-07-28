@@ -31,6 +31,7 @@ public class RemoteTfolder extends ExternalResource {
 	}
 	
 	public String newFile(String rel) {
+		rel = rel.startsWith("/") ? rel.substring(1) : rel;
 		return remoteFolder + rel;
 	}
 	

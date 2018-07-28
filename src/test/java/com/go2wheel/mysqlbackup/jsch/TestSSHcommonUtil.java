@@ -6,7 +6,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,6 +23,8 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
+import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
@@ -60,6 +64,27 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		SSHcommonUtil.backupFileByMove(session, rf);
 		assertFalse(SSHcommonUtil.fileExists(session, rf));
 		assertTrue(SSHcommonUtil.fileExists(session, rf + ".1"));
+	}
+	
+	@Test
+	public void testUploadFolder() throws IOException {
+		rtfoler.setSession(session);
+		
+		File fo = tfolder.newFolder("fo");
+		File foo = new File(fo, "foo");
+		foo.mkdirs();
+		File f1 = new File(fo, "a1.txt");
+		File f2 = new File(foo, "a1.txt");
+		Files.write(f1.toPath(), "abc".getBytes());
+		Files.write(f2.toPath(), "abc".getBytes());
+		List<FileToCopyInfo> copyInfos = SSHcommonUtil.uploadFolder(session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
+		// include root item.
+		assertThat(copyInfos.size(), equalTo(5));
+		List<LinuxLsl> lsl = SSHcommonUtil.listRemoteFiles(session, rtfoler.getRemoteFolder());
+		// fo, foo, f1, f2 == 4, include /t/t self.
+		assertThat(lsl.size(), equalTo(5));
+		String n1 = lsl.stream().filter(ls -> ls.getFilename().contains("/fo/foo/a1.txt")).findAny().get().getFilename();
+		assertThat(n1, equalTo(rtfoler.newFile("fo/foo/a1.txt")));
 	}
 	
 	@Test
