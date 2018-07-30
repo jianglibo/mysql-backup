@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
@@ -44,8 +45,7 @@ public class ServerStateJob implements Job {
 			}
 			serverStateService.createServerState(server, session);
 		} catch (JSchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

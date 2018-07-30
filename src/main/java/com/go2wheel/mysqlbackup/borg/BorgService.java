@@ -26,8 +26,11 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
+import com.go2wheel.mysqlbackup.model.PlayBack;
+import com.go2wheel.mysqlbackup.model.PlayBackResult;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
@@ -40,10 +43,10 @@ import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.google.common.collect.Lists;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -51,74 +54,73 @@ import com.jcraft.jsch.Session;
 public class BorgService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	public static final String NO_INCLUDES = "borg.archive.noincludes";
-	
+
 	public static final String UNKNOWN = "borg.archive.unknown";
-	
+
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
-	
+
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
-	
+
 	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
-	
-	
+
+	@Autowired
+	private PlayBackResultDbService playBackResultDbService;
+
 	@Autowired
 	private SettingsInDb settingsInDb;
-	
+
 	/**
-	 * list all saved versions, choose one to play back. 
+	 * list all saved versions, choose one to play back.
+	 * 
 	 * @param sourceServer
 	 * @return
+	 * @throws IOException 
 	 */
-	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) {
+	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
 		Path lrp = settingsInDb.getBorgRepoDir(sourceServer);
 		List<Path> pathes = Lists.newArrayList();
-		try {
-			pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
-			Collections.sort(pathes, (o1, o2) -> {
-				try {
-					BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
-					BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
-					return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
-				} catch (IOException e) {
-					return 0;
-				}
-			});
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+		pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
+		Collections.sort(pathes, (o1, o2) -> {
+			try {
+				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
+				BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
+				return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
+			} catch (IOException e) {
+				return 0;
+			}
+		});
 		return pathes.stream().map(BorgRepoWrapper::new).collect(Collectors.toList());
 	}
-	
+
 	public static class BorgRepoWrapper {
 		private final Path repo;
-		
+
 		public BorgRepoWrapper(Path repo) {
 			this.repo = repo;
 		}
-		
+
 		public String getRepoFolderName() {
 			return repo.getFileName().toString();
 		}
-		
+
 		public Date getCreateTime() throws IOException {
 			BasicFileAttributes bfa = Files.readAttributes(repo, BasicFileAttributes.class);
 			return new Date(bfa.lastAccessTime().toMillis());
 		}
-		
+
 		public long getFileCount() throws IOException {
 			return Files.walk(repo).count();
 		}
-		
+
 		public String getSize() throws IOException {
 			long size = Files.walk(repo).filter(Files::isRegularFile).mapToLong(value -> {
 				try {
 					return Files.size(value);
 				} catch (IOException e) {
-					e.printStackTrace();
 					return 0L;
 				}
 			}).sum();
@@ -145,28 +147,32 @@ public class BorgService {
 					rcr = SSHcommonUtil.runRemoteCommand(session,
 							String.format("borg init --encryption=none %s", repoPath));
 				}
-				
-				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
+
+				boolean iserrorPath = rcr.getAllTrimedNotEmptyLines().stream()
+						.anyMatch(line -> line.contains("argument REPOSITORY: Invalid location format:"));
 				if (iserrorPath) {
 					return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
 				}
-				
-				//Repository /abc already exists.
-				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.trim().matches("Repository .* already exists\\.") || line.contains("A repository already exists at"));
-				
+
+				// Repository /abc already exists.
+				boolean alreadyExists = rcr.getAllTrimedNotEmptyLines().stream()
+						.anyMatch(line -> line.trim().matches("Repository .* already exists\\.")
+								|| line.contains("A repository already exists at"));
+
 				if (alreadyExists) {
 					return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_ALREADY_EXISTS, repoPath);
 				}
-				
-				//	Cannot open self
-				
-				//Repository /abc already exists.
-				boolean cannotOpenSelf = rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("Cannot open self"));
-				
+
+				// Cannot open self
+
+				// Repository /abc already exists.
+				boolean cannotOpenSelf = rcr.getAllTrimedNotEmptyLines().stream()
+						.anyMatch(line -> line.contains("Cannot open self"));
+
 				if (cannotOpenSelf) {
 					return FacadeResult.showMessageUnExpected(CommonMessageKeys.EXECUTABLE_DAMAGED, repoPath);
 				}
-				
+
 				logger.error(command);
 				logger.error(String.join("\n", rcr.getAllTrimedNotEmptyLines()));
 				return FacadeResult.showMessageUnExpected("ssh.command.failed", command);
@@ -177,9 +183,11 @@ public class BorgService {
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
-	
+
 	public boolean isBorgNotReady(Server server) {
-		return server == null || server.getBorgDescription() == null || server.getBorgDescription().getIncludes() == null || server.getBorgDescription().getIncludes().isEmpty();
+		return server == null || server.getBorgDescription() == null
+				|| server.getBorgDescription().getIncludes() == null
+				|| server.getBorgDescription().getIncludes().isEmpty();
 	}
 
 	//@formatter:off
@@ -201,7 +209,7 @@ public class BorgService {
 			try {
 				frSession = sshSessionFactory.getConnectedSession(server);
 			} catch (JSchException e) {
-				e.printStackTrace();
+				ExceptionUtil.logErrorException(logger, e);
 				return FacadeResult.unexpectedResult(e);
 			}
 			Session session = frSession.getResult();
@@ -288,6 +296,36 @@ public class BorgService {
 		}
 
 	}
+	
+	
+	public CompletableFuture<FacadeResult<PlayBackResult>> playback(Server server, PlayBack playback, String localRepo) {
+		return CompletableFuture.supplyAsync(() -> {
+			FacadeResult<Session> frSession;
+			try {
+				frSession = sshSessionFactory.getConnectedSession(server);
+			} catch (JSchException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
+			}
+			Session session = frSession.getResult();
+			try {
+				FacadeResult<PlayBackResult> fr = playback(session, server, playback, localRepo);
+				PlayBackResult bd = fr.getResult();
+				bd = playBackResultDbService.save(bd);
+				fr.setResult(bd);
+				return fr;
+			} finally {
+				if (session != null && session.isConnected()) {
+					session.disconnect();
+				}
+			}
+		});
+	}
+	
+	public FacadeResult<PlayBackResult> playback(Session session, Server server, PlayBack playback, String localRepo) {
+		// from server get borgdescription, get repo properties. Create a directory on playback server. and upload local repo. Then invoke borg command on that server, listing extracting. 
+		return null;
+	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
 	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) {
@@ -368,11 +406,12 @@ public class BorgService {
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
-
+	
 	//@formatter:on
 
 	/**
 	 * borg产生的卷是有时间顺序的，每个卷都有一个名称，所以可以恢复到各个时间点。prune之后，比如剩下7个天备份，4个月备份，那么恢复的粒度就不是每天了。
+	 * 
 	 * @param session
 	 * @param server
 	 * @return

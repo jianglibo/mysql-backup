@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -47,8 +48,7 @@ public class BorgPruneJob implements Job {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			borgTaskFacade.pruneRepo(session, server);
 		} catch (JSchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

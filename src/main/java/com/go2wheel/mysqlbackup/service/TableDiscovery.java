@@ -48,6 +48,7 @@ public class TableDiscovery {
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T extends TableImpl<?>> T getTable(String tableName) {
 		return (T) tablemap.get(tableName.toLowerCase());
 	}

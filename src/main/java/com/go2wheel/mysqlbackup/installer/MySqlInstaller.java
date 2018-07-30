@@ -216,8 +216,6 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 			try {
 				return install(server, software, parasMap);
 			} catch (JSchException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 				return FacadeResult.unexpectedResult(e);
 			}
 		});
@@ -264,7 +262,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				try {
 					Files.delete(local);
 				} catch (IOException e) {
-					e.printStackTrace();
+					ExceptionUtil.logErrorException(logger, e);
 				}
 				return null;
 			});
@@ -281,7 +279,6 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 			try {
 				return uninstall(server, software);
 			} catch (JSchException e) {
-				e.printStackTrace();
 				return FacadeResult.unexpectedResult(e);
 			}
 		});

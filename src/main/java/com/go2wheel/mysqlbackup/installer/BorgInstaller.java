@@ -28,21 +28,21 @@ import com.jcraft.jsch.Session;
 
 @Service
 public class BorgInstaller extends InstallerBase<InstallInfo> {
-	
+
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
+
 	private static final String REMOTE_BORG_BINARY_KEY = "remote-borg-binary";
-	
+
 	@PostConstruct
 	public void post() throws IOException {
 		syncToDb();
 	}
-	
+
 	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) {
 		try {
 			BorgInstallInfo ii = getBorgInstallInfo(session);
 			String rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
-			
+
 			if (ii.isInstalled()) {
 				SSHcommonUtil.deleteRemoteFile(session, rbb);
 				removeInstallationInDb(server, software);
@@ -55,9 +55,9 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
-	
-	
-	public FacadeResult<InstallInfo> install(Session session, Server server, Software software, Map<String, String> parasMap) {
+
+	public FacadeResult<InstallInfo> install(Session session, Server server, Software software,
+			Map<String, String> parasMap) {
 		BorgInstallInfo ii;
 		try {
 			String rbb = null;
@@ -71,25 +71,26 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 				rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
 			}
 			ii = getBorgInstallInfo(session);
-			
+
 			if (!ii.isInstalled()) {
 				ScpUtil.to(session, getLocalInstallerPath(software).toString(), rbb);
 				String cmd = String.format("chown root:root %s;chmod 755 %s", rbb, rbb);
 				SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getBorgInstallInfo(session);
 				if (ii.isInstalled()) {
-					SoftwareInstallation si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
+					SoftwareInstallation si = SoftwareInstallation.newInstance(server, software)
+							.addSetting(REMOTE_BORG_BINARY_KEY, rbb);
 					softwareInstallationDbService.save(si);
 					return FacadeResult.doneExpectedResult(ii, CommonActionResult.DONE);
 				} else {
 					return FacadeResult.unexpectedResult("unknown");
 				}
 			} else {
-					SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
-					if (si == null) {
-						si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
-					}
-					softwareInstallationDbService.save(si);
+				SoftwareInstallation si = softwareInstallationDbService.findByServerAndSoftware(server, software);
+				if (si == null) {
+					si = SoftwareInstallation.newInstance(server, software).addSetting(REMOTE_BORG_BINARY_KEY, rbb);
+				}
+				softwareInstallationDbService.save(si);
 				return FacadeResult.doneExpectedResult(ii, CommonActionResult.PREVIOUSLY_DONE);
 			}
 		} catch (RunRemoteCommandException | ScpException | IOException e) {
@@ -99,7 +100,8 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException {
+	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap)
+			throws JSchException {
 		return install(getSession(server), server, software, parasMap);
 	}
 
@@ -110,8 +112,6 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			try {
 				return install(server, software, parasMap);
 			} catch (JSchException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 				return FacadeResult.unexpectedResult(e);
 			}
 		});
@@ -121,7 +121,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	public boolean canHandle(Software software) {
 		return software.getName().equals("BORG");
 	}
-	
+
 	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException {
 		BorgInstallInfo ii = new BorgInstallInfo();
 		RemoteCommandResult rcr;
@@ -137,21 +137,18 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 
 	@Override
 	public void syncToDb() {
-		try {
-			Software software = new Software();
-			software.setName("BORG");
-			software.setVersion("1.1.5");
-			software.setTargetEnv("linux_centos");
-			software.setDlurl("https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64");
-			software.setInstaller("borg-linux64-1.1.5");
-			List<String> settings = Lists.newArrayList();
-			settings.add(REMOTE_BORG_BINARY_KEY + "=/usr/local/bin/borg");
-			software.setSettings(settings);
-			saveToDb(software);
-			fileDownloader.downloadAsync(software.getDlurl(), settingsInDb.getDownloadPath().resolve(software.getInstaller()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		Software software = new Software();
+		software.setName("BORG");
+		software.setVersion("1.1.5");
+		software.setTargetEnv("linux_centos");
+		software.setDlurl("https://github.com/borgbackup/borg/releases/download/1.1.5/borg-linux64");
+		software.setInstaller("borg-linux64-1.1.5");
+		List<String> settings = Lists.newArrayList();
+		settings.add(REMOTE_BORG_BINARY_KEY + "=/usr/local/bin/borg");
+		software.setSettings(settings);
+		saveToDb(software);
+		fileDownloader.downloadAsync(software.getDlurl(),
+				settingsInDb.getDownloadPath().resolve(software.getInstaller()));
 	}
 
 	@Override
@@ -165,8 +162,6 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			try {
 				return uninstall(server, software);
 			} catch (JSchException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
 				return FacadeResult.unexpectedResult(e);
 			}
 		});

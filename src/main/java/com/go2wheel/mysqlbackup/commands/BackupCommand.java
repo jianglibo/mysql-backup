@@ -82,9 +82,9 @@ import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.StorageState;
+import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -101,9 +101,10 @@ import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.SqlService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
+import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
-import com.go2wheel.mysqlbackup.service.SubscribeDbService;
+import com.go2wheel.mysqlbackup.util.Exception2FacadeResult;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -240,14 +241,7 @@ public class BackupCommand {
 			try {
 				frSession = sshSessionFactory.getConnectedSession(server);
 			} catch (JSchException e) {
-				if (e.getMessage().contains("Auth fail")) {
-					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.authfailed");
-				} else if (e.getMessage().contains("Connection timed out")) {
-					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.failed");
-				} else {
-					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.failed");
-				}
-				e.printStackTrace();
+				frSession = (FacadeResult<Session>) Exception2FacadeResult.parseException(e);
 			}
 			if (frSession.isExpected()) {
 				_session = frSession.getResult();
@@ -1185,7 +1179,7 @@ public class BackupCommand {
 		try {
 			sas = getServerAndSession(server);
 		} catch (JSchException e) {
-			e.printStackTrace();
+			return Exception2FacadeResult.parseException(e);
 		}
 		if (sas != null && sas.getSession() != null) {
 			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sas.getSession(), command));

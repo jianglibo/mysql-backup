@@ -12,6 +12,7 @@ public class ListStringToLinesEditor extends PropertyEditorSupport {
 	
 	private Splitter splitter = Splitter.on(Pattern.compile("\r?\n")).trimResults().omitEmptyStrings();
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public String getAsText() {
 		List<String> ls = (List<String>) getValue();

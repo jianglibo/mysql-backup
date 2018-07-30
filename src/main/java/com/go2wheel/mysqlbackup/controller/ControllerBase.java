@@ -37,13 +37,7 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	private final String mappingUrl;
 	
-	@ExceptionHandler
-	public String exceptionHandler(Exception ex, Model model, HttpServletRequest request) {
-		populateMainMenu(model, request);
-		model.addAttribute("exception",ex);
-		model.addAttribute("stacktrace", ExceptionUtil.stackTraceToString(ex));
-		return "error-exception";
-	}
+
 	
 
 	public ControllerBase(String mappingUrl) {

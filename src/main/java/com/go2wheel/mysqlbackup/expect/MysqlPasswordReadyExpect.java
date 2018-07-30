@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
-import com.go2wheel.mysqlbackup.exception.IOExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.JSchExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -59,7 +59,7 @@ public abstract class MysqlPasswordReadyExpect {
 		} catch (ExpectIOException e) {
 			throw new UnExpectedContentException(null, "mysql.expect.password", e.getInputBuffer());
 		} catch (IOException e) {
-			throw new IOExceptionWrapper(e);
+			throw new ExceptionWrapper(e);
 		} finally {
 			try {
 				expect.close();

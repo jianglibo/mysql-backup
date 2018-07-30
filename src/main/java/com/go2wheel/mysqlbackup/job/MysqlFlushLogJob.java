@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -45,8 +46,7 @@ public class MysqlFlushLogJob implements Job {
 			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
 		} catch (JSchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {
 				session.disconnect();

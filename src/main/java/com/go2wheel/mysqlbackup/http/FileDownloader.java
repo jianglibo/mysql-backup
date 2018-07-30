@@ -18,10 +18,16 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 
 @Component
 public class FileDownloader {
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	private CloseableHttpClient httpclient;
 	
@@ -73,7 +79,7 @@ public class FileDownloader {
 			try {
 				return download(url, out);
 			} catch (IOException e) {
-				e.printStackTrace();
+				ExceptionUtil.logErrorException(logger, e);
 				return null;
 			}
 		});

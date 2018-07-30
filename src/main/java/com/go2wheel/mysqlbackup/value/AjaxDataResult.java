@@ -28,6 +28,7 @@ public class AjaxDataResult<T> implements AjaxResult {
 		this.data = data;
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void addObject(Object o) {
 		this.data.add((T) o);
 	}
