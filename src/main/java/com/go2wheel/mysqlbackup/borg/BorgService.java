@@ -4,10 +4,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -24,10 +27,12 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
@@ -35,6 +40,7 @@ import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.google.common.collect.Lists;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -51,9 +57,73 @@ public class BorgService {
 	
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
 	
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private BorgDownloadDbService borgDownloadDbService;
+	
 	
 	@Autowired
 	private SettingsInDb settingsInDb;
+	
+	/**
+	 * list all saved versions, choose one to play back. 
+	 * @param sourceServer
+	 * @return
+	 */
+	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) {
+		Path lrp = settingsInDb.getBorgRepoDir(sourceServer);
+		List<Path> pathes = Lists.newArrayList();
+		try {
+			pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
+			Collections.sort(pathes, (o1, o2) -> {
+				try {
+					BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
+					BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
+					return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
+				} catch (IOException e) {
+					return 0;
+				}
+			});
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return pathes.stream().map(BorgRepoWrapper::new).collect(Collectors.toList());
+	}
+	
+	public static class BorgRepoWrapper {
+		private final Path repo;
+		
+		public BorgRepoWrapper(Path repo) {
+			this.repo = repo;
+		}
+		
+		public String getRepoFolderName() {
+			return repo.getFileName().toString();
+		}
+		
+		public Date getCreateTime() throws IOException {
+			BasicFileAttributes bfa = Files.readAttributes(repo, BasicFileAttributes.class);
+			return new Date(bfa.lastAccessTime().toMillis());
+		}
+		
+		public long getFileCount() throws IOException {
+			return Files.walk(repo).count();
+		}
+		
+		public String getSize() throws IOException {
+			long size = Files.walk(repo).filter(Files::isRegularFile).mapToLong(value -> {
+				try {
+					return Files.size(value);
+				} catch (IOException e) {
+					e.printStackTrace();
+					return 0L;
+				}
+			}).sum();
+			return StringUtil.formatSize(size, 2);
+		}
+	}
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
 		try {
@@ -122,6 +192,26 @@ public class BorgService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
+	}
+	
+	public CompletableFuture<FacadeResult<BorgDownload>> downloadRepoAsync(Server server) {
+		return CompletableFuture.supplyAsync(() -> {
+			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+			Session session = frSession.getResult();
+			try {
+				FacadeResult<BorgDownload> fr = downloadRepo(session, server);
+				BorgDownload bd = fr.getResult();
+				bd.setTimeCost(fr.getEndTime() - fr.getStartTime());
+				bd.setServerId(server.getId());
+				bd = borgDownloadDbService.save(bd);
+				fr.setResult(bd);
+				return fr;
+			} finally {
+				if (session != null && session.isConnected()) {
+					session.disconnect();
+				}
+			}
+		});
 	}
 	
 	//@formatter:off

@@ -12,6 +12,28 @@
 				<h1>Borg卷列表</h1>
 			</div>
 			<div class="content">
+
+				<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalTitle" aria-hidden="true">
+					<div class="modal-dialog modal-lg" role="document">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title" id="myModalTitle">卷的详细信息</h5>
+								<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div class="modal-body">
+								<pre class="code" data-language="html"><code>
+						</code></pre>
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!--
 				<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 					<div class="modal-header">
 						<h1 id="myModalLabel">卷的详细信息</h1>
@@ -27,6 +49,7 @@
 						<button class="pure-button" data-dismiss="modal" aria-hidden="true">Close</button>
 					</div>
 				</div>
+			-->
 				<div id="action-menu-bar"></div>
 				<table class="pure-table pure-table-bordered item-list item-list-single-select">
 					<thead>
@@ -65,7 +88,6 @@
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var serverId = /*[[${server.id}]]*/ "0";
 		var cache = {};
-		confirmDeleteModal('abc');
 		var modal = jQuery('#myModal');
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
@@ -76,38 +98,36 @@
 				onClick: function () {
 					console.log(this);
 					var item = this.state.selectedItems[0].id;
-					var url = window.freact.strUtil.format('/app/borg/info/{server}/{archive}', {server: serverId, archive: item});
-					
+					var url = window.freact.strUtil.format('/app/borg/info/{server}/{archive}', { server: serverId, archive: item });
+
 					if (cache[url]) {
 						modal.find('.code').html(cache[url]);
 						modal.modal('show');
-//						modal.modal({show: true, backdrop: false});
 					} else {
-						jQuery.ajax(url, {method: 'GET'}).done(function(data, textStatus, jqXHR){
+						jQuery.ajax(url, { method: 'GET' }).done(function (data, textStatus, jqXHR) {
 							cache[url] = data;
 							modal.find('.code').html(cache[url]);
 							modal.modal('show');
-//							modal.modal({show: true, backdrop: false});
 						});
 					}
 
 				}
-			},{
+			}, {
 				actionId: 'archiveCreate',
 				name: '创建卷',
 				activeOn: 'ALWAYS',
-				onClick: function() {
-					var url = window.freact.strUtil.format('/app/borg/archives/{server}', {server: serverId});
-					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+				onClick: function () {
+					var url = window.freact.strUtil.format('/app/borg/archives/{server}', { server: serverId });
+					window.freact.formUtil.createFormSubmit({ action: url, method: 'POST' }, {});
 				}
 			}, {
 				actionId: 'archivePrune',
 				name: '整理卷',
 				activeOn: 'ALWAYS',
 				confirm: '清理卷以保持设定的卷数量？',
-				onClick: function() {
-					var url = window.freact.strUtil.format('/app/borg/archives/{server}', {server: serverId});
-					window.freact.formUtil.createFormSubmit({action: url, method: 'PUT'}, {});
+				onClick: function () {
+					var url = window.freact.strUtil.format('/app/borg/archives/{server}', { server: serverId });
+					window.freact.formUtil.createFormSubmit({ action: url, method: 'PUT' }, {});
 				}
 			}]);
 	</script>

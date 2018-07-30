@@ -11,6 +11,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
@@ -21,6 +22,9 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	protected ApplicationContext applicationContext;
 	
 	@Autowired
+	protected SettingsInDb settingsInDb;
+	
+	@Autowired
 	protected EncodeConvertor encodeConvertor;
 	
 	@Autowired
@@ -28,11 +32,20 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	@Autowired
 	private MainMenuGroups menuGroups;
+	
+	private final String mappingUrl;
+	
+
+	public ControllerBase(String mappingUrl) {
+		this.mappingUrl = mappingUrl;
+	}
+	
 
 	@ModelAttribute
 	public void populateMainMenu(Model model, HttpServletRequest request) {
 		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
+		model.addAttribute("mapping", mappingUrl);
 	}
 	
 	
@@ -42,6 +55,11 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	}
 	
 	public abstract List<MainMenuItem> getMenuItems();
+	
+	public String getMappingUrl() {
+		return mappingUrl;
+	}
+
 	
 	protected String getTplName(String full) {
 		int p = full.lastIndexOf('/');

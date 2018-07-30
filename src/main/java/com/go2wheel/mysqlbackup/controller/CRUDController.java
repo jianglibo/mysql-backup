@@ -37,7 +37,6 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	private final D dbService;
 	
-	private final String mappingUrl;
 	
 	
 	private Converter<String, String> cf = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN);
@@ -49,17 +48,16 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	public static final String ERROR_MESSAGE_KEY = "errorMessage";
 	
 	public CRUDController(Class<T> clazz,D dbService, String mappingUrl) {
+		super(mappingUrl);
 		this.clazz = clazz;
 		this.dbService = dbService;
 		this.lowerHyphenPlural = English.plural(cf.convert(clazz.getSimpleName()));
-		this.mappingUrl = mappingUrl;
 		Assert.isTrue(mappingUrl.endsWith(lowerHyphenPlural), "requestmapping url should match classname.");
 	}
 	
 	abstract boolean copyProperties(T entityFromForm, T entityFromDb);
 	
 	protected void commonAttribute(Model model) {
-		model.addAttribute("mapping", mappingUrl);
 		model.addAttribute("entityName", clazz.getName());
 	}
 	
@@ -163,17 +161,17 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 	
 	public String redirectMappingUrl() {
-		return "redirect:" + mappingUrl;
+		return "redirect:" + getMappingUrl();
 	}
 	
 	protected String redirectEditGet(Integer id) {
-		return "redirect:" + mappingUrl + "/" + id + "/edit";
+		return "redirect:" + getMappingUrl() + "/" + id + "/edit";
 	}
 
 	
 	@Override
 	public List<MainMenuItem> getMenuItems() {
-		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), mappingUrl, getMenuOrder()));
+		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), getMappingUrl(), getMenuOrder()));
 	}
 	
 	protected int getMenuOrder() {

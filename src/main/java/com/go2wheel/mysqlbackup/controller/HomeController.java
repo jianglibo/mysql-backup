@@ -19,8 +19,15 @@ import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.TplUtil;
 
 
-@Controller
+@Controller(HomeController.MAPPING_PATH)
 public class HomeController extends ControllerBase {
+	
+
+	public static final String MAPPING_PATH = "/";
+	
+	public HomeController() {
+		super(MAPPING_PATH);
+	}
 	
 	@Autowired
 	private TemplateContextService templateContextService;
@@ -35,7 +42,7 @@ public class HomeController extends ControllerBase {
 		model.addAttribute("tplUtil", new TplUtil());
 	}
 
-	@GetMapping("/")
+	@GetMapping("")
 	String home() {
 		return "index";
 	}

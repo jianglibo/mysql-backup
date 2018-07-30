@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,12 +12,18 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 
@@ -33,11 +40,11 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	@Autowired
 	private ServerDbService serverDbService;
 	
+	@Autowired
+	private BorgService borgService;
+	
     @InitBinder
     public void initBinder(WebDataBinder binder) {
-//        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-//        dateFormat.setLenient(false);
-//        binder.registerCustomEditor(Date.class, new CustomDateEditor(dateFormat, false));
     	binder.registerCustomEditor(List.class, new ListStringToLinesEditor());
     }
 	
@@ -76,6 +83,20 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		commonAttribute(model);
 		formAttribute(model);
 		return getFormTpl();
+	}
+	
+	
+	@PostMapping("/{borgdescription}/download")
+	public String postDumps(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) {
+		Server server = serverDbService.findById(borgDescription.getServerId());
+		server = serverDbService.loadFull(server);
+		
+		CompletableFuture<?> cf = borgService.downloadRepoAsync(server);
+		String sid = request.getSession(true).getId();
+		globalStore.saveObject(sid, server.getId() + "-sync-borg-repo" + borgDescription.getId(), Gobject.newGobject("下载Borg", cf));
+		
+		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
+		return redirectMappingUrl();
 	}
 	
 	@Override

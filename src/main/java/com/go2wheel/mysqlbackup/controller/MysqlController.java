@@ -37,10 +37,12 @@ import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.Session;
 
 @Controller
-@RequestMapping("/app/mysql")
+@RequestMapping(MysqlController.MAPPING_PATH)
 public class MysqlController extends ControllerBase {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
+
+	public static final String MAPPING_PATH = "/app/mysql";
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -56,6 +58,10 @@ public class MysqlController extends ControllerBase {
 	
 	@Autowired
 	private MysqlFlushDbService mysqlFlushDbService;
+	
+	public MysqlController() {
+		super(MAPPING_PATH);
+	}
 
 	@ExceptionHandler
 	public ResponseEntity<String> handle(Exception ex) {

@@ -32,8 +32,11 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.google.common.collect.Maps;
 
 @Controller
-@RequestMapping("/app/software-install")
+@RequestMapping(SoftwareInstallController.MAPPING_PATH)
 public class SoftwareInstallController extends ControllerBase {
+	
+	
+	public static final String MAPPING_PATH = "/app/software-install";
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -42,6 +45,10 @@ public class SoftwareInstallController extends ControllerBase {
 	private SoftwareDbService softwareDbService;
 	
 	private List<Installer<?>> installers;
+	
+	public SoftwareInstallController() {
+		super(MAPPING_PATH);
+	}
 	
 	@Autowired
 	public void setInstallers(List<Installer<?>> installers) {

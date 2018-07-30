@@ -63,7 +63,7 @@ public class PlayBacksController  extends CRUDController<PlayBack, PlayBackDbSer
 			rurl = ucb.replacePath("/app/borgrestore/{playback}").buildAndExpand(map).toUriString();
 			return "redirect:" + rurl;   
 		case PlayBack.PLAY_MYSQL:
-			rurl = ucb.replacePath("/app/mysqlrgrestore/{playback}").buildAndExpand(map).toUriString();
+			rurl = ucb.replacePath("/app/mysqlrestore/{playback}").buildAndExpand(map).toUriString();
 			return "redirect:" + rurl;   
 		default:
 			break;

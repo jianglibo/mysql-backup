@@ -9,7 +9,7 @@
 	<div id="layout">
 		<div id="main">
 			<div class="header">
-				<h1 th:text="#{${entityName}} + '列表'"></h1>
+				<h1 th:text="BORG本地仓库列表"></h1>
 			</div>
 			<div class="content">
 				<aside class="success" th:if="${deleteResult}">
@@ -22,20 +22,20 @@
 							<th>
 								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
 							</th>
-							<th>服務器</th>
-							<th>仓库路径</th>
-							<th>卷前缀</th>
+							<th>仓库名称</th>
+							<th>最后访问时间</th>
+							<th>仓库容量(非解压后)</th>
 						</tr>
 					</thead>
 
 					<tbody th:remove="all-but-first">
 						<tr th:each="item: ${listItems}">
 							<td>
-								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
+								<input id="particular-item" th:id="|item-${item.getRepoFolderName()}|" type="checkbox">
 							</td>
-							<td><a th:text="${idEntityMap.get(item.serverId).name}" th:href="@{/app/servers/{serverId}/edit(serverId=${item.serverId})}" href="#">Honda</a></td>
-							<td th:text="${item.repo}">Accord</td>
-							<td th:text="${item.archiveNamePrefix}">2009</td>
+							<td th:text="${item.getRepoFolderName()}">name</td>
+							<td th:text="${item.getCreateTime()}">Accord</td>
+							<td th:text="${item.getSize()}">2009</td>
 						</tr>
 						<tr>
 							<td>2</td>
@@ -59,16 +59,16 @@
 
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			["edit", "delete", {
-				actionId: 'download-repo',
-				name: '下载仓库',
+				actionId: 'repo-restore',
+				name: '回放',
 				activeOn: 'SINGLE',
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
-					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/download', { 'borgdescription': id });
-					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {repo: id});
 				}
 			}]);
 	</script>

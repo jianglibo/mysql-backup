@@ -211,6 +211,12 @@ public class StringUtil {
 		return formatSize(size, 2);
 	}
 
+	/**
+	 * 
+	 * @param size
+	 * @param digits The digits to keep.
+	 * @return
+	 */
 	public static String formatSize(long size, int digits) {
 		String fs = "%." + digits + "f";
 		long unit = 1;

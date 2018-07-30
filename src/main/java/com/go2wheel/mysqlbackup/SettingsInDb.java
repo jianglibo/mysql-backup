@@ -179,6 +179,11 @@ public class SettingsInDb {
 		return getDirInHost(server, "logbins/logbin");
 	}
 	
+	/**
+	 * 
+	 * @param server
+	 * @return The base repo name. For example returning /repo , but not /repo.0 /repo.1 etc.
+	 */
 	public Path getBorgRepoDir(Server server) {
 		return getDirInHost(server, "repos/repo");
 	}

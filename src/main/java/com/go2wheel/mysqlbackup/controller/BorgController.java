@@ -29,8 +29,10 @@ import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.Session;
 
 @Controller
-@RequestMapping("/app/borg")
+@RequestMapping(BorgController.MAPPING_PATH)
 public class BorgController extends ControllerBase {
+	
+	public static final String MAPPING_PATH = "/app/borg";
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -40,6 +42,10 @@ public class BorgController extends ControllerBase {
 	
 	@Autowired
 	private ServerDbService serverDbService;
+	
+	public BorgController() {
+		super(MAPPING_PATH);
+	}
 	
 //	borg info /path/to/repo::2017-06-29T11:00-srv
 	
