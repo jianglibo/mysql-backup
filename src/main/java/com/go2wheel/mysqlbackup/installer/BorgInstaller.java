@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Service
@@ -98,7 +99,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap) {
+	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException {
 		return install(getSession(server), server, software, parasMap);
 	}
 
@@ -106,7 +107,13 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	public CompletableFuture<FacadeResult<InstallInfo>> installAsync(Server server, Software software,
 			Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
-			return install(server, software, parasMap);
+			try {
+				return install(server, software, parasMap);
+			} catch (JSchException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return FacadeResult.unexpectedResult(e);
+			}
 		});
 	}
 
@@ -148,14 +155,20 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<InstallInfo> uninstall(Server server, Software software) {
+	public FacadeResult<InstallInfo> uninstall(Server server, Software software) throws JSchException {
 		return unInstall(getSession(server), server, software);
 	}
 
 	@Override
 	public CompletableFuture<FacadeResult<InstallInfo>> uninstallAsync(Server server, Software software) {
 		return CompletableFuture.supplyAsync(() -> {
-			return uninstall(server, software);
+			try {
+				return uninstall(server, software);
+			} catch (JSchException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return FacadeResult.unexpectedResult(e);
+			}
 		});
 	}
 

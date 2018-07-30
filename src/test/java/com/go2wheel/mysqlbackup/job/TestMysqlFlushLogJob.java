@@ -8,6 +8,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.jcraft.jsch.JSchException;
 
 public class TestMysqlFlushLogJob extends JobBaseFort {
 	
@@ -15,7 +16,7 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 	private MysqlFlushLogJob mysqlFlushLogJob;
 	
 	@Test(expected=UnExpectedInputException.class)
-	public void tNotReady() throws SchedulerException {
+	public void tNotReady() throws SchedulerException, JSchException {
 		clearDb();
 		createSession();
 		deleteAllJobs();
@@ -26,7 +27,7 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 	}
 	
 	@Test
-	public void tReady() throws SchedulerException {
+	public void tReady() throws SchedulerException, JSchException {
 		clearDb();
 		createSession();
 		createContext();

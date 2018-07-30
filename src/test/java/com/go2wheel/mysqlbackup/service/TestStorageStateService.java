@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.StorageState;
+import com.jcraft.jsch.JSchException;
 
 public class TestStorageStateService extends JobBaseFort {
 
@@ -20,7 +21,7 @@ public class TestStorageStateService extends JobBaseFort {
 	private StorageStateService storageStateService;
 
 	@Test
-	public void t() throws SchedulerException, IOException {
+	public void t() throws SchedulerException, IOException, JSchException {
 		clearDb();
 		createServer();
 		deleteAllJobs();

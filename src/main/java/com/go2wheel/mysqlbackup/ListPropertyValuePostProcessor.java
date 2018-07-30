@@ -10,7 +10,6 @@ import org.springframework.core.env.AbstractEnvironment;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.MutablePropertySources;
-import org.springframework.core.env.PropertySource;
 
 public class ListPropertyValuePostProcessor implements EnvironmentPostProcessor {
 
@@ -20,11 +19,11 @@ public class ListPropertyValuePostProcessor implements EnvironmentPostProcessor 
 		MutablePropertySources propSrcs = ((AbstractEnvironment) environment).getPropertySources();
 		StreamSupport.stream(propSrcs.spliterator(), false)
 		        .filter(ps -> ps instanceof EnumerablePropertySource)
-		        .map(ps -> ((EnumerablePropertySource) ps).getPropertyNames())
+		        .map(ps -> ((EnumerablePropertySource<?>) ps).getPropertyNames())
 		        .flatMap(Arrays::<String>stream)
 		        .forEach(propName -> props.setProperty(propName, environment.getProperty(propName)));
 		
-		PropertySource<?> propertySource = null;
+//		PropertySource<?> propertySource = null;
 	}
 
 }

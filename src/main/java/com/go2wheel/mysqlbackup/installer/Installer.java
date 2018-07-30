@@ -6,11 +6,12 @@ import java.util.concurrent.CompletableFuture;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.jcraft.jsch.JSchException;
 
 public interface Installer<I extends InstallInfo> {
 
-	FacadeResult<I> install(Server server, Software software, Map<String, String> parasMap);
-	FacadeResult<I> uninstall(Server server, Software software);
+	FacadeResult<I> install(Server server, Software software, Map<String, String> parasMap) throws JSchException;
+	FacadeResult<I> uninstall(Server server, Software software) throws JSchException;
 	
 	CompletableFuture<FacadeResult<I>> installAsync(Server server, Software software, Map<String, String> parasMap);
 	CompletableFuture<FacadeResult<I>> uninstallAsync(Server server, Software software);

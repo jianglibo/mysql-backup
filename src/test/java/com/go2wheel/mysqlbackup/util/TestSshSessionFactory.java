@@ -36,7 +36,7 @@ public class TestSshSessionFactory {
 	}
 	
 	@Test
-	public void tPasswordFailed() throws IOException {
+	public void tPasswordFailed() throws IOException, JSchException {
 		box.setPassword("wrongpassword");
 		FacadeResult<Session> sshSession = scf.getConnectedSession(box);
 		assertFalse(sshSession.isExpected());

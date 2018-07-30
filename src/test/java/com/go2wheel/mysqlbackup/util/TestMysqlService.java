@@ -27,7 +27,7 @@ public class TestMysqlService extends SpringBaseFort {
 	
 	
 	@Before
-	public void before() {
+	public void before() throws JSchException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

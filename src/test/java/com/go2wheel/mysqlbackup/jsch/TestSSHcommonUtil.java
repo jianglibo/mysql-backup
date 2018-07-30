@@ -39,7 +39,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
     public RemoteTfolder rtfoler = new RemoteTfolder(rf);
 	
 	@Before
-	public void before() {
+	public void before() throws JSchException {
 		clearDb();
 		createSession();
 	}

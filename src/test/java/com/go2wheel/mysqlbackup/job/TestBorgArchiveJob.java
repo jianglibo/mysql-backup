@@ -19,6 +19,7 @@ import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.jcraft.jsch.JSchException;
 
 public class TestBorgArchiveJob extends JobBaseFort {
 	
@@ -38,7 +39,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	private Software software;
 	
 	@Test
-	public void testJobFunction() throws SchedulerException, IOException {
+	public void testJobFunction() throws SchedulerException, IOException, JSchException {
 		sdc.setHost(HOST_DEFAULT);
 		clearDb();
 		long jc = countJobs();

@@ -180,7 +180,7 @@ public class BackupCommand {
 
 	@Autowired
 	private MysqlService mysqlService;
-	
+
 	@Autowired
 	private BorgInstaller borgInstaller;
 
@@ -222,7 +222,7 @@ public class BackupCommand {
 
 	@Autowired
 	private LocaledMessageService localedMessageService;
-	
+
 	@Autowired
 	private SoftwareDbService softwareDbService;
 
@@ -236,7 +236,19 @@ public class BackupCommand {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		if (_session == null || !_session.isConnected()) {
-			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+			FacadeResult<Session> frSession;
+			try {
+				frSession = sshSessionFactory.getConnectedSession(server);
+			} catch (JSchException e) {
+				if (e.getMessage().contains("Auth fail")) {
+					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.authfailed");
+				} else if (e.getMessage().contains("Connection timed out")) {
+					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.failed");
+				} else {
+					frSession = FacadeResult.unexpectedResult(e, "jsch.connect.failed");
+				}
+				e.printStackTrace();
+			}
 			if (frSession.isExpected()) {
 				_session = frSession.getResult();
 			} else {
@@ -1169,8 +1181,13 @@ public class BackupCommand {
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
 			@ShellOption(help = "command to run.") String command
 			) throws RunRemoteCommandException {
-		ServerAndSession sas = getServerAndSession(server);
-		if (sas.getSession() != null) {
+		ServerAndSession sas = null;
+		try {
+			sas = getServerAndSession(server);
+		} catch (JSchException e) {
+			e.printStackTrace();
+		}
+		if (sas != null && sas.getSession() != null) {
 			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sas.getSession(), command));
 		}
 		return FacadeResult.unexpectedResult(CommonMessageKeys.UNSUPPORTED);
@@ -1287,11 +1304,11 @@ public class BackupCommand {
 				AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 	}
 	
-	private ServerAndSession getServerAndSession(Server server) {
+	private ServerAndSession getServerAndSession(Server server) throws JSchException {
 		return getServerAndSession(server, false);
 	}
 	
-	private ServerAndSession getServerAndSession(Server server, boolean notConnect) {
+	private ServerAndSession getServerAndSession(Server server, boolean notConnect) throws JSchException {
 		if (server == null) {
 			sureServerSelected();
 			server = appState.getCurrentServer();

@@ -14,6 +14,7 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -43,6 +44,9 @@ public class MysqlFlushLogJob implements Job {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
+		} catch (JSchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			if (session != null) {
 				session.disconnect();

@@ -28,7 +28,7 @@ public class TestMysqlFlushLogExpect extends SpringBaseFort {
     public TemporaryFolder tfolder= new TemporaryFolder();	
 	
 	@Before
-	public void b() throws IOException, SchedulerException {
+	public void b() throws IOException, SchedulerException, JSchException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

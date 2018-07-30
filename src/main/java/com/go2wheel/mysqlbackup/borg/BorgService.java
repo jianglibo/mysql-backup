@@ -44,6 +44,7 @@ import com.google.common.collect.Lists;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Service
@@ -196,7 +197,13 @@ public class BorgService {
 	
 	public CompletableFuture<FacadeResult<BorgDownload>> downloadRepoAsync(Server server) {
 		return CompletableFuture.supplyAsync(() -> {
-			FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+			FacadeResult<Session> frSession;
+			try {
+				frSession = sshSessionFactory.getConnectedSession(server);
+			} catch (JSchException e) {
+				e.printStackTrace();
+				return FacadeResult.unexpectedResult(e);
+			}
 			Session session = frSession.getResult();
 			try {
 				FacadeResult<BorgDownload> fr = downloadRepo(session, server);

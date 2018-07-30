@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.service.SoftwareInstallationDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 public abstract class InstallerBase<I extends InstallInfo> implements Installer<I> {
@@ -70,7 +71,7 @@ public abstract class InstallerBase<I extends InstallInfo> implements Installer<
 		return settingsInDb.getDownloadPath().resolve(software.getInstaller());
 	}
 
-	public Session getSession(Server server) {
+	public Session getSession(Server server) throws JSchException {
 		FacadeResult<Session> fr = sshSessionFactory.getConnectedSession(server);
 		if (fr.isExpected()) {
 			return fr.getResult();

@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.jcraft.jsch.JSchException;
 
 public class TestBorgDownloadDbService extends JobBaseFort {
 
@@ -28,7 +29,7 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 	private Software software;
 	
 	@Before
-	public void b() {
+	public void b() throws JSchException {
 		clearDb();
 		createSession();
 		createBorgDescription();

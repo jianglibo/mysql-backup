@@ -205,7 +205,7 @@ public class SpringBaseFort {
 		serverGrpDbService.deleteAll();
 	}
 	
-	protected void createSession() {
+	protected void createSession() throws JSchException {
 		if (server == null) {
 			createServer();
 		}

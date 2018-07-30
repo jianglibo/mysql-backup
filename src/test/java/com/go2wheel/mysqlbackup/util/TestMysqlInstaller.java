@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.google.common.collect.Maps;
+import com.jcraft.jsch.JSchException;
 
 public class TestMysqlInstaller extends SpringBaseFort {
 	
@@ -35,7 +36,7 @@ public class TestMysqlInstaller extends SpringBaseFort {
 //	}
 	
 	@Test
-	public void testAsync() {
+	public void testAsync() throws JSchException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

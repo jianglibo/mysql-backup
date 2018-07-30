@@ -12,6 +12,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -42,6 +43,9 @@ public class ServerStateJob implements Job {
 				}
 			}
 			serverStateService.createServerState(server, session);
+		} catch (JSchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			if (session != null) {
 				session.disconnect();

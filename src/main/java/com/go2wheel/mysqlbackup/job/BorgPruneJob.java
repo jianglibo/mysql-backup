@@ -14,6 +14,7 @@ import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -45,6 +46,9 @@ public class BorgPruneJob implements Job {
 			}
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			borgTaskFacade.pruneRepo(session, server);
+		} catch (JSchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		} finally {
 			if (session != null) {
 				session.disconnect();

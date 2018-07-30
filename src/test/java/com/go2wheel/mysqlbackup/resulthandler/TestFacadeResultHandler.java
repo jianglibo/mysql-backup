@@ -15,6 +15,7 @@ import org.junit.Test;
 public class TestFacadeResultHandler {
 	
 	
+	@SuppressWarnings("rawtypes")
 	@Test
 	public void tCollection() {
 		List<String> sl = new ArrayList<>();

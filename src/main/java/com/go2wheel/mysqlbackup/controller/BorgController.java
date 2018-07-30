@@ -26,6 +26,7 @@ import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Controller
@@ -51,7 +52,7 @@ public class BorgController extends ControllerBase {
 	
 	@GetMapping("/info/{server}/{archive}")
 	@ResponseBody
-	public String infoArchive(@PathVariable(name="server") Server server, @PathVariable String archive, Model model, HttpServletRequest httpRequest) {
+	public String infoArchive(@PathVariable(name="server") Server server, @PathVariable String archive, Model model, HttpServletRequest httpRequest) throws JSchException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
@@ -67,7 +68,7 @@ public class BorgController extends ControllerBase {
 	
 	
 	@GetMapping("/archives/{server}")
-	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) {
+	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) throws JSchException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		if (!frSession.isExpected()) {
@@ -89,7 +90,7 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PutMapping("/archives/{server}")
-	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) {
+	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
@@ -106,7 +107,7 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) {
+	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();

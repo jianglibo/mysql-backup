@@ -29,6 +29,7 @@ import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 public class TestMailerJob extends JobBaseFort {
@@ -61,7 +62,7 @@ public class TestMailerJob extends JobBaseFort {
 	private Software software;
 	
 	
-	private Subscribe simulation() throws SchedulerException, InterruptedException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -93,7 +94,7 @@ public class TestMailerJob extends JobBaseFort {
 		return usg;
 	}
 	
-	private void createServerData() throws JobExecutionException, InterruptedException {
+	private void createServerData() throws JobExecutionException, InterruptedException, JSchException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -139,7 +140,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException {
 		
 		Subscribe subscribe = simulation();
 		

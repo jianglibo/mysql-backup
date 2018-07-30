@@ -32,7 +32,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	private MysqlUtil mysqlUtil;
 	
 	@Before
-	public void be() {
+	public void be() throws JSchException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

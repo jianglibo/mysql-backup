@@ -30,6 +30,7 @@ import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 
 public class TestBorgService extends SpringBaseFort {
 
@@ -46,7 +47,7 @@ public class TestBorgService extends SpringBaseFort {
 	private Software software;
 
 	@Before
-	public void b() throws IOException, RunRemoteCommandException, SchedulerException {
+	public void b() throws IOException, RunRemoteCommandException, SchedulerException, JSchException {
 		clearDb();
 		createSession();
 		createBorgDescription();

@@ -199,7 +199,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) {
+	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException {
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
 		FacadeResult<MysqlInstallInfo> fr = install(session, server, software, parasMap.get("initPassword"));
 		return fr;
@@ -213,7 +213,13 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	@Override
 	public CompletableFuture<FacadeResult<MysqlInstallInfo>> installAsync(Server server, Software software, Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
-			return install(server, software, parasMap);
+			try {
+				return install(server, software, parasMap);
+			} catch (JSchException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				return FacadeResult.unexpectedResult(e);
+			}
 		});
 	}
 
@@ -265,14 +271,19 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) {
+	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) throws JSchException {
 		return unInstall(getSession(server), server, software);
 	}
 
 	@Override
 	public CompletableFuture<FacadeResult<MysqlInstallInfo>> uninstallAsync(Server server, Software software) {
 		return CompletableFuture.supplyAsync(() -> {
-			return uninstall(server, software);
+			try {
+				return uninstall(server, software);
+			} catch (JSchException e) {
+				e.printStackTrace();
+				return FacadeResult.unexpectedResult(e);
+			}
 		});
 	}
 

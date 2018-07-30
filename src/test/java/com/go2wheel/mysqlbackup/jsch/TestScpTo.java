@@ -29,7 +29,7 @@ public class TestScpTo extends SpringBaseFort {
     public TemporaryFolder tfolder= new TemporaryFolder();	
 	
 	@Before
-	public void before() {
+	public void before() throws JSchException {
 		clearDb();
 		createSession();
 	}

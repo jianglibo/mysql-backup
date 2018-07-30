@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Component
@@ -75,6 +76,8 @@ public class BorgArchiveJob implements Job {
 			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
 		} catch (IOException e) {
 			throw new IOExceptionWrapper(e);
+		} catch (JSchException e) {
+			e.printStackTrace();
 		} finally {
 			if (session != null) {
 				session.disconnect();

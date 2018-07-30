@@ -34,6 +34,7 @@ import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Controller
@@ -82,7 +83,7 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/dumps")
-	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) {
+	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
@@ -111,7 +112,7 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/flushes")
-	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) {
+	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
@@ -129,7 +130,7 @@ public class MysqlController extends ControllerBase {
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) {
+			RedirectAttributes ras) throws JSchException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.ServerState;
+import com.jcraft.jsch.JSchException;
 
 public class TestServerStateService extends JobBaseFort {
 
@@ -21,7 +22,7 @@ public class TestServerStateService extends JobBaseFort {
 	private ServerStateService serverStateService;
 
 	@Test
-	public void t() throws SchedulerException, RunRemoteCommandException, IOException {
+	public void t() throws SchedulerException, RunRemoteCommandException, IOException, JSchException {
 		clearDb();
 		createServer();
 		deleteAllJobs();
