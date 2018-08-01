@@ -330,8 +330,14 @@ public class BorgService {
 				SshSessionFactory.closeSession(sessions[1]);
 			}
 		}).exceptionally(t -> {
-			ExceptionUtil.logErrorException(logger, t);
-			return null;
+			Throwable tt = t.getCause();
+			Throwable ttt = tt;
+			if (tt instanceof ExceptionWrapper) {
+				ttt = ((ExceptionWrapper) tt).getException();
+			}
+			ExceptionUtil.logErrorException(logger, ttt);
+			
+			return FacadeResult.unexpectedResult(ttt);
 		});
 	}
 	

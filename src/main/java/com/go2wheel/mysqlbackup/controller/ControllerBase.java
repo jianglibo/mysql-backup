@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
@@ -17,7 +16,6 @@ import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.EncodeConvertor;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 
 public abstract class ControllerBase   implements ApplicationContextAware {
 	
@@ -37,13 +35,9 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	private final String mappingUrl;
 	
-
-	
-
 	public ControllerBase(String mappingUrl) {
 		this.mappingUrl = mappingUrl;
 	}
-	
 
 	@ModelAttribute
 	public void populateMainMenu(Model model, HttpServletRequest request) {

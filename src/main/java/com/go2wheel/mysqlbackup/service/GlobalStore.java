@@ -18,10 +18,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
 import com.go2wheel.mysqlbackup.value.AjaxErrorResult;
 import com.go2wheel.mysqlbackup.value.AjaxResult;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -81,6 +83,26 @@ public class GlobalStore {
 				@SuppressWarnings("unchecked")
 				CompletableFuture<Object> cf1 = (CompletableFuture<Object>) value.getObject();
 				cf1.thenAccept(r -> {
+					if (r instanceof FacadeResult) {
+						FacadeResult<?> fr = (FacadeResult<?>) r; 
+						if (!fr.isExpected()) {
+							Throwable tw = fr.getException();
+							if (tw != null) {
+								if (tw instanceof ExceptionWrapper) {
+									tw = ((ExceptionWrapper) tw).getException();
+								}
+								AjaxErrorResult aer = AjaxErrorResult.exceptionResult(tw);
+								removeObject(cf1);
+								lis.complete(aer);
+								return;
+							}
+							AjaxDataResult<?> arr = new AjaxDataResult<>();
+							arr.addObject(r);
+							removeObject(cf1);
+							lis.complete(arr);
+							return;
+						}
+					}
 					AjaxDataResult<?> fr = new AjaxDataResult<>();
 					fr.addObject(r);
 					removeObject(cf1);
