@@ -40,7 +40,7 @@ public class TestDataCommRequest {
 
 	private int c = 0;
 
-	private String JsessionId = "A84D8A52C279DC9EE9E60C7B328079BE";
+	private String JsessionId = "B2E389DF67B42229BF15890C88B50FE8";
 
 	
 	static {

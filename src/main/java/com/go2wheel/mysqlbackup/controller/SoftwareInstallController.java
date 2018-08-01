@@ -25,10 +25,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.go2wheel.mysqlbackup.installer.Installer;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
+import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.google.common.collect.Maps;
 
 @Controller
@@ -37,9 +36,6 @@ public class SoftwareInstallController extends ControllerBase {
 	
 	
 	public static final String MAPPING_PATH = "/app/software-install";
-
-	@Autowired
-	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
 	private SoftwareDbService softwareDbService;

@@ -21,9 +21,10 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -31,6 +32,7 @@ import com.go2wheel.mysqlbackup.model.PlayBackResult;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
+import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
@@ -45,6 +47,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -65,6 +68,9 @@ public class BorgService {
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
+	private ServerDbService serverDbService;
+
+	@Autowired
 	private BorgDownloadDbService borgDownloadDbService;
 
 	@Autowired
@@ -78,7 +84,7 @@ public class BorgService {
 	 * 
 	 * @param sourceServer
 	 * @return
-	 * @throws IOException 
+	 * @throws IOException
 	 */
 	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
 		Path lrp = settingsInDb.getBorgRepoDir(sourceServer);
@@ -128,16 +134,14 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) {
+	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) throws CommandNotFoundException {
 		try {
 			if (!StringUtil.hasAnyNonBlankWord(repoPath)) {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
 			}
 			String command = String.format("borg init --encryption=none %s", repoPath);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
-			if (rcr.isCommandNotFound()) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.APPLICATION_NOTINSTALLED, command);
-			}
+			rcr.isCommandNotFound(); 
 			if (rcr.getExitValue() != 0) {
 				boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
 						.anyMatch(line -> line.contains("FileNotFoundError"));
@@ -298,37 +302,68 @@ public class BorgService {
 	}
 	
 	
-	public CompletableFuture<FacadeResult<PlayBackResult>> playback(Server server, PlayBack playback, String localRepo) {
+	public CompletableFuture<FacadeResult<PlayBackResult>> playbackAsync(PlayBack playback, String localRepo) {
+		Server source = serverDbService.findById(playback.getSourceServerId());
+		Server target = serverDbService.findById(playback.getTargetServerId());
 		return CompletableFuture.supplyAsync(() -> {
-			FacadeResult<Session> frSession;
+			Session[] sessions = new Session[2];
 			try {
-				frSession = sshSessionFactory.getConnectedSession(server);
+				sessions[0] = sshSessionFactory.getConnectedSession(source).getResult();
+				sessions[1] = sshSessionFactory.getConnectedSession(target).getResult();
 			} catch (JSchException e) {
-				ExceptionUtil.logErrorException(logger, e);
-				return FacadeResult.unexpectedResult(e);
+				SshSessionFactory.closeSession(sessions[0]);
+				SshSessionFactory.closeSession(sessions[1]);
+				throw new ExceptionWrapper(e);
 			}
-			Session session = frSession.getResult();
+			return sessions;
+		}).thenApplyAsync(sessions -> {
 			try {
-				FacadeResult<PlayBackResult> fr = playback(session, server, playback, localRepo);
+				FacadeResult<PlayBackResult> fr = playback(sessions[0], sessions[1], source, target, playback, localRepo);
 				PlayBackResult bd = fr.getResult();
 				bd = playBackResultDbService.save(bd);
 				fr.setResult(bd);
 				return fr;
+			} catch (IOException e) {
+				throw new ExceptionWrapper(e);
 			} finally {
-				if (session != null && session.isConnected()) {
-					session.disconnect();
-				}
+				SshSessionFactory.closeSession(sessions[0]);
+				SshSessionFactory.closeSession(sessions[1]);
 			}
+		}).exceptionally(t -> {
+			ExceptionUtil.logErrorException(logger, t);
+			return null;
 		});
 	}
 	
-	public FacadeResult<PlayBackResult> playback(Session session, Server server, PlayBack playback, String localRepo) {
-		// from server get borgdescription, get repo properties. Create a directory on playback server. and upload local repo. Then invoke borg command on that server, listing extracting. 
+	public FacadeResult<PlayBackResult> playbackSync(PlayBack playback, String localRepo) throws IOException {
+		Server serverSource = serverDbService.findById(playback.getSourceServerId());
+		Server serverTarget = serverDbService.findById(playback.getTargetServerId());
+		Session[] sessions = new Session[2];
+		try {
+			sessions[0] = sshSessionFactory.getConnectedSession(serverSource).getResult();
+			sessions[1] = sshSessionFactory.getConnectedSession(serverTarget).getResult();
+		} catch (JSchException e) {
+			SshSessionFactory.closeSession(sessions[0]);
+			SshSessionFactory.closeSession(sessions[1]);
+			throw new ExceptionWrapper(e);
+		}
+		return playback(sessions[0], sessions[1], serverSource, serverTarget, playback, localRepo);
+	}
+	
+	public FacadeResult<PlayBackResult> playback(Session sessionSource, Session sessiontarget, Server serverSource, Server serverTarget, PlayBack playback, String localRepo) throws IOException {
+		// from server get borgdescription, get repo properties. Create a directory on playback server. and upload local repo. Then invoke borg command on that server, listing extracting.
+		if (serverSource.getBorgDescription() == null) {
+			serverSource = serverDbService.loadFull(serverSource);
+		}
+		BorgDescription bd = serverSource.getBorgDescription();
+		String serverRepo = bd.getRepo();
+		SSHcommonUtil.mkdirsp(sessiontarget, serverRepo);
+		SSHcommonUtil.uploadFolder(sessiontarget, settingsInDb.getBorgRepoDir(serverSource).getParent().resolve(localRepo), serverRepo);
 		return null;
 	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) throws CommandNotFoundException {
 		try {
 			BorgDescription borgDescription = server.getBorgDescription();
 			List<String> cmdparts = new ArrayList<>();
@@ -346,9 +381,7 @@ public class BorgService {
 			}
 			String cmd = String.join(" ", cmdparts);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
-			if (rcr.isCommandNotFound()) {
-				throw new UnExpectedContentException(null, CommonMessageKeys.APPLICATION_NOTINSTALLED, cmd);
-			}
+			rcr.isCommandNotFound();
 			if (rcr.getExitValue() == 0) {
 				return FacadeResult.doneExpectedResultDone(rcr);
 			} else {
@@ -373,10 +406,15 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<BorgListResult> listArchives(Session session, Server server) {
+	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException {
+		return listArchives(session, server.getBorgDescription().getRepo());
+	}
+	
+	
+	public FacadeResult<BorgListResult> listArchives(Session session, String repo) throws CommandNotFoundException {
 		try {
-			BorgDescription bd = server.getBorgDescription();
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", bd.getRepo())); 
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", repo));
+			rcr.isCommandNotFound();
 			return FacadeResult.doneExpectedResult(new BorgListResult(rcr), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
@@ -415,14 +453,32 @@ public class BorgService {
 	 * @param session
 	 * @param server
 	 * @return
+	 * @throws CommandNotFoundException 
 	 */
-	public FacadeResult<?> archive(Session session, Server server) {
+	public FacadeResult<?> archive(Session session, Server server) throws CommandNotFoundException {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), false);
 	}
 
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) throws CommandNotFoundException {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), solveProblems);
+	}
+
+	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget,Server serverSource, Server serverTarget, /*String sourceRepo,*/ String archive, String extractFolder) {
+		String sourceRepo = serverSource.getBorgDescription().getRepo();
+		if (!sourceRepo.endsWith("/")) {
+			sourceRepo = sourceRepo + "/";
+		}
+		if (!archive.startsWith("::")) {
+			archive = "::" + archive;
+		}
+		SSHcommonUtil.deleteRemoteFolder(sessionTarget, extractFolder);
+		SSHcommonUtil.mkdirsp(sessionTarget, extractFolder);
+		String cmd = String.format("cd %s;borg extract %s%s",extractFolder, sourceRepo, archive);
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(sessionTarget, cmd);
+		List<String> includes = serverSource.getBorgDescription().getIncludes();
+		List<LinuxLsl> extracted = SSHcommonUtil.listRemoteFiles(sessionTarget, extractFolder);
+		return FacadeResult.doneExpectedResult(extracted, CommonActionResult.DONE);
 	}
 }

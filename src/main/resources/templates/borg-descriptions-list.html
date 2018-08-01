@@ -59,9 +59,38 @@
 
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var borgdescriptions = /*[[${listItems}]]*/ [];
+
+		function findById(bid) {
+			for (const bg of borgdescriptions) {
+				if (bg.id == bid) {
+					return bg;
+				}
+			}
+		}
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			["edit", "delete", {
+				actionId: 'create-archive',
+				name: '创建新卷',
+				activeOn: 'SINGLE',
+				onClick: function() {
+					var id = this.state.selectedItems[0].id;
+					var sid = findById(id).serverId;
+					var url = window.freact.strUtil.format('/app/borg/archives/{serverId}', { 'serverId': sid });
+					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+				}
+			}, {
+				actionId: 'list-archive',
+				name: '卷列表',
+				activeOn: 'SINGLE',
+				onClick: function() { 
+					var id = this.state.selectedItems[0].id;
+					var sid = findById(id).serverId;
+					var url = window.freact.strUtil.format('/app/borg/archives/{serverId}', { 'serverId': sid });
+					window.location.href = url;
+				}
+			},{
 				actionId: 'download-repo',
 				name: '下载仓库',
 				activeOn: 'SINGLE',

@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -37,6 +37,7 @@ import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
@@ -55,7 +56,9 @@ public class MysqlService {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	private MysqlUtil mysqlUtil;
-
+	
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
 	
 	@Autowired
 	private SettingsInDb settingsInDb;
@@ -86,9 +89,25 @@ public class MysqlService {
 	}
 	
 	
-	public CompletableFuture<FacadeResult<LinuxLsl>> mysqlDumpAsync(Session session, Server server, boolean force) {
+	public CompletableFuture<FacadeResult<LinuxLsl>> mysqlDumpAsync(Server server, boolean force) {
 		return CompletableFuture.supplyAsync(() -> {
-			return this.mysqlDump(session, server, force);
+			FacadeResult<Session> frSession;
+			try {
+				frSession = sshSessionFactory.getConnectedSession(server);
+			} catch (JSchException e) {
+				throw new ExceptionWrapper(e);
+			}
+			return frSession.getResult();
+		}).thenApplyAsync(session -> {
+			try {
+				return this.mysqlDump(session, server, force);
+			} finally {
+				if (session != null && session.isConnected()) {
+					session.disconnect();
+				}
+			}
+		}).exceptionally(e -> {
+			return FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException());
 		});
 	}
 	

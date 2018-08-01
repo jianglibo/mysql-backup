@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.borg;
+package com.go2wheel.mysqlbackup.service;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.greaterThan;
@@ -16,21 +16,28 @@ import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
+import com.go2wheel.mysqlbackup.model.PlayBack;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 public class TestBorgService extends SpringBaseFort {
 
@@ -39,6 +46,11 @@ public class TestBorgService extends SpringBaseFort {
 	
 	@Autowired
 	private BorgInstaller borgInstaller;
+	
+	private String extractFolder = "/opt/borg-extract";
+	
+    @Rule
+    public RemoteTfolder rtfoler = new RemoteTfolder("/opt/borgrepos");
 	
 	@Rule
 	@Autowired
@@ -60,8 +72,14 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 
+	/**
+	 * If repo path already exist, initializing on that path will fail.
+	 * 
+	 * @throws RunRemoteCommandException
+	 * @throws CommandNotFoundException 
+	 */
 	@Test
-	public void tRepoInit() throws RunRemoteCommandException {
+	public void tRepoInit() throws RunRemoteCommandException, CommandNotFoundException {
 		sdc.setHost(HOST_DEFAULT);
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 		borgInstaller.install(session, server, software, null);
@@ -84,12 +102,41 @@ public class TestBorgService extends SpringBaseFort {
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 
 	}
+	
+	@Test
+	public void testPlayBackSync() throws JSchException, IOException, CommandNotFoundException {
+		sdc.setHost(HOST_DEFAULT);
+		borgInstaller.install(session, server, software, null);
+		borgService.initRepo(session, server.getBorgDescription().getRepo());
+		borgService.archive(session, server);
+		borgService.downloadRepo(session, server);
+		
+		String sourceRepo = server.getBorgDescription().getRepo();
+		Server serverTarget = createServer("192.168.33.111");
+		Session sessionTarget = sshSessionFactory.getConnectedSession(serverTarget).getResult();
+		borgInstaller.install(sessionTarget, serverTarget, software, null);
+		rtfoler.setSession(sessionTarget);
+		PlayBack pb = new PlayBack();
+		pb.setPlayWhat(PlayBack.PLAY_BORG);
+		pb.setSourceServerId(server.getId());
+		pb.setTargetServerId(serverTarget.getId());
+		pb = playBackDbService.save(pb);
+		
+		borgService.playbackSync(pb, "repo");
+		// target repo is same with source.
+		List<String> sourcetList = borgService.listArchives(session, sourceRepo).getResult().getArchiveNames();
+		List<String> targetList = borgService.listArchives(sessionTarget, sourceRepo).getResult().getArchiveNames();
+		assertThat(sourcetList.size(), equalTo(targetList.size()));
+		FacadeResult<List<LinuxLsl>> fr = borgService.extract(sessionTarget,server, serverTarget, /*sourceRepo,*/ targetList.get(0), extractFolder);
+		assertThat(fr.getResult().size(), equalTo(server.getBorgDescription().getIncludes().size()));
+	}
+
 
 	@Test(expected = UnExpectedContentException.class)
-	public void testArchive() {
+	public void testArchive() throws CommandNotFoundException {
 		sdc.setHost(HOST_DEFAULT);
-		borgInstaller.unInstall(session, server, software);
-		FacadeResult<?> fr = borgService.archive(session, server);
+		FacadeResult<?> fr = borgInstaller.unInstall(session, server, software);
+		fr = borgService.archive(session, server);
 		assertFalse(fr.isExpected());
 		assertThat(fr.getMessage(), equalTo(CommonMessageKeys.APPLICATION_NOTINSTALLED));
 
@@ -102,7 +149,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchive() throws RunRemoteCommandException, InterruptedException {
+	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
 		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));
@@ -133,7 +180,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException {
+	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
 		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		BorgDescription bd = server.getBorgDescription();
@@ -147,7 +194,7 @@ public class TestBorgService extends SpringBaseFort {
 		assertThat(fr.getMessage(), equalTo("borg.archive.noincludes"));
 	}
 
-	private void archive() throws RunRemoteCommandException, InterruptedException {
+	private void archive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
 		borgService.archive(session, server);
 		Thread.sleep(1000);
 	}

@@ -17,7 +17,7 @@ public class FacadeResult<T> implements TimeCost {
 	
 	private CommonActionResult commonActionResult;
 	
-	private Exception exception;
+	private Throwable exception;
 	
 	private String message;
 
@@ -66,7 +66,7 @@ public class FacadeResult<T> implements TimeCost {
 	}
 
 	
-	public static <T> FacadeResult<T> unexpectedResult(Exception e) {
+	public static <T> FacadeResult<T> unexpectedResult(Throwable e) {
 		FacadeResult<T> r = new FacadeResult<>();
 		r.expected = false;
 		r.setException(e);
@@ -151,12 +151,12 @@ public class FacadeResult<T> implements TimeCost {
 		this.expected = expected;
 	}
 
-	public Exception getException() {
+	public Throwable getException() {
 		return exception;
 	}
 
 
-	public void setException(Exception exception) {
+	public void setException(Throwable exception) {
 		this.exception = exception;
 	}
 

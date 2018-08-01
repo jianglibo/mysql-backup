@@ -51,6 +51,25 @@ public class SSHcommonUtil {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
 	}
+	
+	public static void mkdirsp(Session session, String remoteFile) throws RunRemoteCommandException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		runRemoteCommand(session, String.format("mkdir -p %s", remoteFile));
+	}
+	
+	/**
+	 * Test if all files exists on remote server.
+	 * @param session
+	 * @param remoteFiles
+	 * @return
+	 * @throws RunRemoteCommandException
+	 */
+	public static boolean allFileExists(Session session, String...remoteFiles) throws RunRemoteCommandException {
+		String cmd = String.format("ls -l %s", String.join(" ", remoteFiles));
+		RemoteCommandResult rcr = runRemoteCommand(session, cmd);
+		int v = rcr.getExitValue();
+		return v == 0;
+	}
 
 	/**
 	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3, origin file was removed.
@@ -217,11 +236,18 @@ public class SSHcommonUtil {
 	 * @return
 	 */
 	
-	public static List<LinuxLsl> listRemoteFiles(Session session, String remoteFolder) {
+	public static List<LinuxLsl> listRemoteFilesRecursive(Session session, String remoteFolder) {
 		String command = String.format("find %s -print0 | xargs -0 ls -ld", remoteFolder);
 		RemoteCommandResult rcr = runRemoteCommand(session, command);
 		return rcr.getAllTrimedNotEmptyLines().stream().map(line -> LinuxLsl.matchAndReturnLinuxLsl(line)).filter(op -> op.isPresent()).map(op -> op.get()).collect(Collectors.toList());
 	}
+	
+	public static List<LinuxLsl> listRemoteFiles(Session session, String remoteFolder) {
+		String command = String.format("ls -l %s", remoteFolder);
+		RemoteCommandResult rcr = runRemoteCommand(session, command);
+		return rcr.getAllTrimedNotEmptyLines().stream().map(line -> LinuxLsl.matchAndReturnLinuxLsl(line)).filter(op -> op.isPresent()).map(op -> op.get()).collect(Collectors.toList());
+	}
+
 	
 	/**
 	 * The localFolder and remoteFolder are the same base directory.For example, /local/a -> /remote/b
@@ -234,7 +260,7 @@ public class SSHcommonUtil {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFolder);
 		Path localFolderAbs = localFolder.toAbsolutePath();
 		String remoteFolderEndSlash = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
-		return Files.walk(localFolder).map(path -> {
+		return Files.walk(localFolderAbs).map(path -> {
 			String rel = localFolderAbs.relativize(path).toString().replace('\\', '/');
 			String rfile = remoteFolderEndSlash + rel;
 			return new FileToCopyInfo(path, rfile, Files.isDirectory(path));
@@ -392,6 +418,9 @@ public class SSHcommonUtil {
 		runRemoteCommand(session, String.format("rm %s", remoteFile));
 	}
 
+	public static void deleteRemoteFolder(Session session, String remotectFolder) {
+		runRemoteCommand(session, String.format("rm -rf %s", remotectFolder));
+	}
 	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws RunRemoteCommandException {
 		runRemoteCommand(session, String.format("rm %s", String.join(" ", remoteFiles)));
 	}
@@ -453,4 +482,5 @@ public class SSHcommonUtil {
 		}
 		return RemoteCommandResult.partlyResult(sb.toString(), exitValue);
 	}
+
 }

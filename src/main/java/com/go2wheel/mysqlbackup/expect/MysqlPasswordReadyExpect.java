@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
-import com.go2wheel.mysqlbackup.exception.JSchExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
@@ -41,7 +40,7 @@ public abstract class MysqlPasswordReadyExpect {
 			channel = session.openChannel("shell");
 			channel.connect();
 		} catch (JSchException e) {
-			throw new JSchExceptionWrapper(e);
+			throw new ExceptionWrapper(e);
 		}
 		return channel;
 	}

@@ -45,6 +45,17 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	}
 	
 	@Test
+	public void tAllFileExists() throws IOException, ScpException, JSchException {
+		rtfoler.setSession(session);
+		boolean b = SSHcommonUtil.allFileExists(session, "/etc", "/var1", "/var");
+		assertFalse(b);
+		
+		b = SSHcommonUtil.allFileExists(session, "/etc", "/var");
+		assertTrue(b);
+
+	}
+	
+	@Test
 	public void tWriteRemoteFile() throws IOException, ScpException, JSchException {
 		rtfoler.setSession(session);
 		String rfn = rtfoler.newFile("hello.txt");
@@ -80,7 +91,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		List<FileToCopyInfo> copyInfos = SSHcommonUtil.uploadFolder(session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
 		// include root item.
 		assertThat(copyInfos.size(), equalTo(5));
-		List<LinuxLsl> lsl = SSHcommonUtil.listRemoteFiles(session, rtfoler.getRemoteFolder());
+		List<LinuxLsl> lsl = SSHcommonUtil.listRemoteFilesRecursive(session, rtfoler.getRemoteFolder());
 		// fo, foo, f1, f2 == 4, include /t/t self.
 		assertThat(lsl.size(), equalTo(5));
 		String n1 = lsl.stream().filter(ls -> ls.getFilename().contains("/fo/foo/a1.txt")).findAny().get().getFilename();

@@ -75,7 +75,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			if (!ii.isInstalled()) {
 				ScpUtil.to(session, getLocalInstallerPath(software).toString(), rbb);
 				String cmd = String.format("chown root:root %s;chmod 755 %s", rbb, rbb);
-				SSHcommonUtil.runRemoteCommand(session, cmd);
+				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 				ii = getBorgInstallInfo(session);
 				if (ii.isInstalled()) {
 					SoftwareInstallation si = SoftwareInstallation.newInstance(server, software)

@@ -75,6 +75,12 @@ public class SshSessionFactory {
 //		}
 		return FacadeResult.doneExpectedResult(session, CommonActionResult.DONE);
 	}
+	
+	public static void closeSession(Session session) {
+		if (session != null && session.isConnected()) {
+			session.disconnect();
+		}
+	}
 
 	public FacadeResult<Session> getConnectedSession(String username, String host, int port, File sshKeyFile,
 			File knownHosts, String password) {

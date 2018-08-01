@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -74,7 +75,7 @@ public class BorgArchiveJob implements Job {
 			
 			final Path localRepo = settingsInDb.getBorgRepoDir(sv);
 			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
-		} catch (IOException | JSchException e) {
+		} catch (IOException | JSchException | CommandNotFoundException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

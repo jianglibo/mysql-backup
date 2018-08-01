@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
@@ -46,8 +47,11 @@ public class RemoteCommandResult {
 		return getExitValue() != 0;
 	}
 	
-	public boolean isCommandNotFound() {
-		return getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found"));
+	public void isCommandNotFound() throws CommandNotFoundException {
+		boolean b =  getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found"));
+		if (b) {
+			throw new CommandNotFoundException(command);
+		}
 	}
 	
 	public List<String> getAllTrimedNotEmptyLines() {

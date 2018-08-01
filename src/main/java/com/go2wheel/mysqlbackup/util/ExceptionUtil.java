@@ -12,7 +12,7 @@ import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 
 public class ExceptionUtil {
 
-	public static void logErrorException(Logger logger, Exception e) {
+	public static void logErrorException(Logger logger, Throwable e) {
 		StringWriter sw = new StringWriter();
 		PrintWriter pw = new PrintWriter(sw);
 		e.printStackTrace(pw);

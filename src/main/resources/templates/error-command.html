@@ -1,0 +1,27 @@
+<!doctype html>
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>出错啦</h1>
+				<h2>Problems are not stop signs,they are guidelines. Robert
+					H.Schuller</h2>
+			</div>
+
+			<div class="content">
+				<h2 id="common-layouts" class="content-subhead">远程命令失败，可能没有安装对应的程序。</h2>
+				<aside>
+					<p>远程命令失败，可能没有安装对应的程序。</p>
+					<p th:text="${exp.command}"></p>
+				</aside>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

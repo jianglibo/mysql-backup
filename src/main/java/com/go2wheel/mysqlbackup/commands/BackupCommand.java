@@ -56,6 +56,7 @@ import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
@@ -233,6 +234,7 @@ public class BackupCommand {
 	}
 
 	// @formatter:off
+	@SuppressWarnings("unchecked")
 	private Session getSession() {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
@@ -671,7 +673,11 @@ public class BackupCommand {
 	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
-		return borgService.initRepo(getSession(), server.getBorgDescription().getRepo());
+		try {
+			return borgService.initRepo(getSession(), server.getBorgDescription().getRepo());
+		} catch (CommandNotFoundException e) {
+			return FacadeResult.unexpectedResult(CommonMessageKeys.APPLICATION_NOTINSTALLED);
+		}
 	}
 
 	@ShellMethod(value = "创建一次borg备份")
@@ -679,7 +685,11 @@ public class BackupCommand {
 			throws RunRemoteCommandException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
-		return borgService.archive(getSession(), server, solveProblems);
+		try {
+			return borgService.archive(getSession(), server, solveProblems);
+		} catch (CommandNotFoundException e) {
+			return FacadeResult.unexpectedResult(CommonMessageKeys.APPLICATION_NOTINSTALLED);
+		}
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
@@ -696,10 +706,14 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
-	public List<String> borgArchiveList() {
+	public FacadeResult<List<String>> borgArchiveList() {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
-		return borgService.listArchives(getSession(), server).getResult().getArchives();
+		try {
+			return FacadeResult.doneExpectedResultDone(borgService.listArchives(getSession(), server).getResult().getArchives());
+		} catch (CommandNotFoundException e) {
+			return FacadeResult.unexpectedResult(CommonMessageKeys.APPLICATION_NOTINSTALLED);
+		}
 	}
 
 	@ShellMethod(value = "修剪borg创建的卷")
@@ -752,7 +766,7 @@ public class BackupCommand {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (async) {
-			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(getSession(), server, false);
+			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(server, false);
 			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
@@ -789,7 +803,7 @@ public class BackupCommand {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
 		if (async) {
-			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(getSession(), server, true);
+			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(server, true);
 			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {

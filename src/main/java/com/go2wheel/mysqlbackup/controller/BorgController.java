@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
@@ -68,7 +69,7 @@ public class BorgController extends ControllerBase {
 	
 	
 	@GetMapping("/archives/{server}")
-	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) throws JSchException {
+	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) throws JSchException, CommandNotFoundException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		if (!frSession.isExpected()) {
@@ -107,7 +108,7 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException {
+	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();

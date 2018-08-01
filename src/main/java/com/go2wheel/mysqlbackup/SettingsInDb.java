@@ -34,7 +34,6 @@ public class SettingsInDb {
 	private static String[] predefines = new String[] {"linux_centos", "linux_centos_7", "win", "win_10", "win_2008", "win_2012"};
 	
 	public static final String DOWNLOAD_FOLDER_KEY = "installer.download";
-	public static final String APP_BORG_LOCAL_DIR_KEY = "app.borg.local-dir";
 	public static final String APP_DATA_DIR_KEY = "app.data-dir";
 	
 
@@ -80,7 +79,7 @@ public class SettingsInDb {
 			Files.createDirectories(downloadPath);
 		}
 		
-		dataDir = Paths.get(getString(SettingsInDb.DOWNLOAD_FOLDER_KEY, "servers"));
+		dataDir = Paths.get(getString(SettingsInDb.APP_DATA_DIR_KEY, "servers"));
 		if (!Files.exists(dataDir)) {
 			Files.createDirectories(dataDir);
 		}
