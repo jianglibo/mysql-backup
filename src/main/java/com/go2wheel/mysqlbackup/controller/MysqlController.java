@@ -78,12 +78,13 @@ public class MysqlController extends ControllerBase {
 				com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
 		model.addAttribute(CRUDController.LIST_OB_NAME, dumps);
 		model.addAttribute("server", server);
-		model.addAttribute("mapping", ucb.build().toUriString());
+		model.addAttribute("mapping", MAPPING_PATH);
 		return "mysql-dumps-list";
 	}
 
 	@PostMapping("/{server}/dumps")
 	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
+		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
@@ -107,12 +108,13 @@ public class MysqlController extends ControllerBase {
 				com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
 		model.addAttribute(CRUDController.LIST_OB_NAME, flushes);
 		model.addAttribute("server", server);
-		model.addAttribute("mapping", ucb.build().toUriString());
+		model.addAttribute("mapping", MAPPING_PATH);
 		return "mysql-flushes-list";
 	}
 
 	@PostMapping("/{server}/flushes")
 	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
+		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

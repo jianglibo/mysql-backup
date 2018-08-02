@@ -1,18 +1,28 @@
 package com.go2wheel.mysqlbackup.util;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.IntStream;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,6 +39,66 @@ public class TestFileUtil {
 	private void prepareDirs() throws IOException {
 		dir = tfolder.newFolder().toPath();
 		dir1 = tfolder.newFolder().toPath();
+	}
+	
+	@Test
+	public void testSort() {
+		List<String> ls = new ArrayList<>();
+		ls.add("001");
+		ls.add("099");
+		ls.add("000");
+		ls.add("1000");
+		Collections.sort(ls);
+		
+		assertThat(ls, contains("000", "001", "099", "1000"));
+	}
+	
+//	@Test
+//	public void testBigFile() throws IOException {
+//		Path f = Paths.get("D:", "webpic.rar");
+//		Path splittedFolder = FileUtil.splitFile(f, 1024 * 1024 * 256);
+//		FileUtil.joinFile(splittedFolder);
+//	}
+	
+	@Test
+	public void testSplitByteFile() throws IOException {
+		Path fileToSplit = tfolder.newFile().toPath();
+		byte[] bs = "你说了算！".getBytes(StandardCharsets.UTF_8);
+		assertThat(bs.length, equalTo(15));
+		try (OutputStream os = Files.newOutputStream(fileToSplit)) {
+			// Writing 10000 times, the result file is 150 x 15 == 2250 in length. 
+			IntStream.range(0, 150).forEach(i -> {
+				try {
+					os.write(bs);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			});
+		}
+		long originLength = Files.size(fileToSplit);
+		assertThat(originLength, equalTo(2250L));
+		
+		Path splitedFolder = FileUtil.splitFile(fileToSplit, 2049);
+		
+		long num = Files.list(splitedFolder).count();
+		assertThat(num, equalTo(2L)); // includes meta file.
+		
+		long totalBytes = Files.list(splitedFolder).mapToLong(f -> {
+			try {
+				if (f.getFileName().toString().equals("meta.txt")) {
+					return 0L;
+				}
+				return Files.size(f);
+			} catch (IOException e) {
+				return 0L;
+			}
+		}).sum();
+		// the total bytes after splitting should be same to origin file.
+		assertThat(totalBytes, equalTo(originLength));
+		
+		Path joined = FileUtil.joinFile(splitedFolder);
+		
+		assertThat(Files.size(joined), equalTo(originLength));
 	}
 	
 
@@ -181,6 +251,8 @@ public class TestFileUtil {
 
 		FileUtil.backup(dir, 1, false);
 	}
+	
+
 
 	@Test
 	public void tMoveToExists() throws IOException {

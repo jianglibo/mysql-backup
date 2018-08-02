@@ -11,6 +11,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -53,6 +54,14 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		entityFromDb.setClientBin(entityFromForm.getClientBin());
 		entityFromDb.setFlushLogCron(entityFromForm.getFlushLogCron());
 		return true;
+	}
+	
+	
+	@GetMapping("/{mysqlInstance}/viewdumps")
+	String viewDumps(@PathVariable MysqlInstance mysqlInstance, Model model, HttpServletRequest httpRequest) {
+		model.asMap().clear();
+		Integer sid = mysqlInstance.getServerId();
+		return "redirect:" + MysqlController.MAPPING_PATH + "/" + sid + "/dumps";
 	}
 	
 	@GetMapping("/create")

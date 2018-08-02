@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -38,6 +40,7 @@ import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
@@ -45,6 +48,7 @@ import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -318,6 +322,56 @@ public class MysqlService {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 		return FacadeResult.doneExpectedResultDone(mfh.getMyCnfFile());
 
+	}
+
+	public List<MysqlDumpFolderWrapper> listLocalDumps(Server server) throws IOException {
+		Path lrp = settingsInDb.getDumpDir(server);
+		List<Path> pathes = Lists.newArrayList();
+		pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
+		Collections.sort(pathes, (o1, o2) -> {
+			try {
+				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
+				BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
+				return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
+			} catch (IOException e) {
+				return 0;
+			}
+		});
+		return pathes.stream().map(MysqlDumpFolderWrapper::new).collect(Collectors.toList());
+	}
+	
+	
+	public static class MysqlDumpFolderWrapper {
+		private final Path dump;
+
+		public MysqlDumpFolderWrapper(Path repo) {
+			this.dump = repo;
+		}
+
+		public Path getRepo() {
+			return dump;
+		}
+		
+		public String getDumpFolderName() {
+			return dump.getFileName().toString();
+		}
+
+		public Date getLastAccessTime() throws IOException {
+			BasicFileAttributes bfa = Files.readAttributes(dump, BasicFileAttributes.class);
+			return new Date(bfa.lastAccessTime().toMillis());
+		}
+
+		public String getSize() throws IOException {
+			long size = Files.walk(dump).filter(Files::isRegularFile).mapToLong(value -> {
+				try {
+					return Files.size(value);
+				} catch (IOException e) {
+					return 0L;
+				}
+			}).sum();
+			return StringUtil.formatSize(size, 2);
+		}
+		
 	}
 
 }

@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -9,9 +11,15 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.io.ByteSource;
 
 public class FileUtil {
 
@@ -156,11 +164,12 @@ public class FileUtil {
 	 * @throws IOException
 	 */
 	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, boolean keepOrigin) throws IOException {
-		int roundNumber = (int) Math.pow(10, postfixNumber);
+		int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
 		backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
 	}
-	
-	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, int roundNumber, boolean keepOrigin) throws IOException {
+
+	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, int roundNumber, boolean keepOrigin)
+			throws IOException {
 		if (!Files.exists(fileOrDirectoryToBackup)) {
 			logger.error("Source file: '{}' does't exists.", fileOrDirectoryToBackup.toAbsolutePath().toString());
 			return;
@@ -215,5 +224,84 @@ public class FileUtil {
 		System.out.println("Creation Time: " + basicFileAttributes.creationTime());
 		System.out.println("Last Access Time: " + basicFileAttributes.lastAccessTime());
 		System.out.println("Last Moodified Time: " + basicFileAttributes.lastModifiedTime());
+	}
+
+	public static Path joinFile(Path splittedFolder) throws IOException {
+		Path meta = splittedFolder.resolve("meta.txt");
+		String fn = Files.lines(meta).map(line -> line.split("=")).filter(ss -> ss.length == 2)
+				.filter(ss -> ss[0].trim().equals("filename")).findAny().get()[1].trim();
+		Path out = splittedFolder.resolve(fn);
+		try (OutputStream os = Files.newOutputStream(out)) {
+			List<Path> files = Files.list(splittedFolder).filter(p -> p.getFileName().toString().matches("^\\d+$"))
+					.collect(Collectors.toList());
+			Collections.sort(files);
+			
+			byte[] buf = new byte[2048];
+			int bytesRead = -1;
+			for(Path p : files) {
+				try (InputStream is = Files.newInputStream(p)) {
+					while ((bytesRead = is.read(buf)) != -1) {
+						os.write(buf, 0, bytesRead);
+					}
+				}
+			}
+			
+			os.flush();
+			os.close();
+		}
+			
+		return out;
+	}
+
+	public static Path splitFile(Path fileToSplit, long maxLength) throws IOException {
+		try (InputStream is = Files.newInputStream(fileToSplit)) {
+			byte[] buf = new byte[2048];
+			int bytesRead = -1;
+			long bytesSofar = 0;
+			Path splitedFolder = fileToSplit.getParent().resolve(fileToSplit.getFileName().toString() + ".split");
+			Files.createDirectories(splitedFolder);
+			Path meta = splitedFolder.resolve("meta.txt");
+			List<String> lines = new ArrayList<>();
+			lines.add("filename=" + fileToSplit.getFileName().toString());
+			lines.add("size=" + Files.size(fileToSplit));
+			Files.write(meta, lines);
+			int fileCount = 0;
+			OutputStream writingOs = Files.newOutputStream(splitedFolder.resolve("000"));
+			while ((bytesRead = is.read(buf)) != -1) {
+				writingOs.write(buf, 0, bytesRead);
+				bytesSofar += bytesRead;
+				if (bytesSofar > maxLength) {
+					writingOs.flush();
+					writingOs.close();
+					fileCount++;
+					String fn = fileCount + "";
+					if (fn.length() == 1) {
+						fn = "00" + fn;
+					} else if (fn.length() == 2) {
+						fn = "0" + fn;
+					}
+					bytesSofar = 0;
+					writingOs = Files.newOutputStream(splitedFolder.resolve(fn));
+				}
+			}
+
+			try {
+				writingOs.flush();
+				writingOs.close();
+				Files.list(splitedFolder).forEach(f -> {
+					try {
+						if (Files.size(f) == 0L) {
+							Files.delete(f);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				});
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+			return splitedFolder;
+		}
 	}
 }

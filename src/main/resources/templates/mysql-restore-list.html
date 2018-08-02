@@ -2,16 +2,19 @@
 <html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-	<title>Mysql DUMP列表</title>
+	<title>MYSQL設置列表</title>
 </head>
 
 <body>
 	<div id="layout">
 		<div id="main">
 			<div class="header">
-				<h1 th:text="|服务器${server.name}的日志FLUSH列表|"></h1>
+				<h1 th:text="BORG本地仓库列表"></h1>
 			</div>
 			<div class="content">
+				<aside class="success" th:if="${deleteResult}">
+					<p th:text="${deleteResult}">修改成功。</p>
+				</aside>
 				<div id="action-menu-bar"></div>
 				<table class="pure-table pure-table-bordered item-list">
 					<thead>
@@ -19,33 +22,33 @@
 							<th>
 								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
 							</th>
-							<th>日志文件总长度</th>
-							<th>文件数</th>
-							<th>耗时</th>
+							<th>仓库名称</th>
+							<th>最后访问时间</th>
+							<th>仓库容量(非解压后)</th>
 						</tr>
 					</thead>
 
 					<tbody th:remove="all-but-first">
 						<tr th:each="item: ${listItems}">
 							<td>
-								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
+								<input id="particular-item" th:id="|item-${item.getDumpFolderName()}|" type="checkbox">
 							</td>
-							<td th:text="${item.fileSize}">Honda</td>
-							<td th:text="${item.fileNumber}">Honda</td>
-							<td th:text="${item.timeCost}">Accord</td>
+							<td th:text="${item.getDumpFolderName()}">name</td>
+							<td th:text="${item.getLastAccessTime()}">Accord</td>
+							<td th:text="${item.getSize()}">2009</td>
 						</tr>
 						<tr>
 							<td>2</td>
 							<td>Toyota</td>
-							<td>Toyota</td>
 							<td>Camry</td>
+							<td>2012</td>
 						</tr>
 
 						<tr>
 							<td>3</td>
 							<td>Hyundai</td>
-							<td>Hyundai</td>
 							<td>Elantra</td>
+							<td>2010</td>
 						</tr>
 					</tbody>
 				</table>
@@ -56,23 +59,17 @@
 
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
-		var server = /*[[${server}]]*/ {};
+		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
-			[{
-				actionId: 'flush',
-				name: '立即FLUSH日志',
-				activeOn: 'ALWAYS',
-				confirm: '确认FLUSH日志?',
+			["edit", "delete", {
+				actionId: 'repo-restore',
+				name: '回放',
+				activeOn: 'SINGLE',
 				onClick: function() {
-					var url = mapping;
-					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+					var id = this.state.selectedItems[0].id;
+					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {repo: id});
 				}
-			}, {
-				actionId: 'dumps',
-				name: '查看DUMPS',
-				activeOn: 'ALWAYS',
-				onClick: {react: 'GET', url: mapping + "/" + server.id + "/dumps" }
 			}]);
 	</script>
 </body>

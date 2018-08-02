@@ -52,6 +52,7 @@
 
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var server = /*[[${server}]]*/ {};
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			[{
@@ -60,9 +61,14 @@
 				activeOn: 'ALWAYS',
 				confirm: '确认重新DUMP?',
 				onClick: function() {
-					var url = mapping;
+					var url = mapping + '/' + server.id + '/dumps';
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
+			}, {
+				actionId: 'flushes',
+				name: '查看FLUSHES',
+				activeOn: 'ALWAYS',
+				onClick: {react: 'GET', url: mapping + "/" + server.id + "/flushes" }
 			}]);
 	</script>
 </body>

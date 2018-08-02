@@ -14,7 +14,7 @@
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
 				<div class="pure-button-group form-buttons" style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
 
-				<a id="form-button-logbin" class="pure-button" href="#" th:href="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGINBIN'">启用LOGBIN</a>
+				<a id="form-button-logbin" class="pure-button" href="#" th:href="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGBIN'">启用LOGBIN</a>
 				<a class="pure-button" href="#" th:href="@{/app/mysql/{serverId}/dumps(serverId=${singleItem.serverId})}">DUMP列表</a>
 				<a class="pure-button" href="#" th:href="@{/app/mysql/{serverId}/flushes(serverId=${singleItem.serverId})}">MYSQL日志列表</a>
 
@@ -86,9 +86,12 @@
 		jQuery('#form-button-logbin').on('click', function (e) {
 			e.preventDefault();
 			var url = jQuery(e.target).attr("href");
-			if (window.confirm("确认" + (enabled ? '关闭' : '开启') + 'LOGBIN?')) {
-				window.freact.formUtil.createFormSubmit({ action: url, method: 'PUT' }, {});
-			}
+			var prompt = enabled ? '关闭LOGBIN？' : '开启LOGBIN？';
+			window.freact.confirm('bs-confirm-container', '确认操作', prompt, function(b) {
+				if (b) {
+					window.freact.formUtil.createFormSubmit({ action: url, method: 'PUT' }, {});
+				}
+			});
 		});
 	</script>
 </body>
