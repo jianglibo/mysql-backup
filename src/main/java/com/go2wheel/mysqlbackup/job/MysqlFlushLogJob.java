@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -43,9 +46,9 @@ public class MysqlFlushLogJob implements Job {
 			Server server = serverDbService.findById(sid);
 			server = serverDbService.loadFull(server);
 			session = sshSessionFactory.getConnectedSession(server).getResult();
-			FacadeResult<String> fr = mysqlTaskFacade.mysqlFlushLogs(session, server);
+			FacadeResult<Path> fr = mysqlTaskFacade.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
-		} catch (JSchException e) {
+		} catch (JSchException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

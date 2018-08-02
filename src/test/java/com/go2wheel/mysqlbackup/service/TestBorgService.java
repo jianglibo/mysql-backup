@@ -149,7 +149,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
+	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException {
 		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));

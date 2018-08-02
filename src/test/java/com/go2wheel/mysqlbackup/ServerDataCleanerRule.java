@@ -31,6 +31,7 @@ public class ServerDataCleanerRule extends ExternalResource {
 
 	@Override
 	protected void after() {
+		if (host == null) return;
 		Path serverDataRoot = settingsInDb.getDataDir().resolve(host);
 		try {
 			Files.list(serverDataRoot).forEach(p -> {

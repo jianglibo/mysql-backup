@@ -174,9 +174,9 @@ public class SettingsInDb {
 		return dstDir;
 	}
 	
-	public Path getLogBinDir(Server server) {
-		return getDirInHost(server, "logbins/logbin");
-	}
+//	public Path getLogBinDir(Server server) {
+//		return getDirInHost(server, "logbins/logbin");
+//	}
 	
 	/**
 	 * 

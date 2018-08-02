@@ -225,6 +225,8 @@ public class BorgService {
 				bd = borgDownloadDbService.save(bd);
 				fr.setResult(bd);
 				return fr;
+			} catch (JSchException e) {
+				throw new ExceptionWrapper(e);
 			} finally {
 				if (session != null && session.isConnected()) {
 					session.disconnect();
@@ -235,7 +237,7 @@ public class BorgService {
 	
 	//@formatter:off
 	@MeasureTimeCost
-	public FacadeResult<BorgDownload> downloadRepo(Session session, Server server) {
+	public FacadeResult<BorgDownload> downloadRepo(Session session, Server server) throws JSchException {
 		try {
 			BorgDescription bd = server.getBorgDescription();
 			String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", bd.getRepo());

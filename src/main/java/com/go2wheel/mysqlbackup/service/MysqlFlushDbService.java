@@ -33,14 +33,14 @@ public class MysqlFlushDbService extends DbServiceBase<MysqlFlushRecord, MysqlFl
 	 * @param server
 	 * @param fr
 	 */
-	public void processFlushResult(Server server, FacadeResult<String> fr) {
+	public void processFlushResult(Server server, FacadeResult<Path> fr) {
 		MysqlFlush mf = new MysqlFlush();
 		mf.setServerId(server.getId());
 		mf.setCreatedAt(new Date());
 		mf.setTimeCost(fr.getEndTime() - fr.getStartTime());
 		if (fr.isExpected() && fr.getResult() != null) {
 			try {
-				Path p = Paths.get(fr.getResult());
+				Path p = fr.getResult();
 				List<String> files = Files.readAllLines(p);
 				mf.setFileNumber(files.size());
 				final Path pp = p.getParent();

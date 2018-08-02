@@ -80,7 +80,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException {
 		return mysqlDump(session, server, false);
 	}
 
@@ -105,6 +105,8 @@ public class MysqlService {
 		}).thenApplyAsync(session -> {
 			try {
 				return this.mysqlDump(session, server, force);
+			} catch (JSchException e1) {
+				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
 					session.disconnect();
@@ -118,23 +120,23 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException {
 		try {
 			Path dumpDir = settingsInDb.getDumpDir(server);
-			Path logbinDir = settingsInDb.getLogBinDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
 			if (Files.exists(localDumpFile) && !force) {
 				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
 			}
 			if (force) {
-				FileUtil.backup(dumpDir, 3, false);
-				FileUtil.backup(logbinDir, 3, false);
+				// origin dump folder no existing any more.
+				FileUtil.backup(dumpDir, 2, 3, true);
+				FileUtil.deleteFolder(dumpDir, true);
 			}
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				llsl.setMd5(r.get(1));
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), getDumpFile(dumpDir));
+				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), localDumpFile); // cause new dump to create.
 				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
@@ -166,27 +168,30 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<String> mysqlFlushLogs(Session session, Server server) {
+	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException {
 		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
 			throw new UnExpectedInputException(null, "mysql.unready", "");
 		}
 		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, server);
 		List<String> r = mfle.start();
+		
 		if (r.size() == 2) {
 			return downloadBinLog(session, server);
 		} else {
 			return FacadeResult.unexpectedResult(r.get(0));
 		}
 	}
-
+	
 	// @formatter:off
 	/**
 	 * 执行flush之后，将/var/lib/mysql/hm-log-bin.index下载下来，index文件里面没有的文件下载下来。
 	 * @param session
 	 * @param server
 	 * @return 本地index文件的路径。
+	 * @throws JSchException 
+	 * @throws IOException 
 	 */
-	public FacadeResult<String> downloadBinLog(Session session, Server server) {
+	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException {
 		try {
 			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();
 			String remoteIndexFile = lbs.getLogBinIndex();
@@ -194,14 +199,14 @@ public class MysqlService {
 
 			String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
 
-			Path localDir = settingsInDb.getLogBinDir(server);
+			Path localDir = settingsInDb.getDumpDir(server);
 			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
 
 			if (Files.exists(localIndexFile)) {
 				PathUtil.archiveLocalFile(localIndexFile, 6);
 			}
 			
-			SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
+			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
 
 			List<String> localBinLogFiles = Files.list(localDir)
 					.map(p -> p.getFileName().toString())
@@ -216,12 +221,13 @@ public class MysqlService {
 					.collect(Collectors.toList());
 			
 			for(String fn : unLocalExists) {
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, RemotePathUtil.getLogBinFile(server, fn),
-						localDir.resolve(fn));
+				String rfile = RemotePathUtil.getLogBinFile(server, fn);
+				Path lfile =  localDir.resolve(fn);
+				SSHcommonUtil.downloadWithTmpDownloadingFile(session, rfile, lfile);
 
 			}
-			return FacadeResult.doneExpectedResult(localIndexFile.toAbsolutePath().toString(), CommonActionResult.DONE);
-		} catch (RunRemoteCommandException | IOException | ScpException e) {
+			return FacadeResult.doneExpectedResult(localIndexFile, CommonActionResult.DONE);
+		} catch (RunRemoteCommandException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
@@ -264,6 +270,10 @@ public class MysqlService {
 		}
 	}
 
+	public FacadeResult<?> enableLogbin(Session session, Server server) {
+		return enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
+	}
+	
 	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) {
 		try {
 			MysqlInstance mi = server.getMysqlInstance();

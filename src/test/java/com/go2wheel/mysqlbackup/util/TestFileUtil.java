@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -10,13 +9,11 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
@@ -109,7 +106,7 @@ public class TestFileUtil {
 		Files.createDirectories(folder);
 		Files.write(folder.resolve("afile.txt"), "abc".getBytes());
 		for(int i = 0; i < 15; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
-			FileUtil.backup(folder, 1, true);
+			FileUtil.backup(folder, 1, 9, true);
 		}
 		assertThat(Files.list(dir).count(), equalTo(11L));
 	}
@@ -132,7 +129,7 @@ public class TestFileUtil {
 		Path file = dir.resolve("a.b");
 		Files.write(file, "abc".getBytes());
 		for(int i = 0; i < 11; i++) { //loop 11 times, so there should be 11 file under dir. when loop to 10, it will return to 0;
-			FileUtil.backup(file, 1, true);
+			FileUtil.backup(file, 1,9, true);
 		}
 		assertThat(Files.list(dir).count(), equalTo(11L));
 	}
@@ -197,11 +194,11 @@ public class TestFileUtil {
 		Path dst1000 = dir1.getParent().resolve(dir1Name + ".000");
 		Path dst1001 = dir1.getParent().resolve(dir1Name + ".001");
 
-		FileUtil.backup(dir, 3, true);
-		FileUtil.backup(dir1, 3, true);
+		FileUtil.backup(dir, 3, 999, true);
+		FileUtil.backup(dir1, 3, 999, true);
 
-		FileUtil.backup(dir, 3, false);
-		FileUtil.backup(dir1, 3, false);
+		FileUtil.backup(dir, 3, 999, false);
+		FileUtil.backup(dir1, 3, 999, false);
 
 		assertTrue(Files.exists(dst000));
 		assertTrue(Files.exists(dst001));
@@ -249,7 +246,7 @@ public class TestFileUtil {
 			}
 		}).start();
 
-		FileUtil.backup(dir, 1, false);
+		FileUtil.backup(dir, 1, 9, false);
 	}
 	
 

@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -113,14 +115,14 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/flushes")
-	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
+	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
 		try {
-			FacadeResult<String> fr = mysqlService.mysqlFlushLogs(session, server);
+			FacadeResult<Path> fr = mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
 		} finally {
 			if (session != null && session.isConnected()) {

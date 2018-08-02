@@ -164,21 +164,19 @@ public class ScpUtil {
 		}
 	}
 
-	public static Path from(Session session, String rfile, String lfile) throws ScpException {
-		try {
-			Path lpath = Paths.get(lfile);
-			Path rpath = Paths.get(rfile);
+	public static Path from(Session session, String rfile, String lfile) throws IOException, JSchException, ScpException {
+		Path lpath = Paths.get(lfile);
+		Path rpath = Paths.get(rfile);
 
-			if (Files.isDirectory(lpath)) {
-				lpath = lpath.resolve(rpath.getFileName());
-			}
-			try (OutputStream os = Files.newOutputStream(lpath)) {
-				from(session, rfile, os);
-			}
-			return lpath;
-		} catch (Exception e) {
-			throw new ScpException(rfile, lfile, "");
+		if (Files.isDirectory(lpath)) {
+			lpath = lpath.resolve(rpath.getFileName());
 		}
+		try (OutputStream os = Files.newOutputStream(lpath)) {
+			from(session, rfile, os);
+			os.flush();
+			os.close();
+		}
+		return lpath;
 	}
 
 	public static ByteArrayOutputStream from(Session session, String rfile)

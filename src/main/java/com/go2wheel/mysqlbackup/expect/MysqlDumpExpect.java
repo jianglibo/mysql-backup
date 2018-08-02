@@ -57,7 +57,6 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect {
 	@Override
 	protected void tillPasswordRequired() throws IOException {
 		String cmd = getCmd();
-		System.out.println(cmd);
 		expect.sendLine(cmd);
 	}
 }

@@ -19,8 +19,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.io.ByteSource;
-
 public class FileUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
@@ -163,10 +161,10 @@ public class FileUtil {
 	 * @param fileOrDirectoryToBackup
 	 * @throws IOException
 	 */
-	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, boolean keepOrigin) throws IOException {
-		int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
-		backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
-	}
+//	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, boolean keepOrigin) throws IOException {
+//		int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
+//		backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
+//	}
 
 	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, int roundNumber, boolean keepOrigin)
 			throws IOException {

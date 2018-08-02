@@ -63,6 +63,7 @@ public abstract class MysqlPasswordReadyExpect {
 			try {
 				expect.close();
 			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			channel.disconnect();
 			expect = null;

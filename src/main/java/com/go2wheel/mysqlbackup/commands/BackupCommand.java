@@ -693,7 +693,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
-	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException {
+	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException, JSchException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		FacadeResult<BorgDownload> fr = borgService.downloadRepo(getSession(), server);
@@ -877,11 +877,11 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public FacadeResult<?> MysqlFlushLog() {
+	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 
-		FacadeResult<String> fr = mysqlService.mysqlFlushLogs(getSession(), server);
+		FacadeResult<Path> fr = mysqlService.mysqlFlushLogsAndReturnIndexFile(getSession(), server);
 		mysqlFlushDbService.processFlushResult(server, fr);
 		return fr;
 	}

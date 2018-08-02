@@ -180,18 +180,22 @@ public class SSHcommonUtil {
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
 
-	public static void downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
-			throws RunRemoteCommandException, IOException, ScpException {
+	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
+			throws RunRemoteCommandException, IOException, ScpException, JSchException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
 			Files.createDirectories(localDir);
 		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
+		
 		ScpUtil.from(session, rfile, localTmpFile.toString());
+		
 		String remoteMd5 = getRemoteFileMd5(session, rfile);
+		
 		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
+		
 		if (remoteMd5.equalsIgnoreCase(localMd5)) {
-			Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE);
+			return Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 		} else {
 			throw new Md5ChecksumException();
 		}

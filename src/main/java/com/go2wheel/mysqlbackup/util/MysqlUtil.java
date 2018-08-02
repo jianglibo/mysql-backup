@@ -176,7 +176,7 @@ public class MysqlUtil {
 				server.getMysqlInstance().getPassword(), vnames);
 	}
 
-	public void writeBinLog(Session session, Server server, String rfile) throws IOException, ScpException {
+	public void writeBinLog(Session session, Server server, String rfile) throws IOException, ScpException, JSchException {
 		Path dstDir = appSettings.getDataRoot().resolve(server.getHost()).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
