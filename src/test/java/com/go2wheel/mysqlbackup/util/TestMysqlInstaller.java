@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Map;
@@ -10,59 +12,77 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.google.common.collect.Maps;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlInstaller extends SpringBaseFort {
-	
-	@Autowired
-	private GlobalStore globalStore;
-	
+
 	@Autowired
 	private MySqlInstaller mii;
+
+	private Software software;
 	
-//	@Test
-//	public void tInstall() {
-//		clearDb();
-//		createSession();
-//		createMysqlIntance();
-//		FacadeResult<MysqlInstallInfo> info = mii.install(session, server, "56", "123456");
-//		assertTrue(info.getResult().isInstalled());
-//	}
+	private void install(Server server, Software software) throws JSchException {
+		Map<String, String> parasMap = Maps.newHashMap();
+		parasMap.put("version", "56");
+		parasMap.put("initPassword", "123456");
+		mii.syncToDb();
+		software = softwareDbService.findByName("MYSQL").get(0);
+		FacadeResult<MysqlInstallInfo> info = mii.install(server, software, parasMap);
+		assertTrue(info.getResult().isInstalled());
+	}
+	
 	
 	@Test
-	public void testAsync() throws JSchException {
+	public void testUninstall() throws JSchException {
+		clearDb();
+		createSession();
+		createMysqlIntance();
+		mii.syncToDb();
+		install(server, software);
+		FacadeResult<MysqlInstallInfo> info = mii.unInstall(session, server, software);
+		assertFalse(info.getResult().isInstalled());
+	}
+
+	@Test
+	public void testInstallAsync() throws JSchException {
 		clearDb();
 		createSession();
 		createMysqlIntance();
 		Map<String, String> parasMap = Maps.newHashMap();
 		parasMap.put("version", "56");
 		parasMap.put("initPassword", "123456");
-		Software sf = new Software();
-		sf.setVersion("56");
-		CompletableFuture<FacadeResult<MysqlInstallInfo>> cfm = mii.installAsync(server,sf, parasMap);
-		
+		mii.syncToDb();
+		software = softwareDbService.findByName("MYSQL").get(0);
+
+		CompletableFuture<FacadeResult<MysqlInstallInfo>> cfm = mii.installAsync(server, software, parasMap);
+
 		Thread t = Thread.currentThread();
-		
+
 		assertFalse(cfm.isDone());
-		
+
 		cfm.thenAccept(fr -> {
-			System.out.print(fr);
+			assertTrue(fr.getResult().isInstalled());
+			assertThat(fr.getCommonActionResult(), equalTo(CommonActionResult.PREVIOUSLY_DONE));
 			assertFalse(cfm.isCancelled());
 			assertFalse(cfm.isCompletedExceptionally());
 			assertTrue(cfm.isDone());
 			t.interrupt();
+		}).exceptionally(tr -> {
+			t.interrupt();
+			throw new ExceptionWrapper(tr);
 		});
-		
+
 		try {
 			Thread.sleep(200000);
 		} catch (Exception e) {
 		}
 	}
-	
 }
