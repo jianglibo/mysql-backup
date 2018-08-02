@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -85,7 +86,7 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/dumps")
-	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException {
+	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -115,7 +116,7 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/flushes")
-	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException {
+	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);

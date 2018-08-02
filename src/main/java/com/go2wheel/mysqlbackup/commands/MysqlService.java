@@ -5,10 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -80,7 +82,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
 		return mysqlDump(session, server, false);
 	}
 
@@ -105,7 +107,7 @@ public class MysqlService {
 		}).thenApplyAsync(session -> {
 			try {
 				return this.mysqlDump(session, server, force);
-			} catch (JSchException e1) {
+			} catch (JSchException | IOException | NoSuchAlgorithmException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
@@ -120,7 +122,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException {
 		try {
 			Path dumpDir = settingsInDb.getDumpDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
@@ -130,7 +132,8 @@ public class MysqlService {
 			if (force) {
 				// origin dump folder no existing any more.
 				FileUtil.backup(dumpDir, 2, 3, true);
-				FileUtil.deleteFolder(dumpDir, true);
+				
+				FileUtil.deleteFolder(dumpDir, true, Pattern.compile(".*\\.index$"));
 			}
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
@@ -141,7 +144,7 @@ public class MysqlService {
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
 			}
-		} catch (IOException | RunRemoteCommandException | ScpException e) {
+		} catch (RunRemoteCommandException | ScpException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
@@ -168,7 +171,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException {
+	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
 		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
 			throw new UnExpectedInputException(null, "mysql.unready", "");
 		}
@@ -190,8 +193,9 @@ public class MysqlService {
 	 * @return 本地index文件的路径。
 	 * @throws JSchException 
 	 * @throws IOException 
+	 * @throws NoSuchAlgorithmException 
 	 */
-	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException {
+	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
 		try {
 			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();
 			String remoteIndexFile = lbs.getLogBinIndex();
@@ -202,9 +206,9 @@ public class MysqlService {
 			Path localDir = settingsInDb.getDumpDir(server);
 			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
 
-			if (Files.exists(localIndexFile)) {
-				PathUtil.archiveLocalFile(localIndexFile, 6);
-			}
+//			if (Files.exists(localIndexFile)) {
+//				PathUtil.archiveLocalFile(localIndexFile, 6);
+//			}
 			
 			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
 
@@ -213,6 +217,7 @@ public class MysqlService {
 					.collect(Collectors.toList());
 			
 			// index file contains all logbin file names.
+			
 			List<String> unLocalExists = Files.lines(localIndexFile)
 					.filter(l -> l.indexOf(basenameOnlyName) != -1)
 					.map(l -> l.trim())

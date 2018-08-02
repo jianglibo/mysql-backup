@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
  *
  */
 public class Md5Checksum {
-	   public static byte[] createChecksum(String filename) {
+	   public static byte[] createChecksum(String filename) throws NoSuchAlgorithmException, IOException {
 	       try (InputStream fis =  new FileInputStream(filename)) {
 			   byte[] buffer = new byte[1024];
 			   MessageDigest complete = MessageDigest.getInstance("MD5");
@@ -30,16 +30,17 @@ public class Md5Checksum {
 
 			   fis.close();
 			   return complete.digest();
-		} catch (NoSuchAlgorithmException | IOException e) {
-			Md5ChecksumException me = new Md5ChecksumException();
-			me.initCause(e);
-			throw me;
 		}
+//			   catch (NoSuchAlgorithmException | IOException e) {
+//			Md5ChecksumException me = new Md5ChecksumException();
+//			me.initCause(e);
+//			throw me;
+//		}
 	   }
 
 	   // see this How-to for a faster way to convert
 	   // a byte array to a HEX string
-	   public static String getMD5Checksum(String filename) {
+	   public static String getMD5Checksum(String filename) throws NoSuchAlgorithmException, IOException {
 	       byte[] b = createChecksum(filename);
 	       String result = "";
 
@@ -49,7 +50,7 @@ public class Md5Checksum {
 	       return result;
 	   }
 	   
-	   public static String getMD5Checksum(Path file) {
+	   public static String getMD5Checksum(Path file) throws NoSuchAlgorithmException, IOException {
 		   return getMD5Checksum(file.toAbsolutePath().toString());
 	   }
 

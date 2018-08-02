@@ -14,6 +14,7 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -100,7 +101,15 @@ public class FileUtil {
 		});
 	}
 
+	public static void deleteFolder(Path folder, Pattern keep) throws IOException {
+		deleteFolder(folder, true, keep);
+	}
+	
 	public static void deleteFolder(Path folder, boolean keepRoot) throws IOException {
+		deleteFolder(folder, true, null);
+	}
+
+	public static void deleteFolder(Path folder, boolean keepRoot, Pattern keep) throws IOException {
 		if (folder == null || !Files.exists(folder)) {
 			return;
 		}
@@ -111,7 +120,9 @@ public class FileUtil {
 			Files.walkFileTree(folderFinal, new SimpleFileVisitor<Path>() {
 				@Override
 				public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-					Files.delete(file);
+					if (keep == null || !keep.matcher(file.toString()).matches()) {
+						Files.delete(file);
+					}
 					return FileVisitResult.CONTINUE;
 				}
 
@@ -161,10 +172,11 @@ public class FileUtil {
 	 * @param fileOrDirectoryToBackup
 	 * @throws IOException
 	 */
-//	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, boolean keepOrigin) throws IOException {
-//		int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
-//		backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
-//	}
+	// public static void backup(Path fileOrDirectoryToBackup, int postfixNumber,
+	// boolean keepOrigin) throws IOException {
+	// int roundNumber = (int) Math.pow(10, postfixNumber) - 1;
+	// backup(fileOrDirectoryToBackup, postfixNumber, roundNumber, keepOrigin);
+	// }
 
 	public static void backup(Path fileOrDirectoryToBackup, int postfixNumber, int roundNumber, boolean keepOrigin)
 			throws IOException {
@@ -233,21 +245,21 @@ public class FileUtil {
 			List<Path> files = Files.list(splittedFolder).filter(p -> p.getFileName().toString().matches("^\\d+$"))
 					.collect(Collectors.toList());
 			Collections.sort(files);
-			
+
 			byte[] buf = new byte[2048];
 			int bytesRead = -1;
-			for(Path p : files) {
+			for (Path p : files) {
 				try (InputStream is = Files.newInputStream(p)) {
 					while ((bytesRead = is.read(buf)) != -1) {
 						os.write(buf, 0, bytesRead);
 					}
 				}
 			}
-			
+
 			os.flush();
 			os.close();
 		}
-			
+
 		return out;
 	}
 
@@ -302,4 +314,5 @@ public class FileUtil {
 			return splitedFolder;
 		}
 	}
+
 }

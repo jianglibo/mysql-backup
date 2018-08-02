@@ -1,14 +1,13 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 import org.junit.Before;
@@ -16,11 +15,9 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.devtools.autoconfigure.LocalDevToolsAutoConfiguration;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
@@ -29,9 +26,7 @@ import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
-import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 
 public class TestMysqlService extends SpringBaseFort {
 
@@ -65,7 +60,7 @@ public class TestMysqlService extends SpringBaseFort {
 
 	@Test
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException, NoSuchAlgorithmException {
 		sdc.setHost(HOST_DEFAULT);
 		
 		
@@ -73,6 +68,7 @@ public class TestMysqlService extends SpringBaseFort {
 		assertTrue(fr.isExpected());
 		
 		
+		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		Path localDumpPath = settingsIndb.getDumpDir(server);
 		

@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -181,7 +182,7 @@ public class SSHcommonUtil {
 	}
 
 	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
-			throws RunRemoteCommandException, IOException, ScpException, JSchException {
+			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
 			Files.createDirectories(localDir);

@@ -7,6 +7,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,7 +105,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 	
 	@Test
-	public void testPlayBackSync() throws JSchException, IOException, CommandNotFoundException {
+	public void testPlayBackSync() throws JSchException, IOException, CommandNotFoundException, NoSuchAlgorithmException {
 		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		borgService.initRepo(session, server.getBorgDescription().getRepo());
@@ -149,7 +150,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException {
+	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException, NoSuchAlgorithmException {
 		sdc.setHost(HOST_DEFAULT);
 		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));

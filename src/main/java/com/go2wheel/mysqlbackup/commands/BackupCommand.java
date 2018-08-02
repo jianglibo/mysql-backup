@@ -7,6 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -693,7 +694,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
-	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException, JSchException {
+	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException, JSchException, NoSuchAlgorithmException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		FacadeResult<BorgDownload> fr = borgService.downloadRepo(getSession(), server);
@@ -762,7 +763,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (async) {
@@ -793,10 +794,11 @@ public class BackupCommand {
 	 * @return
 	 * @throws JSchException
 	 * @throws IOException
+	 * @throws NoSuchAlgorithmException 
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public FacadeResult<?> mysqlDumpAgain(@ShellOption(help="异步执行") boolean async, @ShellOption(defaultValue = ShellOption.NULL) String iknow)
-			throws JSchException, IOException {
+			throws JSchException, IOException, NoSuchAlgorithmException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (!DANGEROUS_ALERT.equals(iknow)) {
@@ -877,7 +879,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException {
+	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 

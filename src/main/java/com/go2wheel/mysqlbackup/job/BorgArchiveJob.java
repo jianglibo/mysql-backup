@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.job;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 
 import org.quartz.Job;
@@ -75,7 +76,7 @@ public class BorgArchiveJob implements Job {
 			
 			final Path localRepo = settingsInDb.getBorgRepoDir(sv);
 			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
-		} catch (IOException | JSchException | CommandNotFoundException e) {
+		} catch (IOException | JSchException | CommandNotFoundException | NoSuchAlgorithmException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

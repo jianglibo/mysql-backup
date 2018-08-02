@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.job;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -48,7 +49,7 @@ public class MysqlFlushLogJob implements Job {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<Path> fr = mysqlTaskFacade.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
-		} catch (JSchException | IOException e) {
+		} catch (JSchException | IOException | NoSuchAlgorithmException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

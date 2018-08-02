@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -225,7 +226,7 @@ public class BorgService {
 				bd = borgDownloadDbService.save(bd);
 				fr.setResult(bd);
 				return fr;
-			} catch (JSchException e) {
+			} catch (JSchException | NoSuchAlgorithmException e) {
 				throw new ExceptionWrapper(e);
 			} finally {
 				if (session != null && session.isConnected()) {
@@ -237,7 +238,7 @@ public class BorgService {
 	
 	//@formatter:off
 	@MeasureTimeCost
-	public FacadeResult<BorgDownload> downloadRepo(Session session, Server server) throws JSchException {
+	public FacadeResult<BorgDownload> downloadRepo(Session session, Server server) throws JSchException, NoSuchAlgorithmException {
 		try {
 			BorgDescription bd = server.getBorgDescription();
 			String findCmd = String.format("find %s -type f -printf '%%s->%%p\n'", bd.getRepo());

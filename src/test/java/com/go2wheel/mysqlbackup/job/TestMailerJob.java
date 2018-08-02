@@ -9,6 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 
 import javax.mail.MessagingException;
 
@@ -62,7 +63,7 @@ public class TestMailerJob extends JobBaseFort {
 	private Software software;
 	
 	
-	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -94,7 +95,7 @@ public class TestMailerJob extends JobBaseFort {
 		return usg;
 	}
 	
-	private void createServerData() throws JobExecutionException, InterruptedException, JSchException {
+	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -140,7 +141,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException {
 		
 		Subscribe subscribe = simulation();
 		
