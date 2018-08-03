@@ -37,7 +37,6 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
-import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
@@ -120,21 +119,33 @@ public class MysqlService {
 	}
 	
 
+	/**
+	 * You can dump database at any time, each dump create a new folder.
+	 * @param session
+	 * @param server
+	 * @param force
+	 * @return
+	 * @throws JSchException
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException {
 		try {
-			Path dumpDir = settingsInDb.getDumpDir(server);
+			Path dumpDir = settingsInDb.getNextDumpDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
-			if (Files.exists(localDumpFile) && !force) {
-				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
-			}
-			if (force) {
-				// origin dump folder no existing any more.
-				FileUtil.backup(dumpDir, 2, 3, true);
-				
-				FileUtil.deleteFolder(dumpDir, true, Pattern.compile(".*\\.index$"));
-			}
+			
+//			if (Files.exists(localDumpFile) && !force) {
+//				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
+//			}
+//			if (force) {
+//				// origin dump folder no existing any more.
+//				FileUtil.backup(dumpDir, 2, 3, true);
+//				
+//				FileUtil.deleteFolder(dumpDir, true, Pattern.compile(".*\\.index$"));
+//			}
+			
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
@@ -205,12 +216,8 @@ public class MysqlService {
 
 			Path localDir = settingsInDb.getDumpDir(server);
 			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
-
-//			if (Files.exists(localIndexFile)) {
-//				PathUtil.archiveLocalFile(localIndexFile, 6);
-//			}
 			
-			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile);
+			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile, 7);
 
 			List<String> localBinLogFiles = Files.list(localDir)
 					.map(p -> p.getFileName().toString())

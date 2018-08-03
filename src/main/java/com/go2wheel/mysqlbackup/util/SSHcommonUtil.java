@@ -1,8 +1,10 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -52,20 +54,21 @@ public class SSHcommonUtil {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
 	}
-	
+
 	public static void mkdirsp(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		runRemoteCommand(session, String.format("mkdir -p %s", remoteFile));
 	}
-	
+
 	/**
 	 * Test if all files exists on remote server.
+	 * 
 	 * @param session
 	 * @param remoteFiles
 	 * @return
 	 * @throws RunRemoteCommandException
 	 */
-	public static boolean allFileExists(Session session, String...remoteFiles) throws RunRemoteCommandException {
+	public static boolean allFileExists(Session session, String... remoteFiles) throws RunRemoteCommandException {
 		String cmd = String.format("ls -l %s", String.join(" ", remoteFiles));
 		RemoteCommandResult rcr = runRemoteCommand(session, cmd);
 		int v = rcr.getExitValue();
@@ -180,8 +183,28 @@ public class SSHcommonUtil {
 		RemoteCommandResult rcr = runRemoteCommand(session, String.format("find %s | wc -l", rfile));
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
-
-	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
+	
+    private static boolean isFileClosed(File file) {  
+        boolean closed;
+        java.nio.channels.Channel channel = null;
+        try {
+            channel = new RandomAccessFile(file, "rw").getChannel();
+            closed = true;
+        } catch(Exception ex) {
+            closed = false;
+        } finally {
+            if(channel!=null) {
+                try {
+                    channel.close();
+                } catch (IOException ex) {
+                    // exception handling
+                }
+            }
+        }
+        return closed;
+}
+    
+	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile, int postfix)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
@@ -196,10 +219,20 @@ public class SSHcommonUtil {
 		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
 		
 		if (remoteMd5.equalsIgnoreCase(localMd5)) {
-			return Files.move(localTmpFile, lfile, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+			Path dst = lfile;
+			if (postfix > 0) {
+				dst = PathUtil.getNextAvailableByBaseName(lfile, postfix);
+			} 
+			return Files.move(localTmpFile, dst, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
 		} else {
 			throw new Md5ChecksumException();
 		}
+	}
+	
+
+	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
+			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
+		return downloadWithTmpDownloadingFile(session, rfile, lfile, -1);
 	}
 	
 	public static boolean copy(Session session, Path local, String remote) {
@@ -426,6 +459,7 @@ public class SSHcommonUtil {
 	public static void deleteRemoteFolder(Session session, String remotectFolder) {
 		runRemoteCommand(session, String.format("rm -rf %s", remotectFolder));
 	}
+
 	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws RunRemoteCommandException {
 		runRemoteCommand(session, String.format("rm %s", String.join(" ", remoteFiles)));
 	}

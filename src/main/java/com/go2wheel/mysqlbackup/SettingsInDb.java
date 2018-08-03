@@ -21,6 +21,7 @@ import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -174,10 +175,6 @@ public class SettingsInDb {
 		return dstDir;
 	}
 	
-//	public Path getLogBinDir(Server server) {
-//		return getDirInHost(server, "logbins/logbin");
-//	}
-	
 	/**
 	 * 
 	 * @param server
@@ -187,8 +184,25 @@ public class SettingsInDb {
 		return getDirInHost(server, "repos/repo");
 	}
 	
+	/**
+	 *  
+	 * @param server
+	 * @return max version folder.
+	 * @throws IOException
+	 */
 	public Path getDumpDir(Server server) throws IOException {
-		return getDirInHost(server, "dumps/dump");
+		Path path = getDirInHost(server, "dumps/dump"); 
+		return PathUtil.getMaxVersion(path);
+	}
+	
+	/**
+	 * @param server
+	 * @return Always return a new empty folder.
+	 * @throws IOException
+	 */
+	public Path getNextDumpDir(Server server) throws IOException {
+		Path path = getDirInHost(server, "dumps/dump"); 
+		return PathUtil.getNextAvailableByBaseName(path, 7);
 	}
 	
 	public Path getLocalMysqlDir(Server server) throws IOException {

@@ -20,7 +20,7 @@ public class TestPathUtil {
     public TemporaryFolder tfolder= new TemporaryFolder();
 	
 	@Test
-	public void t() {
+	public void tReplaceDotWithSlash() {
 		String s = PathUtil.replaceDotWithSlash(".");
 		assertThat(s, equalTo("/"));
 
@@ -35,15 +35,32 @@ public class TestPathUtil {
 	}
 	
 	@Test
+	public void getNextByBaseName() throws IOException {
+		Path fp = getRoot().resolve("a.b");
+		Files.write(fp, "abc".getBytes());
+		Path np = PathUtil.getNextAvailableByBaseName(getRoot().resolve("a.b"), 1);
+		assertThat(np.getFileName().toString(), equalTo("a.b.0"));
+		
+		Path max = PathUtil.getMaxVersion(fp);
+		assertThat(max.getFileName().toString(), equalTo("a.b"));
+	}
+	
+	@Test
 	public void testRoundNumber() throws IOException {
 		Path fp = getRoot().resolve("a.b");
 		Files.write(fp, "abc".getBytes());
-		int c = 4;
 		for(int i = 0; i< 9; i++) {
 			fp = PathUtil.getNextAvailable(getRoot(), "a.b", 1, 4);
 			Files.write(fp, "abc".getBytes());
 		}
-		assertThat(Files.list(getRoot()).count(), equalTo(6L));
+		// include a.b a.b.0 1 2 3
+		assertThat(Files.list(getRoot()).count(), equalTo(5L));
+		Path np = PathUtil.getNextAvailableByBaseName(getRoot().resolve("a.b"), 1);
+		assertThat(np.getFileName().toString(), equalTo("a.b.4"));
+		
+		Path max = PathUtil.getMaxVersion(getRoot().resolve("a.b"));
+		assertThat(max.getFileName().toString(), equalTo("a.b.3"));
+		assertTrue(Files.exists(max));
 	}
 	
 	@Test

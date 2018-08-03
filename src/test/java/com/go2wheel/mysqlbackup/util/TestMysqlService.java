@@ -45,9 +45,10 @@ public class TestMysqlService extends SpringBaseFort {
 	@Before
 	public void before() throws JSchException, SchedulerException {
 		clearDb();
-		deleteAllJobs();
 		createSession();
 		createMysqlIntance();
+		
+		deleteAllJobs();
 		
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");
@@ -72,20 +73,23 @@ public class TestMysqlService extends SpringBaseFort {
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		Path localDumpPath = settingsIndb.getDumpDir(server);
 		
-		assertThat(localDumpPath.getFileName().toString(), equalTo("dump"));
+		assertThat(localDumpPath.getFileName().toString(), equalTo("dump.0000000"));
 		assertTrue(Files.exists(localDumpPath.resolve("mysqldump.sql")));
 		
 		fr = mysqlService.mysqlDump(session, server, true);
 		assertTrue(fr.isExpected());
 		
+		// after dump, the current dump folder will changed.
+		localDumpPath = settingsIndb.getDumpDir(server);
+		
 		long pathCount = Files.list(localDumpPath.getParent()).count();
-		assertThat(pathCount, equalTo(2L));
-		assertTrue(Files.exists(localDumpPath.getParent().resolve("dump.00")));
+		assertThat(pathCount, equalTo(3L)); // maybe include empty "dump" folder.
+		assertTrue(Files.exists(localDumpPath.getParent().resolve("dump.0000001")));
 		
 		FacadeResult<Path> fr1 =  mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		
 		long fileCount = Files.list(localDumpPath).filter(p -> !p.getFileName().toString().endsWith(".sql")).count();
-		long lineInIndexFile = Files.readAllLines(fr1.getResult()).size() + 1; // index file it's self.
+		long lineInIndexFile = Files.readAllLines(fr1.getResult()).size() + 1; // only flush once after dump.
 		assertThat(fileCount, equalTo(lineInIndexFile));
 		
 	}
