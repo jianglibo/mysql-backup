@@ -12,6 +12,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.jcraft.jsch.JSchException;
@@ -22,13 +23,13 @@ public class TestServerStateService extends JobBaseFort {
 	private ServerStateService serverStateService;
 
 	@Test
-	public void t() throws SchedulerException, RunRemoteCommandException, IOException, JSchException {
+	public void t() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
 		clearDb();
 		createServer();
 		deleteAllJobs();
 		createSession();
 		
-		ServerState ss = serverStateService.createLinuxServerState(server, session);
+		ServerState ss = serverStateService.createLinuxServerState(server, session, true);
 		
 		assertThat(ss.getAverageLoad(), greaterThan(1));
 		assertThat(ss.getMemFree(), greaterThan(10L));
@@ -39,7 +40,7 @@ public class TestServerStateService extends JobBaseFort {
 		assertThat(sssdb.size(), equalTo(1));
 		
 		
-		ss = serverStateService.createWinServerState(server, session);
+		ss = serverStateService.createWinServerState(server, session, true);
 		assertThat(ss.getAverageLoad(), greaterThan(1));
 		assertThat(ss.getMemFree(), greaterThan(10L));
 		assertThat(ss.getMemUsed(), greaterThan(10L));

@@ -46,7 +46,7 @@ public abstract class MysqlPasswordReadyExpect {
 	}
 	
 	
-	public List<String> start() {
+	public List<String> start() throws UnExpectedContentException {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {

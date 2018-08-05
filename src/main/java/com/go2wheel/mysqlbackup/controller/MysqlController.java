@@ -1,19 +1,21 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,19 +26,19 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.model.MysqlDump;
-import com.go2wheel.mysqlbackup.model.MysqlFlush;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -67,26 +69,19 @@ public class MysqlController extends ControllerBase {
 		super(MAPPING_PATH);
 	}
 
-	@ExceptionHandler
-	public ResponseEntity<String> handle(Exception ex) {
-		ExceptionUtil.logErrorException(logger, ex);
-		return ResponseEntity.ok("OK");
-	}
-
 	@GetMapping("/{server}/dumps")
-	public String getDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) {
-		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
-		server = serverDbService.loadFull(server);
-		List<MysqlDump> dumps = mysqlDumpDbService.findAll(
-				com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
-		model.addAttribute(CRUDController.LIST_OB_NAME, dumps);
+	public String getDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws IOException {
+		Path dumps = settingsInDb.getCurrentDumpDir(server).getParent();
+		List<MysqlDumpFolder> dumpFolders = Files.list(dumps).map(MysqlDumpFolder::newInstance).filter(Objects::nonNull).collect(Collectors.toList());
+		Collections.sort(dumpFolders);
+		model.addAttribute(CRUDController.LIST_OB_NAME, dumpFolders);
 		model.addAttribute("server", server);
 		model.addAttribute("mapping", MAPPING_PATH);
 		return "mysql-dumps-list";
 	}
 
 	@PostMapping("/{server}/dumps")
-	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException {
+	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -103,20 +98,8 @@ public class MysqlController extends ControllerBase {
 		return "redirect:" + ucb.build().toUriString();
 	}
 
-	@GetMapping("/{server}/flushes")
-	public String getFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) {
-		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
-		server = serverDbService.loadFull(server);
-		List<MysqlFlush> flushes = mysqlFlushDbService.findAll(
-				com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
-		model.addAttribute(CRUDController.LIST_OB_NAME, flushes);
-		model.addAttribute("server", server);
-		model.addAttribute("mapping", MAPPING_PATH);
-		return "mysql-flushes-list";
-	}
-
 	@PostMapping("/{server}/flushes")
-	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException {
+	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -130,12 +113,12 @@ public class MysqlController extends ControllerBase {
 				session.disconnect();
 			}
 		}
-		return "redirect:" + ucb.build().toUriString();
+		return "redirect:" + ucb.replacePath(request.getRequestURI().replace("flushes", "dumps")).build().toUriString();
 	}
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException {
+			RedirectAttributes ras) throws JSchException, UnExpectedContentException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

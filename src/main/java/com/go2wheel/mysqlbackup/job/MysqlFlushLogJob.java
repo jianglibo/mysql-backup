@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
@@ -49,7 +51,7 @@ public class MysqlFlushLogJob implements Job {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<Path> fr = mysqlTaskFacade.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
-		} catch (JSchException | IOException | NoSuchAlgorithmException e) {
+		} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedInputException | UnExpectedContentException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

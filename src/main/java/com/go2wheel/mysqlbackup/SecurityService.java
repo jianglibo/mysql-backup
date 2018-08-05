@@ -45,7 +45,7 @@ public class SecurityService {
 		BigOb bo = bigObDbService.findByName(BigOb.SSH_KEYFILE_NAME);
 		if (toFile) {
 			if (bo == null) {
-				FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KEYFILE_NAME);
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KEYFILE_NAME);
 			} else {
 				Files.write(idrsaPath, bo.getContent());
 			}
@@ -71,7 +71,7 @@ public class SecurityService {
 		BigOb bo = bigObDbService.findByName(BigOb.SSH_KNOWN_HOSTS);
 		if (toFile) {
 			if (bo == null) {
-				FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KNOWN_HOSTS);
+				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, BigOb.SSH_KNOWN_HOSTS);
 			} else {
 				Files.write(knownHostsPath, bo.getContent());
 			}

@@ -60,9 +60,10 @@ import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
@@ -236,7 +237,7 @@ public class BackupCommand {
 
 	// @formatter:off
 	@SuppressWarnings("unchecked")
-	private Session getSession() {
+	private Session getSession() throws UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		if (_session == null || !_session.isConnected()) {
@@ -340,7 +341,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "显示服务器描述")
-	public FacadeResult<?> serverDetail() throws JSchException, IOException {
+	public FacadeResult<?> serverDetail() throws JSchException, IOException, UnExpectedInputException {
 		sureServerSelected();
 		return FacadeResult.doneExpectedResult(appState.getCurrentServer(), CommonActionResult.DONE);
 	}
@@ -348,7 +349,7 @@ public class BackupCommand {
 	@ShellMethod(value = "显示服务器健康度")
 	public FacadeResult<?> serverHealthyState(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server
-			) throws JSchException, IOException, RunRemoteCommandException {
+			) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException, UnExpectedContentException {
 		
 		ServerAndSession sas = getServerAndSession(server);
 		ServerState ss = serverStateService.createServerState(sas.getServer(), sas.getSession());
@@ -357,7 +358,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "显示服务器存储状态")
 	public FacadeResult<?> serverStorageState(
-			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException {
 		
 		ServerAndSession sas = getServerAndSession(server);
 		List<StorageState> ssl = storageStateService.getStorageState(sas.getServer(), sas.getSession());
@@ -368,7 +369,7 @@ public class BackupCommand {
 	public FacadeResult<?> serverStorageStatePrune(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
 			@ShellOption(help = "保留指定天数内的记录", defaultValue="180") int keepDays,
-			@ShellOption(help = "针对所有服务器。") boolean allServer) throws JSchException, IOException, RunRemoteCommandException {
+			@ShellOption(help = "针对所有服务器。") boolean allServer) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException {
 		ServerAndSession sas = getServerAndSession(server, true);
 		int deleted;
 		
@@ -383,7 +384,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "获取CPU的核数")
 	public FacadeResult<?> serverCoreNumber(
-			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException {
+			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException {
 		
 		ServerAndSession sas = getServerAndSession(server);
 		int i = serverStateService.getCoreNumber(server, sas.getSession());
@@ -404,7 +405,7 @@ public class BackupCommand {
 			@ShellOption(help = "需要改变的属性") String field,
 			@ObjectFieldIndicator(objectClass=Server.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
-			) throws JSchException, IOException {
+			) throws JSchException, IOException, UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		Optional<Field> fo = ObjectUtil.getField(Server.class, field);
@@ -475,7 +476,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "Upgrade system.")
-	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) {
+	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) throws UnExpectedInputException {
 		Path zp = zipFile.toPath();
 		if (!Files.exists(zp)) {
 			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, zipFile);
@@ -523,31 +524,33 @@ public class BackupCommand {
 	 * @return
 	 * @throws IOException
 	 * @throws JSchException
+	 * @throws UnExpectedInputException 
+	 * @throws UnExpectedContentException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public FacadeResult<?> mysqlEnableLogbin(
 			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
-			throws JSchException, IOException {
+			throws JSchException, IOException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlConfigurated();
 		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
 
 	@ShellMethod(value = "查看logbin状态")
 	public FacadeResult<?> mysqlGetLogbinState()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		sureMysqlConfigurated();
 		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
 	}
 
 	@ShellMethod(value = "查看myCnf")
 	public FacadeResult<?> mysqlGetMycnf()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException, RunRemoteCommandException, ScpException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, RunRemoteCommandException, ScpException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlConfigurated();
 		return mysqlService.getMyCnf(getSession(), appState.getCurrentServer());
 	}
 
 	@ShellMethod(value = "安装borg。")
-	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) {
+	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) throws UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		return borgInstaller.install(getSession(), server, software, null);
@@ -555,7 +558,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "创建Borg的描述")
 	public FacadeResult<?> borgDescriptionCreate()
-			throws JSchException, IOException {
+			throws JSchException, IOException, UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		BorgDescription bbd = server.getBorgDescription();
@@ -576,7 +579,7 @@ public class BackupCommand {
 			@ShellOption(help = "需要改变的属性, 其中includes和exludes使用:符号分割") String field,
 			@ObjectFieldIndicator(objectClass=BorgDescription.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
-			) throws JSchException, IOException {
+			) throws JSchException, IOException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		BorgDescription bd = server.getBorgDescription();
@@ -619,7 +622,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(@MetaAnno("MYSQL") Software software,
-			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) {
+			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) throws UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, software, initPassword);
@@ -658,7 +661,7 @@ public class BackupCommand {
 	
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
-	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) {
+	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) throws UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		List<Software> softwares = softwareDbService.findByServerAndName(server, "MYSQL");
@@ -671,7 +674,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
-	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException {
+	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -683,7 +686,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "创建一次borg备份")
 	public FacadeResult<?> borgArchiveCreate(@ShellOption(help = "try to solve comman problems.") boolean solveProblems)
-			throws RunRemoteCommandException {
+			throws RunRemoteCommandException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -694,7 +697,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "下载borg的仓库。")
-	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException, JSchException, NoSuchAlgorithmException {
+	public FacadeResult<?> borgRepoDownload() throws RunRemoteCommandException, JSchException, NoSuchAlgorithmException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		FacadeResult<BorgDownload> fr = borgService.downloadRepo(getSession(), server);
@@ -707,7 +710,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
-	public FacadeResult<List<String>> borgArchiveList() {
+	public FacadeResult<List<String>> borgArchiveList() throws UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -718,7 +721,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "修剪borg创建的卷")
-	public String borgArchivePrune() throws RunRemoteCommandException {
+	public String borgArchivePrune() throws RunRemoteCommandException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		BorgPruneResult bpr = borgService.pruneRepo(getSession(), server).getResult();
@@ -727,34 +730,34 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
-	public List<String> borgRepoListFiles() throws RunRemoteCommandException {
+	public List<String> borgRepoListFiles() throws RunRemoteCommandException, UnExpectedInputException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		return borgService.listRepoFiles(getSession(), server).getResult().getAllTrimedNotEmptyLines();
 	}
 
-	private void sureServerSelected() {
+	private void sureServerSelected() throws UnExpectedInputException {
 		if (appState.getCurrentServer() == null) {
 			throw new UnExpectedInputException(null, BackupCommandMsgKeys.SERVER_MISSING,
 					"选择一个目标服务器先。 server-list, server-select.");
 		}
 	}
 
-	private void sureBorgConfigurated() {
+	private void sureBorgConfigurated() throws UnExpectedInputException {
 		sureServerSelected();
 		if (appState.getCurrentServer().getBorgDescription() == null) {
 			throw new UnExpectedInputException(null, "borg.unconfigurated", "");
 		}
 	}
 
-	private void sureMysqlConfigurated() {
+	private void sureMysqlConfigurated() throws UnExpectedInputException {
 		sureServerSelected();
 		if (appState.getCurrentServer().getMysqlInstance() == null) {
 			throw new UnExpectedInputException(null, "mysql.unconfigurated", "");
 		}
 	}
 
-	private void sureMysqlReadyForBackup() {
+	private void sureMysqlReadyForBackup() throws UnExpectedInputException {
 		sureMysqlConfigurated();
 		Server server = appState.getCurrentServer();
 		if (server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null) {
@@ -763,7 +766,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (async) {
@@ -795,10 +798,12 @@ public class BackupCommand {
 	 * @throws JSchException
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException 
+	 * @throws UnExpectedInputException 
+	 * @throws UnExpectedContentException 
 	 */
 	@ShellMethod(value = "再次执行Mysqldump命令")
 	public FacadeResult<?> mysqlDumpAgain(@ShellOption(help="异步执行") boolean async, @ShellOption(defaultValue = ShellOption.NULL) String iknow)
-			throws JSchException, IOException, NoSuchAlgorithmException {
+			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (!DANGEROUS_ALERT.equals(iknow)) {
@@ -831,7 +836,7 @@ public class BackupCommand {
 			@ShellOption(help = "需要改变的属性") String field,
 			@ObjectFieldIndicator(objectClass=MysqlInstance.class)
 			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
-			) throws JSchException, IOException {
+			) throws JSchException, IOException, UnExpectedInputException {
 		sureMysqlConfigurated();
 		Server server = appState.getCurrentServer();
 		MysqlInstance mi = server.getMysqlInstance();
@@ -863,7 +868,7 @@ public class BackupCommand {
 	@ShellMethod(value = "创建Mysql的描述")
 	public FacadeResult<?> mysqlDescriptionCreate(
 			@ShowDefaultValue @ShellOption(help = "mysql username.", defaultValue = "root") String username,
-			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException {
+			@ShellOption(help = "mysql password.") String password) throws JSchException, IOException, UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		MysqlInstance mi = server.getMysqlInstance();
@@ -879,7 +884,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 
@@ -889,7 +894,7 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "列出flush Mysql的历史")
-	public FacadeResult<?> MysqlFlushLogList() {
+	public FacadeResult<?> MysqlFlushLogList() throws UnExpectedInputException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		List<MysqlFlush> mfs = mysqlFlushDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
@@ -1096,7 +1101,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出当前主机的计划任务")
-	public FacadeResult<?> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
+	public FacadeResult<?> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException, UnExpectedInputException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		if (all) {
@@ -1108,7 +1113,7 @@ public class BackupCommand {
 	
 	
 	@ShellMethod(value = "删除JOB")
-	public FacadeResult<?> schedulerJobDelete(@ShellOption(help = "job key。") JobKey jobKey) throws SchedulerException {
+	public FacadeResult<?> schedulerJobDelete(@ShellOption(help = "job key。") JobKey jobKey) throws SchedulerException, UnExpectedInputException {
 		sureServerSelected();
 		schedulerService.getDeleteJob(jobKey);
 		return FacadeResult.doneExpectedResult();
@@ -1116,7 +1121,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "重新设置出发器")
 	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
-			throws SchedulerException, ParseException {
+			throws SchedulerException, ParseException, UnExpectedInputException {
 		sureServerSelected();
 		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
 	}
@@ -1124,14 +1129,14 @@ public class BackupCommand {
 
 
 	@ShellMethod(value = "列出当前主机的计划任务触发器")
-	public List<String> schedulerTriggerList() throws SchedulerException {
+	public List<String> schedulerTriggerList() throws SchedulerException, UnExpectedInputException {
 		sureServerSelected();
 		return schedulerService.getServerTriggers(appState.getCurrentServer()).stream()
 				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
 	}
 
 	@ShellMethod(value = "删除计划任务触发器")
-	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") TriggerKey triggerKey) {
+	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") TriggerKey triggerKey) throws UnExpectedInputException {
 		sureServerSelected();
 		return schedulerService.delteBoxTriggers(triggerKey);
 	}
@@ -1190,7 +1195,7 @@ public class BackupCommand {
 	public FacadeResult<?> testRunRemote(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
 			@ShellOption(help = "command to run.") String command
-			) throws RunRemoteCommandException {
+			) throws RunRemoteCommandException, UnExpectedInputException {
 		ServerAndSession sas = null;
 		try {
 			sas = getServerAndSession(server);
@@ -1247,7 +1252,7 @@ public class BackupCommand {
 			@ShowPossibleValue({PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL})
 			@ShellOption(help = "回放内容") String playWhat,
 			@ShellOption(help = "设定条目", defaultValue=ShellOption.NULL) List<String> settings
-			) {
+			) throws UnExpectedInputException {
 		PlayBack pb = playBackService.create(sourceServer, targetServer, playWhat, settings);
 		return FacadeResult.doneExpectedResultDone(pb);
 	}
@@ -1314,11 +1319,11 @@ public class BackupCommand {
 				AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
 	}
 	
-	private ServerAndSession getServerAndSession(Server server) throws JSchException {
+	private ServerAndSession getServerAndSession(Server server) throws JSchException, UnExpectedInputException {
 		return getServerAndSession(server, false);
 	}
 	
-	private ServerAndSession getServerAndSession(Server server, boolean notConnect) throws JSchException {
+	private ServerAndSession getServerAndSession(Server server, boolean notConnect) throws JSchException, UnExpectedInputException {
 		if (server == null) {
 			sureServerSelected();
 			server = appState.getCurrentServer();

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -32,12 +32,12 @@ public abstract class MysqlInteractiveExpect<T> {
 		this.session = session;
 	}
 	
-	public T start(Server box) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+	public T start(Server box) throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		return start(box.getMysqlInstance().getUsername("root"), box.getMysqlInstance().getPassword());
 	}
 	
 	
-	public T start(String user, String password) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+	public T start(String user, String password) throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		Channel channel = session.openChannel("shell");
 		channel.connect();
 
@@ -58,7 +58,7 @@ public abstract class MysqlInteractiveExpect<T> {
 			
 			try {
 				expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("ERROR 2002"));
-				throw new MysqlNotStartedException();
+				throw new AppNotStartedException("MYSQL");
 			} catch (ExpectIOException e) {
 				
 			}

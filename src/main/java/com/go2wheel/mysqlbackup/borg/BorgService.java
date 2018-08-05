@@ -104,6 +104,7 @@ public class BorgService {
 	}
 
 	public static class BorgRepoWrapper {
+		
 		private final Path repo;
 
 		public BorgRepoWrapper(Path repo) {
@@ -367,7 +368,8 @@ public class BorgService {
 		BorgDescription bd = serverSource.getBorgDescription();
 		String serverRepo = bd.getRepo();
 		SSHcommonUtil.mkdirsp(sessiontarget, serverRepo);
-		SSHcommonUtil.uploadFolder(sessiontarget, settingsInDb.getBorgRepoDir(serverSource).getParent().resolve(localRepo), serverRepo);
+		Path local = settingsInDb.getBorgRepoDir(serverSource).getParent().resolve(localRepo);
+		SSHcommonUtil.copyFolder(sessiontarget, local, serverRepo);
 		return null;
 	}
 

@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.exception;
 
-public abstract class  HasErrorIdAndMsgkey extends RuntimeException {
+public abstract class  HasErrorIdAndMsgkey extends Exception {
 	
 	/**
 	 * 

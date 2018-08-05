@@ -1,6 +1,6 @@
 package com.go2wheel.mysqlbackup.ui;
 
-public class MainMenuItem implements Comparable<MainMenuItem> {
+public class MainMenuItem implements Comparable<MainMenuItem>, Cloneable {
 	
 //	private static final String DIVIDED = "menu-item-divided";
 //	private static final String ACTIVE = "menu-item-divided";

@@ -47,30 +47,37 @@ public class StorageStateService {
 		return new ArrayList<>();
 	}
 	
-	public List<StorageState> getStorageState(Server server, Session session) {
+	public List<StorageState> getStorageState(Server server, Session session, boolean saveToDb) {
 		List<StorageState> lss;
 		if ("localhost".equals(server.getHost())) {
-			lss = getWinLocalDiskFree(server);
+			lss = getWinLocalDiskFree(server, saveToDb);
 		} else {
-			lss = getLinuxStorageState(server, session);	
+			lss = getLinuxStorageState(server, session, saveToDb);	
 		}
 		return lss;
 		
 	}
+	
+	public List<StorageState> getStorageState(Server server, Session session) {
+		return getStorageState(server, session, true);
+	}
 
-	private List<StorageState> getLinuxStorageState(Server server, Session session) {
+	private List<StorageState> getLinuxStorageState(Server server, Session session, boolean saveToDb) {
 		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
 		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).filter(it -> !myAppSettings.getStorageExcludes().contains(it.getRoot())).collect(Collectors.toList());
 		final Date d = new Date();
 		return dfs.stream().map(df -> {
 			df.setCreatedAt(d);
 			df.setServerId(server.getId());
-			df = storageStateDbService.save(df);
-			return df;
+			if (saveToDb) {
+				return storageStateDbService.save(df);
+			} else {
+				return df;
+			}
 		}).collect(Collectors.toList());
 	}
 
-	private List<StorageState> getWinLocalDiskFree(Server server) {
+	private List<StorageState> getWinLocalDiskFree(Server server, boolean saveToDb) {
 		String pscommand = "Get-PSDrive | Where-Object Name -Match '^.{1}$' | Format-List -Property *";
 		ProcessExecResult rcr = PSUtil.runPsCommand(pscommand);
 		List<Map<String, String>> lmss = PSUtil.parseFormatList(rcr.getStdOutFilterEmpty());
@@ -91,7 +98,11 @@ public class StorageStateService {
 				df.setRoot(root);
 				df.setAvailable(free);
 				df.setUsed(used);
-				dfs.add(storageStateDbService.save(df));
+				if (saveToDb) {
+					dfs.add(storageStateDbService.save(df));
+				} else {
+					dfs.add(df);
+				}
 			} catch (NumberFormatException e) {
 				ExceptionUtil.logErrorException(logger, e);
 			}

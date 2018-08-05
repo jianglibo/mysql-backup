@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.google.common.collect.Lists;
 
 public class MysqlInstance extends BaseModel {
 	
@@ -160,6 +161,11 @@ public class MysqlInstance extends BaseModel {
 			return this;
 		}
 		
+		public MysqlInstanceBuilder withMycnfFile(String mycnfFile) {
+			this.mycnfFile = mycnfFile;
+			return this;
+		}
+		
 		public MysqlInstanceBuilder withPort(int port) {
 			this.port = port;
 			return this;
@@ -197,7 +203,11 @@ public class MysqlInstance extends BaseModel {
 	}
 
 	public void setLogBinSetting(LogBinSetting logBinSetting) {
-		this.mysqlSettings = logBinSetting.toLines();
+		if (logBinSetting == null) {
+			this.mysqlSettings = Lists.newArrayList();
+		} else {
+			this.mysqlSettings = logBinSetting.toLines();
+		}
 	}
 
 	public String getDumpFileName() {

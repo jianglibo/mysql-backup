@@ -4,7 +4,7 @@ import java.util.concurrent.TimeUnit;
 
 public class TplUtil {
 	
-	public String getFormatedSize(Long fileSize) {
+	public String formatSize(Long fileSize) {
 		return StringUtil.formatSize(fileSize);
 	}
 	
@@ -15,6 +15,4 @@ public class TplUtil {
 	public String getFormatedTimeCosts(long timeCost, TimeUnit unit) {
 		return StringUtil.getTimeCost(timeCost, unit);
 	}
-	
-
 }

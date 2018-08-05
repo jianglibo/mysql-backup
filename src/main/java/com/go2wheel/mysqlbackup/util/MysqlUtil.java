@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
@@ -42,7 +42,7 @@ public class MysqlUtil {
 	private MyAppSettings appSettings;
 
 	public MycnfFileHolder getMyCnfFile(Session session, Server server)
-			throws RunRemoteCommandException, IOException, JSchException, ScpException {
+			throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
 		String cnfFile = getEffectiveMyCnf(session, server);
 		String content = ScpUtil.from(session, cnfFile).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
@@ -59,7 +59,7 @@ public class MysqlUtil {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl stop mysqld");
 	}
 
-	public String getEffectiveMyCnf(Session session, Server server) throws RunRemoteCommandException {
+	public String getEffectiveMyCnf(Session session, Server server) throws RunRemoteCommandException, UnExpectedContentException {
 		String matcherline = ".*Default options are read from the following.*";
 		String cb = server.getMysqlInstance().getClientBin();
 		String cmd = String.format("%smysql --help --verbose", cb == null ? "" : cb);
@@ -79,7 +79,7 @@ public class MysqlUtil {
 	}
 
 	public LogBinSetting getLogbinState(Session session, String username, String password)
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		return new MysqlInteractiveExpect<LogBinSetting>(session) {
 			@Override
 			protected LogBinSetting afterLogin() {
@@ -137,13 +137,13 @@ public class MysqlUtil {
 //	}
 
 	public LogBinSetting getLogbinState(Session session, Server server)
-			throws JSchException, IOException, MysqlNotStartedException {
+			throws JSchException, IOException, AppNotStartedException {
 		return getLogbinState(session, server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword());
 	}
 
 	public Map<String, String> getVariables(Session session, String username, String password, String... vnames)
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		return new MysqlInteractiveExpect<Map<String, String>>(session) {
 			@Override
 			protected Map<String, String> afterLogin() {
@@ -167,7 +167,7 @@ public class MysqlUtil {
 	}
 
 	public Map<String, String> getVariables(Session session, Server server, String... vnames)
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		// if server had no  mysqlInstance configuration, will cause null point exception.
 		if (server.getMysqlInstance() == null) {
 			return null;
@@ -234,7 +234,7 @@ public class MysqlUtil {
 			try {
 				variables = getVariables(session, server, MysqlInstance.VAR_DATADIR);
 				mysqlInstallInfo.setVariables(variables);
-			} catch (MysqlAccessDeniedException | MysqlNotStartedException e) {
+			} catch (MysqlAccessDeniedException | AppNotStartedException e) {
 				e.printStackTrace();
 			}
 

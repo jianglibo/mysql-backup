@@ -24,22 +24,6 @@ public class FileUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(FileUtil.class);
 
-	/**
-	 * Files.copy can copy files and directory (only directory, no including files
-	 * in.).
-	 * 
-	 * @param keepOrigin
-	 * @param filePairs
-	 * @throws IOException
-	 */
-	// public static void moveOrCopyFileOrDirectory(boolean keepOrigin, PathPair
-	// pair) throws IOException {
-	// Files.copy(pair.getSrc(), pair.getDst(), StandardCopyOption.COPY_ATTRIBUTES);
-	// if (!keepOrigin) {
-	// deleteFolder(pair.getSrc());
-	// }
-	// }
-
 	public static class PathPair {
 		private Path src;
 		private Path dst;
@@ -106,7 +90,7 @@ public class FileUtil {
 	}
 	
 	public static void deleteFolder(Path folder, boolean keepRoot) throws IOException {
-		deleteFolder(folder, true, null);
+		deleteFolder(folder, keepRoot, null);
 	}
 
 	public static void deleteFolder(Path folder, boolean keepRoot, Pattern keep) throws IOException {

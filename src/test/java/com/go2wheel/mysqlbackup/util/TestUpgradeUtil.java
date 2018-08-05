@@ -15,6 +15,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 
 public class TestUpgradeUtil {
@@ -47,7 +48,7 @@ public class TestUpgradeUtil {
 	}
 
 	@Test
-	public void tWriteUpgradeFile() throws IOException {
+	public void tWriteUpgradeFile() throws IOException, UnExpectedInputException {
 		assumeNotNull(zipFile);
 		UpgradeUtil uu = new UpgradeUtil(zipFile);
 		boolean writed = uu.writeUpgradeFile();
@@ -56,7 +57,7 @@ public class TestUpgradeUtil {
 		writed = uu.writeUpgradeFile(true);
 		assertTrue(writed);
 		
-		UpgradeFile uf = uu.getUpgradeFilẹ();
+		UpgradeFile uf = uu.getUpgradeFile();
 		String nv = uf.getNewVersion();
 		String cv = uf.getCurrentVersion();
 		

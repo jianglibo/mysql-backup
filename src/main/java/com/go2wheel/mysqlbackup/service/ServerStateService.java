@@ -35,7 +35,7 @@ public class ServerStateService {
 	private ServerStateDbService serverStateDbService;
 	
 //	23:44:09 up  3:02,  1 user,  load average: 0.00, 0.01, 0.05
-	private String getUpTime(Session session) {
+	private String getUpTime(Session session) throws UnExpectedContentException {
 		String command = "uptime";
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
@@ -67,15 +67,20 @@ public class ServerStateService {
 		return SSHcommonUtil.coreNumber(session);
 	}
 	
-	public ServerState createServerState(Server server, Session session) {
+	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException {
 		if ("localhost".equals(server.getHost())) {
-			return createWinServerState(server, session);
+			return createWinServerState(server, session, saveToDb);
 		} else {
-			return createLinuxServerState(server, session);
+			return createLinuxServerState(server, session, saveToDb);
 		}
 	}
 	
-	public ServerState createLinuxServerState(Server server, Session session) {
+	
+	public ServerState createServerState(Server server, Session session) throws UnExpectedContentException {
+		return createServerState(server, session, true);
+	}
+	
+	public ServerState createLinuxServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException {
 		ServerState ss = new ServerState();
 		String loadstr = getUpTime(session);
 		int load = (int) (Float.parseFloat(loadstr) * 100);
@@ -91,10 +96,14 @@ public class ServerStateService {
 		String[] fields = line.split("\\s+");
 		ss.setMemFree(StringUtil.parseLong(fields[2]));
 		ss.setMemUsed(StringUtil.parseLong(fields[1]));
-		return serverStateDbService.save(ss);
+		if (saveToDb) {
+			return serverStateDbService.save(ss);
+		} else {
+			return ss;
+		}
 	}
 	
-	public ServerState createWinServerState(Server server, Session session) {
+	public ServerState createWinServerState(Server server, Session session, boolean saveToDb) {
 		ServerState ss = new ServerState();
 		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
 		ProcessExecResult pcr = PSUtil.runPsCommand(command);
@@ -109,7 +118,11 @@ public class ServerStateService {
 		
 		ss.setAverageLoad(StringUtil.parseInt(mss.get("LoadPercentage")));
 		ss.setServerId(server.getId());
-		return serverStateDbService.save(ss);
+		if (saveToDb) {
+			return serverStateDbService.save(ss);
+		} else {
+			return ss;
+		}
 	}
 
 }

@@ -36,7 +36,7 @@ public class CronStringValueProvider implements ValueProvider {
 
 		String input = completionContext.currentWordUpToCursor();
 		// The input may be -- or --xxx. Because it's might a positional parameter.
-		if (input.startsWith("-")) {
+		if (input == null || input.startsWith("-")) {
 			return new ArrayList<>();
 		}
 		if (input == null || input.isEmpty()) {

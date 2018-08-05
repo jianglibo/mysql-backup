@@ -27,6 +27,8 @@ public class TestScpTo extends SpringBaseFort {
 	
     @Rule
     public TemporaryFolder tfolder= new TemporaryFolder();	
+    
+    private Random random = new Random();
 	
 	@Before
 	public void before() throws JSchException {
@@ -66,7 +68,7 @@ public class TestScpTo extends SpringBaseFort {
 	
 	@Test
 	public void scpToStringToFile() throws IOException, JSchException, ScpException, RunRemoteCommandException {
-		String rfile = "/tmp/" + new Random().nextDouble();
+		String rfile = "/tmp/" + random.nextDouble();
 		ScpUtil.to(session, rfile, "abc".getBytes());
 		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));

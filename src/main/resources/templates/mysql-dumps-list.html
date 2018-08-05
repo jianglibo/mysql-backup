@@ -19,8 +19,10 @@
 							<th>
 								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
 							</th>
-							<th>DUMP文件长度</th>
-							<th>耗时</th>
+							<th>目录</th>
+							<th>DUMP容量</th>
+							<th>日志文件数</th>
+							<th>日志容量</th>
 						</tr>
 					</thead>
 
@@ -29,19 +31,25 @@
 							<td>
 								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
 							</td>
-							<td th:text="${item.fileSize}">Honda</td>
-							<td th:text="${item.timeCost}">Accord</td>
+							<td th:text="${item.id}">Honda</td>
+							<td th:text="${tplUtil.formatSize(item.dumpSize)}">Honda</td>
+							<td th:text="${item.logFiles}">Accord</td>
+							<td th:text="${tplUtil.formatSize(item.logFileSize)}">Accord</td>
 						</tr>
 						<tr>
 							<td>2</td>
+							<td>2</td>
 							<td>Toyota</td>
 							<td>Camry</td>
+							<td>Toyota</td>
 						</tr>
 
 						<tr>
 							<td>3</td>
+							<td>2</td>
 							<td>Hyundai</td>
 							<td>Elantra</td>
+							<td>Toyota</td>
 						</tr>
 					</tbody>
 				</table>
@@ -64,11 +72,15 @@
 					var url = mapping + '/' + server.id + '/dumps';
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
-			}, {
-				actionId: 'flushes',
-				name: '查看FLUSHES',
+			},{
+				actionId: 'flush',
+				name: '立即FLUSH日志',
 				activeOn: 'ALWAYS',
-				onClick: {react: 'GET', url: mapping + "/" + server.id + "/flushes" }
+				confirm: '确认FLUSH日志?',
+				onClick: function() {
+					var url = mapping + '/' + server.id + '/flushes';
+					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+				}
 			}]);
 	</script>
 </body>

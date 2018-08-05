@@ -164,24 +164,25 @@ public class SettingsInDb {
 	
 	private Path getDirInHost(Server server, String relative) {
 		Path hostDir = getDataDir().resolve(server.getHost());
-		Path dstDir = hostDir.resolve(relative);
-		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-			try {
-				Files.createDirectories(dstDir);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return dstDir;
+		return hostDir.resolve(relative);
 	}
 	
 	/**
 	 * 
 	 * @param server
 	 * @return The base repo name. For example returning /repo , but not /repo.0 /repo.1 etc.
+	 * @throws IOException 
 	 */
-	public Path getBorgRepoDir(Server server) {
-		return getDirInHost(server, "repos/repo");
+	public Path getBorgRepoDir(Server server) throws IOException {
+		return createIfNotExists(getDirInHost(server, "repos/repo"));
+	}
+	
+	private Path createIfNotExists(Path path) throws IOException {
+		if (!Files.exists(path)) {
+			return Files.createDirectories(path);
+		} else {
+			return path;			
+		}
 	}
 	
 	/**
@@ -190,9 +191,13 @@ public class SettingsInDb {
 	 * @return max version folder.
 	 * @throws IOException
 	 */
-	public Path getDumpDir(Server server) throws IOException {
+	public Path getCurrentDumpDir(Server server) throws IOException {
 		Path path = getDirInHost(server, "dumps/dump"); 
-		return PathUtil.getMaxVersion(path);
+		return PathUtil.getMaxVersionByBaseName(path);
+	}
+	
+	public Path getDumpsDir(Server server) throws IOException {
+		return getDirInHost(server, "dumps"); 
 	}
 	
 	/**
@@ -202,10 +207,19 @@ public class SettingsInDb {
 	 */
 	public Path getNextDumpDir(Server server) throws IOException {
 		Path path = getDirInHost(server, "dumps/dump"); 
+		Files.list(path.getParent()).forEach(p -> {
+			try {
+				if (Files.list(p).toArray().length == 0) {
+					Files.delete(p);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 		return PathUtil.getNextAvailableByBaseName(path, 7);
 	}
 	
 	public Path getLocalMysqlDir(Server server) throws IOException {
-		return getDirInHost(server, "mysql");
+		return createIfNotExists(getDirInHost(server, "mysql"));
 	}
 }

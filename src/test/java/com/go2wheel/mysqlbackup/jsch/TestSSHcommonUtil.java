@@ -88,7 +88,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		File f2 = new File(foo, "a1.txt");
 		Files.write(f1.toPath(), "abc".getBytes());
 		Files.write(f2.toPath(), "abc".getBytes());
-		List<FileToCopyInfo> copyInfos = SSHcommonUtil.uploadFolder(session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
+		List<FileToCopyInfo> copyInfos = SSHcommonUtil.copyFolder(session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
 		// include root item.
 		assertThat(copyInfos.size(), equalTo(5));
 		List<LinuxLsl> lsl = SSHcommonUtil.listRemoteFilesRecursive(session, rtfoler.getRemoteFolder());

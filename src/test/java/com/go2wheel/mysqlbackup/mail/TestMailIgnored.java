@@ -57,10 +57,10 @@ public class TestMailIgnored extends SpringBaseFort {
 		return mailMessage;
 	}
 
-	public void tMimeMessage() throws MessagingException {
-		MimeMessage message = javaMailSender.createMimeMessage();
+//	public void tMimeMessage() throws MessagingException {
+//		MimeMessage message = javaMailSender.createMimeMessage();
 
-		MimeMessageHelper helper = new MimeMessageHelper(message, true);
+//		MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 		// helper.setTo(to);
 		// helper.setSubject(subject);
@@ -70,8 +70,8 @@ public class TestMailIgnored extends SpringBaseFort {
 		// = new FileSystemResource(new File(pathToAttachment));
 		// helper.addAttachment("Invoice", file);
 
-		javaMailSender.send(message);
-	}
+//		javaMailSender.send(message);
+//	}
 
 	@Test
 	public void tt() {
@@ -100,7 +100,7 @@ public class TestMailIgnored extends SpringBaseFort {
 			}
 
 			buffer.flush();
-			MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
+//			MimetypesFileTypeMap mimeTypesMap = new MimetypesFileTypeMap();
 
 			sendMailWithInline("jlb", "jianglibo@hotmail.com", "thymeleaflogo", buffer.toByteArray(), "image/png", Locale.CHINESE);
 		}

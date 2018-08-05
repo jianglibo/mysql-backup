@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import com.go2wheel.mysqlbackup.model.Server;
 
 public class RemotePathUtil {
@@ -19,7 +22,22 @@ public class RemotePathUtil {
 		} else {
 			return remotePath;
 		}
+	}
+
+	public static String join(String first, String...others) {
+		if (others.length == 0) return first;
 		
+		if (first.endsWith("/")) {
+			first = first.substring(0, first.length() - 1);
+		}
+		String os = Stream.of(others).map(s -> {
+			if (s.startsWith("/")) {
+				return s;
+			} else {
+				return "/" + s;
+			}
+		}).collect(Collectors.joining(""));
+		return first + os;
 	}
 
 	

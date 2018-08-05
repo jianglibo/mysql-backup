@@ -1,8 +1,19 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.util.Comparator;
+
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 public class StorageState extends BaseModel {
+	
+	
+	public static Comparator<StorageState> AVAILABLE_DESC = new Comparator<StorageState>() {
+
+		@Override
+		public int compare(StorageState o1, StorageState o2) {
+			return (int) (o2.getAvailable() - o1.getAvailable());
+		}
+	};
 	
 	private Integer serverId;
 	private String root;

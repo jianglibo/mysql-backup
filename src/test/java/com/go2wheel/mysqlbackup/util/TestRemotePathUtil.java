@@ -16,6 +16,18 @@ public class TestRemotePathUtil {
 		assertThat(l, equalTo(""));
 	}
 	
+	
+	@Test
+	public void testJoin() {
+		String s = RemotePathUtil.join("a", "b", "c");
+		assertThat(s, equalTo("a/b/c"));
+		s = RemotePathUtil.join("a", "b", "c/");
+		assertThat(s, equalTo("a/b/c/"));
+		
+		s = RemotePathUtil.join("a/");
+		assertThat(s, equalTo("a/"));
+	}
+	
 	@Test
 	public void t() {
 		String s = RemotePathUtil.getParentWithEndingSlash("/var/lig/abc");

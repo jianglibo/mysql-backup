@@ -6,10 +6,11 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.util.List;
-import org.jooq.DSLContext;
+
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
+
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.service.TableDiscovery;
 
@@ -17,9 +18,6 @@ public class TestJdbcTemplate extends SpringBaseFort {
 
 	@Autowired
 	private JdbcTemplate template;
-	
-	@Autowired
-	protected DSLContext jooq;
 	
 	@Autowired
 	protected TableDiscovery tableDiscovery;

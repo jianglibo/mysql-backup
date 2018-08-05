@@ -19,7 +19,7 @@ public class PlayBackService {
 	@Autowired
 	private DSLContext jooq;
 
-	public PlayBack create(Server sourceServer, Server targetServer, String playWhat, List<String> settings) {
+	public PlayBack create(Server sourceServer, Server targetServer, String playWhat, List<String> settings) throws UnExpectedInputException {
 		if (sourceServer == null || targetServer == null) {
 			throw new UnExpectedInputException(null, null, "null source or target server.");
 		}

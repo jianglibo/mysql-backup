@@ -14,6 +14,7 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -27,6 +28,23 @@ import org.slf4j.LoggerFactory;
 public class PathUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(PathUtil.class);
+	
+	
+	public static Comparator<Path> PATH_NAME_ASC = new Comparator<Path>() {
+
+		@Override
+		public int compare(Path o1, Path o2) {
+			return o1.toString().compareTo(o2.toString());
+		}
+	};
+	
+	public static Comparator<Path> PATH_NAME_DESC = new Comparator<Path>() {
+
+		@Override
+		public int compare(Path o1, Path o2) {
+			return -(o1.toString().compareTo(o2.toString()));
+		}
+	};
 
 	public static String replaceDotWithSlash(String origin) {
 		return origin.replace('.', '/');
@@ -95,12 +113,12 @@ public class PathUtil {
 	protected static Path getNextAvailable(Path parentDir, String fileOrDirName, int postfixNumber,
 			int roundNumberExclude) {
 		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", fileOrDirName, postfixNumber));
-		List<String> paths = listVersionedFiles(parentDir, ptn);
+		List<Path> paths = listVersionedFiles(parentDir, ptn);
 
 		if (paths.isEmpty()) {
 			return parentDir.resolve(fileOrDirName + "." + getZeros(postfixNumber));
 		} else {
-			Matcher m = ptn.matcher(paths.get(paths.size() - 1));
+			Matcher m = ptn.matcher(paths.get(0).toString());
 			m.matches();
 			String nm = m.group(1);
 			int i = Integer.valueOf(nm) + 1;
@@ -111,16 +129,16 @@ public class PathUtil {
 		}
 	}
 
-	private static List<String> listVersionedFiles(Path parentDir, Pattern ptn) {
-		List<String> paths = null;
+	private static List<Path> listVersionedFiles(Path parentDir, Pattern ptn) {
+		List<Path> paths = null;
 		try {
-			paths = Files.list(parentDir).filter(p -> ptn.matcher(p.toString()).matches()).map(p -> p.toString())
+			paths = Files.list(parentDir).filter(p -> ptn.matcher(p.toString()).matches())
 					.collect(Collectors.toList());
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return null;
 		}
-		Collections.sort(paths);
+		Collections.sort(paths, PATH_NAME_DESC);
 		return paths;
 	}
 
@@ -147,20 +165,51 @@ public class PathUtil {
 		}
 	}
 	
-	public static Path getMaxVersion(Path originFileOrDir) throws IOException {
-		int pf = guessPostfix(originFileOrDir);
+	public static Path getMaxVersionByBaseName(Path originFileOrDir) throws IOException {
+		return getMaxVersionByBaseName(originFileOrDir, -1);
+	}
+	
+	public static Path getMaxVersionByBaseName(Path originFileOrDir, int postfix) throws IOException {
+		int pf = postfix;
+		if (pf < 0) {
+			pf = guessPostfix(originFileOrDir);
+		}
 		if (pf == -1) {
 			return originFileOrDir;
 		}
 		Pattern ptn = Pattern.compile(String.format(".*%s\\.(\\d{%s})$", originFileOrDir.getFileName().toString(), pf));
-		List<String> s = listVersionedFiles(originFileOrDir.getParent(), ptn);
-		if (s.size() > 0) {
-			return Paths.get(s.get(s.size() - 1));
+		List<Path> pathes = listVersionedFiles(originFileOrDir.getParent(), ptn);
+		if (pathes.size() > 0) {
+			return pathes.get(0);
 		} else {
 			return null;
 		}
 	}
 	
+	/**
+	 * 
+	 * @param sampleFile. file.0001
+	 * @return
+	 * @throws IOException
+	 */
+	public static Path getMaxVersionBySample(Path sampleFile) throws IOException {
+		Pattern ptn = Pattern.compile("(.*)\\.(\\d+)$");
+		Matcher m = ptn.matcher(sampleFile.toString());
+		if (!m.matches()) {
+			return getMaxVersionByBaseName(sampleFile);
+		} else {
+			String bn = m.group(1);
+			String di = m.group(2);
+			return getMaxVersionByBaseName(Paths.get(bn), di.length());
+		}
+	}
+	
+	/**
+	 * Given 'abc', check for abc.001 abc.004, if found return length of extension or else -1;
+	 * @param originFileOrDir
+	 * @return
+	 * @throws IOException
+	 */
 	private static int guessPostfix(Path originFileOrDir) throws IOException {
 		String fn = originFileOrDir.getFileName().toString();
 		Pattern ptn = Pattern.compile(fn + "\\.(\\d+)$");
@@ -179,6 +228,20 @@ public class PathUtil {
 			return postfix.values().iterator().next();
 		}
 		return  -1;
+	}
+	
+	public static Path getNextAvailableBySample(Path sampleFile) throws IOException {
+		
+		Pattern ptn = Pattern.compile("(.*)\\.(\\d+)$");
+		Matcher m = ptn.matcher(sampleFile.toString());
+		
+		if (!m.matches()) {
+			return getNextAvailableByBaseName(sampleFile, 1);
+		} else {
+			String bn = m.group(1);
+			String di = m.group(2);
+			return getNextAvailable(Paths.get(bn), di.length());
+		}
 	}
 
 	public static Path getNextAvailableByBaseName(Path originFileOrDir, int postfixHint) throws IOException {

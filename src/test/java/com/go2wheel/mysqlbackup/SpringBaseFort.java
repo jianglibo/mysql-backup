@@ -68,7 +68,7 @@ value = { "spring.shell.interactive.enabled=false",
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT = "192.168.33.110";
-	protected static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
+	public static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	
 	@Autowired
 	protected MyAppSettings myAppSettings;
@@ -155,12 +155,6 @@ public class SpringBaseFort {
 	
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
 
-//	protected String TMP_SERVER_DIR_NAME = "/tmp/abc";
-
-//	protected String TMP_FILE_CONTENT = "abc";
-	
-	
-//	protected String remoteDemoFile;
 	
 	@Autowired
 	protected FileDownloader fileDownloader;
@@ -174,13 +168,6 @@ public class SpringBaseFort {
 	
 	@After
 	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
-//		if (remoteDemoFile != null) {
-//			SSHcommonUtil.deleteRemoteFile(session, remoteDemoFile);
-//		}
-//
-//		if (session != null) {
-//			session.disconnect();
-//		}
 		clearDb();
 	}
 	

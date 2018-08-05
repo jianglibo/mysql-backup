@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class MainMenuGroup implements Comparable<MainMenuGroup>{
+public class MainMenuGroup implements Comparable<MainMenuGroup>, Cloneable {
 	
 	private String name;
 	

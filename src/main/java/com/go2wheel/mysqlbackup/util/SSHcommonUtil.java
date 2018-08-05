@@ -1,10 +1,8 @@
 package com.go2wheel.mysqlbackup.util;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -134,7 +132,7 @@ public class SSHcommonUtil {
 
 	public static String targzFile(Session session, String remoteFile) throws RunRemoteCommandException {
 		String tarFile = RemotePathUtil.getRidOfLastSlash(remoteFile) + ".tar.gz";
-		String command = String.format("tar -czf %s %", tarFile, remoteFile);
+		String command = String.format("tar -czf %s %s", tarFile, remoteFile);
 		RemoteCommandResult rcr = runRemoteCommand(session, command);
 		if (rcr.getExitValue() == 0) {
 			return tarFile;
@@ -184,25 +182,25 @@ public class SSHcommonUtil {
 		return Integer.valueOf(rcr.getAllTrimedNotEmptyLines().get(0));
 	}
 	
-    private static boolean isFileClosed(File file) {  
-        boolean closed;
-        java.nio.channels.Channel channel = null;
-        try {
-            channel = new RandomAccessFile(file, "rw").getChannel();
-            closed = true;
-        } catch(Exception ex) {
-            closed = false;
-        } finally {
-            if(channel!=null) {
-                try {
-                    channel.close();
-                } catch (IOException ex) {
-                    // exception handling
-                }
-            }
-        }
-        return closed;
-}
+//    private static boolean isFileClosed(File file) {  
+//        boolean closed;
+//        java.nio.channels.Channel channel = null;
+//        try {
+//            channel = new RandomAccessFile(file, "rw").getChannel();
+//            closed = true;
+//        } catch(Exception ex) {
+//            closed = false;
+//        } finally {
+//            if(channel!=null) {
+//                try {
+//                    channel.close();
+//                } catch (IOException ex) {
+//                    // exception handling
+//                }
+//            }
+//        }
+//        return closed;
+//    }
     
 	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile, int postfix)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
@@ -294,7 +292,7 @@ public class SSHcommonUtil {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static List<FileToCopyInfo> uploadFolder(Session session, Path localFolder, String remoteFolder) throws IOException {
+	public static List<FileToCopyInfo> copyFolder(Session session, Path localFolder, String remoteFolder) throws IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFolder);
 		Path localFolderAbs = localFolder.toAbsolutePath();
 		String remoteFolderEndSlash = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";

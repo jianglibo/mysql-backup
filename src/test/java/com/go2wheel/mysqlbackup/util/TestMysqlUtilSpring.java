@@ -15,9 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
@@ -41,13 +42,13 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testMysqlVariable()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
 		assertThat(lbs.getMap().size(), greaterThan(3));
 	}
 
 	@Test
-	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException {
+	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException, UnExpectedContentException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server);
 		mfh.enableBinLog();
 		ConfigValue cv = mfh.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
@@ -78,7 +79,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	}
 
 	@Test
-	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException {
+	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
 		String s = mysqlUtil.getEffectiveMyCnf(session, server);
 		assertThat(s, equalTo("/etc/my.cnf"));
 
@@ -88,7 +89,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testVariables()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		Map<String, String> map = mysqlUtil.getVariables(session, server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword(), MysqlInstance.VAR_DATADIR);
 		assertTrue("contains datadir", map.containsKey(MysqlInstance.VAR_DATADIR));

@@ -1,16 +1,15 @@
 package com.go2wheel.mysqlbackup.commands;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -23,17 +22,23 @@ import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
+import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.ServerState;
+import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.service.ServerStateService;
+import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
@@ -41,7 +46,6 @@ import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
@@ -49,7 +53,6 @@ import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
-import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -73,6 +76,9 @@ public class MysqlService {
 
 	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;
+	
+	@Autowired
+	private StorageStateService sss;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
@@ -81,7 +87,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
 		return mysqlDump(session, server, false);
 	}
 
@@ -106,7 +112,7 @@ public class MysqlService {
 		}).thenApplyAsync(session -> {
 			try {
 				return this.mysqlDump(session, server, force);
-			} catch (JSchException | IOException | NoSuchAlgorithmException e1) {
+			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedContentException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
@@ -128,23 +134,14 @@ public class MysqlService {
 	 * @throws JSchException
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
+	 * @throws UnExpectedContentException 
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
 		try {
 			Path dumpDir = settingsInDb.getNextDumpDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
-			
-//			if (Files.exists(localDumpFile) && !force) {
-//				return FacadeResult.doneExpectedResultPreviousDone(ALREADY_DUMP);
-//			}
-//			if (force) {
-//				// origin dump folder no existing any more.
-//				FileUtil.backup(dumpDir, 2, 3, true);
-//				
-//				FileUtil.deleteFolder(dumpDir, true, Pattern.compile(".*\\.index$"));
-//			}
 			
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
@@ -182,7 +179,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
 			throw new UnExpectedInputException(null, "mysql.unready", "");
 		}
@@ -214,7 +211,7 @@ public class MysqlService {
 
 			String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
 
-			Path localDir = settingsInDb.getDumpDir(server);
+			Path localDir = settingsInDb.getCurrentDumpDir(server);
 			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
 			
 			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile, 7);
@@ -245,14 +242,14 @@ public class MysqlService {
 		}
 	}
 	
-	public FacadeResult<?> disableLogbin(Session session, Server server) {
+	public FacadeResult<?> disableLogbin(Session session, Server server) throws UnExpectedContentException {
 		try {
 
 			MysqlInstance mi = server.getMysqlInstance();
 			LogBinSetting lbs = mi.getLogBinSetting();
 			try {
 				lbs = mysqlUtil.getLogbinState(session, server);
-			} catch (MysqlNotStartedException e) {
+			} catch (AppNotStartedException e) {
 				mysqlUtil.restartMysql(session);
 				lbs = mysqlUtil.getLogbinState(session, server);
 			}
@@ -276,34 +273,60 @@ public class MysqlService {
 			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | MysqlNotStartedException e) {
+		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | AppNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
-
-	public FacadeResult<?> enableLogbin(Session session, Server server) {
-		return enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
+	
+	public MycnfFileHolder requestMysqlSettings(Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+		Session session = null;
+		try {
+			session = sshSessionFactory.getConnectedSession(server).getResult();
+			return requestMysqlSettings(session, server);
+		} finally {
+			if( session != null) {
+				session.disconnect();
+			}
+		}
 	}
 	
-	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) {
+	public MycnfFileHolder requestMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
+		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
+		mfh.setVariables(lbs.getMap());
+		return mfh;
+	}
+	
+	public MycnfFileHolder backupMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+		Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
+		MycnfFileHolder mfh = requestMysqlSettings(session, server);
+		Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());
+		return mfh;
+	}
+	
+	public MycnfFileHolder getMysqlSettingsFromDisk(Server server) throws IOException {
+		Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
+		try (InputStream is = Files.newInputStream(mysqlSettingDir.resolve("mycnf.yml"))) {
+			return YamlInstance.INSTANCE.yaml.loadAs(is, MycnfFileHolder.class);
+		}
+	}
+	
+	public void overWriteMycnf(Session session, Server server, MycnfFileHolder mfh) throws ScpException {
+		ScpUtil.to(session, mfh.getMyCnfFile(), mfh.toByteArray());
+	}
+
+	public FacadeResult<?> enableLogbin(Session session, Server server) throws UnExpectedContentException {
+		return enableLogbin(session, server, server.getMysqlInstance().getLogBinSetting().getLogBinBasename());
+	}
+	
+	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) throws UnExpectedContentException {
 		try {
 			MysqlInstance mi = server.getMysqlInstance();
-			LogBinSetting lbs = mi.getLogBinSetting();
-			// always check the server for sure.
-			try {
-				lbs = mysqlUtil.getLogbinState(session, server);
-			} catch (MysqlNotStartedException e) {
-				mysqlUtil.restartMysql(session);
-				lbs = mysqlUtil.getLogbinState(session, server);
-			}
 			
-			MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
+			MycnfFileHolder mfh = backupMysqlSettings(session, server);
 			String mycnfFile = mfh.getMyCnfFile();
-			mfh.setVariables(lbs.getMap());
-			
-			Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
-			Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());
+			LogBinSetting lbs = mfh.getLbs();
 			
 			if (!lbs.isEnabled()) {
 				mfh.enableBinLog(logBinValue); // 修改logbin的值
@@ -321,13 +344,13 @@ public class MysqlService {
 			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlNotStartedException e) {
+		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | AppNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
 
-	public FacadeResult<String> getMyCnfFile(Session session, Server server) {
+	public FacadeResult<String> getMyCnfFile(Session session, Server server) throws UnExpectedContentException {
 		try {
 			return FacadeResult.doneExpectedResult(mysqlUtil.getEffectiveMyCnf(session, server), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
@@ -336,64 +359,45 @@ public class MysqlService {
 		}
 	}
 
-	public FacadeResult<?> getLogbinState(Session session, Server server) throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
+	public FacadeResult<?> getLogbinState(Session session, Server server) throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 	    return FacadeResult.doneExpectedResultDone(mysqlUtil.getLogbinState(session, server).toLines());
 	}
 
-	public FacadeResult<?> getMyCnf(Session session, Server server) throws RunRemoteCommandException, IOException, JSchException, ScpException {
+	public FacadeResult<?> getMyCnf(Session session, Server server) throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 		return FacadeResult.doneExpectedResultDone(mfh.getMyCnfFile());
 
 	}
 
-	public List<MysqlDumpFolderWrapper> listLocalDumps(Server server) throws IOException {
-		Path lrp = settingsInDb.getDumpDir(server);
-		List<Path> pathes = Lists.newArrayList();
-		pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
-		Collections.sort(pathes, (o1, o2) -> {
-			try {
-				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
-				BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
-				return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
-			} catch (IOException e) {
-				return 0;
+	public void restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+		Session targetSession = null;
+		try {
+			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
+			MycnfFileHolder sourceMfn = getMysqlSettingsFromDisk(sourceServer);
+			MycnfFileHolder tartgetMfn = requestMysqlSettings(targetSession, targetServer);
+			
+			overWriteMycnf(targetSession, targetServer, sourceMfn);
+			mysqlUtil.restartMysql(targetSession);
+			
+			disableLogbin(targetSession, targetServer);
+			
+			List<StorageState> ss = sss.getStorageState(targetServer, targetSession, false);
+			Collections.sort(ss, StorageState.AVAILABLE_DESC);
+			
+			String remoteMaxRoot = ss.get(0).getRoot();
+			String remoteDumpFolder = RemotePathUtil.join(remoteMaxRoot, dumpFolder);
+			Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
+			SSHcommonUtil.copyFolder(targetSession, dumpFolderToUpload, remoteDumpFolder);
+			
+			
+			
+			
+			
+		} finally {
+			if( targetSession != null) {
+				targetSession.disconnect();
 			}
-		});
-		return pathes.stream().map(MysqlDumpFolderWrapper::new).collect(Collectors.toList());
-	}
-	
-	
-	public static class MysqlDumpFolderWrapper {
-		private final Path dump;
-
-		public MysqlDumpFolderWrapper(Path repo) {
-			this.dump = repo;
-		}
-
-		public Path getRepo() {
-			return dump;
-		}
-		
-		public String getDumpFolderName() {
-			return dump.getFileName().toString();
-		}
-
-		public Date getLastAccessTime() throws IOException {
-			BasicFileAttributes bfa = Files.readAttributes(dump, BasicFileAttributes.class);
-			return new Date(bfa.lastAccessTime().toMillis());
-		}
-
-		public String getSize() throws IOException {
-			long size = Files.walk(dump).filter(Files::isRegularFile).mapToLong(value -> {
-				try {
-					return Files.size(value);
-				} catch (IOException e) {
-					return 0L;
-				}
-			}).sum();
-			return StringUtil.formatSize(size, 2);
 		}
 		
 	}
-
 }

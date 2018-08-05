@@ -24,7 +24,7 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ConfigurationProperties(prefix = "menus")
 @Component
-public class MainMenuGroups implements ApplicationContextAware {
+public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 
 	private ApplicationContext applicationContext;
 	

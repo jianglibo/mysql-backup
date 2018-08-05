@@ -8,7 +8,10 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +37,56 @@ public class TestPathUtil {
 		assertThat(s, equalTo("//"));
 	}
 	
+	
+	@Test
+	public void testPathNameSort() throws IOException {
+		Path root = tfolder.getRoot().toPath();
+		tfolder.newFile("a");
+		tfolder.newFile("aa");
+		tfolder.newFile("aaa");
+		
+		List<Path> pathes = Files.list(root).collect(Collectors.toList());
+		Collections.sort(pathes, PathUtil.PATH_NAME_ASC);
+		
+		assertThat(pathes.get(0).getFileName().toString(), equalTo("a"));
+		assertThat(pathes.get(2).getFileName().toString(), equalTo("aaa"));
+		
+		Collections.sort(pathes, PathUtil.PATH_NAME_DESC);
+		
+		assertThat(pathes.get(0).getFileName().toString(), equalTo("aaa"));
+		assertThat(pathes.get(2).getFileName().toString(), equalTo("a"));
+	}
+	
+	@Test
+	public void testPathNameSort1() throws IOException {
+		Path root = tfolder.getRoot().toPath();
+		tfolder.newFile("a.000");
+		tfolder.newFile("a.001");
+		tfolder.newFile("a.010");
+		
+		List<Path> pathes = Files.list(root).collect(Collectors.toList());
+		Collections.sort(pathes, PathUtil.PATH_NAME_ASC);
+		
+		assertThat(pathes.get(0).getFileName().toString(), equalTo("a.000"));
+		assertThat(pathes.get(2).getFileName().toString(), equalTo("a.010"));
+		
+		Collections.sort(pathes, PathUtil.PATH_NAME_DESC);
+		
+		assertThat(pathes.get(0).getFileName().toString(), equalTo("a.010"));
+		assertThat(pathes.get(2).getFileName().toString(), equalTo("a.000"));
+	}
+	
+	
+	@Test
+	public void getNextByBaseNameNotExists() throws IOException {
+		Path fp = getRoot().resolve("a.b");
+		Path np = PathUtil.getNextAvailableByBaseName(getRoot().resolve("a.b"), 1);
+		assertThat(np.getFileName().toString(), equalTo("a.b.0"));
+		
+		Path max = PathUtil.getMaxVersionByBaseName(fp);
+		assertThat(max.getFileName().toString(), equalTo("a.b"));
+	}
+	
 	@Test
 	public void getNextByBaseName() throws IOException {
 		Path fp = getRoot().resolve("a.b");
@@ -41,7 +94,7 @@ public class TestPathUtil {
 		Path np = PathUtil.getNextAvailableByBaseName(getRoot().resolve("a.b"), 1);
 		assertThat(np.getFileName().toString(), equalTo("a.b.0"));
 		
-		Path max = PathUtil.getMaxVersion(fp);
+		Path max = PathUtil.getMaxVersionByBaseName(fp);
 		assertThat(max.getFileName().toString(), equalTo("a.b"));
 	}
 	
@@ -58,7 +111,7 @@ public class TestPathUtil {
 		Path np = PathUtil.getNextAvailableByBaseName(getRoot().resolve("a.b"), 1);
 		assertThat(np.getFileName().toString(), equalTo("a.b.4"));
 		
-		Path max = PathUtil.getMaxVersion(getRoot().resolve("a.b"));
+		Path max = PathUtil.getMaxVersionByBaseName(getRoot().resolve("a.b"));
 		assertThat(max.getFileName().toString(), equalTo("a.b.3"));
 		assertTrue(Files.exists(max));
 	}

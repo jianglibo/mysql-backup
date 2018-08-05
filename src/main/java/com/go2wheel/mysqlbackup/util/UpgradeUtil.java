@@ -131,19 +131,19 @@ public class UpgradeUtil {
 		}
 	}
 	
-	public boolean writeUpgradeFile(boolean force) throws IOException {
+	public boolean writeUpgradeFile(boolean force) throws IOException, UnExpectedInputException {
 		return writeUpgradeFile(Paths.get(""), force);
 	}
 
-	public boolean writeUpgradeFile() throws IOException {
+	public boolean writeUpgradeFile() throws IOException, UnExpectedInputException {
 		return writeUpgradeFile(Paths.get(""), false);
 	}
 
-	public boolean writeUpgradeFile(Path dir, boolean force) throws IOException {
+	public boolean writeUpgradeFile(Path dir, boolean force) throws IOException, UnExpectedInputException {
 		return writeUpgradeFile(dir, newAppVersion, force);
 	}
 
-	public boolean writeUpgradeFile(Path dir, Properties newAppInfoInfo, boolean force) throws IOException {
+	public boolean writeUpgradeFile(Path dir, Properties newAppInfoInfo, boolean force) throws IOException, UnExpectedInputException {
 		Properties upgradeProperties = new Properties();
 		upgradeProperties.setProperty(UpgradeFile.NEW_VESION, newAppInfoInfo.getProperty(BUILD_INFO_VERSION_KEY));
 		upgradeProperties.setProperty(UpgradeFile.UPGRADE_JAR, tmpPath.resolve(jarFile).toAbsolutePath().toString());

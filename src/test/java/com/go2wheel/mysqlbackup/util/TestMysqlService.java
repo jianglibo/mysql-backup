@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -20,12 +21,15 @@ import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.MysqlNotStartedException;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
+import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlService extends SpringBaseFort {
@@ -43,11 +47,10 @@ public class TestMysqlService extends SpringBaseFort {
 	private Software software;	
 	
 	@Before
-	public void before() throws JSchException, SchedulerException {
+	public void before() throws JSchException, SchedulerException, IOException, UnExpectedContentException {
 		clearDb();
 		createSession();
 		createMysqlIntance();
-		
 		deleteAllJobs();
 		
 		mySqlInstaller.syncToDb();
@@ -57,11 +60,19 @@ public class TestMysqlService extends SpringBaseFort {
 		assertTrue(ii.isInstalled());
 		mysqlService.enableLogbin(session, server);
 	}
+	
+	
+	@Test
+	public void testSaveMysqlSettings() throws IOException {
+		MycnfFileHolder mfh = mysqlService.getMysqlSettingsFromDisk(server);
+		assertNotNull(mfh);
+		assertThat(mfh.getLbs().getLogBinIndexNameOnly(), equalTo(MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME + ".index"));
+	}
 
 
 	@Test
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException, NoSuchAlgorithmException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		sdc.setHost(HOST_DEFAULT);
 		
 		
@@ -71,7 +82,7 @@ public class TestMysqlService extends SpringBaseFort {
 		
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
-		Path localDumpPath = settingsIndb.getDumpDir(server);
+		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
 		
 		assertThat(localDumpPath.getFileName().toString(), equalTo("dump.0000000"));
 		assertTrue(Files.exists(localDumpPath.resolve("mysqldump.sql")));
@@ -80,7 +91,7 @@ public class TestMysqlService extends SpringBaseFort {
 		assertTrue(fr.isExpected());
 		
 		// after dump, the current dump folder will changed.
-		localDumpPath = settingsIndb.getDumpDir(server);
+		localDumpPath = settingsIndb.getCurrentDumpDir(server);
 		
 		long pathCount = Files.list(localDumpPath.getParent()).count();
 		assertThat(pathCount, equalTo(3L)); // maybe include empty "dump" folder.

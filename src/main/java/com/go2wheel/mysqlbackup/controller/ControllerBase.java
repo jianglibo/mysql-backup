@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.EncodeConvertor;
+import com.go2wheel.mysqlbackup.util.TplUtil;
 
 public abstract class ControllerBase   implements ApplicationContextAware {
 	
@@ -44,6 +45,7 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
 		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("tplUtil", new TplUtil());
 	}
 	
 	

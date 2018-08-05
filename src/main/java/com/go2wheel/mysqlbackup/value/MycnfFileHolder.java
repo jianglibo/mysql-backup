@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,10 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	private String myCnfFile;
 	
 	private Map<String, String> variables;
+	
+	public MycnfFileHolder() {
+		super(new ArrayList<>());
+	}
 	
 	public MycnfFileHolder(List<String> lines) {
 		super(lines);
@@ -59,4 +64,10 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 	public void setVariables(Map<String, String> variables) {
 		this.variables = variables;
 	}
+
+	public LogBinSetting getLbs() {
+		return new LogBinSetting(variables);
+	}
+
+
 }

@@ -269,10 +269,10 @@ public class TestSpringQrtzScheduler extends SpringBaseFort  {
 		        logger.info("Job ** {} ** fired @ {}", context.getJobDetail().getKey().getName(), context.getFireTime());
 
 		        jobService.executeSampleJob();
-		        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
+//		        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
 		        
-		        JobDataMap jobDataMap = context.getMergedJobDataMap();
-		        Date date = (Date) jobDataMap.get("date");
+//		        JobDataMap jobDataMap = context.getMergedJobDataMap();
+//		        Date date = (Date) jobDataMap.get("date");
 
 		        logger.info("Next job scheduled @ {}", context.getNextFireTime());
 		    }
