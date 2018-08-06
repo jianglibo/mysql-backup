@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,9 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
@@ -33,14 +34,11 @@ import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
-import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -50,8 +48,9 @@ import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -205,7 +204,7 @@ public class MysqlService {
 	 */
 	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
 		try {
-			LogBinSetting lbs = server.getMysqlInstance().getLogBinSetting();
+			MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
 			String remoteIndexFile = lbs.getLogBinIndex();
 			String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
 
@@ -246,7 +245,7 @@ public class MysqlService {
 		try {
 
 			MysqlInstance mi = server.getMysqlInstance();
-			LogBinSetting lbs = mi.getLogBinSetting();
+			MysqlVariables lbs = mi.getLogBinSetting();
 			try {
 				lbs = mysqlUtil.getLogbinState(session, server);
 			} catch (AppNotStartedException e) {
@@ -292,7 +291,7 @@ public class MysqlService {
 	}
 	
 	public MycnfFileHolder requestMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
-		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
+		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server);
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 		mfh.setVariables(lbs.getMap());
 		return mfh;
@@ -326,7 +325,7 @@ public class MysqlService {
 			
 			MycnfFileHolder mfh = backupMysqlSettings(session, server);
 			String mycnfFile = mfh.getMyCnfFile();
-			LogBinSetting lbs = mfh.getLbs();
+			MysqlVariables lbs = mfh.getMysqlVariables();
 			
 			if (!lbs.isEnabled()) {
 				mfh.enableBinLog(logBinValue); // 修改logbin的值
@@ -374,12 +373,20 @@ public class MysqlService {
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
 			MycnfFileHolder sourceMfn = getMysqlSettingsFromDisk(sourceServer);
-			MycnfFileHolder tartgetMfn = requestMysqlSettings(targetSession, targetServer);
+			MycnfFileHolder targetMfn = requestMysqlSettings(targetSession, targetServer);
 			
-			overWriteMycnf(targetSession, targetServer, sourceMfn);
-			mysqlUtil.restartMysql(targetSession);
 			
-			disableLogbin(targetSession, targetServer);
+//			String sourceDataDir = sourceMfn.getMysqlVariables().getDataDirEndWithSlash();
+//			String targetDataDir = targetMfn.getMysqlVariables().getDataDirEndWithSlash();
+//
+//			// if data_dir aren't equal.
+//			if (!sourceDataDir.equals(targetDataDir)) {
+//				
+//			}
+//			sourceMfn.disableBinLog();
+//			
+//			overWriteMycnf(targetSession, targetServer, sourceMfn);
+//			mysqlUtil.restartMysql(targetSession);
 			
 			List<StorageState> ss = sss.getStorageState(targetServer, targetSession, false);
 			Collections.sort(ss, StorageState.AVAILABLE_DESC);
@@ -389,15 +396,40 @@ public class MysqlService {
 			Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
 			SSHcommonUtil.copyFolder(targetSession, dumpFolderToUpload, remoteDumpFolder);
 			
-			
-			
-			
-			
 		} finally {
 			if( targetSession != null) {
 				targetSession.disconnect();
 			}
 		}
+	}
+	
+	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, Path dumpFolder) throws IOException {
+		List<StorageState> ss = sss.getStorageState(targetServer, targetSession, false);
+		Collections.sort(ss, StorageState.AVAILABLE_DESC);
+		
+		String remoteMaxRoot = ss.get(0).getRoot();
+		String remoteDumpFolder = RemotePathUtil.join(remoteMaxRoot, dumpFolder.getFileName().toString());
+		SSHcommonUtil.deleteRemoteFolder(targetSession, remoteDumpFolder);
+		SSHcommonUtil.copyFolder(targetSession, dumpFolder, remoteDumpFolder);
+		return remoteDumpFolder;
+	}
+	
+	public void uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, String dumpFolder) throws IOException {
+		Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
+		uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolderToUpload);
+	}
+
+	public List<MysqlDumpFolder> listDumpFolders(Server sourceServer) throws IOException {
+		Path dumps = settingsInDb.getDumpsDir(sourceServer);
+		List<MysqlDumpFolder> dumpFolders = Files.list(dumps).map(MysqlDumpFolder::newInstance).filter(Objects::nonNull).collect(Collectors.toList());
+		Collections.sort(dumpFolders);
+		return dumpFolders;
+	}
+
+	public void importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
+			MysqlInstance targetMysqlInstance, String remoteFolder) {
+		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
+		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 		
 	}
 }

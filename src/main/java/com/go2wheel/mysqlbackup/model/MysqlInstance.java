@@ -14,13 +14,11 @@ import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 
 public class MysqlInstance extends BaseModel {
-	
-	public static final String VAR_DATADIR = "datadir";
 	
 	private String host = "localhost";
 	private int port = 3306;
@@ -198,11 +196,11 @@ public class MysqlInstance extends BaseModel {
 		}
 	}
 
-	public LogBinSetting getLogBinSetting() {
-		return new LogBinSetting(mysqlSettings);
+	public MysqlVariables getLogBinSetting() {
+		return new MysqlVariables(mysqlSettings);
 	}
 
-	public void setLogBinSetting(LogBinSetting logBinSetting) {
+	public void setLogBinSetting(MysqlVariables logBinSetting) {
 		if (logBinSetting == null) {
 			this.mysqlSettings = Lists.newArrayList();
 		} else {

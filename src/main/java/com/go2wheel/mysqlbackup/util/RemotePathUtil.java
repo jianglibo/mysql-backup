@@ -46,4 +46,16 @@ public class RemotePathUtil {
 		return remoteDir + onlyFilename;
 	}
 
+	public static String getFileName(String filename) {
+		if (filename.endsWith("/")) {
+			filename = filename.substring(0, filename.length() - 1);
+		}
+		int i = filename.lastIndexOf('/');
+		if (i == -1) {
+			return filename;
+		} else {
+			return filename.substring(i + 1, filename.length());
+		}
+	}
+
 }

@@ -49,10 +49,10 @@ public class DemoController {
 	@GetMapping("/mysql")
 	public String createMysql() throws JSchException, UnExpectedContentException {
 		String serverHost1 = "192.168.33.111";
-		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT);
+		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT_GET);
 
 		if (server == null) {
-			server = new Server(SpringBaseFort.HOST_DEFAULT, "a server.");
+			server = new Server(SpringBaseFort.HOST_DEFAULT_GET, "a server.");
 			server.setServerRole("GET");
 			server = serverDbService.save(server);
 		}

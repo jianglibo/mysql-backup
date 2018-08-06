@@ -192,12 +192,16 @@ public class SettingsInDb {
 	 * @throws IOException
 	 */
 	public Path getCurrentDumpDir(Server server) throws IOException {
-		Path path = getDirInHost(server, "dumps/dump"); 
+		Path path = getDumpsDir(server).resolve("dump"); 
 		return PathUtil.getMaxVersionByBaseName(path);
 	}
 	
 	public Path getDumpsDir(Server server) throws IOException {
-		return getDirInHost(server, "dumps"); 
+		Path p = getDirInHost(server, "dumps");
+		if (!Files.exists(p)) {
+			Files.createDirectories(p);
+		}
+		return p;
 	}
 	
 	/**
@@ -206,7 +210,7 @@ public class SettingsInDb {
 	 * @throws IOException
 	 */
 	public Path getNextDumpDir(Server server) throws IOException {
-		Path path = getDirInHost(server, "dumps/dump"); 
+		Path path = getDumpsDir(server).resolve("dump"); 
 		Files.list(path.getParent()).forEach(p -> {
 			try {
 				if (Files.list(p).toArray().length == 0) {

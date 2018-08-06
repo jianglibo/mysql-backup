@@ -17,18 +17,17 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
-import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Lines;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -78,31 +77,24 @@ public class MysqlUtil {
 				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
 	}
 
-	public LogBinSetting getLogbinState(Session session, String username, String password)
+	public MysqlVariables getLogbinState(Session session, String username, String password)
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
-		return new MysqlInteractiveExpect<LogBinSetting>(session) {
+		return new MysqlInteractiveExpect<MysqlVariables>(session) {
 			@Override
-			protected LogBinSetting afterLogin() {
+			protected MysqlVariables afterLogin() {
 				Map<String, String> binmap = new HashMap<>();
 				try {
-//					expect.sendLine("show variables like '%log_bin%';");
 					expect.sendLine("show variables;");
 					List<String> result = expectMysqlPromptAndReturnList();
 					binmap = Arrays
-							.asList(LogBinSetting.LOG_BIN_VARIABLE, LogBinSetting.LOG_BIN_BASENAME,
-									LogBinSetting.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version", "version_comment",
-									"version_compile_machine", "version_compile_os")
+							.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+									MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version", "version_comment",
+									"version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR)
 							.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
-					// binmap.put(LogBinSetting.LOG_BIN_VARIABLE,
-					// getColumnValue(result, LogBinSetting.LOG_BIN_VARIABLE, 0, 1));
-					// binmap.put(LogBinSetting.LOG_BIN_BASENAME,
-					// getColumnValue(result, LogBinSetting.LOG_BIN_BASENAME, 0, 1));
-					// binmap.put(LogBinSetting.LOG_BIN_INDEX, getColumnValue(result,
-					// LogBinSetting.LOG_BIN_INDEX, 0, 1));
 					expect.sendLine("exit");
 				} catch (IOException e) {
 				}
-				return new LogBinSetting(binmap);
+				return new MysqlVariables(binmap);
 			}
 		}.start(username, password);
 	}
@@ -136,7 +128,7 @@ public class MysqlUtil {
 //		}.start(username, password);
 //	}
 
-	public LogBinSetting getLogbinState(Session session, Server server)
+	public MysqlVariables getLogbinState(Session session, Server server)
 			throws JSchException, IOException, AppNotStartedException {
 		return getLogbinState(session, server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword());
@@ -232,7 +224,7 @@ public class MysqlUtil {
 			// this command need mysqld to be started, and know the password of the root.
 			Map<String, String> variables = new HashMap<>();
 			try {
-				variables = getVariables(session, server, MysqlInstance.VAR_DATADIR);
+				variables = getVariables(session, server, MysqlVariables.DATA_DIR);
 				mysqlInstallInfo.setVariables(variables);
 			} catch (MysqlAccessDeniedException | AppNotStartedException e) {
 				e.printStackTrace();

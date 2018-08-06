@@ -65,9 +65,7 @@ public class MycnfFileHolder extends BlockedPropertiesFileHolder {
 		this.variables = variables;
 	}
 
-	public LogBinSetting getLbs() {
-		return new LogBinSetting(variables);
+	public MysqlVariables getMysqlVariables() {
+		return new MysqlVariables(variables);
 	}
-
-
 }

@@ -1,0 +1,65 @@
+package com.go2wheel.mysqlbackup.service.mysqlservice;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
+import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
+import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+
+public class MysqlServiceTbase extends SpringBaseFort {
+
+	@Autowired
+	protected MysqlService mysqlService;
+	
+	@Autowired
+	protected MySqlInstaller mySqlInstaller;
+	
+	protected Software software;
+	
+	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException {
+		createSession();
+		createMysqlIntance();
+		installMysql(session, server, "123456");
+	}
+	
+	protected void installMysql(Session session, Server server, String initPassword) throws JSchException, SchedulerException, IOException, UnExpectedContentException {
+		deleteAllJobs();
+		mySqlInstaller.syncToDb();
+		List<Software> sfs = softwareDbService.findByName("MYSQL");
+		software = sfs.get(0);
+		MysqlInstallInfo ii = (MysqlInstallInfo) mySqlInstaller.install(session, server, software, initPassword).getResult();
+		assertTrue(ii.isInstalled());
+		mysqlService.enableLogbin(session, server);
+	}
+	
+	protected void uninstall() throws JSchException {
+		createSession();
+		createMysqlIntance();
+		mySqlInstaller.syncToDb();
+		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
+		assertFalse(info.getResult().isInstalled());
+	}
+	
+	protected void uninstall(Session session, Server server) throws JSchException {
+		createMysqlIntance(server, "");
+		mySqlInstaller.syncToDb();
+		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
+		assertFalse(info.getResult().isInstalled());
+	}
+
+	
+}

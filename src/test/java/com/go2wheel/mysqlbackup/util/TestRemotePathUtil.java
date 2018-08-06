@@ -27,6 +27,18 @@ public class TestRemotePathUtil {
 		s = RemotePathUtil.join("a/");
 		assertThat(s, equalTo("a/"));
 	}
+
+	@Test
+	public void testGetFilename() {
+		String s = RemotePathUtil.getFileName("a/");
+		assertThat(s, equalTo("a"));
+		
+		s = RemotePathUtil.getFileName("/a");
+		assertThat(s, equalTo("a"));
+		
+		s = RemotePathUtil.getFileName("/");
+		assertThat(s, equalTo(""));
+	}
 	
 	@Test
 	public void t() {

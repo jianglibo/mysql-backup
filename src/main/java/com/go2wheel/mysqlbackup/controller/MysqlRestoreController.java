@@ -53,9 +53,7 @@ public class MysqlRestoreController extends ControllerBase {
 	public String listLocalDumps(@PathVariable PlayBack playback, Model model, HttpServletRequest request) throws IOException {
 		Server sourceServer = serverDbService.findById(playback.getSourceServerId());
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
-		Path dumps = settingsInDb.getCurrentDumpDir(sourceServer).getParent();
-		List<MysqlDumpFolder> dumpFolders = Files.list(dumps).map(MysqlDumpFolder::newInstance).filter(Objects::nonNull).collect(Collectors.toList());
-		Collections.sort(dumpFolders);
+		List<MysqlDumpFolder> dumpFolders = mysqlService.listDumpFolders(sourceServer);
 		model.addAttribute("sourceServer", sourceServer);
 		model.addAttribute("targetServer", targetServer);
 		model.addAttribute(CRUDController.LIST_OB_NAME, dumpFolders);

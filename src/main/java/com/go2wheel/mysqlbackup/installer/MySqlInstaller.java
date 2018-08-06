@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
@@ -36,6 +35,7 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
@@ -174,7 +174,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 			cmd = String.format("yum -y remove %s", info.getPackageName());
 			SSHcommonUtil.runRemoteCommand(session, cmd);
 
-			String datadir = info.getVariables().get(MysqlInstance.VAR_DATADIR);
+			String datadir = info.getVariables().get(MysqlVariables.DATA_DIR);
 			SSHcommonUtil.backupFileByMove(session, datadir);
 			if (datadir != null) {
 				cmd = String.format("rm -rf %s", datadir);

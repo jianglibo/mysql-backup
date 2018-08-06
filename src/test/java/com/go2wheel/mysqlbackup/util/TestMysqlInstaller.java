@@ -34,7 +34,6 @@ public class TestMysqlInstaller extends SpringBaseFort {
 		parasMap.put("version", "56");
 		parasMap.put("initPassword", "123456");
 		mii.syncToDb();
-//		software = softwareDbService.findByName("MYSQL").get(0);
 		FacadeResult<MysqlInstallInfo> info = mii.install(server, software, parasMap);
 		assertTrue(info.getResult().isInstalled());
 	}

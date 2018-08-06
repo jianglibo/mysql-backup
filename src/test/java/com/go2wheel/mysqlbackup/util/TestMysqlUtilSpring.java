@@ -14,17 +14,16 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
-import com.go2wheel.mysqlbackup.value.LogBinSetting;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlUtilSpring extends SpringBaseFort {
@@ -43,7 +42,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	@Test
 	public void testMysqlVariable()
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
-		LogBinSetting lbs = mysqlUtil.getLogbinState(session, server);
+		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server);
 		assertThat(lbs.getMap().size(), greaterThan(3));
 	}
 
@@ -91,8 +90,8 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	public void testVariables()
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		Map<String, String> map = mysqlUtil.getVariables(session, server.getMysqlInstance().getUsername("root"),
-				server.getMysqlInstance().getPassword(), MysqlInstance.VAR_DATADIR);
-		assertTrue("contains datadir", map.containsKey(MysqlInstance.VAR_DATADIR));
+				server.getMysqlInstance().getPassword(), MysqlVariables.DATA_DIR);
+		assertTrue("contains datadir", map.containsKey(MysqlVariables.DATA_DIR));
 	}
 
 	@Test

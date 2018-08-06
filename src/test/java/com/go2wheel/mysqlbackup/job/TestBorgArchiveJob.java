@@ -40,7 +40,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testJobFunction() throws SchedulerException, IOException, JSchException {
-		sdc.setHost(HOST_DEFAULT);
+		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		long jc = countJobs();
 		assertThat(jc, equalTo(0L));
@@ -111,7 +111,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	@Test
 	public void testSchedulerBorgUpdate() throws SchedulerException {
-		sdc.setHost(HOST_DEFAULT);
+		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		long tc = countTriggers();
 		assertThat(tc, equalTo(0L));

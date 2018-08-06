@@ -67,7 +67,8 @@ value = { "spring.shell.interactive.enabled=false",
 		"spring.profiles.active=dev" })
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
-	public static final String HOST_DEFAULT = "192.168.33.110";
+	public static final String HOST_DEFAULT_GET = "192.168.33.110";
+	public static final String HOST_DEFAULT_SET = "192.168.33.111";
 	public static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	
 	@Autowired
@@ -202,6 +203,15 @@ public class SpringBaseFort {
 		}
 	}
 	
+	protected Session createSession(Server server) throws JSchException {
+		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
+		if (frs.isExpected()) {
+			return frs.getResult();
+		} else {
+			return null;
+		}
+	}
+	
 	
 	protected void deleteAllJobs() throws SchedulerException {
 		scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream().forEach(jk -> {
@@ -214,12 +224,21 @@ public class SpringBaseFort {
 	}
 	
 	protected Server createServer() {
-		server = createServer(HOST_DEFAULT);
+		server = createServer(HOST_DEFAULT_GET);
 		return server;
 	}
 	
 	protected Server createServer(String host) {
-		Server s = new Server(host, "a server.");
+		return createServer(host, host, false);
+	}
+	
+	protected Server createServer(String host, boolean set) {
+		return createServer(host, host, set);
+	}
+	
+	protected Server createServer(String host, String name, boolean set) {
+		Server s = new Server(host, name);
+		s.setServerRole(set ? "SET" : "GET");
 		return serverDbService.save(s);
 	}
 	
@@ -229,7 +248,11 @@ public class SpringBaseFort {
 	}
 	
 	protected void createMysqlIntance() {
-		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456")
+		createMysqlIntance(server, "123456");
+	}
+	
+	protected void createMysqlIntance(Server server, String initPassword) {
+		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), initPassword)
 				.addSetting("log_bin", "ON")
 				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
 				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")

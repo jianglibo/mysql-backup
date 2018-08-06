@@ -8,13 +8,14 @@ import java.util.stream.Collectors;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
-public class LogBinSetting {
+public class MysqlVariables {
 	
 	// host_name-bin
 	public static final String LOG_BIN_VARIABLE = "log_bin";
 	//	Holds the base name and path for the binary log files, which can be set with the --log-bin server option. In MySQL 5.7, the default base name is the name of the host machine with the suffix -bin. The default location is the data directory.
 	public static final String LOG_BIN_BASENAME = "log_bin_basename";
 	public static final String LOG_BIN_INDEX = "log_bin_index";
+	public static final String DATA_DIR = "datadir";
 
 	
 	private Map<String, String> map = new HashMap<>();
@@ -24,10 +25,10 @@ public class LogBinSetting {
 		return map.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.joining(", ", "[", "]"));
 	}
 	
-	public LogBinSetting() {
+	public MysqlVariables() {
 	}
 	
-	public LogBinSetting(Map<String, String> map) {
+	public MysqlVariables(Map<String, String> map) {
 		super();
 		this.map = map;
 	}
@@ -36,19 +37,23 @@ public class LogBinSetting {
 		return map.isEmpty();
 	}
 	
-	public LogBinSetting(List<String> lines) {
+	public MysqlVariables(List<String> lines) {
 		super();
 		Map<String, String> m = StringUtil.toPair(lines);
 		this.map.putAll(m);
-//		lines.stream().map(line -> line.split("\\|", 2)).filter(ss -> ss.length == 2).forEach(ss -> {
-//			map.put(ss[0].trim(), ss[1].trim());
-//		});
 	}
 
 	
 	public List<String> toLines() {
 		return StringUtil.toLines(this.map);
-//		return this.map.entrySet().stream().map(es -> es.getKey() + "|" + es.getValue()).collect(Collectors.toList());
+	}
+	
+	public String getDataDirEndWithSlash() {
+		String s = map.get(DATA_DIR);
+		if (s != null && !s.endsWith("/")) {
+			s = s + "/";
+		}
+		return s;
 	}
 	
 	public String getLogBinDirWithEndingSlash() {
