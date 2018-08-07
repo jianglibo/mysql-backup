@@ -375,19 +375,18 @@ public class MysqlService {
 
 	}
 	
-	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(restore(playback, sourceServer, targetServer, dumpFolder));
+				return new AsyncTaskValue(restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
 			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
 					| AppNotStartedException | ScpException e1) {
 				throw new ExceptionWrapper(e1);
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(false);
+			return new AsyncTaskValue(false).withDescription(msgkey);
 		});
 	}
-	
 
 	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		Session targetSession = null;

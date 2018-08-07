@@ -62,14 +62,16 @@ public class TestMysqlInstaller extends SpringBaseFort {
 		mii.syncToDb();
 		software = softwareDbService.findByName("MYSQL").get(0);
 
-		CompletableFuture<AsyncTaskValue> cfm = mii.installAsync(server, software, parasMap);
+		CompletableFuture<AsyncTaskValue> cfm = mii.installAsync(server, software, "abc", parasMap);
 
 		Thread t = Thread.currentThread();
 
 		assertFalse(cfm.isDone());
 
 		cfm.thenAccept(fr -> {
+			@SuppressWarnings("unchecked")
 			FacadeResult<MysqlInstallInfo> fmi = (FacadeResult<MysqlInstallInfo>) fr.getResult();
+			
 			assertTrue(fmi.getResult().isInstalled());
 			assertThat(fmi.getCommonActionResult(), equalTo(CommonActionResult.PREVIOUSLY_DONE));
 			assertFalse(cfm.isCancelled());

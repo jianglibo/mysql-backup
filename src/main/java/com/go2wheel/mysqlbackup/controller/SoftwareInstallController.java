@@ -23,6 +23,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.installer.Installer;
+import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
@@ -71,9 +72,11 @@ public class SoftwareInstallController extends ControllerBase {
 	public String unInstall(@RequestParam Server server,
 			@RequestParam Software software, HttpServletRequest request) {
 		
+		String msgkey = messageSource.getMessage(MySqlInstaller.TASK_KEY, new Object[] {server.getId()} , request.getLocale());
+		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software);
+				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software, msgkey);
 				String sid = request.getSession(true).getId();
 				globalStore.saveAfuture(sid, server.getId() + "-" + software.getId(), cf);
 			}
@@ -94,11 +97,13 @@ public class SoftwareInstallController extends ControllerBase {
 		Map<String, String> parameters = parameterMap.entrySet().stream().filter(es -> es.getValue().length > 0)
 				.collect(Collectors.toMap(es -> es.getKey(), es -> es.getValue()[0]));
 		
+		String msgkey = messageSource.getMessage(MySqlInstaller.TASK_KEY, new Object[] {server.getId()} , request.getLocale());
+		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, parameters);
+				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, msgkey, parameters);
 				String sid = request.getSession(true).getId();
-				globalStore.saveAfuture(sid, server.getId() + "-" + software.getId(), cf);
+				globalStore.saveAfuture(sid, msgkey, cf);
 			}
 		}
 		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));

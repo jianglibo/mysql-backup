@@ -63,11 +63,12 @@ public class MysqlRestoreController extends ControllerBase {
 		Server sourceServer = serverDbService.findById(playback.getSourceServerId());
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
 		
-		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder);
+		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getId(), targetServer.getId()}, request.getLocale());
+		
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey);
 		
 		String sid = request.getSession(true).getId();
-		
-		globalStore.saveAfuture(sid, sourceServer.getId() + "-" + targetServer.getId(), cf);
+		globalStore.saveAfuture(sid, msgkey, cf);
 		
 		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);

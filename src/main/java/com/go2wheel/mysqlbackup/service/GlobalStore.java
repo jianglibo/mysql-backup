@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,8 @@ public class GlobalStore {
 	public Cache<String, CompletableFuture<AjaxResult>> groupListernerCache;
 
 	private Map<String, Map<String, CompletableFuture<AsyncTaskValue>>> sessionAndFutures = new HashMap<>();
+	
+	private Map<CompletableFuture<AsyncTaskValue>, TimeElapsed> timeCostMap = Maps.newHashMap();
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -118,6 +121,7 @@ public class GlobalStore {
 				});
 			}
 			putToMap(group, key, value);
+			timeCostMap.put(value, new TimeElapsed());
 		} finally {
 			if (lock != null) {
 				lock.unlock();
@@ -130,7 +134,9 @@ public class GlobalStore {
 	}
 
 	public CompletableFuture<AsyncTaskValue> removeFuture(String group, String key) {
-		return sessionAndFutures.get(group).remove(key);
+		CompletableFuture<AsyncTaskValue> ca = sessionAndFutures.get(group).remove(key);
+		timeCostMap.remove(ca);
+		return ca;
 	}
 
 	public List<CompletableFuture<AsyncTaskValue>> getGroupObjects(String group) {
@@ -143,9 +149,22 @@ public class GlobalStore {
 			Optional<Entry<String, CompletableFuture<AsyncTaskValue>>> ov = map.entrySet().stream().filter(es -> es.getValue() == it).findAny();
 			if (ov.isPresent()) {
 				map.remove(ov.get().getKey());
+				timeCostMap.remove(it);
 				break;
 			}
 		}
 	}
-
+	
+	public static class TimeElapsed {
+		
+		private Instant startPoint;
+		
+		public TimeElapsed() {
+			this.startPoint = Instant.now();
+		}
+		
+		public String seconds() {
+			return String.valueOf((Instant.now().toEpochMilli() - startPoint.toEpochMilli()) / 1000);
+		}
+	}
 }

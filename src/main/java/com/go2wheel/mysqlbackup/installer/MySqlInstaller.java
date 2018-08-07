@@ -50,6 +50,8 @@ import net.sf.expectit.ExpectIOException;
 public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	public static final String TASK_KEY = "taskkey.mysqlinstaller";
 
 	private static final String MYSQL_COMMUNITY_RELEASE_BINARY_URL = "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm";
 
@@ -212,12 +214,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software, Map<String, String> parasMap) {
+	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software,String msgKey, Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(install(server, software, parasMap));
+				return new AsyncTaskValue(install(server, software, parasMap)).withDescription(msgKey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
 	}
@@ -275,12 +277,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software) {
+	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgKey) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(uninstall(server, software));
+				return new AsyncTaskValue(uninstall(server, software)).withDescription(msgKey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
 	}

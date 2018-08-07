@@ -107,13 +107,13 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software,
+	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software, String msgkey,
 			Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(install(server, software, parasMap));
+				return new AsyncTaskValue(install(server, software, parasMap)).withDescription(msgkey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgkey);
 			}
 		});
 	}
@@ -158,12 +158,12 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software) {
+	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgkey) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(uninstall(server, software));
+				return new AsyncTaskValue(uninstall(server, software)).withDescription(msgkey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgkey);
 			}
 		});
 	}

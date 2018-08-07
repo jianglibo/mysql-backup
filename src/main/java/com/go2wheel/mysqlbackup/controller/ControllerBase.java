@@ -8,6 +8,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
+import org.springframework.context.MessageSource;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -34,6 +35,9 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	@Autowired
 	private MainMenuGroups menuGroups;
 	
+	@Autowired
+	protected MessageSource messageSource;
+	
 	private final String mappingUrl;
 	
 	public ControllerBase(String mappingUrl) {
@@ -59,7 +63,7 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	public String getMappingUrl() {
 		return mappingUrl;
 	}
-
+	
 	
 	protected String getTplName(String full) {
 		int p = full.lastIndexOf('/');
