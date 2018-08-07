@@ -19,6 +19,7 @@ import com.go2wheel.mysqlbackup.model.SoftwareInstallation;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
@@ -106,13 +107,13 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<FacadeResult<InstallInfo>> installAsync(Server server, Software software,
+	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software,
 			Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return install(server, software, parasMap);
+				return new AsyncTaskValue(install(server, software, parasMap));
 			} catch (JSchException e) {
-				return FacadeResult.unexpectedResult(e);
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
 			}
 		});
 	}
@@ -157,12 +158,12 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<FacadeResult<InstallInfo>> uninstallAsync(Server server, Software software) {
+	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return uninstall(server, software);
+				return new AsyncTaskValue(uninstall(server, software));
 			} catch (JSchException e) {
-				return FacadeResult.unexpectedResult(e);
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
 			}
 		});
 	}

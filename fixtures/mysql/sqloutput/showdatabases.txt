@@ -1,0 +1,16 @@
+$ ssh root@192.168.33.110
+Last login: Mon Aug  6 07:22:49 2018 from 192.168.33.1
+[root@localhost ~]# mysql -uroot -p -e "show databases"
+Enter password:
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| performance_schema |
++--------------------+
+[root@localhost ~]# mysql -uroot -p < /tmp/mysqldump.sql
+Enter password:
+[root@localhost ~]# mysql -uroot -p < /tmp/mysqldump.sql
+Enter password:
+[root@localhost ~]#

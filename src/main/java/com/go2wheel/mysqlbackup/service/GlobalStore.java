@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -23,33 +23,35 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
 import com.go2wheel.mysqlbackup.value.AjaxErrorResult;
 import com.go2wheel.mysqlbackup.value.AjaxResult;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Maps;
 
 @Service
 public class GlobalStore {
 
 	private LoadingCache<String, Lock> lockCache;
-	
+
 	public Cache<String, CompletableFuture<AjaxResult>> groupListernerCache;
+
+	private Map<String, Map<String, CompletableFuture<AsyncTaskValue>>> sessionAndFutures = new HashMap<>();
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostConstruct
 	private void post() {
-		lockCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000).build(new CacheLoader<String, Lock>() {
-			public Lock load(String key) {
-				return new ReentrantLock();
-			}
-		});
+		lockCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).maximumSize(1000)
+				.build(new CacheLoader<String, Lock>() {
+					public Lock load(String key) {
+						return new ReentrantLock();
+					}
+				});
 		groupListernerCache = CacheBuilder.newBuilder().expireAfterAccess(Duration.ofMinutes(30)).build();
 	}
-
-	private Map<String, Gobject> obStore = new HashMap<>();
-	
 
 	public Lock getLock(String group) {
 		try {
@@ -60,8 +62,11 @@ public class GlobalStore {
 		return null;
 	}
 
-	private String combine(String group, String key) {
-		return group + "." + key;
+	private void putToMap(String group, String key, CompletableFuture<AsyncTaskValue> value) {
+		if (!sessionAndFutures.containsKey(group)) {
+			sessionAndFutures.put(group, Maps.newHashMap());
+		}
+		sessionAndFutures.get(group).put(key, value);
 	}
 
 	/**
@@ -71,7 +76,7 @@ public class GlobalStore {
 	 * @param key
 	 * @param value
 	 */
-	public void saveObject(String group, String key, Gobject value) {
+	public void saveAfuture(String group, String key, CompletableFuture<AsyncTaskValue> value) {
 		Lock lock = getLock(group);
 		try {
 			lock.lock();
@@ -80,11 +85,9 @@ public class GlobalStore {
 				if (lis.isDone()) {
 					return;
 				}
-				@SuppressWarnings("unchecked")
-				CompletableFuture<Object> cf1 = (CompletableFuture<Object>) value.getObject();
-				cf1.thenAccept(r -> {
-					if (r instanceof FacadeResult) {
-						FacadeResult<?> fr = (FacadeResult<?>) r; 
+				value.thenAccept(av -> {
+					if (av.getResult() instanceof FacadeResult) {
+						FacadeResult<?> fr = (FacadeResult<?>) av.getResult();
 						if (!fr.isExpected()) {
 							Throwable tw = fr.getException();
 							if (tw != null) {
@@ -92,29 +95,29 @@ public class GlobalStore {
 									tw = ((ExceptionWrapper) tw).getException();
 								}
 								AjaxErrorResult aer = AjaxErrorResult.exceptionResult(tw);
-								removeObject(cf1);
+								removeFuture(value);
 								lis.complete(aer);
 								return;
 							}
 							AjaxDataResult<?> arr = new AjaxDataResult<>();
-							arr.addObject(r);
-							removeObject(cf1);
+							arr.addObject(av);
+							removeFuture(value);
 							lis.complete(arr);
 							return;
 						}
 					}
 					AjaxDataResult<?> fr = new AjaxDataResult<>();
-					fr.addObject(r);
-					removeObject(cf1);
+					fr.addObject(av);
+					removeFuture(value);
 					lis.complete(fr);
 				}).exceptionally(throwable -> {
 					ExceptionUtil.logThrowable(logger, throwable);
-					removeObject(cf1);
+					removeFuture(value);
 					lis.complete(AjaxErrorResult.exceptionResult(throwable));
 					return null;
 				});
 			}
-			obStore.put(combine(group, key), value);
+			putToMap(group, key, value);
 		} finally {
 			if (lock != null) {
 				lock.unlock();
@@ -122,63 +125,26 @@ public class GlobalStore {
 		}
 	}
 
-	public Gobject getObject(String group, String key) {
-		String k = combine(group, key);
-		return obStore.get(k);
+	public CompletableFuture<AsyncTaskValue> getFuture(String group, String key) {
+		return sessionAndFutures.get(group).get(key);
 	}
 
-	public Gobject removeObject(String group, String key) {
-		return obStore.remove(combine(group, key));
+	public CompletableFuture<AsyncTaskValue> removeFuture(String group, String key) {
+		return sessionAndFutures.get(group).remove(key);
 	}
 
-	public List<Gobject> getGroupObjects(String groupName) {
-		return obStore.entrySet().stream().filter(es -> es.getKey().startsWith(groupName + "."))
-				.map(es -> es.getValue()).collect(Collectors.toList());
+	public List<CompletableFuture<AsyncTaskValue>> getGroupObjects(String group) {
+		return new ArrayList<>(sessionAndFutures.get(group).values());
 
 	}
 
-	public void removeObject(Object it) {
-		Optional<Entry<String, Gobject>> s = obStore.entrySet().stream().filter(es -> es.getValue().getObject() == it)
-				.findAny();
-		if (s.isPresent()) {
-			obStore.remove(s.get().getKey());
-		}
-	}
-
-	public static class Gobject {
-
-		private String name;
-		private Object object;
-
-		public static Gobject newGobject(String name, Object object) {
-			return new Gobject(name, object);
-		}
-
-		public Gobject(String name, Object object) {
-			super();
-			this.name = name;
-			this.object = object;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public void setName(String name) {
-			this.name = name;
-		}
-
-		public Object getObject() {
-			return object;
-		}
-
-		public void setObject(Object object) {
-			this.object = object;
-		}
-
-		@SuppressWarnings("unchecked")
-		public <T> T as(Class<T> clazz) {
-			return (T) object;
+	public void removeFuture(CompletableFuture<AsyncTaskValue> it) {
+		for (Map<String, CompletableFuture<AsyncTaskValue>> map : sessionAndFutures.values()) {
+			Optional<Entry<String, CompletableFuture<AsyncTaskValue>>> ov = map.entrySet().stream().filter(es -> es.getValue() == it).findAny();
+			if (ov.isPresent()) {
+				map.remove(ov.get().getKey());
+				break;
+			}
 		}
 	}
 

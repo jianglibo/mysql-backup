@@ -25,9 +25,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.go2wheel.mysqlbackup.installer.Installer;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.google.common.collect.Maps;
 
 @Controller
@@ -73,9 +73,9 @@ public class SoftwareInstallController extends ControllerBase {
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<?> cf = il.uninstallAsync(server, software);
+				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software);
 				String sid = request.getSession(true).getId();
-				globalStore.saveObject(sid, server.getId() + "-" + software.getId(), Gobject.newGobject(software.getName() + "的反安装", cf));
+				globalStore.saveAfuture(sid, server.getId() + "-" + software.getId(), cf);
 			}
 		}
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
@@ -96,9 +96,9 @@ public class SoftwareInstallController extends ControllerBase {
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<?> cf = il.installAsync(server, software, parameters);
+				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, parameters);
 				String sid = request.getSession(true).getId();
-				globalStore.saveObject(sid, server.getId() + "-" + software.getId(), Gobject.newGobject("MYSQL安装", cf));
+				globalStore.saveAfuture(sid, server.getId() + "-" + software.getId(), cf);
 			}
 		}
 		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));

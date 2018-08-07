@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
-import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -22,11 +21,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.async.AsyncRequestTimeoutException;
 
 import com.go2wheel.mysqlbackup.service.GlobalStore;
-import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
 import com.go2wheel.mysqlbackup.value.AjaxErrorResult;
 import com.go2wheel.mysqlbackup.value.AjaxResult;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
 @Controller
 @RequestMapping("/app/polling")
@@ -65,24 +64,24 @@ public class LongPollingController {
 				 return cfInMap;
 			}
 
-			List<Gobject> lgo = globalStore.getGroupObjects(group);
-			// 只能对正在执行的异步作出响应，如果在等待的过程中有新的任务加入，必须在下�?个循环中才能�?测到�?
-			CompletableFuture<?>[] cfs = lgo.stream().map(go -> go.as(CompletableFuture.class))
-					.toArray(size -> new CompletableFuture<?>[size]);
+			List<CompletableFuture<AsyncTaskValue>> cfs = globalStore.getGroupObjects(group);
+			// 只能对正在执行的异步作出响应，如果在等待的过程中有新的任务加入，必须在下一个循环中才能被测到?
+//			CompletableFuture<?>[] cfs = lgo.stream().map(go -> go.as(CompletableFuture.class))
+//					.toArray(size -> new CompletableFuture<?>[size]);
 
 			CompletableFuture<AjaxResult> cf = new CompletableFuture<AjaxResult>();
-			// 如果此CF正处于处于等待中，此时有新的任务加入，可以将将它加入监听中�??
+			// 如果此CF正处于处于等待中，此时有新的任务加入，可以将将它加入监听中？
 			globalStore.groupListernerCache.put(group, cf);
 
-			CompletableFuture.anyOf(cfs).thenAccept(new Consumer<Object>() {
+			CompletableFuture.anyOf(cfs.toArray(new CompletableFuture<?>[cfs.size()])).thenAccept(new Consumer<Object>() {
 				@Override
 				public void accept(Object t) {
 					AjaxDataResult<?> fr = new AjaxDataResult<>();
-					for (CompletableFuture<?> it : cfs) {
+					for (CompletableFuture<AsyncTaskValue> it : cfs) {
 						Object o = it.getNow(null);
 						if (o != null) {
 							fr.addObject(o);
-							globalStore.removeObject(it);
+							globalStore.removeFuture(it);
 						}
 					}
 					globalStore.groupListernerCache.invalidate(group);
@@ -90,9 +89,9 @@ public class LongPollingController {
 				}
 			}).exceptionally(throwable -> { //如果发生意外，必须将发生意外的future移除。
 				ExceptionUtil.logThrowable(logger, throwable);
-				Optional<CompletableFuture<?>> ocf = Stream.of(cfs).filter(f -> f.isDone()).findAny();
+				Optional<CompletableFuture<AsyncTaskValue>> ocf = cfs.stream().filter(f -> f.isDone()).findAny();
 				if (ocf.isPresent()) {
-					globalStore.removeObject(ocf.get());
+					globalStore.removeFuture(ocf.get());
 				}
 				globalStore.groupListernerCache.invalidate(group);
 				cf.complete(AjaxErrorResult.exceptionResult(throwable));

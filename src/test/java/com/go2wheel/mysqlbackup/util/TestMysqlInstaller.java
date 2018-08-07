@@ -17,6 +17,7 @@ import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.google.common.collect.Maps;
@@ -61,15 +62,16 @@ public class TestMysqlInstaller extends SpringBaseFort {
 		mii.syncToDb();
 		software = softwareDbService.findByName("MYSQL").get(0);
 
-		CompletableFuture<FacadeResult<MysqlInstallInfo>> cfm = mii.installAsync(server, software, parasMap);
+		CompletableFuture<AsyncTaskValue> cfm = mii.installAsync(server, software, parasMap);
 
 		Thread t = Thread.currentThread();
 
 		assertFalse(cfm.isDone());
 
 		cfm.thenAccept(fr -> {
-			assertTrue(fr.getResult().isInstalled());
-			assertThat(fr.getCommonActionResult(), equalTo(CommonActionResult.PREVIOUSLY_DONE));
+			FacadeResult<MysqlInstallInfo> fmi = (FacadeResult<MysqlInstallInfo>) fr.getResult();
+			assertTrue(fmi.getResult().isInstalled());
+			assertThat(fmi.getCommonActionResult(), equalTo(CommonActionResult.PREVIOUSLY_DONE));
 			assertFalse(cfm.isCancelled());
 			assertFalse(cfm.isCompletedExceptionally());
 			assertTrue(cfm.isDone());

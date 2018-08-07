@@ -21,6 +21,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
@@ -37,13 +38,14 @@ public class TestRestore extends MysqlServiceTbase {
 	
 
 	@Test
-	public void testMysqldump()
+	public void testMysqlRestore()
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		
 		//init get
 		installMysql();
+		MysqlUtil.createDatabases(session, server, server.getMysqlInstance(), "aaaaa");
 		mysqlService.mysqlDump(session, server);
 		
 		//init set
@@ -51,6 +53,8 @@ public class TestRestore extends MysqlServiceTbase {
 		createMysqlIntance(targetServer, "654321");
 		Session targetSession = createSession(targetServer);
 		installMysql(targetSession, targetServer, "654321");
+		
+		
 		
 		List<MysqlDumpFolder> mss = mysqlService.listDumpFolders(server);
 		MysqlDumpFolder mdf = mss.get(0);
@@ -69,7 +73,16 @@ public class TestRestore extends MysqlServiceTbase {
 		MysqlInstance sourceMysqlInstance = server.getMysqlInstance();
 		MysqlInstance targetMysqlInstance = targetServer.getMysqlInstance();
 		
-		mysqlService.importDumped(targetSession, targetServer, sourceMysqlInstance, targetMysqlInstance, remoteFolder);
+		List<String> dbnames = MysqlUtil.getDatabases(targetSession, targetServer, targetMysqlInstance);
+		
+		List<String> lines = mysqlService.importDumped(targetSession, targetServer, sourceMysqlInstance, targetMysqlInstance, remoteFolder);
+		
+		assertThat(lines.size(), equalTo(1));
+		assertTrue(lines.get(0).isEmpty());
+		
+		List<String> after_dbnames = MysqlUtil.getDatabases(targetSession, targetServer, targetMysqlInstance);
+		
+		assertThat(after_dbnames.size() - 1, equalTo(dbnames.size()));
 		
 	}
 

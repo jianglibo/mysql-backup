@@ -22,9 +22,9 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
-import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
 
 @Controller
@@ -90,9 +90,9 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		server = serverDbService.loadFull(server);
 		
-		CompletableFuture<?> cf = borgService.downloadRepoAsync(server);
+		CompletableFuture<AsyncTaskValue> cf = borgService.downloadRepoAsync(server, "");
 		String sid = request.getSession(true).getId();
-		globalStore.saveObject(sid, server.getId() + "-sync-borg-repo" + borgDescription.getId(), Gobject.newGobject("下载Borg", cf));
+		globalStore.saveAfuture(sid, server.getId() + "-sync-borg-repo" + borgDescription.getId(), cf);
 		
 		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
 		return redirectMappingUrl();

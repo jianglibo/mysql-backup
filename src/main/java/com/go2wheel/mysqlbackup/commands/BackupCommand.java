@@ -57,10 +57,10 @@ import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
@@ -91,7 +91,6 @@ import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
-import com.go2wheel.mysqlbackup.service.GlobalStore.Gobject;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -117,6 +116,7 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
@@ -770,8 +770,9 @@ public class BackupCommand {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		if (async) {
-			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(server, false);
-			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
+			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"Dump mysql.", false);
+			
+			globalStore.saveAfuture(BackupCommand.class.getName(), "mysqldump-" + server.getId(), future);
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
 			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
@@ -781,11 +782,10 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "列出后台任务")
 	public FacadeResult<?> asyncList() throws JSchException, IOException {
-		List<Gobject> gobjects = globalStore.getGroupObjects(BackupCommand.class.getName());
+		List<CompletableFuture<AsyncTaskValue>> gobjects = globalStore.getGroupObjects(BackupCommand.class.getName());
 		
 		List<String> ls =  gobjects.stream()
-				.filter(go -> go.getObject() instanceof CompletableFuture)
-				.map(go -> go.getName() + "的状态: " + go.as(CompletableFuture.class).isDone())
+				.map(f -> f.isDone() + "")
 				.collect(Collectors.toList());
 		return FacadeResult.doneExpectedResultDone(ls);
 		
@@ -810,8 +810,8 @@ public class BackupCommand {
 			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
 		}
 		if (async) {
-			CompletableFuture<FacadeResult<LinuxLsl>> future = mysqlService.mysqlDumpAsync(server, true);
-			globalStore.saveObject(BackupCommand.class.getName(), "mysqldump-" + server.getId(), Gobject.newGobject("MySql dump task.", future));
+			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"mysql dump", true);
+			globalStore.saveAfuture(BackupCommand.class.getName(), "mysqldump-" + server.getId(), future);
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
 			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);

@@ -30,6 +30,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlImportExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -45,13 +46,15 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
-import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -99,7 +102,7 @@ public class MysqlService {
 	}
 	
 	
-	public CompletableFuture<FacadeResult<LinuxLsl>> mysqlDumpAsync(Server server, boolean force) {
+	public CompletableFuture<AsyncTaskValue> mysqlDumpAsync(Server server, String taskDescription, boolean force) {
 		return CompletableFuture.supplyAsync(() -> {
 			FacadeResult<Session> frSession;
 			try {
@@ -110,7 +113,8 @@ public class MysqlService {
 			return frSession.getResult();
 		}).thenApplyAsync(session -> {
 			try {
-				return this.mysqlDump(session, server, force);
+				FacadeResult<LinuxLsl> fr = this.mysqlDump(session, server, force);
+				return new AsyncTaskValue(fr).withDescription(taskDescription);
 			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedContentException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
@@ -119,7 +123,7 @@ public class MysqlService {
 				}
 			}
 		}).exceptionally(e -> {
-			return FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException());
+			return new AsyncTaskValue(FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
 		});
 	}
 	
@@ -134,10 +138,12 @@ public class MysqlService {
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 * @throws UnExpectedContentException 
+	 * @throws AppNotStartedException 
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
 	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+		
 		try {
 			Path dumpDir = settingsInDb.getNextDumpDir(server);
 			Path localDumpFile = getDumpFile(dumpDir);
@@ -147,11 +153,12 @@ public class MysqlService {
 				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
 				llsl.setMd5(r.get(1));
 				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), localDumpFile); // cause new dump to create.
+				backupMysqlSettings(session, server);
 				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
 			} else {
 				return FacadeResult.unexpectedResult(r.get(0));
 			}
-		} catch (RunRemoteCommandException | ScpException e) {
+		} catch (RunRemoteCommandException | ScpException | AppNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
@@ -367,35 +374,34 @@ public class MysqlService {
 		return FacadeResult.doneExpectedResultDone(mfh.getMyCnfFile());
 
 	}
+	
+	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+		return CompletableFuture.supplyAsync(() -> {
+			try {
+				return new AsyncTaskValue(restore(playback, sourceServer, targetServer, dumpFolder));
+			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
+					| AppNotStartedException | ScpException e1) {
+				throw new ExceptionWrapper(e1);
+			}
+		}).exceptionally(e -> {
+			return new AsyncTaskValue(false);
+		});
+	}
+	
 
-	public void restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		Session targetSession = null;
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
-			MycnfFileHolder sourceMfn = getMysqlSettingsFromDisk(sourceServer);
-			MycnfFileHolder targetMfn = requestMysqlSettings(targetSession, targetServer);
-			
-			
-//			String sourceDataDir = sourceMfn.getMysqlVariables().getDataDirEndWithSlash();
-//			String targetDataDir = targetMfn.getMysqlVariables().getDataDirEndWithSlash();
-//
-//			// if data_dir aren't equal.
-//			if (!sourceDataDir.equals(targetDataDir)) {
-//				
-//			}
-//			sourceMfn.disableBinLog();
-//			
-//			overWriteMycnf(targetSession, targetServer, sourceMfn);
-//			mysqlUtil.restartMysql(targetSession);
-			
-			List<StorageState> ss = sss.getStorageState(targetServer, targetSession, false);
-			Collections.sort(ss, StorageState.AVAILABLE_DESC);
-			
-			String remoteMaxRoot = ss.get(0).getRoot();
-			String remoteDumpFolder = RemotePathUtil.join(remoteMaxRoot, dumpFolder);
-			Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
-			SSHcommonUtil.copyFolder(targetSession, dumpFolderToUpload, remoteDumpFolder);
-			
+			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
+			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
+			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
+			List<String> lines = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
+			if (lines.size() == 1 && lines.get(0).isEmpty()) {
+				return true;
+			} else {
+				return false;
+			}
 		} finally {
 			if( targetSession != null) {
 				targetSession.disconnect();
@@ -414,9 +420,9 @@ public class MysqlService {
 		return remoteDumpFolder;
 	}
 	
-	public void uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, String dumpFolder) throws IOException {
+	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, String dumpFolder) throws IOException {
 		Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
-		uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolderToUpload);
+		return uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolderToUpload);
 	}
 
 	public List<MysqlDumpFolder> listDumpFolders(Server sourceServer) throws IOException {
@@ -425,11 +431,38 @@ public class MysqlService {
 		Collections.sort(dumpFolders);
 		return dumpFolders;
 	}
+	
+	public CompletableFuture<List<String>> importDumpedAsync(Server targetServer, MysqlInstance sourceMysqlInstance,
+			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
+		return CompletableFuture.supplyAsync(() -> {
+			FacadeResult<Session> frSession;
+			try {
+				frSession = sshSessionFactory.getConnectedSession(targetServer);
+			} catch (JSchException e) {
+				throw new ExceptionWrapper(e);
+			}
+			return frSession.getResult();
+		}).thenApplyAsync(targetSession -> {
+			try {
+				return this.importDumped(targetSession, targetServer, sourceMysqlInstance, targetMysqlInstance, remoteFolder);
+			} catch (UnExpectedContentException e1) {
+				throw new ExceptionWrapper(e1);
+			} finally {
+				if (targetSession != null && targetSession.isConnected()) {
+					targetSession.disconnect();
+				}
+			}
+		}).exceptionally(e -> {
+			return Lists.newArrayList();
+		});
+	}
 
-	public void importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
-			MysqlInstance targetMysqlInstance, String remoteFolder) {
+	public List<String> importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
+			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
 		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 		
+		MysqlImportExpect mie = new MysqlImportExpect(targetSession, targetServer, dumpfn);
+		return mie.start();
 	}
 }

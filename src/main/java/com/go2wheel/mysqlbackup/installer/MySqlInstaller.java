@@ -32,6 +32,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
@@ -211,12 +212,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<FacadeResult<MysqlInstallInfo>> installAsync(Server server, Software software, Map<String, String> parasMap) {
+	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software, Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return install(server, software, parasMap);
+				return new AsyncTaskValue(install(server, software, parasMap));
 			} catch (JSchException e) {
-				return FacadeResult.unexpectedResult(e);
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
 			}
 		});
 	}
@@ -274,12 +275,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<FacadeResult<MysqlInstallInfo>> uninstallAsync(Server server, Software software) {
+	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return uninstall(server, software);
+				return new AsyncTaskValue(uninstall(server, software));
 			} catch (JSchException e) {
-				return FacadeResult.unexpectedResult(e);
+				return new AsyncTaskValue(FacadeResult.unexpectedResult(e));
 			}
 		});
 	}

@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,12 +25,15 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -58,7 +63,8 @@ public class MysqlUtil {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl stop mysqld");
 	}
 
-	public String getEffectiveMyCnf(Session session, Server server) throws RunRemoteCommandException, UnExpectedContentException {
+	public String getEffectiveMyCnf(Session session, Server server)
+			throws RunRemoteCommandException, UnExpectedContentException {
 		String matcherline = ".*Default options are read from the following.*";
 		String cb = server.getMysqlInstance().getClientBin();
 		String cmd = String.format("%smysql --help --verbose", cb == null ? "" : cb);
@@ -86,10 +92,9 @@ public class MysqlUtil {
 				try {
 					expect.sendLine("show variables;");
 					List<String> result = expectMysqlPromptAndReturnList();
-					binmap = Arrays
-							.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
-									MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version", "version_comment",
-									"version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR)
+					binmap = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR)
 							.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
 					expect.sendLine("exit");
 				} catch (IOException e) {
@@ -107,26 +112,30 @@ public class MysqlUtil {
 	// version_compile_machine | x86_64 |
 	// version_compile_os | Linux |
 
-//	public Map<String, String> getVersionInfo(Session session, String username, String password)
-//			throws JSchException, IOException, MysqlAccessDeniedException, MysqlNotStartedException {
-//		return new MysqlInteractiveExpect<Map<String, String>>(session) {
-//			@Override
-//			protected Map<String, String> afterLogin() {
-//				Map<String, String> binmap = new HashMap<>();
-//				try {
-//					expect.sendLine("show variables like '%version%';");
-//					List<String> result = expectMysqlPromptAndReturnList();
-//					binmap = Arrays
-//							.asList("innodb_version", "protocol_version", "slave_type_conversions", "version_comment",
-//									"version_compile_machine", "version_compile_os")
-//							.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
-//					expect.sendLine("exit");
-//				} catch (IOException e) {
-//				}
-//				return binmap;
-//			}
-//		}.start(username, password);
-//	}
+	// public Map<String, String> getVersionInfo(Session session, String username,
+	// String password)
+	// throws JSchException, IOException, MysqlAccessDeniedException,
+	// MysqlNotStartedException {
+	// return new MysqlInteractiveExpect<Map<String, String>>(session) {
+	// @Override
+	// protected Map<String, String> afterLogin() {
+	// Map<String, String> binmap = new HashMap<>();
+	// try {
+	// expect.sendLine("show variables like '%version%';");
+	// List<String> result = expectMysqlPromptAndReturnList();
+	// binmap = Arrays
+	// .asList("innodb_version", "protocol_version", "slave_type_conversions",
+	// "version_comment",
+	// "version_compile_machine", "version_compile_os")
+	// .stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0,
+	// 1)));
+	// expect.sendLine("exit");
+	// } catch (IOException e) {
+	// }
+	// return binmap;
+	// }
+	// }.start(username, password);
+	// }
 
 	public MysqlVariables getLogbinState(Session session, Server server)
 			throws JSchException, IOException, AppNotStartedException {
@@ -160,7 +169,8 @@ public class MysqlUtil {
 
 	public Map<String, String> getVariables(Session session, Server server, String... vnames)
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
-		// if server had no  mysqlInstance configuration, will cause null point exception.
+		// if server had no mysqlInstance configuration, will cause null point
+		// exception.
 		if (server.getMysqlInstance() == null) {
 			return null;
 		}
@@ -168,7 +178,8 @@ public class MysqlUtil {
 				server.getMysqlInstance().getPassword(), vnames);
 	}
 
-	public void writeBinLog(Session session, Server server, String rfile) throws IOException, ScpException, JSchException {
+	public void writeBinLog(Session session, Server server, String rfile)
+			throws IOException, ScpException, JSchException {
 		Path dstDir = appSettings.getDataRoot().resolve(server.getHost()).resolve("logbin");
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
@@ -234,5 +245,72 @@ public class MysqlUtil {
 		return mysqlInstallInfo;
 	}
 
+	public static String getColumnValue(List<String> lines, String key, int zeroBasedkeyColumn,
+			int zeroBasedValueColumn) {
+		int maxColumn = zeroBasedkeyColumn > zeroBasedValueColumn ? zeroBasedkeyColumn : zeroBasedValueColumn;
+		StringBuffer ptbuf = new StringBuffer("\\s*");
+		for (int i = 0; i <= maxColumn; i++) {
+			if (i == zeroBasedkeyColumn) {
+				ptbuf.append("\\|\\s+" + key + "\\s+");
+			} else if (i == zeroBasedValueColumn) {
+				ptbuf.append("\\|\\s+([^\\s]+)\\s+");
+			} else {
+				ptbuf.append("\\|\\s+[^\\s]+\\s+");
+			}
+		}
+		ptbuf.append(".*");
+		Pattern ptn = Pattern.compile(ptbuf.toString());
+		return lines.stream().map(line -> ptn.matcher(line)).filter(m -> m.matches()).map(m -> m.group(1)).findFirst()
+				.orElse("");
+	}
 
+	public static List<String> getColumnValues(List<String> lines, int zeroBasedValueColumn) {
+		int maxColumn = zeroBasedValueColumn;
+		StringBuffer ptbuf = new StringBuffer("\\s*");
+		for (int i = 0; i <= maxColumn; i++) {
+			if (i == zeroBasedValueColumn) {
+				ptbuf.append("\\|\\s+([^\\|]+)");
+			} else {
+				ptbuf.append("\\|\\s+[^\\s]+\\s+");
+			}
+		}
+		ptbuf.append(".*");
+		Pattern ptn = Pattern.compile(ptbuf.toString());
+		return lines.stream().map(line -> ptn.matcher(line)).filter(m -> m.matches()).map(m -> m.group(1).trim())
+				.collect(Collectors.toList());
+	}
+	
+	
+	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException {
+		return (new MysqlPasswordReadyExpect(session, server) {
+			@Override
+			protected void tillPasswordRequired() throws IOException {
+				String cmd = String.format("mysql -uroot -p -e \"%s\"", "show databases");
+				expect.sendLine(cmd);
+			}
+			
+			@Override
+			protected List<String> afterLogin() throws IOException {
+				String cnt = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+				List<String> names = MysqlUtil.getColumnValues(StringUtil.splitLines(cnt), 0);
+				return names.subList(0, names.size()); 
+			}
+		}).start();
+	}
+	
+	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedContentException {
+		return (new MysqlPasswordReadyExpect(session, server) {
+			@Override
+			protected void tillPasswordRequired() throws IOException {
+				String cmd = String.format("mysql -uroot -p -e \"%s\"", String.format("create database %s charset utf8", database));
+				expect.sendLine(cmd);
+			}
+			
+			@Override
+			protected List<String> afterLogin() throws IOException {
+				expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+				return Lists.newArrayList();
+			}
+		}).start();
+	}
 }

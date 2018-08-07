@@ -41,6 +41,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
@@ -209,16 +210,16 @@ public class BorgService {
 		}
 	}
 	
-	public CompletableFuture<FacadeResult<BorgDownload>> downloadRepoAsync(Server server) {
+	public CompletableFuture<AsyncTaskValue> downloadRepoAsync(Server server, String taskDescription) {
 		return CompletableFuture.supplyAsync(() -> {
 			FacadeResult<Session> frSession;
 			try {
 				frSession = sshSessionFactory.getConnectedSession(server);
 			} catch (JSchException e) {
-				ExceptionUtil.logErrorException(logger, e);
-				return FacadeResult.unexpectedResult(e);
+				throw new ExceptionWrapper(e);
 			}
-			Session session = frSession.getResult();
+			return frSession.getResult();
+		}).thenApplyAsync(session -> {
 			try {
 				FacadeResult<BorgDownload> fr = downloadRepo(session, server);
 				BorgDownload bd = fr.getResult();
@@ -226,15 +227,18 @@ public class BorgService {
 				bd.setServerId(server.getId());
 				bd = borgDownloadDbService.save(bd);
 				fr.setResult(bd);
-				return fr;
-			} catch (JSchException | NoSuchAlgorithmException e) {
-				throw new ExceptionWrapper(e);
+				return new AsyncTaskValue(fr);
+			} catch (JSchException | NoSuchAlgorithmException e1) {
+				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
 					session.disconnect();
 				}
 			}
+		}).exceptionally(e -> {
+			return new AsyncTaskValue(FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
 		});
+
 	}
 	
 	//@formatter:off
@@ -306,7 +310,7 @@ public class BorgService {
 	}
 	
 	
-	public CompletableFuture<FacadeResult<PlayBackResult>> playbackAsync(PlayBack playback, String localRepo) {
+	public CompletableFuture<AsyncTaskValue> playbackAsync(PlayBack playback, String localRepo) {
 		Server source = serverDbService.findById(playback.getSourceServerId());
 		Server target = serverDbService.findById(playback.getTargetServerId());
 		return CompletableFuture.supplyAsync(() -> {
@@ -326,7 +330,7 @@ public class BorgService {
 				PlayBackResult bd = fr.getResult();
 				bd = playBackResultDbService.save(bd);
 				fr.setResult(bd);
-				return fr;
+				return new AsyncTaskValue(fr);
 			} catch (IOException e) {
 				throw new ExceptionWrapper(e);
 			} finally {
@@ -341,7 +345,7 @@ public class BorgService {
 			}
 			ExceptionUtil.logErrorException(logger, ttt);
 			
-			return FacadeResult.unexpectedResult(ttt);
+			return new AsyncTaskValue(FacadeResult.unexpectedResult(ttt));
 		});
 	}
 	
