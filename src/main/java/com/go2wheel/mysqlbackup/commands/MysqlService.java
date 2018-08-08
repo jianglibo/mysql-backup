@@ -6,11 +6,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -30,7 +35,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
-import com.go2wheel.mysqlbackup.expect.MysqlImportExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -41,6 +46,7 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
@@ -53,6 +59,7 @@ import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -380,7 +387,7 @@ public class MysqlService {
 			try {
 				return new AsyncTaskValue(restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
 			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
-					| AppNotStartedException | ScpException e1) {
+					| AppNotStartedException | ScpException | UnExpectedInputException e1) {
 				throw new ExceptionWrapper(e1);
 			}
 		}).exceptionally(e -> {
@@ -388,7 +395,7 @@ public class MysqlService {
 		});
 	}
 
-	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException {
 		Session targetSession = null;
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
@@ -396,11 +403,41 @@ public class MysqlService {
 			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
 			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 			List<String> lines = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
-			if (lines.size() == 1 && lines.get(0).isEmpty()) {
-				return true;
-			} else {
+			if (lines.size() != 1 || !lines.get(0).isEmpty()) {
 				return false;
 			}
+			
+			List<Path> binlogs = getLogBinFiles(sourceServer, dumpFolder);
+			
+			String remoteTmpSqlFile = RemotePathUtil.join(remoteFolder, "tmp.sql");
+			
+//			mysqlbinlog binlog.000001 binlog.000002 > remoteTmpSqlFile
+			
+			String binlogJoined = binlogs.stream().map(bl -> RemotePathUtil.join(remoteFolder, bl.getFileName().toString())).collect(Collectors.joining(" "));
+			String rcmd = String.format("mysqlbinlog %s > %s", binlogJoined, remoteTmpSqlFile);
+			
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(targetSession, rcmd);
+			
+			String sourceCmd = String.format("mysql -u root -p -e \"source %s\"", remoteTmpSqlFile);
+			
+			MysqlPasswordReadyExpect mpre = new MysqlPasswordReadyExpect(targetSession, targetServer) {
+				@Override
+				protected void tillPasswordRequired() throws IOException {
+					expect.sendLine(sourceCmd);
+				}
+				
+				@Override
+				protected List<String> afterLogin() throws IOException {
+					String raw = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+					return Lists.newArrayList(raw.trim());
+				}
+			};
+			List<String> resultLines = mpre.start();
+			if (resultLines.size() != 1 || !resultLines.get(0).isEmpty()) {
+				return false;
+			}
+			return true;
+			
 		} finally {
 			if( targetSession != null) {
 				targetSession.disconnect();
@@ -455,13 +492,95 @@ public class MysqlService {
 			return Lists.newArrayList();
 		});
 	}
+	
+	
+	
+	private class PrefixAndPath {
+		private String prefix;
+		private Path file;
+		
+		public PrefixAndPath(String prefix, Path file) {
+			super();
+			this.prefix = prefix;
+			this.file = file;
+		}
 
+		public String getPrefix() {
+			return prefix;
+		}
+		public Path getFile() {
+			return file;
+		}
+	}
+	
+	
+	public List<Path> getLogBinFiles(Server server, String dumpFolder) throws IOException, UnExpectedInputException {
+		Path dumpPath = settingsInDb.getDumpsDir(server).resolve(dumpFolder);
+		return getLogBinFiles(dumpPath);
+	}
+
+	public List<Path> getLogBinFiles(Path dumpFolder) throws IOException, UnExpectedInputException {
+		Pattern ptn = Pattern.compile("(.*)\\.(\\d+)$");
+		Map<String, List<Path>> nameToFiles = Files.list(dumpFolder)
+				.map(f -> {
+					Matcher m = ptn.matcher(f.toString());
+					if (m.matches()) {
+						return new PrefixAndPath(m.group(1), f);
+					} else {
+						return null;
+					}
+				}).filter(Objects::nonNull).collect(Collectors.groupingBy(PrefixAndPath::getPrefix, Collectors.mapping(PrefixAndPath::getFile, Collectors.toList())));
+		
+		if (nameToFiles.size() == 0) {
+			return Lists.newArrayList();
+		}
+		
+		if (nameToFiles.size() != 2) {
+			throw new UnExpectedInputException("1000", "dumpfolder.wrongformat", nameToFiles.size() + "");
+		}
+		List<String> names = new ArrayList<>(nameToFiles.keySet());
+		
+		String binName = names.get(0);
+		String indexName = names.get(1);
+		
+		if (binName.length() > indexName.length()) {
+			binName = names.get(1);
+			indexName = names.get(0);
+		}
+		
+		List<Path> indexFiles = nameToFiles.get(indexName);
+		Collections.sort(indexFiles, PathUtil.PATH_NAME_DESC);
+		
+		List<String> lines = Files.readAllLines(indexFiles.get(0));
+		
+		if (lines.size() != nameToFiles.get(binName).size()) {
+			throw new UnExpectedInputException("1000", "dumpfolder.wrongindex", lines.size() + "", nameToFiles.get(binName).size() + "");
+		}
+		
+		List<Path> logbins = nameToFiles.get(binName);
+		Collections.sort(logbins, PathUtil.PATH_NAME_ASC);
+		return logbins;
+	}
+	
 	public List<String> importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
 			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
 		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
-		
-		MysqlImportExpect mie = new MysqlImportExpect(targetSession, targetServer, dumpfn);
-		return mie.start();
+		String cmd = String.format("mysql -uroot -p < %s", dumpfn);
+
+		MysqlPasswordReadyExpect mpre = new MysqlPasswordReadyExpect(targetSession, targetServer) {
+			
+			@Override
+			protected void tillPasswordRequired() throws IOException {
+				expect.sendLine(cmd);
+			}
+			
+			@Override
+			protected List<String> afterLogin() throws IOException {
+				String raw = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+				return Lists.newArrayList(raw.trim());
+			}
+		};
+		return mpre.start();
 	}
 }

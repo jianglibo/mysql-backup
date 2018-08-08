@@ -51,6 +51,9 @@ public class PathUtil {
 	}
 
 	public static String getExtWithoutDot(Path path) {
+		if (path == null) {
+			return null;
+		}
 		String s = path.getFileName().toString();
 		int p = s.lastIndexOf('.');
 		if (p != -1) {
