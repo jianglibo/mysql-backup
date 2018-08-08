@@ -48,13 +48,14 @@ public class TestRestore extends MysqlServiceTbase {
 		MysqlUtil.createDatabases(session, server, server.getMysqlInstance(), "aaaaa");
 		mysqlService.mysqlDump(session, server);
 		
+		MysqlUtil.createDatabases(session, server, server.getMysqlInstance(), "bbbb");
+		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
+		
 		//init set
 		Server targetServer = createServer(HOST_DEFAULT_SET, true);
 		createMysqlIntance(targetServer, "654321");
 		Session targetSession = createSession(targetServer);
 		installMysql(targetSession, targetServer, "654321");
-		
-		
 		
 		List<MysqlDumpFolder> mss = mysqlService.listDumpFolders(server);
 		MysqlDumpFolder mdf = mss.get(0);
@@ -85,5 +86,16 @@ public class TestRestore extends MysqlServiceTbase {
 		assertThat(after_dbnames.size() - 1, equalTo(dbnames.size()));
 		
 	}
+	
+	/*
+	 * mysqlbinlog binlog.000001 binlog.000002 | mysql -u root -p
+	 * shell> mysqlbinlog binlog.000001 >  /tmp/statements.sql
+	 * shell> mysqlbinlog binlog.000002 >> /tmp/statements.sql
+	 * shell> mysql -u root -p -e "source /tmp/statements.sql"
+	 * 
+	 * shell> mysqlbinlog --skip-gtids binlog.000001 >  /tmp/dump.sql
+	 * shell> mysqlbinlog --skip-gtids binlog.000002 >> /tmp/dump.sql
+	 * shell> mysql -u root -p -e "source /tmp/dump.sql"
+	 */
 
 }
