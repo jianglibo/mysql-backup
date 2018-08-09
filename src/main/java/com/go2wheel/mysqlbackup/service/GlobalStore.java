@@ -12,6 +12,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -139,9 +140,23 @@ public class GlobalStore {
 		return ca;
 	}
 
-	public List<CompletableFuture<AsyncTaskValue>> getGroupObjects(String group) {
+	public List<CompletableFuture<AsyncTaskValue>> getFutureGroup(String group) {
 		return new ArrayList<>(sessionAndFutures.get(group).values());
-
+	}
+	
+	public Map<String, CompletableFuture<AsyncTaskValue>> getFutureGroupMap(String group) {
+		return sessionAndFutures.get(group);
+	}
+	
+	public List<FutureDetail> getFutureDetails(String group) {
+		return sessionAndFutures.get(group).entrySet().stream().map(es -> {
+			FutureDetail fd = new FutureDetail();
+			fd.setDescription(es.getKey());
+			fd.setDone(es.getValue().isDone());
+			fd.setExceptionally(es.getValue().isCompletedExceptionally());
+			fd.setTimeElapsed(timeCostMap.get(es.getValue()));
+			return fd;
+		}).collect(Collectors.toList());
 	}
 
 	public void removeFuture(CompletableFuture<AsyncTaskValue> it) {
@@ -152,6 +167,87 @@ public class GlobalStore {
 				timeCostMap.remove(it);
 				break;
 			}
+		}
+	}
+	
+	public StoreState getStoreState() {
+		StoreState ss = new StoreState();
+		ss.setGroupListernerCache(groupListernerCache.asMap().size());
+		ss.setLockCache(lockCache.asMap().size());
+		ss.setSessionAndFutures(sessionAndFutures.values().stream().mapToInt(m -> m.size()).sum());
+		ss.setTimeCostMap(timeCostMap.size());
+		return ss;
+	}
+	
+	public class StoreState {
+		private int groupListernerCache;
+		private int sessionAndFutures;
+		private int timeCostMap;
+		private int lockCache;
+		public int getGroupListernerCache() {
+			return groupListernerCache;
+		}
+		public void setGroupListernerCache(int groupListernerCache) {
+			this.groupListernerCache = groupListernerCache;
+		}
+		public int getSessionAndFutures() {
+			return sessionAndFutures;
+		}
+		public void setSessionAndFutures(int sessionAndFutures) {
+			this.sessionAndFutures = sessionAndFutures;
+		}
+		public int getTimeCostMap() {
+			return timeCostMap;
+		}
+		public void setTimeCostMap(int timeCostMap) {
+			this.timeCostMap = timeCostMap;
+		}
+		public int getLockCache() {
+			return lockCache;
+		}
+		public void setLockCache(int lockCache) {
+			this.lockCache = lockCache;
+		}
+	}
+	
+	public static class FutureDetail {
+		private String description;
+		private boolean done;
+		
+		private boolean exceptionally;
+		
+		public boolean isExceptionally() {
+			return exceptionally;
+		}
+
+		public void setExceptionally(boolean exceptionally) {
+			this.exceptionally = exceptionally;
+		}
+
+		private TimeElapsed timeElapsed;
+
+		public String getDescription() {
+			return description;
+		}
+
+		public void setDescription(String description) {
+			this.description = description;
+		}
+
+		public boolean isDone() {
+			return done;
+		}
+
+		public void setDone(boolean done) {
+			this.done = done;
+		}
+
+		public TimeElapsed getTimeElapsed() {
+			return timeElapsed;
+		}
+
+		public void setTimeElapsed(TimeElapsed timeElapsed) {
+			this.timeElapsed = timeElapsed;
 		}
 	}
 	

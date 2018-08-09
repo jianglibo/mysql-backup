@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
@@ -109,11 +110,16 @@ public class BorgService {
 		private final Path repo;
 
 		public BorgRepoWrapper(Path repo) {
+			Assert.notNull(repo, "should not be null.");
 			this.repo = repo;
 		}
 
 		public String getRepoFolderName() {
-			return repo.getFileName().toString();
+			if (repo != null && repo.getFileName() != null) {
+				return repo.getFileName().toString();
+			} else {
+				return "";
+			}
 		}
 
 		public Date getCreateTime() throws IOException {

@@ -9,6 +9,7 @@ public class RemoteTfolder extends ExternalResource {
 	
 	private String remoteFolder;
 	
+
 	public String getRemoteFolder() {
 		return remoteFolder;
 	}
@@ -23,6 +24,9 @@ public class RemoteTfolder extends ExternalResource {
 		this.session = session;
 	}
 
+	public void setRemoteFolder(String remoteFolder) {
+		this.remoteFolder = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
+	}
 	@Override
 	protected void after() {
 		if (this.session != null&& this.remoteFolder != null && this.remoteFolder.matches("/.*/.*")) {

@@ -782,7 +782,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "列出后台任务")
 	public FacadeResult<?> asyncList() throws JSchException, IOException {
-		List<CompletableFuture<AsyncTaskValue>> gobjects = globalStore.getGroupObjects(BackupCommand.class.getName());
+		List<CompletableFuture<AsyncTaskValue>> gobjects = globalStore.getFutureGroup(BackupCommand.class.getName());
 		
 		List<String> ls =  gobjects.stream()
 				.map(f -> f.isDone() + "")

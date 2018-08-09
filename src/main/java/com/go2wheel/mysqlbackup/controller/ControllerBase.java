@@ -23,6 +23,12 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	protected ApplicationContext applicationContext;
 	
+	public static final String LIST_OB_NAME = "listItems";
+	public static final String ID_ENTITY_MAP = "idEntityMap";
+	public static final String OB_NAME = "singleItem";
+	
+	public static final String ERROR_MESSAGE_KEY = "errorMessage";
+	
 	@Autowired
 	protected SettingsInDb settingsInDb;
 	

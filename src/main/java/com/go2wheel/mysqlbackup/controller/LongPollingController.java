@@ -64,7 +64,7 @@ public class LongPollingController {
 				 return cfInMap;
 			}
 
-			List<CompletableFuture<AsyncTaskValue>> cfs = globalStore.getGroupObjects(group);
+			List<CompletableFuture<AsyncTaskValue>> cfs = globalStore.getFutureGroup(group);
 			// 只能对正在执行的异步作出响应，如果在等待的过程中有新的任务加入，必须在下一个循环中才能被测到?
 //			CompletableFuture<?>[] cfs = lgo.stream().map(go -> go.as(CompletableFuture.class))
 //					.toArray(size -> new CompletableFuture<?>[size]);

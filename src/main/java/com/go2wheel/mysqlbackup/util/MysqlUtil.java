@@ -281,6 +281,24 @@ public class MysqlUtil {
 	}
 	
 	
+	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedContentException {
+		return (new MysqlPasswordReadyExpect(session, server) {
+			@Override
+			protected void tillPasswordRequired() throws IOException {
+				String cmd = String.format("mysql -uroot -p -e \"%s\"", sql);
+				expect.sendLine(cmd);
+			}
+			
+			@Override
+			protected List<String> afterLogin() throws IOException {
+				String cnt = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
+				List<String> names = MysqlUtil.getColumnValues(StringUtil.splitLines(cnt), 0);
+				return names.subList(0, names.size()); 
+			}
+		}).start();
+	}
+	
+	
 	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException {
 		return (new MysqlPasswordReadyExpect(session, server) {
 			@Override

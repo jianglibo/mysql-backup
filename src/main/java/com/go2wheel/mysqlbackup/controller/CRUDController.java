@@ -37,15 +37,8 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	private final D dbService;
 	
-	
-	
 	private Converter<String, String> cf = CaseFormat.UPPER_CAMEL.converterTo(CaseFormat.LOWER_HYPHEN);
 	
-	public static final String LIST_OB_NAME = "listItems";
-	public static final String ID_ENTITY_MAP = "idEntityMap";
-	public static final String OB_NAME = "singleItem";
-	
-	public static final String ERROR_MESSAGE_KEY = "errorMessage";
 	
 	public CRUDController(Class<T> clazz,D dbService, String mappingUrl) {
 		super(mappingUrl);

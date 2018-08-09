@@ -51,6 +51,7 @@ import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -402,17 +403,15 @@ public class MysqlService {
 			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
 			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
 			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
-			List<String> lines = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
-			if (lines.size() != 1 || !lines.get(0).isEmpty()) {
+			boolean importResult = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
+			if (!importResult) {
 				return false;
 			}
 			
 			List<Path> binlogs = getLogBinFiles(sourceServer, dumpFolder);
 			
 			String remoteTmpSqlFile = RemotePathUtil.join(remoteFolder, "tmp.sql");
-			
 //			mysqlbinlog binlog.000001 binlog.000002 > remoteTmpSqlFile
-			
 			String binlogJoined = binlogs.stream().map(bl -> RemotePathUtil.join(remoteFolder, bl.getFileName().toString())).collect(Collectors.joining(" "));
 			String rcmd = String.format("mysqlbinlog %s > %s", binlogJoined, remoteTmpSqlFile);
 			
@@ -429,14 +428,11 @@ public class MysqlService {
 				@Override
 				protected List<String> afterLogin() throws IOException {
 					String raw = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
-					return Lists.newArrayList(raw.trim());
+					return StringUtil.splitLines(raw.trim());
 				}
 			};
 			List<String> resultLines = mpre.start();
-			if (resultLines.size() != 1 || !resultLines.get(0).isEmpty()) {
-				return false;
-			}
-			return true;
+			return resultLines.size() == 1;
 			
 		} finally {
 			if( targetSession != null) {
@@ -468,7 +464,7 @@ public class MysqlService {
 		return dumpFolders;
 	}
 	
-	public CompletableFuture<List<String>> importDumpedAsync(Server targetServer, MysqlInstance sourceMysqlInstance,
+	public CompletableFuture<Boolean> importDumpedAsync(Server targetServer, MysqlInstance sourceMysqlInstance,
 			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
 		return CompletableFuture.supplyAsync(() -> {
 			FacadeResult<Session> frSession;
@@ -489,7 +485,8 @@ public class MysqlService {
 				}
 			}
 		}).exceptionally(e -> {
-			return Lists.newArrayList();
+			ExceptionUtil.logErrorException(logger, e);
+			return false;
 		});
 	}
 	
@@ -562,7 +559,7 @@ public class MysqlService {
 		return logbins;
 	}
 	
-	public List<String> importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
+	public boolean importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
 			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
 		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
@@ -578,9 +575,11 @@ public class MysqlService {
 			@Override
 			protected List<String> afterLogin() throws IOException {
 				String raw = expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
-				return Lists.newArrayList(raw.trim());
+				return StringUtil.splitLines(raw.trim());
 			}
 		};
-		return mpre.start();
+		List<String> lines = mpre.start();
+//		[root@localhost ~
+		return lines.size() == 1;
 	}
 }
