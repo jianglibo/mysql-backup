@@ -6,10 +6,17 @@ public class AsyncTaskValue {
 	
 	private Object result;
 	
+	private boolean empty;
+	
 	public AsyncTaskValue() {}
 	
 	public AsyncTaskValue(Object result) {
 		this.result = result;
+		this.empty = false;
+	}
+	
+	public static AsyncTaskValue emptyValue() {
+		return new AsyncTaskValue();
 	}
 
 	public String getDescription() {
@@ -31,6 +38,14 @@ public class AsyncTaskValue {
 
 	public void setResult(Object result) {
 		this.result = result;
+	}
+
+	public boolean isEmpty() {
+		return empty;
+	}
+
+	public void setEmpty(boolean empty) {
+		this.empty = empty;
 	}
 
 }

@@ -12,6 +12,9 @@
 				<h1 th:text="|服务器${server.name}的DUMP列表|"></h1>
 			</div>
 			<div class="content">
+				<aside class="success" th:if="${formProcessSuccessed}">
+					<p th:text="${formProcessSuccessed}">修改成功。</p>
+				</aside>
 				<div id="action-menu-bar"></div>
 				<table class="pure-table pure-table-bordered item-list">
 					<thead>

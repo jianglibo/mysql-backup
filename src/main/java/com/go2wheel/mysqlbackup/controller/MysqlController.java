@@ -7,6 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,14 +30,13 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
+import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.jcraft.jsch.JSchException;
@@ -60,19 +60,18 @@ public class MysqlController extends ControllerBase {
 	private ServerDbService serverDbService;
 
 	@Autowired
-	private MysqlDumpDbService mysqlDumpDbService;
-	
-	@Autowired
 	private MysqlFlushDbService mysqlFlushDbService;
-	
+
 	public MysqlController() {
 		super(MAPPING_PATH);
 	}
 
 	@GetMapping("/{server}/dumps")
-	public String getDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws IOException {
+	public String getDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request)
+			throws IOException {
 		Path dumps = settingsInDb.getCurrentDumpDir(server).getParent();
-		List<MysqlDumpFolder> dumpFolders = Files.list(dumps).map(MysqlDumpFolder::newInstance).filter(Objects::nonNull).collect(Collectors.toList());
+		List<MysqlDumpFolder> dumpFolders = Files.list(dumps).map(MysqlDumpFolder::newInstance).filter(Objects::nonNull)
+				.collect(Collectors.toList());
 		Collections.sort(dumpFolders);
 		model.addAttribute(CRUDController.LIST_OB_NAME, dumpFolders);
 		model.addAttribute("server", server);
@@ -81,25 +80,29 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@PostMapping("/{server}/dumps")
-	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
+			RedirectAttributes ras)
+			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
-		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
-		Session session = frSession.getResult();
-		try {
-			FacadeResult<LinuxLsl> lsl = mysqlService.mysqlDump(session, server, true);
-			mysqlService.saveDumpResult(server, lsl);
-		} finally {
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
-		}
+
+		String sid = request.getSession(true).getId();
+		String msgkey = messageSource.getMessage(MysqlService.DUMP_TASK_KEY, new Object[] { server.getId() },
+				request.getLocale());
+
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.mysqlDumpAsync(server, msgkey, true);
+
+		globalStore.saveAfuture(sid, msgkey, cf);
+
+		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return "redirect:" + ucb.build().toUriString();
 	}
 
 	@PostMapping("/{server}/flushes")
-	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
+	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request)
+			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException,
+			UnExpectedContentException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -141,10 +144,10 @@ public class MysqlController extends ControllerBase {
 				session.disconnect();
 			}
 		}
-		String uri = ucb.replacePath("/app/mysql-instances/" + server.getMysqlInstance().getId() + "/edit").build().toUriString();
+		String uri = ucb.replacePath("/app/mysql-instances/" + server.getMysqlInstance().getId() + "/edit").build()
+				.toUriString();
 		return "redirect:" + uri;
 	}
-
 
 	@Override
 	public List<MainMenuItem> getMenuItems() {

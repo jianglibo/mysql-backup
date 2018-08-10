@@ -16,7 +16,6 @@ import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
-import com.go2wheel.mysqlbackup.util.EncodeConvertor;
 import com.go2wheel.mysqlbackup.util.TplUtil;
 
 public abstract class ControllerBase   implements ApplicationContextAware {
@@ -31,9 +30,6 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 	
 	@Autowired
 	protected SettingsInDb settingsInDb;
-	
-	@Autowired
-	protected EncodeConvertor encodeConvertor;
 	
 	@Autowired
 	protected GlobalStore globalStore;

@@ -1,0 +1,88 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>MYSQL設置列表</title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:text="异步任务清单"></h1>
+			</div>
+			<div class="content">
+				<aside>
+					<ul>
+						<li th:text="|长连接等待数：${storeState.groupListernerCache}|"></li>
+						<li th:text="|异步任务数：${storeState.sessionAndFutures}|"></li>
+						<li th:text="|任务起始跟踪数：${storeState.timeCostMap}|"></li>
+						<li th:text="|同步锁数：${storeState.lockCache}|"></li>
+					</ul>
+				</aside>
+				<div id="action-menu-bar"></div>
+				<table class="pure-table pure-table-bordered item-list">
+					<thead>
+						<tr>
+							<th>
+								<input id="item-list-check-all" th:id="item-list-check-all" type="checkbox">
+							</th>
+							<th>任务描述</th>
+							<th>已结束？</th>
+							<th>意外结束？</th>
+							<th>时光流逝</th>
+
+						</tr>
+					</thead>
+
+					<tbody th:remove="all-but-first">
+						<tr th:each="item: ${listItems}">
+							<td>
+								<input id="particular-item" th:id="|item-${item.timeElapsed.id}|" type="checkbox">
+							</td>
+							<td th:text="${item.description}">name</td>
+							<td th:text="${item.done}">Accord</td>
+							<td th:text="${item.exceptionally}">2009</td>
+							<td th:text="${item.timeElapsed.seconds()}">2009</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>Toyota</td>
+							<td>Camry</td>
+							<td>2012</td>
+							<td>2012</td>
+						</tr>
+
+						<tr>
+							<td>3</td>
+							<td>Hyundai</td>
+							<td>Elantra</td>
+							<td>2010</td>
+							<td>2011</td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
+
+		// window.freact.renderActionMenuBar(mapping,
+		// 	".item-list",
+		// 	["edit", "delete", {
+		// 		actionId: 'repo-restore',
+		// 		name: '回放',
+		// 		activeOn: 'SINGLE',
+		// 		onClick: function() {
+		// 			var id = this.state.selectedItems[0].id;
+		// 			window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {repo: id});
+		// 		}
+		// 	}]);
+	</script>
+</body>
+
+</html>

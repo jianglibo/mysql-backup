@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,13 +34,13 @@ public class AsyncTasksController extends ControllerBase {
 		String sid = request.getSession(true).getId();
 		model.addAttribute(CRUDController.LIST_OB_NAME, globalStore.getFutureDetails(sid));
 		model.addAttribute("storeState", globalStore.getStoreState());
-		return "globel-store-state";
+		return "global-store-state";
 	}
 
 
 	@Override
 	public List<MainMenuItem> getMenuItems() {
-		return null;
+		return Arrays.asList(new MainMenuItem("appmodel", "async-tasks", getMappingUrl(), 1000));
 	}
 
 }

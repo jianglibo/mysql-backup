@@ -106,7 +106,7 @@ public class SoftwareInstallController extends ControllerBase {
 				globalStore.saveAfuture(sid, msgkey, cf);
 			}
 		}
-		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
+		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		String uri = ucb.replaceQueryParam("software", software.getId()).build().toUriString();
 		return "redirect:" + uri;

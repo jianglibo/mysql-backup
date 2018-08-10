@@ -70,6 +70,8 @@ import com.jcraft.jsch.Session;
 public class MysqlService {
 
 	public static final String ALREADY_DUMP = "mysql.dump.already";
+	
+	public static final String DUMP_TASK_KEY = "taskkey.dump";
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 

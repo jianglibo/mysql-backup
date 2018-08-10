@@ -54,7 +54,7 @@ public class BorgRestoreConstroller extends ControllerBase {
 
 		String sid = request.getSession(true).getId();
 		globalStore.saveAfuture(sid, playback.getId() + "",	cf);
-		ras.addFlashAttribute("formProcessSuccessed", encodeConvertor.convert("任务已异步发送，稍后会通知您。"));
+		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return "redirect:" + MAPPING_PATH + "/" + playback.getId();
 	}
 

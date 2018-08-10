@@ -76,16 +76,16 @@ public class LongPollingController {
 			CompletableFuture.anyOf(cfs.toArray(new CompletableFuture<?>[cfs.size()])).thenAccept(new Consumer<Object>() {
 				@Override
 				public void accept(Object t) {
-					AjaxDataResult<?> fr = new AjaxDataResult<>();
+					AjaxDataResult<AsyncTaskValue> ar = new AjaxDataResult<>();
 					for (CompletableFuture<AsyncTaskValue> it : cfs) {
-						Object o = it.getNow(null);
-						if (o != null) {
-							fr.addObject(o);
+						AsyncTaskValue at = it.getNow(AsyncTaskValue.emptyValue());
+						if (!at.isEmpty()) {
+							ar.addObject(at);
 							globalStore.removeFuture(it);
 						}
 					}
 					globalStore.groupListernerCache.invalidate(group);
-					cf.complete(fr);
+					cf.complete(ar);
 				}
 			}).exceptionally(throwable -> { //如果发生意外，必须将发生意外的future移除。
 				ExceptionUtil.logThrowable(logger, throwable);
@@ -106,3 +106,8 @@ public class LongPollingController {
 		}
 	}
 }
+
+/**
+ * {"data":[{"description":"Dump MYSQL from 868.","result":{"expected":true,"result":{"pm":"-rw-r--r--.","numberOfLinks":1,"owner":"root","group":"root","size":658776,"lastModified":"Aug 10 08:16","filename":"/tmp/mysqldump.sql","md5":"6bddd3b712b1794b8020df5c5d392d91"},"commonActionResult":"DONE","exception":null,"message":null,"messagePlaceHolders":null,"startTime":0,"endTime":0},"empty":false}]}
+ *
+ * */

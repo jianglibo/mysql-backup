@@ -10,6 +10,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -31,10 +32,13 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 @Service
 public class GlobalStore {
+	
+	private AtomicLong atomicLong = new AtomicLong(1L);
 
 	private LoadingCache<String, Lock> lockCache;
 
@@ -149,7 +153,11 @@ public class GlobalStore {
 	}
 	
 	public List<FutureDetail> getFutureDetails(String group) {
-		return sessionAndFutures.get(group).entrySet().stream().map(es -> {
+		Map<String, CompletableFuture<AsyncTaskValue>> myt = sessionAndFutures.get(group);
+		if (myt == null) {
+			return Lists.newArrayList();
+		}
+		return myt.entrySet().stream().map(es -> {
 			FutureDetail fd = new FutureDetail();
 			fd.setDescription(es.getKey());
 			fd.setDone(es.getValue().isDone());
@@ -216,6 +224,8 @@ public class GlobalStore {
 		
 		private boolean exceptionally;
 		
+		private TimeElapsed timeElapsed;
+		
 		public boolean isExceptionally() {
 			return exceptionally;
 		}
@@ -223,8 +233,6 @@ public class GlobalStore {
 		public void setExceptionally(boolean exceptionally) {
 			this.exceptionally = exceptionally;
 		}
-
-		private TimeElapsed timeElapsed;
 
 		public String getDescription() {
 			return description;
@@ -251,16 +259,27 @@ public class GlobalStore {
 		}
 	}
 	
-	public static class TimeElapsed {
+	public class TimeElapsed {
+		
+		private long id;
 		
 		private Instant startPoint;
 		
 		public TimeElapsed() {
 			this.startPoint = Instant.now();
+			this.id = atomicLong.getAndIncrement();
 		}
 		
 		public String seconds() {
 			return String.valueOf((Instant.now().toEpochMilli() - startPoint.toEpochMilli()) / 1000);
+		}
+
+		public long getId() {
+			return id;
+		}
+
+		public void setId(long id) {
+			this.id = id;
 		}
 	}
 }
