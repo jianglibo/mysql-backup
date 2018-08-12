@@ -26,6 +26,8 @@ import com.go2wheel.mysqlbackup.installer.Installer;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
@@ -72,13 +74,15 @@ public class SoftwareInstallController extends ControllerBase {
 	public String unInstall(@RequestParam Server server,
 			@RequestParam Software software, HttpServletRequest request) {
 		
-		String msgkey = messageSource.getMessage(MySqlInstaller.TASK_KEY, new Object[] {server.getId()} , request.getLocale());
+		String msgkey = getI18nedMessage(MySqlInstaller.TASK_KEY, server.getHost());
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software, msgkey);
+				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software, msgkey, aid);
 				String sid = request.getSession(true).getId();
-				globalStore.saveAfuture(sid, server.getId() + "-" + software.getId(), cf);
+				SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
+				globalStore.saveFuture(sid, sf);
 			}
 		}
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
@@ -97,13 +101,16 @@ public class SoftwareInstallController extends ControllerBase {
 		Map<String, String> parameters = parameterMap.entrySet().stream().filter(es -> es.getValue().length > 0)
 				.collect(Collectors.toMap(es -> es.getKey(), es -> es.getValue()[0]));
 		
-		String msgkey = messageSource.getMessage(MySqlInstaller.TASK_KEY, new Object[] {server.getId()} , request.getLocale());
+		String msgkey = getI18nedMessage(MySqlInstaller.TASK_KEY, server.getHost());
+		
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
-				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, msgkey, parameters);
+				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, msgkey, aid, parameters);
 				String sid = request.getSession(true).getId();
-				globalStore.saveAfuture(sid, msgkey, cf);
+				SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
+				globalStore.saveFuture(sid, sf);
 			}
 		}
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");

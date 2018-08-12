@@ -30,6 +30,8 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
@@ -88,12 +90,15 @@ public class MysqlController extends ControllerBase {
 		server = serverDbService.loadFull(server);
 
 		String sid = request.getSession(true).getId();
-		String msgkey = messageSource.getMessage(MysqlService.DUMP_TASK_KEY, new Object[] { server.getId() },
-				request.getLocale());
+		String msgkey = getI18nedMessage(MysqlService.DUMP_TASK_KEY, new Object[] { server.getHost() });
+		
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
 
-		CompletableFuture<AsyncTaskValue> cf = mysqlService.mysqlDumpAsync(server, msgkey, true);
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.mysqlDumpAsync(server, msgkey, aid);
+		
+		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
 
-		globalStore.saveAfuture(sid, msgkey, cf);
+		globalStore.saveFuture(sid, sf);
 
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return "redirect:" + ucb.build().toUriString();

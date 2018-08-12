@@ -97,12 +97,6 @@ public class MysqlService {
 		this.mysqlUtil = mysqlUtil;
 	}
 
-	@Exclusive(TaskLocks.TASK_MYSQL)
-	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
-		return mysqlDump(session, server, false);
-	}
-
 	private Path getDumpFile(Path dumpDir) {
 		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
 	}
@@ -112,7 +106,7 @@ public class MysqlService {
 	}
 	
 	
-	public CompletableFuture<AsyncTaskValue> mysqlDumpAsync(Server server, String taskDescription, boolean force) {
+	public CompletableFuture<AsyncTaskValue> mysqlDumpAsync(Server server, String taskDescription, Long id) {
 		return CompletableFuture.supplyAsync(() -> {
 			FacadeResult<Session> frSession;
 			try {
@@ -123,8 +117,8 @@ public class MysqlService {
 			return frSession.getResult();
 		}).thenApplyAsync(session -> {
 			try {
-				FacadeResult<LinuxLsl> fr = this.mysqlDump(session, server, force);
-				return new AsyncTaskValue(fr).withDescription(taskDescription);
+				FacadeResult<LinuxLsl> fr = this.mysqlDump(session, server);
+				return new AsyncTaskValue(id, fr).withDescription(taskDescription);
 			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedContentException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
@@ -133,7 +127,8 @@ public class MysqlService {
 				}
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
+			ExceptionWrapper e1 = (ExceptionWrapper) e.getCause();
+			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e1.getException())).withDescription(taskDescription);
 		});
 	}
 	
@@ -152,7 +147,7 @@ public class MysqlService {
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server, boolean force) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
 		
 		try {
 			Path dumpDir = settingsInDb.getNextDumpDir(server);
@@ -385,16 +380,16 @@ public class MysqlService {
 
 	}
 	
-	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey, Long id) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
+				return new AsyncTaskValue(id, restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
 			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
 					| AppNotStartedException | ScpException | UnExpectedInputException e1) {
 				throw new ExceptionWrapper(e1);
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(false).withDescription(msgkey);
+			return new AsyncTaskValue(id, false).withDescription(msgkey);
 		});
 	}
 

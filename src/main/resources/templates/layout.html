@@ -341,24 +341,27 @@
 				method: 'GET',
 				timeout: 0
 			}).done(
-				function (data, textStatus, jqXHR) {
-					if (typeof data === 'object') {
-						if (data.message) {
-							if (data.message !== 'timeout') {
-								pollResult('有任务完成，但是结果是失败。', data.message);
+				function (responseData, textStatus, jqXHR) {
+					if (typeof responseData === 'object') {
+						if (responseData.message) {
+							if (responseData.message !== 'timeout') {
+								pollResult('有任务完成，但是结果是失败。', responseData.message);
 							}
 						} else {
-							console.log(data);
-							if (data.data && data.data.length > 0) {
-								if (data.data[0].expected) {
-									pollResult('有任务按预计完成啦', "");
+							console.log(responseData);
+							var data = responseData.data;
+							if (data && data.length > 0) {
+								if (data[0].result && data[0].result.expected) {
+									var t = window.freact.strUtil.format('任务：{tk} 已完成。', {tk: data[0].description});
+									pollResult("有任务结束", t);
 								} else {
-									pollResult('有任务没有按预计完成！', "");
+									var t = window.freact.strUtil.format('任务：{tk} 失败！', {tk: data[0].description});
+									pollResult('有任务结束', t);
 								}
 							}
 						}
 					} else {
-						pollResult('有任务顺利完成啦', data);
+						pollResult('有任务顺利完成啦', responseData);
 					}
 				}
 			)

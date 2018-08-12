@@ -62,7 +62,7 @@ public class TestMysqlInstaller extends SpringBaseFort {
 		mii.syncToDb();
 		software = softwareDbService.findByName("MYSQL").get(0);
 
-		CompletableFuture<AsyncTaskValue> cfm = mii.installAsync(server, software, "abc", parasMap);
+		CompletableFuture<AsyncTaskValue> cfm = mii.installAsync(server, software, "abc", 1L, parasMap);
 
 		Thread t = Thread.currentThread();
 

@@ -66,6 +66,9 @@ public class BorgService {
 	public static final String UNKNOWN = "borg.archive.unknown";
 
 	public static final String REPO_NON_INIT = "borg.repo.noinit";
+	public static final String BORG_DOWNLOAD_TASK_KEY = "taskkey.borg.download";
+	public static final String BORG_RESTORE_TASK_KEY = "taskkey.borg.restore";
+
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -216,7 +219,7 @@ public class BorgService {
 		}
 	}
 	
-	public CompletableFuture<AsyncTaskValue> downloadRepoAsync(Server server, String taskDescription) {
+	public CompletableFuture<AsyncTaskValue> downloadRepoAsync(Server server, String taskDescription, Long id) {
 		return CompletableFuture.supplyAsync(() -> {
 			FacadeResult<Session> frSession;
 			try {
@@ -233,7 +236,7 @@ public class BorgService {
 				bd.setServerId(server.getId());
 				bd = borgDownloadDbService.save(bd);
 				fr.setResult(bd);
-				return new AsyncTaskValue(fr);
+				return new AsyncTaskValue(id, fr);
 			} catch (JSchException | NoSuchAlgorithmException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
@@ -242,7 +245,7 @@ public class BorgService {
 				}
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
+			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
 		});
 
 	}
@@ -316,7 +319,7 @@ public class BorgService {
 	}
 	
 	
-	public CompletableFuture<AsyncTaskValue> playbackAsync(PlayBack playback, String localRepo) {
+	public CompletableFuture<AsyncTaskValue> playbackAsync(PlayBack playback, String localRepo, Long id) {
 		Server source = serverDbService.findById(playback.getSourceServerId());
 		Server target = serverDbService.findById(playback.getTargetServerId());
 		return CompletableFuture.supplyAsync(() -> {
@@ -336,7 +339,7 @@ public class BorgService {
 				PlayBackResult bd = fr.getResult();
 				bd = playBackResultDbService.save(bd);
 				fr.setResult(bd);
-				return new AsyncTaskValue(fr);
+				return new AsyncTaskValue(id, fr);
 			} catch (IOException e) {
 				throw new ExceptionWrapper(e);
 			} finally {
@@ -351,7 +354,7 @@ public class BorgService {
 			}
 			ExceptionUtil.logErrorException(logger, ttt);
 			
-			return new AsyncTaskValue(FacadeResult.unexpectedResult(ttt));
+			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(ttt));
 		});
 	}
 	

@@ -19,7 +19,9 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
@@ -50,10 +52,13 @@ public class BorgRestoreConstroller extends ControllerBase {
 	@PostMapping("/{playback}")
 	public String restore(@PathVariable PlayBack playback, @RequestParam(name = "repo") String repo, Model model,
 			HttpServletRequest request, RedirectAttributes ras) {
-		CompletableFuture<AsyncTaskValue> cf  = borgService.playbackAsync(playback, repo);
-
+		
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
+		CompletableFuture<AsyncTaskValue> cf  = borgService.playbackAsync(playback, repo, aid);
+		String msgkey = getI18nedMessage(BorgService.BORG_RESTORE_TASK_KEY, playback.getSourceServerId(), playback.getTargetServerId());
 		String sid = request.getSession(true).getId();
-		globalStore.saveAfuture(sid, playback.getId() + "",	cf);
+		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
+		globalStore.saveFuture(sid, sf);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return "redirect:" + MAPPING_PATH + "/" + playback.getId();
 	}

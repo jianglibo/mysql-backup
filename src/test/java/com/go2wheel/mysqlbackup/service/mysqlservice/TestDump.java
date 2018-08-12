@@ -48,7 +48,7 @@ public class TestDump extends MysqlServiceTbase {
 		assertThat(localDumpPath.getFileName().toString(), equalTo("dump.0000000"));
 		assertTrue(Files.exists(localDumpPath.resolve("mysqldump.sql")));
 		
-		fr = mysqlService.mysqlDump(session, server, true);
+		fr = mysqlService.mysqlDump(session, server);
 		assertTrue(fr.isExpected());
 		
 		// after dump, the current dump folder will changed.

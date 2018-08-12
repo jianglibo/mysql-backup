@@ -32,7 +32,7 @@ public class AsyncTasksController extends ControllerBase {
 	public String status(Model model, HttpServletRequest request)
 			throws IOException {
 		String sid = request.getSession(true).getId();
-		model.addAttribute(CRUDController.LIST_OB_NAME, globalStore.getFutureDetails(sid));
+		model.addAttribute(CRUDController.LIST_OB_NAME, globalStore.getFutureGroupAll(sid));
 		model.addAttribute("storeState", globalStore.getStoreState());
 		return "global-store-state";
 	}

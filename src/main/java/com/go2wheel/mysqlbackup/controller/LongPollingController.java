@@ -1,10 +1,10 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.locks.Lock;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -64,7 +64,7 @@ public class LongPollingController {
 				 return cfInMap;
 			}
 
-			List<CompletableFuture<AsyncTaskValue>> cfs = globalStore.getFutureGroup(group);
+			List<CompletableFuture<AsyncTaskValue>> cfs = globalStore.getFutureGroupUnCompleted(group).stream().map(sf -> sf.getCf()).collect(Collectors.toList());
 			// 只能对正在执行的异步作出响应，如果在等待的过程中有新的任务加入，必须在下一个循环中才能被测到?
 //			CompletableFuture<?>[] cfs = lgo.stream().map(go -> go.as(CompletableFuture.class))
 //					.toArray(size -> new CompletableFuture<?>[size]);
@@ -80,19 +80,20 @@ public class LongPollingController {
 					for (CompletableFuture<AsyncTaskValue> it : cfs) {
 						AsyncTaskValue at = it.getNow(AsyncTaskValue.emptyValue());
 						if (!at.isEmpty()) {
-							ar.addObject(at);
-							globalStore.removeFuture(it);
+							globalStore.handleFutrueFacadeResult(at, cf);
 						}
 					}
 					globalStore.groupListernerCache.invalidate(group);
-					cf.complete(ar);
+					if (!cf.isDone()) {
+						cf.complete(ar);						
+					}
 				}
 			}).exceptionally(throwable -> { //如果发生意外，必须将发生意外的future移除。
 				ExceptionUtil.logThrowable(logger, throwable);
-				Optional<CompletableFuture<AsyncTaskValue>> ocf = cfs.stream().filter(f -> f.isDone()).findAny();
-				if (ocf.isPresent()) {
-					globalStore.removeFuture(ocf.get());
-				}
+//				Optional<CompletableFuture<AsyncTaskValue>> ocf = cfs.stream().filter(f -> f.isDone()).findAny();
+//				if (ocf.isPresent()) {
+//					globalStore.removeFuture(ocf.get());
+//				}
 				globalStore.groupListernerCache.invalidate(group);
 				cf.complete(AjaxErrorResult.exceptionResult(throwable));
 				return null;

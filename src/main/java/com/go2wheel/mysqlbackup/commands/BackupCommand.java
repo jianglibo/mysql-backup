@@ -91,6 +91,7 @@ import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlDumpDbService;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -765,14 +766,31 @@ public class BackupCommand {
 		}
 	}
 
+	
+	@ShellMethod(value = "列出后台任务")
+	public FacadeResult<?> asyncList() throws JSchException, IOException {
+		List<SavedFuture> gobjects = globalStore.getFutureGroupAll(BackupCommand.class.getName());
+		
+		List<String> ls =  gobjects.stream()
+				.map(sf -> String.format("Task %s, Done: %s",sf.getDescription(), sf.getCf().isDone()))
+				.collect(Collectors.toList());
+		return FacadeResult.doneExpectedResultDone(ls);
+		
+	}
+	
 	@ShellMethod(value = "执行Mysqldump命令")
 	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		if (async) {
-			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"Dump mysql.", false);
+			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"Dump mysql.", aid);
 			
-			globalStore.saveAfuture(BackupCommand.class.getName(), "mysqldump-" + server.getId(), future);
+			String msgkey = localedMessageService.getMessage(MysqlService.DUMP_TASK_KEY, server.getId());
+			
+			SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, future);
+			
+			globalStore.saveFuture(BackupCommand.class.getName(), sf);
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
 			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
@@ -780,44 +798,36 @@ public class BackupCommand {
 		}
 	}
 	
-	@ShellMethod(value = "列出后台任务")
-	public FacadeResult<?> asyncList() throws JSchException, IOException {
-		List<CompletableFuture<AsyncTaskValue>> gobjects = globalStore.getFutureGroup(BackupCommand.class.getName());
-		
-		List<String> ls =  gobjects.stream()
-				.map(f -> f.isDone() + "")
-				.collect(Collectors.toList());
-		return FacadeResult.doneExpectedResultDone(ls);
-		
-	}
-	
-	/**
-	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
-	 * 
-	 * @return
-	 * @throws JSchException
-	 * @throws IOException
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnExpectedInputException 
-	 * @throws UnExpectedContentException 
-	 */
-	@ShellMethod(value = "再次执行Mysqldump命令")
-	public FacadeResult<?> mysqlDumpAgain(@ShellOption(help="异步执行") boolean async, @ShellOption(defaultValue = ShellOption.NULL) String iknow)
-			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
-		sureMysqlReadyForBackup();
-		Server server = appState.getCurrentServer();
-		if (!DANGEROUS_ALERT.equals(iknow)) {
-			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
-		}
-		if (async) {
-			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"mysql dump", true);
-			globalStore.saveAfuture(BackupCommand.class.getName(), "mysqldump-" + server.getId(), future);
-			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
-		} else {
-			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server, true);
-			return mysqlService.saveDumpResult(server, fr);
-		}
-	}
+//	/**
+//	 * 再次执行Mysqldump命令之前必须确保mysql flushlogs任务已经结束。
+//	 * 
+//	 * @return
+//	 * @throws JSchException
+//	 * @throws IOException
+//	 * @throws NoSuchAlgorithmException 
+//	 * @throws UnExpectedInputException 
+//	 * @throws UnExpectedContentException 
+//	 */
+//	@ShellMethod(value = "再次执行Mysqldump命令")
+//	public FacadeResult<?> mysqlDumpAgain(@ShellOption(help="异步执行") boolean async/*, @ShellOption(defaultValue = ShellOption.NULL) String iknow*/)
+//			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
+//		sureMysqlReadyForBackup();
+//		Server server = appState.getCurrentServer();
+////		if (!DANGEROUS_ALERT.equals(iknow)) {
+////			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
+////		}
+//		
+//		if (async) {
+//			Long aid = GlobalStore.atomicLong.getAndIncrement();
+//			CompletableFuture<AsyncTaskValue> future = mysqlService.mysqlDumpAsync(server,"mysql dump", aid);
+//			SavedFuture sf = SavedFuture.newSavedFuture(aid, "mysqldump-" + server.getId(), future);
+//			globalStore.saveFuture(BackupCommand.class.getName(), sf);
+//			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
+//		} else {
+//			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
+//			return mysqlService.saveDumpResult(server, fr);
+//		}
+//	}
 
 
 

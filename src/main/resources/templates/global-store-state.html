@@ -16,7 +16,6 @@
 					<ul>
 						<li th:text="|长连接等待数：${storeState.groupListernerCache}|"></li>
 						<li th:text="|异步任务数：${storeState.sessionAndFutures}|"></li>
-						<li th:text="|任务起始跟踪数：${storeState.timeCostMap}|"></li>
 						<li th:text="|同步锁数：${storeState.lockCache}|"></li>
 					</ul>
 				</aside>
@@ -30,6 +29,8 @@
 							<th>任务描述</th>
 							<th>已结束？</th>
 							<th>意外结束？</th>
+							<th>期待的结果？</th>
+							<th>When Begins</th>
 							<th>时光流逝</th>
 
 						</tr>
@@ -38,12 +39,14 @@
 					<tbody th:remove="all-but-first">
 						<tr th:each="item: ${listItems}">
 							<td>
-								<input id="particular-item" th:id="|item-${item.timeElapsed.id}|" type="checkbox">
+								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
 							</td>
 							<td th:text="${item.description}">name</td>
-							<td th:text="${item.done}">Accord</td>
-							<td th:text="${item.exceptionally}">2009</td>
-							<td th:text="${item.timeElapsed.seconds()}">2009</td>
+							<td th:text="${item.cf.done}">Accord</td>
+							<td th:text="${item.cf.completedExceptionally}">2009</td>
+							<td th:text="${item.isExpected()}">2009</td>
+							<td th:text="${item.startPoint}">2009</td>
+							<td th:text="${item.seconds()}">2009</td>
 						</tr>
 						<tr>
 							<td>2</td>

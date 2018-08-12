@@ -214,12 +214,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software,String msgKey, Map<String, String> parasMap) {
+	public CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software,String msgKey, Long id, Map<String, String> parasMap) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(install(server, software, parasMap)).withDescription(msgKey);
+				return new AsyncTaskValue(id, install(server, software, parasMap)).withDescription(msgKey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgKey);
+				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
 	}
@@ -277,12 +277,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgKey) {
+	public CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgKey, Long id) {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(uninstall(server, software)).withDescription(msgKey);
+				return new AsyncTaskValue(id, uninstall(server, software)).withDescription(msgKey);
 			} catch (JSchException e) {
-				return new AsyncTaskValue(FacadeResult.unexpectedResult(e)).withDescription(msgKey);
+				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
 	}

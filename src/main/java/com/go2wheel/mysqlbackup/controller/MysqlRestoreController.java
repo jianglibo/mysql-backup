@@ -24,7 +24,9 @@ import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
@@ -64,11 +66,12 @@ public class MysqlRestoreController extends ControllerBase {
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
 		
 		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getId(), targetServer.getId()}, request.getLocale());
-		
-		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey);
-		
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		String sid = request.getSession(true).getId();
-		globalStore.saveAfuture(sid, msgkey, cf);
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid);
+		
+		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
+		globalStore.saveFuture(sid, sf);
 		
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);

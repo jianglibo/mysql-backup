@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.value;
 
 public class AsyncTaskValue {
 	
+	private Long id;
+	
 	private String description;
 	
 	private Object result;
@@ -10,7 +12,8 @@ public class AsyncTaskValue {
 	
 	public AsyncTaskValue() {}
 	
-	public AsyncTaskValue(Object result) {
+	public AsyncTaskValue(Long id, Object result) {
+		this.id = id;
 		this.result = result;
 		this.empty = false;
 	}
@@ -46,6 +49,14 @@ public class AsyncTaskValue {
 
 	public void setEmpty(boolean empty) {
 		this.empty = empty;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 }

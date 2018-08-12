@@ -22,8 +22,10 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
 
@@ -32,6 +34,7 @@ import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 public class BorgDescriptionsController  extends CRUDController<BorgDescription, BorgDescriptionDbService> {
 	
 	public static final String MAPPING_PATH = "/app/borg-descriptions";
+	
 	
 	@Autowired
 	private ReusableCronDbService reuseableCronDbService;
@@ -90,9 +93,16 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		server = serverDbService.loadFull(server);
 		
-		CompletableFuture<AsyncTaskValue> cf = borgService.downloadRepoAsync(server, "");
+		Long aid = GlobalStore.atomicLong.getAndIncrement();
+		
+		String msgkey = getI18nedMessage(BorgService.BORG_DOWNLOAD_TASK_KEY, server.getHost());
+		
+		CompletableFuture<AsyncTaskValue> cf = borgService.downloadRepoAsync(server, msgkey, aid);
 		String sid = request.getSession(true).getId();
-		globalStore.saveAfuture(sid, server.getId() + "-sync-borg-repo" + borgDescription.getId(), cf);
+		
+		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
+		
+		globalStore.saveFuture(sid, sf);
 		
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return redirectMappingUrl();

@@ -18,6 +18,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import com.go2wheel.mysqlbackup.SpringBaseTWithWeb;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
 import com.go2wheel.mysqlbackup.value.AjaxResult;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
@@ -43,13 +44,15 @@ public class TestLongPollingController extends SpringBaseTWithWeb {
 		});
 		
 		// add a future task which take 2500 ms.
-		globalStore.saveAfuture("123", "key", CompletableFuture.supplyAsync(() -> {
+		SavedFuture sf = SavedFuture.newSavedFuture(1L, "key", CompletableFuture.supplyAsync(() -> {
 			try {
 				Thread.sleep(2500);
 			} catch (InterruptedException e) {
 			}
-			return new AsyncTaskValue("hello");
+			return new AsyncTaskValue(1L, "hello");
 		}));
+		
+		globalStore.saveFuture("123", sf);
 
 		this.mockMvc.perform(asyncDispatch(result)).andExpect(status().isOk()).andDo(mr -> {
 			MockHttpServletResponse r = mr.getResponse();

@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.util.FutureUtil;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
@@ -102,18 +103,21 @@ public class SampleController implements ApplicationContextAware {
 		CompletableFuture<AsyncTaskValue> ftw;
 		CompletableFuture<AsyncTaskValue> ft = new CompletableFuture<AsyncTaskValue>();
 		ftw = FutureUtil.within(ft, Duration.ofMillis(timeout)).exceptionally(throwable -> {
-			return new AsyncTaskValue("timeout");
+			return new AsyncTaskValue(1L, "timeout");
 		});
-		globalStore.saveAfuture("test", "future", ft);
+		Long aid = 1L;
+		
+		SavedFuture sf = SavedFuture.newSavedFuture(aid, "futrue", ft);
+		globalStore.saveFuture("test", sf);
 		return ftw;
 	}
 	
 	@GetMapping("/quotesfuturefill")
 	@ResponseBody
 	public String quotesfillfuture(HttpSession session) {
-		CompletableFuture<AsyncTaskValue>  future =  globalStore.removeFuture("test", "future");
+		SavedFuture  future =  globalStore.removeFuture(1L);
 		if (future != null) {
-			future.complete(new AsyncTaskValue("future"));
+			future.getCf().complete(new AsyncTaskValue(1L, "future"));
 			return "yes";
 		}
 		return "no";

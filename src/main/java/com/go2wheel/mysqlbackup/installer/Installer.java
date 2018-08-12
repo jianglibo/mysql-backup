@@ -14,8 +14,8 @@ public interface Installer<I extends InstallInfo> {
 	FacadeResult<I> install(Server server, Software software, Map<String, String> parasMap) throws JSchException;
 	FacadeResult<I> uninstall(Server server, Software software) throws JSchException;
 	
-	CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software, String msgkey, Map<String, String> parasMap);
-	CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgkey);
+	CompletableFuture<AsyncTaskValue> installAsync(Server server, Software software, String msgkey,Long id, Map<String, String> parasMap);
+	CompletableFuture<AsyncTaskValue> uninstallAsync(Server server, Software software, String msgkey, Long id);
 	
 	boolean canHandle(Software software);
 	
