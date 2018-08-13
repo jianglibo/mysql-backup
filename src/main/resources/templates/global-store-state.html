@@ -71,20 +71,22 @@
 	</div>
 
 	<script th:inline="javascript">
+		window.afterAsyncDone = function(data) {
+			window.location.reload(true);
+		}
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
 
-		// window.freact.renderActionMenuBar(mapping,
-		// 	".item-list",
-		// 	["edit", "delete", {
-		// 		actionId: 'repo-restore',
-		// 		name: '回放',
-		// 		activeOn: 'SINGLE',
-		// 		onClick: function() {
-		// 			var id = this.state.selectedItems[0].id;
-		// 			window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {repo: id});
-		// 		}
-		// 	}]);
+		window.freact.renderActionMenuBar(mapping,
+			".item-list",
+			[{
+				actionId: 'clear-completed',
+				name: '清除正常任务',
+				activeOn: 'ALWAYS',
+				onClick: function() {
+					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {});
+				}
+			}]);
 	</script>
 </body>
 

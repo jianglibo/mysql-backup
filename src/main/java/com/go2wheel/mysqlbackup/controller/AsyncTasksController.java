@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -35,6 +36,15 @@ public class AsyncTasksController extends ControllerBase {
 		model.addAttribute(CRUDController.LIST_OB_NAME, globalStore.getFutureGroupAll(sid));
 		model.addAttribute("storeState", globalStore.getStoreState());
 		return "global-store-state";
+	}
+	
+	@PostMapping("")
+	public String clearCompleted(Model model, HttpServletRequest request)
+			throws IOException {
+		model.asMap().clear();
+		String sid = request.getSession(true).getId();
+		globalStore.clearCompleted(sid);
+		return "redirect:" + request.getRequestURI();
 	}
 
 

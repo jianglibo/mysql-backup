@@ -345,7 +345,7 @@
 					if (typeof responseData === 'object') {
 						if (responseData.message) {
 							if (responseData.message !== 'timeout') {
-								pollResult('有任务完成，但是结果是失败。', responseData.message);
+								pollResult('有任务失败了。', responseData.message);
 							}
 						} else {
 							console.log(responseData);
@@ -357,6 +357,9 @@
 								} else {
 									var t = window.freact.strUtil.format('任务：{tk} 失败！', {tk: data[0].description});
 									pollResult('有任务结束', t);
+								}
+								if(window.afterAsyncDone) {
+									window.afterAsyncDone(data);
 								}
 							}
 						}

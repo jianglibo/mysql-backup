@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -406,6 +407,18 @@ public class GlobalStore {
 		Optional<SavedFuture> sfo = sessionAndFutures.values().stream().flatMap(m -> m.values().stream()).filter(sf -> sf.getId().equals(aid)).findAny();
 		if (sfo.isPresent()) {
 			sfo.get().stopCounting();
+		}
+	}
+
+	public void clearCompleted(String sid) {
+		Map<Long, SavedFuture> lsmap = sessionAndFutures.get(sid);
+		if (lsmap == null) return;
+		Iterator<Entry<Long, SavedFuture>> it = lsmap.entrySet().iterator();
+		while(it.hasNext()) {
+			Entry<Long, SavedFuture> es = it.next();
+			if (es.getValue().getCf().isDone() && "TRUE".equals(es.getValue().isExpected())) {
+				it.remove();
+			}
 		}
 	}
 	
