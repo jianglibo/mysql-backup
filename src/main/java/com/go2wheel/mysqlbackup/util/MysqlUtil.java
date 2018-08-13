@@ -138,7 +138,7 @@ public class MysqlUtil {
 	// }
 
 	public MysqlVariables getLogbinState(Session session, Server server)
-			throws JSchException, IOException, AppNotStartedException {
+			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException {
 		return getLogbinState(session, server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword());
 	}
@@ -281,7 +281,7 @@ public class MysqlUtil {
 	}
 	
 	
-	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedContentException {
+	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedContentException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect(session, server) {
 			@Override
 			protected void tillPasswordRequired() throws IOException {
@@ -299,7 +299,7 @@ public class MysqlUtil {
 	}
 	
 	
-	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException {
+	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect(session, server) {
 			@Override
 			protected void tillPasswordRequired() throws IOException {
@@ -316,7 +316,7 @@ public class MysqlUtil {
 		}).start();
 	}
 	
-	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedContentException {
+	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedContentException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect(session, server) {
 			@Override
 			protected void tillPasswordRequired() throws IOException {

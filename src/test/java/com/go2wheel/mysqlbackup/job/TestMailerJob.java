@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.mail.Mailer;
@@ -64,7 +65,7 @@ public class TestMailerJob extends JobBaseFort {
 	private Software software;
 	
 	
-	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -96,7 +97,7 @@ public class TestMailerJob extends JobBaseFort {
 		return usg;
 	}
 	
-	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -142,7 +143,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
 		
 		Subscribe subscribe = simulation();
 		

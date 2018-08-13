@@ -527,11 +527,12 @@ public class BackupCommand {
 	 * @throws JSchException
 	 * @throws UnExpectedInputException 
 	 * @throws UnExpectedContentException 
+	 * @throws MysqlAccessDeniedException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public FacadeResult<?> mysqlEnableLogbin(
 			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
-			throws JSchException, IOException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
 		sureMysqlConfigurated();
 		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
@@ -779,7 +780,7 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
@@ -894,7 +895,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
+	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 

@@ -12,6 +12,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
@@ -24,7 +25,7 @@ public class TestSaveSettings extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc; 
 	
 	@Test
-	public void testSaveMysqlSettings() throws IOException, UnExpectedContentException, JSchException, SchedulerException {
+	public void testSaveMysqlSettings() throws IOException, UnExpectedContentException, JSchException, SchedulerException, MysqlAccessDeniedException {
 		clearDb();
 		installMysql();
 		MycnfFileHolder mfh = mysqlService.getMysqlSettingsFromDisk(server);

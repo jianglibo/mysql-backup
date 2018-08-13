@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
@@ -30,13 +31,13 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	
 	protected Software software;
 	
-	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException {
+	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
 		createSession();
 		createMysqlIntance();
 		installMysql(session, server, "123456");
 	}
 	
-	protected void installMysql(Session session, Server server, String initPassword) throws JSchException, SchedulerException, IOException, UnExpectedContentException {
+	protected void installMysql(Session session, Server server, String initPassword) throws JSchException, SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
 		deleteAllJobs();
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");

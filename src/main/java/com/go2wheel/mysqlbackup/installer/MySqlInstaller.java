@@ -46,6 +46,12 @@ import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectBuilder;
 import net.sf.expectit.ExpectIOException;
 
+/**
+ * Removing datadir of runing mysql server will cause failure of client connecting. After restart service, the datadir will be created automatically, But password will be reinitialized to empty.
+ * 
+ * @author jianglibo@gmail.com
+ *
+ */
 @Service
 public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 

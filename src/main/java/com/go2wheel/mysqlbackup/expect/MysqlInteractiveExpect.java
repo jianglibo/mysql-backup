@@ -80,5 +80,5 @@ public abstract class MysqlInteractiveExpect<T> {
 	
 
 
-	protected abstract T afterLogin();
+	protected abstract T afterLogin() throws IOException;
 }

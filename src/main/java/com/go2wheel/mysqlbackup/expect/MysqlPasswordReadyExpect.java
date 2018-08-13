@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
@@ -46,7 +47,7 @@ public abstract class MysqlPasswordReadyExpect {
 	}
 	
 	
-	public List<String> start() throws UnExpectedContentException {
+	public List<String> start() throws UnExpectedContentException, MysqlAccessDeniedException {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {
@@ -80,6 +81,11 @@ public abstract class MysqlPasswordReadyExpect {
 		return expect.withTimeout(duration, tu).expect(times(num, contains(BASH_PROMPT))).getBefore();
 	}
 
+	protected void checkAccessDenied(List<String> s) throws MysqlAccessDeniedException {
+		if (s.stream().anyMatch(line -> line.indexOf("Access denied for") != -1)) {
+			throw new MysqlAccessDeniedException();
+		}
+	}
 	
 	protected List<String> expectBashPromptAndReturnList() throws IOException {
 		return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
@@ -89,6 +95,7 @@ public abstract class MysqlPasswordReadyExpect {
 	 * May hold multiple command output.  
 	 * @return
 	 * @throws IOException
+	 * @throws MysqlAccessDeniedException 
 	 */
-	protected abstract List<String> afterLogin() throws IOException;
+	protected abstract List<String> afterLogin() throws IOException, MysqlAccessDeniedException;
 }

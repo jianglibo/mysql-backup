@@ -11,6 +11,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
@@ -25,7 +26,7 @@ public class TestEnableLogbin extends MysqlServiceTbase {
 	
 	
 	@Test
-	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException {
+	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException {
 		clearDb();
 		installMysql();
 		FacadeResult<?> fr = mysqlService.disableLogbin(session, server);

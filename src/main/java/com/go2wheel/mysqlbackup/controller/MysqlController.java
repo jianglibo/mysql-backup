@@ -37,7 +37,6 @@ import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
-import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
@@ -107,7 +106,7 @@ public class MysqlController extends ControllerBase {
 	@PostMapping("/{server}/flushes")
 	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request)
 			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException,
-			UnExpectedContentException {
+			UnExpectedContentException, MysqlAccessDeniedException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -126,7 +125,7 @@ public class MysqlController extends ControllerBase {
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException, UnExpectedContentException {
+			RedirectAttributes ras) throws JSchException, UnExpectedContentException, MysqlAccessDeniedException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
@@ -142,8 +141,6 @@ public class MysqlController extends ControllerBase {
 			if (!fr.isExpected()) {
 				ras.addFlashAttribute(CRUDController.ERROR_MESSAGE_KEY, fr.getMessage());
 			}
-		} catch (MysqlAccessDeniedException me) {
-			ras.addFlashAttribute(CRUDController.ERROR_MESSAGE_KEY, CommonMessageKeys.AUTHENTICATION_FAILED);
 		} finally {
 			if (session != null && session.isConnected()) {
 				session.disconnect();

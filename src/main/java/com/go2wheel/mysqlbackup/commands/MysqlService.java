@@ -35,6 +35,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -119,7 +120,7 @@ public class MysqlService {
 			try {
 				FacadeResult<LinuxLsl> fr = this.mysqlDump(session, server);
 				return new AsyncTaskValue(id, fr).withDescription(taskDescription);
-			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedContentException e1) {
+			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedContentException | MysqlAccessDeniedException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
@@ -143,11 +144,12 @@ public class MysqlService {
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 * @throws UnExpectedContentException 
+	 * @throws MysqlAccessDeniedException 
 	 * @throws AppNotStartedException 
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
 		
 		try {
 			Path dumpDir = settingsInDb.getNextDumpDir(server);
@@ -190,7 +192,7 @@ public class MysqlService {
 
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException {
+	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
 		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
 			throw new UnExpectedInputException(null, "mysql.unready", "");
 		}
@@ -253,7 +255,7 @@ public class MysqlService {
 		}
 	}
 	
-	public FacadeResult<?> disableLogbin(Session session, Server server) throws UnExpectedContentException {
+	public FacadeResult<?> disableLogbin(Session session, Server server) throws UnExpectedContentException, MysqlAccessDeniedException {
 		try {
 
 			MysqlInstance mi = server.getMysqlInstance();
@@ -284,13 +286,13 @@ public class MysqlService {
 			mi = mysqlInstanceDbService.save(mi);
 			server.setMysqlInstance(mi);
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | MysqlAccessDeniedException | AppNotStartedException e) {
+		} catch (JSchException | IOException | RunRemoteCommandException | ScpException | AppNotStartedException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
 	}
 	
-	public MycnfFileHolder requestMysqlSettings(Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+	public MycnfFileHolder requestMysqlSettings(Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException, MysqlAccessDeniedException {
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
@@ -302,14 +304,14 @@ public class MysqlService {
 		}
 	}
 	
-	public MycnfFileHolder requestMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+	public MycnfFileHolder requestMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException, MysqlAccessDeniedException {
 		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server);
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server); // 找到起作用的my.cnf配置文件。
 		mfh.setVariables(lbs.getMap());
 		return mfh;
 	}
 	
-	public MycnfFileHolder backupMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException {
+	public MycnfFileHolder backupMysqlSettings(Session session, Server server) throws JSchException, IOException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, ScpException, MysqlAccessDeniedException {
 		Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
 		MycnfFileHolder mfh = requestMysqlSettings(session, server);
 		Files.write(mysqlSettingDir.resolve("mycnf.yml"), YamlInstance.INSTANCE.yaml.dumpAsMap(mfh).getBytes());
@@ -327,11 +329,11 @@ public class MysqlService {
 		ScpUtil.to(session, mfh.getMyCnfFile(), mfh.toByteArray());
 	}
 
-	public FacadeResult<?> enableLogbin(Session session, Server server) throws UnExpectedContentException {
+	public FacadeResult<?> enableLogbin(Session session, Server server) throws UnExpectedContentException, MysqlAccessDeniedException {
 		return enableLogbin(session, server, server.getMysqlInstance().getLogBinSetting().getLogBinBasename());
 	}
 	
-	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) throws UnExpectedContentException {
+	public FacadeResult<?> enableLogbin(Session session, Server server, String logBinValue) throws UnExpectedContentException, MysqlAccessDeniedException {
 		try {
 			MysqlInstance mi = server.getMysqlInstance();
 			
@@ -380,12 +382,30 @@ public class MysqlService {
 
 	}
 	
+	public boolean resetPassword(Session session, Server server, String oldPassword, String newPassword) throws MysqlAccessDeniedException, JSchException, IOException, AppNotStartedException {
+		MysqlInteractiveExpect<Boolean> mie = new MysqlInteractiveExpect<Boolean>(session) {
+			@Override
+			protected Boolean afterLogin() throws IOException {
+				//	5.7.6 and later, ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+				String cmd = String.format("ALTER USER 'root'@'localhost' IDENTIFIED BY '%s';", newPassword);
+				expect.sendLine(cmd);
+				String s =  expectMysqlPromptAndReturnRaw();
+				if (s.indexOf("ERROR") != -1) {
+					cmd = String.format("SET PASSWORD FOR 'root'@'localhost' = PASSWORD('%s');", newPassword);
+					expect.sendLine(cmd);
+					s =  expectMysqlPromptAndReturnRaw();
+				}
+				return s.indexOf("ERROR") == -1;
+			}};
+		return mie.start(server.getMysqlInstance().getUsername(), oldPassword);
+	}
+	
 	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey, Long id) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
 			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
-					| AppNotStartedException | ScpException | UnExpectedInputException e1) {
+					| AppNotStartedException | ScpException | UnExpectedInputException | MysqlAccessDeniedException e1) {
 				throw new ExceptionWrapper(e1);
 			}
 		}).exceptionally(e -> {
@@ -393,7 +413,7 @@ public class MysqlService {
 		});
 	}
 
-	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException {
+	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
 		Session targetSession = null;
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
@@ -474,7 +494,7 @@ public class MysqlService {
 		}).thenApplyAsync(targetSession -> {
 			try {
 				return this.importDumped(targetSession, targetServer, sourceMysqlInstance, targetMysqlInstance, remoteFolder);
-			} catch (UnExpectedContentException e1) {
+			} catch (UnExpectedContentException | MysqlAccessDeniedException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (targetSession != null && targetSession.isConnected()) {
@@ -557,7 +577,7 @@ public class MysqlService {
 	}
 	
 	public boolean importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
-			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException {
+			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException, MysqlAccessDeniedException {
 		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 		String cmd = String.format("mysql -uroot -p < %s", dumpfn);

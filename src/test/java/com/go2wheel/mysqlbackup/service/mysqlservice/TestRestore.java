@@ -40,7 +40,7 @@ public class TestRestore extends MysqlServiceTbase {
 	@Rule
 	public RemoteTfolder rfRule = new RemoteTfolder("undetermined");
 	
-	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedContentException {
+	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedContentException, MysqlAccessDeniedException {
 		MysqlUtil.runSql(sess, sev, mi, "drop database aaaaa");		
 		MysqlUtil.runSql(sess, sev, mi, "drop database bbbb");
 		List<String> dbs = MysqlUtil.getDatabases(sess, sev, mi);
