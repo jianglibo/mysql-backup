@@ -17,6 +17,7 @@ import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -25,6 +26,9 @@ public class MysqlServiceTbase extends SpringBaseFort {
 
 	@Autowired
 	protected MysqlService mysqlService;
+	
+	@Autowired
+	protected MysqlUtil mysqlUtil;
 	
 	@Autowired
 	protected MySqlInstaller mySqlInstaller;

@@ -84,6 +84,7 @@ public class SSHcommonUtil {
 	 */
 	public static boolean backupFileByMove(Session session, String remoteFile) throws RunRemoteCommandException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		remoteFile = RemotePathUtil.getRidOfLastSlash(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists()) {
 			RemoteCommandResult rcr = runRemoteCommand(session,

@@ -60,12 +60,17 @@
 	<script th:inline="javascript">
 		var mapping = /*[[${mapping}]]*/ "/app/listItems";
 		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
+		var sourceServer = /*[[${sourceServer}]]*/ null;
+		var targetServer = /*[[${targetServer}]]*/ null;
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			["edit", "delete", {
 				actionId: 'repo-restore',
 				name: '回放',
 				activeOn: 'SINGLE',
+				confirm: function() {
+					return '此命令会重置' + targetServer.host + '上的MYSQL内容， つづく？';
+				},
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
 					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {dump: id});

@@ -19,8 +19,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
@@ -69,6 +72,39 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	public FacadeResult<MysqlInstallInfo> resetMysql(Session session, Server server,
+			String newPassword) throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
+		mysqlUtil.stopMysql(session);
+		String datadir = mi.getVariables().get(MysqlVariables.DATA_DIR);
+		SSHcommonUtil.backupFileByMove(session, datadir);
+		mysqlUtil.restartMysql(session); // now password is empty.
+		boolean r = resetPassword(session, server, "", newPassword);
+		if (r) {
+			return FacadeResult.doneExpectedResultDone(mi);
+		} else {
+			return FacadeResult.unexpectedResult("mysql.resetpassword.failed.");
+		}
+	}
+	
+	public boolean resetPassword(Session session, Server server, String oldPassword, String newPassword) throws MysqlAccessDeniedException, JSchException, IOException, AppNotStartedException {
+		MysqlInteractiveExpect<Boolean> mie = new MysqlInteractiveExpect<Boolean>(session) {
+			@Override
+			protected Boolean afterLogin() throws IOException {
+				//	5.7.6 and later, ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+				String cmd = String.format("ALTER USER 'root'@'localhost' IDENTIFIED BY '%s';", newPassword);
+				expect.sendLine(cmd);
+				String s =  expectMysqlPromptAndReturnRaw();
+				if (s.indexOf("ERROR") != -1) {
+					cmd = String.format("SET PASSWORD FOR 'root'@'localhost' = PASSWORD('%s');", newPassword);
+					expect.sendLine(cmd);
+					s =  expectMysqlPromptAndReturnRaw();
+				}
+				return s.indexOf("ERROR") == -1;
+			}};
+		return mie.start(server.getMysqlInstance().getUsername(), oldPassword);
+	}
 
 	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software,
 			String initPassword) {

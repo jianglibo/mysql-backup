@@ -35,8 +35,9 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
-import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
+import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
+import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -92,6 +93,9 @@ public class MysqlService {
 	
 	@Autowired
 	private StorageStateService sss;
+	
+	@Autowired
+	private MySqlInstaller mySqlInstaller;
 
 	@Autowired
 	public void setMysqlUtil(MysqlUtil mysqlUtil) {
@@ -382,23 +386,7 @@ public class MysqlService {
 
 	}
 	
-	public boolean resetPassword(Session session, Server server, String oldPassword, String newPassword) throws MysqlAccessDeniedException, JSchException, IOException, AppNotStartedException {
-		MysqlInteractiveExpect<Boolean> mie = new MysqlInteractiveExpect<Boolean>(session) {
-			@Override
-			protected Boolean afterLogin() throws IOException {
-				//	5.7.6 and later, ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
-				String cmd = String.format("ALTER USER 'root'@'localhost' IDENTIFIED BY '%s';", newPassword);
-				expect.sendLine(cmd);
-				String s =  expectMysqlPromptAndReturnRaw();
-				if (s.indexOf("ERROR") != -1) {
-					cmd = String.format("SET PASSWORD FOR 'root'@'localhost' = PASSWORD('%s');", newPassword);
-					expect.sendLine(cmd);
-					s =  expectMysqlPromptAndReturnRaw();
-				}
-				return s.indexOf("ERROR") == -1;
-			}};
-		return mie.start(server.getMysqlInstance().getUsername(), oldPassword);
-	}
+
 	
 	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey, Long id) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		return CompletableFuture.supplyAsync(() -> {
@@ -417,6 +405,10 @@ public class MysqlService {
 		Session targetSession = null;
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
+			
+			FacadeResult<MysqlInstallInfo> fmi = mySqlInstaller.resetMysql(targetSession, targetServer, targetServer.getMysqlInstance().getPassword());
+			// now we got a brand new mysql instance.
+			
 			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
 			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
 			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
@@ -449,7 +441,7 @@ public class MysqlService {
 				}
 			};
 			List<String> resultLines = mpre.start();
-			return resultLines.size() == 1;
+			return resultLines != null && resultLines.size() == 1;
 			
 		} finally {
 			if( targetSession != null) {

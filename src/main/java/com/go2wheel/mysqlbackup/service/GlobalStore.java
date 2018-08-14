@@ -46,8 +46,6 @@ public class GlobalStore {
 
 	private Map<String, Map<Long, SavedFuture>> sessionAndFutures = new HashMap<>();
 	
-//	private Map<CompletableFuture<AsyncTaskValue>, TimeElapsed> timeCostMap = Maps.newHashMap();
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@PostConstruct
@@ -77,13 +75,6 @@ public class GlobalStore {
 		sessionAndFutures.get(group).put(sf.getId(), sf);
 	}
 
-
-//	private void putToMap(String group, String key, CompletableFuture<AsyncTaskValue> value) {
-//		if (!sessionAndFutures.containsKey(group)) {
-//			sessionAndFutures.put(group, Maps.newHashMap());
-//		}
-//		sessionAndFutures.get(group).put(key, value);
-//	}
 	
 	/**
 	 * 保存新的异步任务时，看看有没有在等待的long polling，如果有的话，用新任务的完成来满足long polling.
@@ -139,77 +130,10 @@ public class GlobalStore {
 		futureFullfilled(atv.getId());
 	}
 
-	/**
-	 * 保存新的异步任务时，看看有没有在等待的long polling，如果有的话，用新任务的完成来满足long polling.
-	 * 
-	 * @param group
-	 * @param key
-	 * @param value
-	 */
-//	public void saveAfuture(String group, String key, CompletableFuture<AsyncTaskValue> value) {
-//		Lock lock = getLock(group);
-//		try {
-//			lock.lock();
-//			CompletableFuture<AjaxResult> lis = groupListernerCache.getIfPresent(group);
-//			if (lis != null) {
-//				if (lis.isDone()) {
-//					return;
-//				}
-//				value.thenAccept(av -> {
-//					if (av.getResult() instanceof FacadeResult) {
-//						FacadeResult<?> fr = (FacadeResult<?>) av.getResult();
-//						if (!fr.isExpected()) {
-//							Throwable tw = fr.getException();
-//							if (tw != null) {
-//								if (tw instanceof ExceptionWrapper) {
-//									tw = ((ExceptionWrapper) tw).getException();
-//								}
-//								AjaxErrorResult aer = AjaxErrorResult.exceptionResult(tw);
-//								removeFuture(value);
-//								lis.complete(aer);
-//								return;
-//							}
-//							AjaxDataResult<?> arr = new AjaxDataResult<>();
-//							arr.addObject(av);
-//							removeFuture(value);
-//							lis.complete(arr);
-//							return;
-//						}
-//					}
-//					AjaxDataResult<?> fr = new AjaxDataResult<>();
-//					fr.addObject(av);
-//					removeFuture(value);
-//					lis.complete(fr);
-//				}).exceptionally(throwable -> {
-//					ExceptionUtil.logThrowable(logger, throwable);
-//					removeFuture(value);
-//					lis.complete(AjaxErrorResult.exceptionResult(throwable));
-//					return null;
-//				});
-//			}
-//			putToMap(group, key, value);
-//			timeCostMap.put(value, new TimeElapsed());
-//		} finally {
-//			if (lock != null) {
-//				lock.unlock();
-//			}
-//		}
-//	}
-
 	public SavedFuture getFuture(String group, Long id) {
 		return sessionAndFutures.get(group).get(id);
 	}
 	
-//	public CompletableFuture<AsyncTaskValue> getFuture(String group, String key) {
-//		return sessionAndFutures.get(group).get(key);
-//	}
-
-//	public CompletableFuture<AsyncTaskValue> removeFuture(String group, String key) {
-//		CompletableFuture<AsyncTaskValue> ca = sessionAndFutures.get(group).remove(key);
-//		timeCostMap.remove(ca);
-//		return ca;
-//	}
-
 	public List<SavedFuture> getFutureGroupUnCompleted(String group) {
 		return getFutureGroupAll(group).stream().filter(f -> !f.getCf().isDone()).collect(Collectors.toList());
 	}
@@ -223,24 +147,6 @@ public class GlobalStore {
 		}
 	}
 	
-//	public Map<String, CompletableFuture<AsyncTaskValue>> getFutureGroupMap(String group) {
-//		return sessionAndFutures.get(group);
-//	}
-	
-//	public List<FutureDetail> getFutureDetails(String group) {
-//		Map<String, CompletableFuture<AsyncTaskValue>> myt = sessionAndFutures.get(group);
-//		if (myt == null) {
-//			return Lists.newArrayList();
-//		}
-//		return myt.entrySet().stream().map(es -> {
-//			FutureDetail fd = new FutureDetail();
-//			fd.setDescription(es.getKey());
-//			fd.setDone(es.getValue().isDone());
-//			fd.setExceptionally(es.getValue().isCompletedExceptionally());
-//			fd.setTimeElapsed(timeCostMap.get(es.getValue()));
-//			return fd;
-//		}).collect(Collectors.toList());
-//	}
 	
 	public SavedFuture removeFuture(SavedFuture sf) {
 		return removeFuture(sf.getId());
@@ -256,30 +162,17 @@ public class GlobalStore {
 		return null;
 	}
 
-//	public void removeFuture(CompletableFuture<AsyncTaskValue> it) {
-//		for (Map<String, CompletableFuture<AsyncTaskValue>> map : sessionAndFutures.values()) {
-//			Optional<Entry<String, CompletableFuture<AsyncTaskValue>>> ov = map.entrySet().stream().filter(es -> es.getValue() == it).findAny();
-//			if (ov.isPresent()) {
-//				map.remove(ov.get().getKey());
-//				timeCostMap.remove(it);
-//				break;
-//			}
-//		}
-//	}
-	
 	public StoreState getStoreState() {
 		StoreState ss = new StoreState();
 		ss.setGroupListernerCache(groupListernerCache.asMap().size());
 		ss.setLockCache(lockCache.asMap().size());
 		ss.setSessionAndFutures(sessionAndFutures.values().stream().mapToInt(m -> m.size()).sum());
-//		ss.setTimeCostMap(timeCostMap.size());
 		return ss;
 	}
 	
 	public class StoreState {
 		private int groupListernerCache;
 		private int sessionAndFutures;
-//		private int timeCostMap;
 		private int lockCache;
 		public int getGroupListernerCache() {
 			return groupListernerCache;
@@ -293,12 +186,6 @@ public class GlobalStore {
 		public void setSessionAndFutures(int sessionAndFutures) {
 			this.sessionAndFutures = sessionAndFutures;
 		}
-//		public int getTimeCostMap() {
-//			return timeCostMap;
-//		}
-//		public void setTimeCostMap(int timeCostMap) {
-//			this.timeCostMap = timeCostMap;
-//		}
 		public int getLockCache() {
 			return lockCache;
 		}
@@ -422,68 +309,4 @@ public class GlobalStore {
 		}
 	}
 	
-//	public static class FutureDetail {
-//		private String description;
-//		private boolean done;
-//		
-//		private boolean exceptionally;
-//		
-//		private TimeElapsed timeElapsed;
-//		
-//		public boolean isExceptionally() {
-//			return exceptionally;
-//		}
-//
-//		public void setExceptionally(boolean exceptionally) {
-//			this.exceptionally = exceptionally;
-//		}
-//
-//		public String getDescription() {
-//			return description;
-//		}
-//
-//		public void setDescription(String description) {
-//			this.description = description;
-//		}
-//
-//		public boolean isDone() {
-//			return done;
-//		}
-//
-//		public void setDone(boolean done) {
-//			this.done = done;
-//		}
-//
-//		public TimeElapsed getTimeElapsed() {
-//			return timeElapsed;
-//		}
-//
-//		public void setTimeElapsed(TimeElapsed timeElapsed) {
-//			this.timeElapsed = timeElapsed;
-//		}
-//	}
-	
-//	public class TimeElapsed {
-//		
-//		private long id;
-//		
-//		private Instant startPoint;
-//		
-//		public TimeElapsed() {
-//			this.startPoint = Instant.now();
-//			this.id = GlobalStore.atomicLong.getAndIncrement();
-//		}
-//		
-//		public String seconds() {
-//			return String.valueOf((Instant.now().toEpochMilli() - startPoint.toEpochMilli()) / 1000);
-//		}
-//
-//		public long getId() {
-//			return id;
-//		}
-//
-//		public void setId(long id) {
-//			this.id = id;
-//		}
-//	}
 }
