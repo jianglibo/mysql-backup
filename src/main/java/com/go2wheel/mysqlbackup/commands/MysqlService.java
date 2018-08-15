@@ -324,7 +324,13 @@ public class MysqlService {
 	
 	public MycnfFileHolder getMysqlSettingsFromDisk(Server server) throws IOException {
 		Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
-		try (InputStream is = Files.newInputStream(mysqlSettingDir.resolve("mycnf.yml"))) {
+		try (InputStream is = Files.newInputStream(mysqlSettingDir.resolve(settingsInDb.getString("mysql.filenames.mycnf", "mycnf.yml")))) {
+			return YamlInstance.INSTANCE.yaml.loadAs(is, MycnfFileHolder.class);
+		}
+	}
+	
+	public MycnfFileHolder getMysqlSettingsFromDisk(Path mysqlcnf) throws IOException {
+		try (InputStream is = Files.newInputStream(mysqlcnf)) {
 			return YamlInstance.INSTANCE.yaml.loadAs(is, MycnfFileHolder.class);
 		}
 	}
@@ -399,6 +405,37 @@ public class MysqlService {
 		}).exceptionally(e -> {
 			return new AsyncTaskValue(id, false).withDescription(msgkey);
 		});
+	}
+	
+	public boolean restoreOrigin(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, ScpException, MysqlAccessDeniedException, AppNotStartedException {
+		
+		MycnfFileHolder mf = getMysqlSettingsFromDisk(sourceServer);
+		String datadir = mf.getMysqlVariables().getDataDirEndNoSlash();
+		
+		// if datadir exists in target server?
+		Session targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
+		
+		boolean b = SSHcommonUtil.fileExists(targetSession, datadir);
+		if (!b) {
+			SSHcommonUtil.mkdirsp(targetSession, datadir);
+		} else {
+			SSHcommonUtil.backupFileByMove(targetSession, datadir);
+		}
+		
+		MysqlInstallInfo targetMycnfInfo = mysqlUtil.getInstallInfo(targetSession, targetServer);
+		
+		String targetMycnfFile = targetMycnfInfo.getVariables().get(MysqlVariables.DATA_DIR);
+		
+		// override target my.cnf.
+		ScpUtil.to(targetSession, targetMycnfFile, String.join("\n", mf.getLines().toArray(new String[mf.getLines().size()])));
+		
+		mysqlUtil.stopMysql(targetSession);
+		mysqlUtil.restartMysql(targetSession);
+		
+		mySqlInstaller.resetPassword(targetSession, targetServer, "", sourceServer.getMysqlInstance().getPassword());
+		
+		
+		return false;
 	}
 
 	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {

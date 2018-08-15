@@ -56,6 +56,14 @@ public class MysqlVariables {
 		return s;
 	}
 	
+	public String getDataDirEndNoSlash() {
+		String s = map.get(DATA_DIR);
+		if (s != null && s.endsWith("/")) {
+			s = s.substring(0, s.length() - 1);
+		}
+		return s;
+	}
+	
 	public String getLogBinDirWithEndingSlash() {
 		String s = getLogBinBasename();
 		return RemotePathUtil.getParentWithEndingSlash(s);

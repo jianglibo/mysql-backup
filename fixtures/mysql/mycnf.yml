@@ -2,7 +2,7 @@ lines:
 - '# For advice on how to change settings please see'
 - '# http://dev.mysql.com/doc/refman/5.6/en/server-configuration-defaults.html'
 - '[mysqld]'
-- log-bin=hm-log-bin
+- ;log-bin=hm-log-bin
 - '#'
 - '# Remove leading # and set to the amount of RAM for the most important data'
 - '# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.'
@@ -31,10 +31,11 @@ myCnfFile: /etc/my.cnf
 variables:
   protocol_version: '10'
   version_comment: MySQL
-  log_bin_basename: /var/lib/mysql/hm-log-bin
+  log_bin_basename: ''
+  datadir: /var/lib/mysql/
   version_compile_machine: x86_64
   innodb_version: 5.6.41
   version_compile_os: Linux
-  log_bin_index: /var/lib/mysql/hm-log-bin.index
-  version: 5.6.41-log
-  log_bin: 'ON'
+  log_bin_index: ''
+  version: 5.6.41
+  log_bin: 'OFF'
