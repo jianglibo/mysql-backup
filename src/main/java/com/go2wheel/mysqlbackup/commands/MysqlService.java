@@ -411,7 +411,12 @@ public class MysqlService {
 				throw new ExceptionWrapper(e1);
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(id, false).withDescription(msgkey);
+			Throwable throwable = e.getCause();
+			if (throwable instanceof ExceptionWrapper) {
+				ExceptionWrapper ew = (ExceptionWrapper) e.getCause();
+				throwable = ew.getException();
+			}
+			return new AsyncTaskValue(id, throwable);
 		});
 	}
 	

@@ -9,13 +9,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.go2wheel.mysqlbackup.controller.ControllerBase;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.jcraft.jsch.JSchException;
 
-@ControllerAdvice
+@ControllerAdvice(assignableTypes = {ControllerBase.class})
 public class ExceptionAdvice {
 	
 	@Autowired
@@ -31,6 +33,12 @@ public class ExceptionAdvice {
 	public String exception(CommandNotFoundException e, Model model) {
 		model.addAttribute("exp", e);
 		return "error-command";
+	}
+	
+	@ExceptionHandler(UnExpectedInputException.class)
+	public String unExpectedInputException(UnExpectedInputException ue, Model model) {
+		model.addAttribute("exp", ue);
+		return "error-unexpectedinput";
 	}
 	
 	@ExceptionHandler

@@ -30,7 +30,7 @@ spring.mail.protocol=smtp
 spring.mail.properties.mail.smtp.auth=true
 
 spring.messages.use-code-as-default-message=false
-spring.messages.basename=messages.command_msg,messages.menu,messages.obname,messages.sql,messages.taskkey
+spring.messages.basename=messages.command_msg,messages.menu,messages.obname,messages.sql,messages.taskkey,messages.errors
 
 logging.file=log/spring.log
 logging.file.max-size=5MB

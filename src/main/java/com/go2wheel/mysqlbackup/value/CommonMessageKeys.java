@@ -32,5 +32,9 @@ public class CommonMessageKeys {
 	public static final String AUTHENTICATION_FAILED = "common.authentication.failed.";
 
 	public static final String TASK_SUBMITTED = "common.taks.submitted";
+	
+	public static class MysqlKeys {
+		public static final String MYSQL_INSTANCE_UN_CONFIGRATED = "mysql.erros.instance.unconfigurated";
+	}
 
 }

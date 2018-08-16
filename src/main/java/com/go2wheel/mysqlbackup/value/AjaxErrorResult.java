@@ -13,7 +13,11 @@ public class AjaxErrorResult implements AjaxResult {
 	private Map<String, List<ErrorItem>> errors = Maps.newHashMap();
 	
 	public static AjaxErrorResult exceptionResult(Throwable throwable) {
-		AjaxErrorResult ar = new AjaxErrorResult(throwable.getMessage());
+		String msg = throwable.getMessage();
+		if (msg == null || msg.isEmpty()) {
+			msg = throwable.getClass().getName();
+		}
+		AjaxErrorResult ar = new AjaxErrorResult(msg);
 		return ar;
 	}
 

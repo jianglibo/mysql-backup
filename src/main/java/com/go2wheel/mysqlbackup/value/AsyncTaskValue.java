@@ -8,13 +8,21 @@ public class AsyncTaskValue {
 	
 	private Object result;
 	
-	private boolean empty;
+	private boolean empty = true;
+	
+	private Throwable throwable;
 	
 	public AsyncTaskValue() {}
 	
 	public AsyncTaskValue(Long id, Object result) {
 		this.id = id;
 		this.result = result;
+		this.empty = false;
+	}
+	
+	public AsyncTaskValue(Long id, Throwable throwable) {
+		this.id = id;
+		this.setThrowable(throwable);
 		this.empty = false;
 	}
 	
@@ -57,6 +65,14 @@ public class AsyncTaskValue {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public Throwable getThrowable() {
+		return throwable;
+	}
+
+	public void setThrowable(Throwable throwable) {
+		this.throwable = throwable;
 	}
 
 }

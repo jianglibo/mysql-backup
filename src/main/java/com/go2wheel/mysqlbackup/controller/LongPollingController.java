@@ -90,10 +90,6 @@ public class LongPollingController {
 				}
 			}).exceptionally(throwable -> { //如果发生意外，必须将发生意外的future移除。
 				ExceptionUtil.logThrowable(logger, throwable);
-//				Optional<CompletableFuture<AsyncTaskValue>> ocf = cfs.stream().filter(f -> f.isDone()).findAny();
-//				if (ocf.isPresent()) {
-//					globalStore.removeFuture(ocf.get());
-//				}
 				globalStore.groupListernerCache.invalidate(group);
 				cf.complete(AjaxErrorResult.exceptionResult(throwable));
 				return null;

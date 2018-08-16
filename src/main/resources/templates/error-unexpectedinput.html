@@ -1,0 +1,28 @@
+<!doctype html>
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>出错啦</h1>
+				<h2>Problems are not stop signs,they are guidelines. Robert
+					H.Schuller</h2>
+			</div>
+
+			<div class="content">
+				<h2 id="common-layouts" class="content-subhead"	th:text="${exp.getClass().getName()}|">状态值</h2>
+				<aside th:if="${exp.messagePlaceHolders} != null">
+					<p th:if="${exp.messagePlaceHolders.length} == 0" th:text="#{${exp.msgkey}}">原因</p>
+					<p th:if="${exp.messagePlaceHolders.length} == 1" th:text="#{${exp.msgkey}(${exp.messagePlaceHolders[0]})}">原因</p>
+					<p th:if="${exp.messagePlaceHolders.length} == 2" th:text="#{${exp.msgkey}(${exp.messagePlaceHolders[0]}), ${exp.messagePlaceHolders[1]}}">原因</p>
+				</aside>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

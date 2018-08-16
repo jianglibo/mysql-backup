@@ -22,6 +22,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -29,6 +30,7 @@ import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.jcraft.jsch.JSchException;
 
@@ -61,11 +63,27 @@ public class MysqlRestoreController extends ControllerBase {
 	}
 
 	@PostMapping("/{playback}")
-	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedContentException, JSchException, AppNotStartedException, ScpException {
+	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedContentException, JSchException, AppNotStartedException, ScpException, UnExpectedInputException {
 		Server sourceServer = serverDbService.findById(playback.getSourceServerId());
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
 		
-		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getId(), targetServer.getId()}, request.getLocale());
+		sourceServer = serverDbService.loadFull(sourceServer);
+		targetServer = serverDbService.loadFull(targetServer);
+		
+		Server unconfig = null;
+		
+		if (sourceServer.getMysqlInstance() == null) {
+			unconfig = sourceServer;
+		}
+		
+		if ( targetServer.getMysqlInstance() == null) {
+			unconfig = targetServer;
+		}
+		if (unconfig != null) {
+			throw new UnExpectedInputException("10001", CommonMessageKeys.MysqlKeys.MYSQL_INSTANCE_UN_CONFIGRATED, "null", unconfig.getHost());
+		}
+		
+		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getHost(), targetServer.getHost()}, request.getLocale());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		String sid = request.getSession(true).getId();
 		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid, false);

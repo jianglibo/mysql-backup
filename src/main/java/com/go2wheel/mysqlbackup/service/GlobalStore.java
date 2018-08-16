@@ -123,6 +123,11 @@ public class GlobalStore {
 					return;
 				}
 			}
+		} else if (atv.getThrowable() != null) {
+			AjaxErrorResult aer = AjaxErrorResult.exceptionResult(atv.getThrowable());
+			lis.complete(aer);
+			futureFullfilled(atv.getId());
+			return;
 		}
 		AjaxDataResult<?> arr = new AjaxDataResult<>();
 		arr.addObject(atv);
@@ -228,9 +233,20 @@ public class GlobalStore {
 			if (cf.isDone()) {
 				Object o;
 				try {
-					o = cf.get().getResult();
-					if (o instanceof FacadeResult) {
-						result = (((FacadeResult<?>) o).isExpected() + "").toUpperCase();
+					AsyncTaskValue atv = cf.get();
+					o = atv.getResult();
+					if (o != null) {
+						if (o instanceof FacadeResult) {
+							result = (((FacadeResult<?>) o).isExpected() + "").toUpperCase();
+						}
+					} else {
+						if (atv.getThrowable() != null) {
+							String msg = atv.getThrowable().getMessage(); 
+							if (msg == null || msg.isEmpty()) {
+								msg = atv.getThrowable().getClass().getName();
+							}
+							return msg; 
+						}
 					}
 				} catch (InterruptedException | ExecutionException e) {
 				} 
