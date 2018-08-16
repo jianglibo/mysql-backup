@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
@@ -37,14 +38,14 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	
 
 	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException,
-			MysqlAccessDeniedException {
+			MysqlAccessDeniedException, AppNotStartedException {
 		createSession();
 		createMysqlIntance();
 		installMysql(session, server, "123456");
 	}
 
 	protected void installMysql(Session session, Server server, String initPassword) throws JSchException,
-			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
+			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException {
 		deleteAllJobs();
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");
@@ -55,7 +56,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		mysqlService.enableLogbin(session, server);
 	}
 
-	protected void uninstall() throws JSchException {
+	protected void uninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException {
 		createSession();
 		createMysqlIntance();
 		mySqlInstaller.syncToDb();
@@ -63,7 +64,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		assertFalse(info.getResult().isInstalled());
 	}
 
-	protected void uninstall(Session session, Server server) throws JSchException {
+	protected void uninstall(Session session, Server server) throws JSchException, MysqlAccessDeniedException, AppNotStartedException {
 		try {
 			createMysqlIntance(server, "");
 			mySqlInstaller.syncToDb();

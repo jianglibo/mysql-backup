@@ -202,7 +202,7 @@ public class MysqlUtil {
 	}
 
 	public MysqlInstallInfo getInstallInfo(Session session, Server server)
-			throws RunRemoteCommandException, JSchException, IOException {
+			throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
 		String cmd = "rpm -qa | grep mysql";
 
@@ -234,12 +234,8 @@ public class MysqlUtil {
 
 			// this command need mysqld to be started, and know the password of the root.
 			Map<String, String> variables = new HashMap<>();
-			try {
-				variables = getVariables(session, server, MysqlVariables.DATA_DIR);
-				mysqlInstallInfo.setVariables(variables);
-			} catch (MysqlAccessDeniedException | AppNotStartedException e) {
-				e.printStackTrace();
-			}
+			variables = getVariables(session, server, MysqlVariables.DATA_DIR);
+			mysqlInstallInfo.setVariables(variables);
 
 		}
 		return mysqlInstallInfo;

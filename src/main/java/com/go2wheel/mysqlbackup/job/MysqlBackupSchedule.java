@@ -31,6 +31,10 @@ public class MysqlBackupSchedule extends SchedulerBase {
 		MysqlInstance mi = mysqlInstanceCreatedEvent.getModel();
 		Server server = serverDbService.findById(mi.getServerId());
 		
+		if (!Server.ROLE_GET.equals(server.getServerRole())) {
+			return;
+		}
+		
 		createTrigger(server,
 				mi.getFlushLogCron(),
 				MysqlFlushLogJob.class,
@@ -44,6 +48,10 @@ public class MysqlBackupSchedule extends SchedulerBase {
 		MysqlInstance before = mysqlInstanceChangedEvent.getBefore();
 		MysqlInstance after = mysqlInstanceChangedEvent.getAfter();
 		Server server = serverDbService.findById(after.getServerId());
+
+		if (!Server.ROLE_GET.equals(server.getServerRole())) {
+			return;
+		}
 		
 		reschedule(server,
 				before.getFlushLogCron(),

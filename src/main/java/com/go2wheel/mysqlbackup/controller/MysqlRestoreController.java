@@ -63,7 +63,7 @@ public class MysqlRestoreController extends ControllerBase {
 	}
 
 	@PostMapping("/{playback}")
-	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedContentException, JSchException, AppNotStartedException, ScpException, UnExpectedInputException {
+	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, @RequestParam(name="origin") boolean origin, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedContentException, JSchException, AppNotStartedException, ScpException, UnExpectedInputException {
 		Server sourceServer = serverDbService.findById(playback.getSourceServerId());
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
 		
@@ -86,7 +86,7 @@ public class MysqlRestoreController extends ControllerBase {
 		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getHost(), targetServer.getHost()}, request.getLocale());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		String sid = request.getSession(true).getId();
-		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid, false);
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid, origin);
 		
 		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
 		globalStore.saveFuture(sid, sf);

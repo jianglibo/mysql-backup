@@ -237,7 +237,22 @@ public class GlobalStore {
 					o = atv.getResult();
 					if (o != null) {
 						if (o instanceof FacadeResult) {
+							FacadeResult<?> fo = (FacadeResult<?>) o;
+							if (fo.isExpected()) {
+								result = "DONE";
+							} else {
+								if (fo.getMessage() != null) {
+									result = fo.getMessage();
+								} else if (fo.getException() != null) {
+									result = fo.getException().getMessage();
+									if (result == null || result.isEmpty()) {
+										result = fo.getException().getClass().getName();
+									}
+								}
+							}
 							result = (((FacadeResult<?>) o).isExpected() + "").toUpperCase();
+						} else {
+							result = o.toString();
 						}
 					} else {
 						if (atv.getThrowable() != null) {

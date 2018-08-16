@@ -461,7 +461,7 @@ public class MysqlService {
 			boolean b = restoreInternal(playback, sourceServer, targetServer, targetSession, dumpFolder);
 			
 			if (origin) {
-				
+				enableLogbin(targetSession, targetServer);
 			}
 			
 			return b;

@@ -95,7 +95,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	}
 
 	@Test
-	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException {
+	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 		System.out.println(info);
 	}

@@ -69,11 +69,22 @@
 				name: '回放',
 				activeOn: 'SINGLE',
 				confirm: function() {
-					return '此命令会重置' + targetServer.host + '上的MYSQL内容， つづく？';
+					return '此命令会重置' + targetServer.host + '上的MYSQL内容， 继续？';
 				},
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
-					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {dump: id});
+					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {dump: id, origin: false});
+				}
+			}, {
+				actionId: 'repo-restore-origin',
+				name: '还原',
+				activeOn: 'SINGLE',
+				confirm: function() {
+					return '此命令会重置' + targetServer.host + '上的MYSQL内容，并且将目标服务器上的MYSQL设置成和原来一样， 继续？';
+				},
+				onClick: function() {
+					var id = this.state.selectedItems[0].id;
+					window.freact.formUtil.createFormSubmit({action: ruri, method: 'POST'}, {dump: id, origin: true});
 				}
 			}]);
 	</script>

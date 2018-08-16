@@ -624,7 +624,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "安装MYSQL到目标机器")
 	public String mysqlInstall(@MetaAnno("MYSQL") Software software,
-			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) throws UnExpectedInputException {
+			@ShellOption(help = "初始root的密码。") @Pattern(regexp = "[^\\s]{5,}") String initPassword) throws UnExpectedInputException, MysqlAccessDeniedException, AppNotStartedException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		FacadeResult<?> fr = mySqlInstaller.install(getSession(), server, software, initPassword);
@@ -663,7 +663,7 @@ public class BackupCommand {
 	
 
 	@ShellMethod(value = "卸载目标机器的MYSQL")
-	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) throws UnExpectedInputException {
+	public FacadeResult<?> mysqlUninstall(@Pattern(regexp = "I know what i am doing\\.") String iknow) throws UnExpectedInputException, MysqlAccessDeniedException, AppNotStartedException {
 		sureServerSelected();
 		Server server = appState.getCurrentServer();
 		List<Software> softwares = softwareDbService.findByServerAndName(server, "MYSQL");

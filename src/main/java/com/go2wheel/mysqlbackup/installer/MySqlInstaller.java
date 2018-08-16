@@ -107,7 +107,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software,
-			String initPassword) {
+			String initPassword) throws MysqlAccessDeniedException, AppNotStartedException {
 		try {
 			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(software.getVersion()))) {
 				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", software.getVersion()));
@@ -207,7 +207,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		}
 	}
 
-	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server server, Software software) {
+	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server server, Software software) throws MysqlAccessDeniedException, AppNotStartedException {
 		try {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 			if (!info.isInstalled()) {
@@ -246,7 +246,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	@Override
 	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException {
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
-		FacadeResult<MysqlInstallInfo> fr = install(session, server, software, parasMap.get("initPassword"));
+		FacadeResult<MysqlInstallInfo> fr = null;
+		try {
+			fr = install(session, server, software, parasMap.get("initPassword"));
+		} catch (MysqlAccessDeniedException | AppNotStartedException e) {
+			e.printStackTrace();
+		}
 		return fr;
 	}
 	
@@ -315,7 +320,11 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	@Override
 	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) throws JSchException {
-		return unInstall(getSession(server), server, software);
+		try {
+			return unInstall(getSession(server), server, software);
+		} catch (MysqlAccessDeniedException | AppNotStartedException e) {
+			return null;
+		}
 	}
 
 	@Override

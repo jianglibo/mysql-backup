@@ -15,6 +15,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
@@ -31,7 +32,7 @@ public class TestFlush extends MysqlServiceTbase {
 	
 	@Test
 	public void testMysqlFlush()
-			throws JSchException, IOException, MysqlAccessDeniedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException {
+			throws JSchException, IOException, MysqlAccessDeniedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException, AppNotStartedException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);

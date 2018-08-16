@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
@@ -48,7 +49,7 @@ public class DemoController {
 	private MysqlService mysqlService;
 
 	@GetMapping("/mysql")
-	public String createMysql() throws JSchException, UnExpectedContentException, MysqlAccessDeniedException {
+	public String createMysql() throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException {
 		String serverHost1 = "192.168.33.111";
 		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT_GET);
 

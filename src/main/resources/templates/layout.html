@@ -350,12 +350,24 @@
 						} else {
 							console.log(responseData);
 							var data = responseData.data;
+							var errors = responseData.errors;
+							if (errors && errors.length > 0) {
+								var t = window.freact.strUtil.format('任务：{tk} 失败！', {tk: errors[0].message});
+								pollResult('有任务结束', t);
+							}
 							if (data && data.length > 0) {
-								if (data[0].result && data[0].result.expected) {
-									var t = window.freact.strUtil.format('任务：{tk} 已完成。', {tk: data[0].description});
-									pollResult("有任务结束", t);
+								var facade = data[0].result && data[0].result.commonActionResult; 
+								if (facade) {
+									var v = data[0].result.expected;
+									if (v) {
+										var t = window.freact.strUtil.format('任务：{tk} 已完成。', {tk: data[0].description});
+										pollResult("有任务结束", t);
+									} else {
+										var t = window.freact.strUtil.format('任务：{tk} 失败！', {tk: data[0].description});
+										pollResult('有任务结束', t);
+									}
 								} else {
-									var t = window.freact.strUtil.format('任务：{tk} 失败！', {tk: data[0].description});
+									var t = window.freact.strUtil.format('任务：{tk} 结束', {tk: data[0].description});
 									pollResult('有任务结束', t);
 								}
 								if(window.afterAsyncDone) {

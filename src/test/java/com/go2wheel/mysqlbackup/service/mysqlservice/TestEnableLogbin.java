@@ -15,11 +15,10 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
-import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
@@ -34,7 +33,7 @@ public class TestEnableLogbin extends MysqlServiceTbase {
 	
 	
 	@Test
-	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException {
+	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException {
 		clearDb();
 		installMysql();
 		sdc.setHost(server.getHost());

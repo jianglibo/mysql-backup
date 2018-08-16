@@ -12,7 +12,9 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -41,7 +43,7 @@ public class TestMysqlInstaller extends SpringBaseFort {
 	
 	
 	@Test
-	public void testUninstall() throws JSchException {
+	public void testUninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException {
 		clearDb();
 		createSession();
 		createMysqlIntance();
