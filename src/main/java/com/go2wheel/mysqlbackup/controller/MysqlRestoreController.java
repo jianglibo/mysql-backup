@@ -68,7 +68,7 @@ public class MysqlRestoreController extends ControllerBase {
 		String msgkey = messageSource.getMessage("taskkey.restoremysql", new Object[] {sourceServer.getId(), targetServer.getId()}, request.getLocale());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		String sid = request.getSession(true).getId();
-		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid);
+		CompletableFuture<AsyncTaskValue> cf = mysqlService.restoreAsync(playback, sourceServer, targetServer, dumpFolder, msgkey, aid, false);
 		
 		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
 		globalStore.saveFuture(sid, sf);

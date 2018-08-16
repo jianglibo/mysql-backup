@@ -16,6 +16,7 @@ public class MysqlVariables {
 	public static final String LOG_BIN_BASENAME = "log_bin_basename";
 	public static final String LOG_BIN_INDEX = "log_bin_index";
 	public static final String DATA_DIR = "datadir";
+	public static final String SOCKET = "socket";
 
 	
 	private Map<String, String> map = new HashMap<>();

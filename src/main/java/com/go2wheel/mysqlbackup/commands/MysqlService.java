@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.commands;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -329,6 +330,13 @@ public class MysqlService {
 		}
 	}
 	
+	public void writeMysqlSettingsToDisk(Server server, MycnfFileHolder mycnf) throws IOException {
+		Path mysqlSettingDir = settingsInDb.getLocalMysqlDir(server);
+		String c = YamlInstance.INSTANCE.yaml.dumpAsMap(mycnf);
+		Path f = mysqlSettingDir.resolve(settingsInDb.getString("mysql.filenames.mycnf", "mycnf.yml"));
+		Files.write(f, c.getBytes(StandardCharsets.UTF_8));
+	}
+	
 	public MycnfFileHolder getMysqlSettingsFromDisk(Path mysqlcnf) throws IOException {
 		try (InputStream is = Files.newInputStream(mysqlcnf)) {
 			return YamlInstance.INSTANCE.yaml.loadAs(is, MycnfFileHolder.class);
@@ -394,10 +402,10 @@ public class MysqlService {
 	
 
 	
-	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey, Long id) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
+	public CompletableFuture<AsyncTaskValue> restoreAsync(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, String msgkey, Long id, boolean origin) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
-				return new AsyncTaskValue(id, restore(playback, sourceServer, targetServer, dumpFolder)).withDescription(msgkey);
+				return new AsyncTaskValue(id, restore(playback, sourceServer, targetServer, dumpFolder, origin)).withDescription(msgkey);
 			} catch (RunRemoteCommandException | UnExpectedContentException | IOException | JSchException
 					| AppNotStartedException | ScpException | UnExpectedInputException | MysqlAccessDeniedException e1) {
 				throw new ExceptionWrapper(e1);
@@ -407,14 +415,12 @@ public class MysqlService {
 		});
 	}
 	
-	public boolean restoreOrigin(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, ScpException, MysqlAccessDeniedException, AppNotStartedException {
+	public void resemblesOrigin(Server sourceServer, Server targetServer, Session targetSession) throws IOException, JSchException, ScpException, MysqlAccessDeniedException, AppNotStartedException, RunRemoteCommandException, UnExpectedContentException, UnExpectedInputException {
 		
 		MycnfFileHolder mf = getMysqlSettingsFromDisk(sourceServer);
 		String datadir = mf.getMysqlVariables().getDataDirEndNoSlash();
 		
 		// if datadir exists in target server?
-		Session targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
-		
 		boolean b = SSHcommonUtil.fileExists(targetSession, datadir);
 		if (!b) {
 			SSHcommonUtil.mkdirsp(targetSession, datadir);
@@ -422,30 +428,47 @@ public class MysqlService {
 			SSHcommonUtil.backupFileByMove(targetSession, datadir);
 		}
 		
-		MysqlInstallInfo targetMycnfInfo = mysqlUtil.getInstallInfo(targetSession, targetServer);
+		mf.disableBinLog();
 		
-		String targetMycnfFile = targetMycnfInfo.getVariables().get(MysqlVariables.DATA_DIR);
+		String targetMycnfFile = mysqlUtil.getEffectiveMyCnf(targetSession, targetServer);
 		
+		byte[] bytes = String.join("\n", mf.getLines().toArray(new String[mf.getLines().size()])).getBytes(StandardCharsets.UTF_8);
 		// override target my.cnf.
-		ScpUtil.to(targetSession, targetMycnfFile, String.join("\n", mf.getLines().toArray(new String[mf.getLines().size()])));
+		ScpUtil.to(targetSession, targetMycnfFile, bytes);
 		
 		mysqlUtil.stopMysql(targetSession);
 		mysqlUtil.restartMysql(targetSession);
-		
 		mySqlInstaller.resetPassword(targetSession, targetServer, "", sourceServer.getMysqlInstance().getPassword());
-		
-		
-		return false;
+		targetServer.getMysqlInstance().setPassword(sourceServer.getMysqlInstance().getPassword());
 	}
-
-	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
+	
+	public Boolean restore(PlayBack playback, Server sourceServer, Server targetServer, String dumpFolder, boolean origin) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
 		Session targetSession = null;
+		
 		try {
 			targetSession = sshSessionFactory.getConnectedSession(targetServer).getResult();
-			
-			FacadeResult<MysqlInstallInfo> fmi = mySqlInstaller.resetMysql(targetSession, targetServer, targetServer.getMysqlInstance().getPassword());
+			if (origin) {
+				resemblesOrigin(sourceServer, targetServer, targetSession);
+			} else {
+				FacadeResult<MysqlInstallInfo> fmi = mySqlInstaller.resetMysql(targetSession, targetServer, targetServer.getMysqlInstance().getPassword());
+			}
 			// now we got a brand new mysql instance.
+			boolean b = restoreInternal(playback, sourceServer, targetServer, targetSession, dumpFolder);
 			
+			if (origin) {
+				
+			}
+			
+			return b;
+
+		} finally {
+			if( targetSession != null) {
+				targetSession.disconnect();
+			}
+		}
+	}
+
+	private Boolean restoreInternal(PlayBack playback, Server sourceServer, Server targetServer, Session targetSession, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
 			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
 			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
 			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
@@ -480,11 +503,6 @@ public class MysqlService {
 			List<String> resultLines = mpre.start();
 			return resultLines != null && resultLines.size() == 1;
 			
-		} finally {
-			if( targetSession != null) {
-				targetSession.disconnect();
-			}
-		}
 	}
 	
 	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, Path dumpFolder) throws IOException {

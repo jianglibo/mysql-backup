@@ -47,7 +47,7 @@ public class BlockedPropertiesFileHolder {
 		return true;
 	}
 	
-	public boolean setConfigValue(ConfigValue cv, Object value) {
+	public boolean setConfigValue(ConfigValue cv, String value) {
 		if (value.equals(cv.getValue()) && cv.getState() == ConfigValueState.EXIST) {
 			return false;
 		}
@@ -93,6 +93,12 @@ public class BlockedPropertiesFileHolder {
 		return getLines().size() - 1;
 	}
 	
+	/**
+	 * blockName does't include surrounding square bracket.
+	 * @param blockName
+	 * @param cnfName
+	 * @return
+	 */
 	public ConfigValue getConfigValue(String blockName, String cnfName) {
 		int blkStart = findBlockPosition(blockName);
 		int blkEnd = findNextBlockPosition(blkStart);
@@ -103,6 +109,9 @@ public class BlockedPropertiesFileHolder {
 		Pattern commentOutPtn = getCommentOutedPtn(cnfName);
 		Pattern existPtn = getExistedPtn(cnfName);
 		ConfigValue commented = ConfigValue.getNotExistValue(block, cnfName);
+		if (blkStart == -1) {
+			return commented;
+		}
 		Matcher matcher = null;
 		for(int i = blkStart; i < blkEnd; i++) {
 			String line = lines.get(i);

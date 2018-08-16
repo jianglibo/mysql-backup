@@ -26,31 +26,34 @@ public class MysqlServiceTbase extends SpringBaseFort {
 
 	@Autowired
 	protected MysqlService mysqlService;
-	
+
 	@Autowired
 	protected MysqlUtil mysqlUtil;
-	
+
 	@Autowired
 	protected MySqlInstaller mySqlInstaller;
-	
+
 	protected Software software;
-	
-	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
+
+	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException,
+			MysqlAccessDeniedException {
 		createSession();
 		createMysqlIntance();
 		installMysql(session, server, "123456");
 	}
-	
-	protected void installMysql(Session session, Server server, String initPassword) throws JSchException, SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
+
+	protected void installMysql(Session session, Server server, String initPassword) throws JSchException,
+			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException {
 		deleteAllJobs();
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");
 		software = sfs.get(0);
-		MysqlInstallInfo ii = (MysqlInstallInfo) mySqlInstaller.install(session, server, software, initPassword).getResult();
+		MysqlInstallInfo ii = (MysqlInstallInfo) mySqlInstaller.install(session, server, software, initPassword)
+				.getResult();
 		assertTrue(ii.isInstalled());
 		mysqlService.enableLogbin(session, server);
 	}
-	
+
 	protected void uninstall() throws JSchException {
 		createSession();
 		createMysqlIntance();
@@ -58,13 +61,15 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
 		assertFalse(info.getResult().isInstalled());
 	}
-	
+
 	protected void uninstall(Session session, Server server) throws JSchException {
-		createMysqlIntance(server, "");
-		mySqlInstaller.syncToDb();
+		try {
+			createMysqlIntance(server, "");
+			mySqlInstaller.syncToDb();
+		} catch (Exception e) {
+		}
 		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
 		assertFalse(info.getResult().isInstalled());
 	}
 
-	
 }
