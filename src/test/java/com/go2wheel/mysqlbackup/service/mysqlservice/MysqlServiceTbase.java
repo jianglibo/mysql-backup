@@ -34,6 +34,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	protected MySqlInstaller mySqlInstaller;
 
 	protected Software software;
+	
 
 	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException,
 			MysqlAccessDeniedException {

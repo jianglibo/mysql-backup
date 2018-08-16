@@ -10,6 +10,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
@@ -28,6 +29,7 @@ import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
@@ -44,8 +46,21 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 	
 	private String tdatadir = "/home/msdatadir";
 	
+	private String etcmycnf = "/etc/my.cnf";
+	
+	private Session targetSession;
+	
+	private Server targetServer;
+	
 	@Rule
 	public RemoteTfolder rfRule = new RemoteTfolder(tdatadir);
+	
+	@After
+	public void a() throws RunRemoteCommandException, IOException, JSchException {
+		if (targetServer != null && targetSession != null) {
+			SSHcommonUtil.revertFileToOrigin(targetSession, etcmycnf);
+		}
+	}
 	
 	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedContentException, MysqlAccessDeniedException {
 		MysqlUtil.runSql(sess, sev, mi, "drop database aaaaa");		
@@ -71,14 +86,20 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server); // include in logbin file.
 		
 		//init set
-		Server targetServer = createServer(HOST_DEFAULT_SET, true);
+		targetServer = createServer(HOST_DEFAULT_SET, true);
 		createMysqlIntance(targetServer, "654321");
-		Session targetSession = createSession(targetServer);
+		targetSession = createSession(targetServer);
 		
-		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
+//		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
 //		uninstall(targetSession, targetServer);
 		installMysql(targetSession, targetServer, "654321");
-		SSHcommonUtil.revertFileToOrigin(targetSession, "/etc/my.cnf");
+		mysqlUtil.restartMysql(targetSession);
+		
+		BackupedFiles bfs = SSHcommonUtil.getRemoteBackupedFiles(targetSession, etcmycnf);
+		if (bfs.getBackups().size() < 1) {
+			SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
+		}
+//		SSHcommonUtil.revertFileToOrigin(targetSession, "/etc/my.cnf");
 //		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
 		
 		assertFalse(SSHcommonUtil.fileExists(targetSession, tdatadir));
