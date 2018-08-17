@@ -33,13 +33,13 @@ public class MyAppSettings {
 
 	private SshConfig ssh;
 
-	private String dataDir;
+//	private String dataDir;
 
-	private Path dataRoot;
+//	private Path dataRoot;
 
-	private String downloadFolder;
-
-	private Path downloadRoot;
+//	private String downloadFolder;
+//
+//	private Path downloadRoot;
 
 	private Set<String> storageExcludes;
 
@@ -75,7 +75,7 @@ public class MyAppSettings {
 	public void post() throws IOException {
 		setupProperties();
 		setupSsh();
-		setupDirectories();
+//		setupDirectories();
 
 	}
 
@@ -83,31 +83,31 @@ public class MyAppSettings {
 		kvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX);
 	}
 
-	private void setupDirectories() {
-		try {
-			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
-				this.dataDir = "boxes";
-			}
-			Path tmp = Paths.get(this.dataDir);
+//	private void setupDirectories() {
+//		try {
+//			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
+//				this.dataDir = "boxes";
+//			}
+//			Path tmp = Paths.get(this.dataDir);
 
-			if (!Files.exists(tmp)) {
-				Files.createDirectories(tmp);
-			}
-			this.dataRoot = tmp;
-
-			logger.error("downloadFolder cofiguration value is: {}", this.downloadFolder);
-
-			tmp = Paths.get(this.downloadFolder);
-
-			if (!Files.exists(tmp)) {
-				Files.createDirectories(tmp);
-			}
-			this.downloadRoot = tmp;
-		} catch (Exception e) {
-			ExceptionUtil.logErrorException(logger, e);
-		}
-
-	}
+//			if (!Files.exists(tmp)) {
+//				Files.createDirectories(tmp);
+//			}
+//			this.dataRoot = tmp;
+//
+//			logger.error("downloadFolder cofiguration value is: {}", this.downloadFolder);
+//
+//			tmp = Paths.get(this.downloadFolder);
+//
+//			if (!Files.exists(tmp)) {
+//				Files.createDirectories(tmp);
+//			}
+//			this.downloadRoot = tmp;
+//		} catch (Exception e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//		}
+//
+//	}
 
 	private void setupSsh() {
 		KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");
@@ -130,9 +130,9 @@ public class MyAppSettings {
 
 	}
 
-	private Path getHostDir(Server server) {
-		return getDataRoot().resolve(server.getHost());
-	}
+//	private Path getHostDir(Server server) {
+//		return getDataRoot().resolve(server.getHost());
+//	}
 
 //	public Path getLogBinDir(Server server) {
 //		Path dstDir = getHostDir(server).resolve("logbin");
@@ -182,33 +182,33 @@ public class MyAppSettings {
 		this.ssh = ssh;
 	}
 
-	public void setDataDir(String dataDir) {
-		this.dataDir = dataDir;
-	}
+//	public void setDataDir(String dataDir) {
+//		this.dataDir = dataDir;
+//	}
 
-	public Path getDataRoot() {
-		return dataRoot;
-	}
+//	public Path getDataRoot() {
+//		return dataRoot;
+//	}
+//
+//	public void setDataRoot(Path dataRoot) {
+//		this.dataRoot = dataRoot;
+//	}
 
-	public void setDataRoot(Path dataRoot) {
-		this.dataRoot = dataRoot;
-	}
-
-	public String getDownloadFolder() {
-		return downloadFolder;
-	}
-
-	public void setDownloadFolder(String downloadFolder) {
-		this.downloadFolder = downloadFolder;
-	}
-
-	public Path getDownloadRoot() {
-		return downloadRoot;
-	}
-
-	public void setDownloadRoot(Path downloadRoot) {
-		this.downloadRoot = downloadRoot;
-	}
+//	public String getDownloadFolder() {
+//		return downloadFolder;
+//	}
+//
+//	public void setDownloadFolder(String downloadFolder) {
+//		this.downloadFolder = downloadFolder;
+//	}
+//
+//	public Path getDownloadRoot() {
+//		return downloadRoot;
+//	}
+//
+//	public void setDownloadRoot(Path downloadRoot) {
+//		this.downloadRoot = downloadRoot;
+//	}
 
 	public Set<String> getStorageExcludes() {
 		return storageExcludes;

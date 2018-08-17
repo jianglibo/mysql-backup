@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
@@ -44,6 +45,9 @@ public class MysqlUtil {
 	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
 
 	private MyAppSettings appSettings;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	public MycnfFileHolder getMyCnfFile(Session session, Server server)
 			throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
@@ -180,7 +184,8 @@ public class MysqlUtil {
 
 	public void writeBinLog(Session session, Server server, String rfile)
 			throws IOException, ScpException, JSchException {
-		Path dstDir = appSettings.getDataRoot().resolve(server.getHost()).resolve("logbin");
+		Path dstDir = settingsInDb.getCurrentDumpDir(server);
+		
 		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
 			Files.createDirectories(dstDir);
 		}
@@ -188,9 +193,9 @@ public class MysqlUtil {
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
 	}
 
-	public Path getDescriptionFile(Server instance) {
-		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
-	}
+//	public Path getDescriptionFile(Server instance) {
+//		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
+//	}
 
 	@Autowired
 	public void setAppSettings(MyAppSettings appSettings) {

@@ -35,7 +35,7 @@ public class TestSshSessionFactory {
 		UtilForTe.sshEcho(sshSession, "abc");
 	}
 	
-	@Test
+	@Test(expected=JSchException.class)
 	public void tPasswordFailed() throws IOException, JSchException {
 		box.setPassword("wrongpassword");
 		FacadeResult<Session> sshSession = scf.getConnectedSession(box);
@@ -62,7 +62,6 @@ public class TestSshSessionFactory {
 	public void tGlobalKnownHostsSuccess() throws IOException, JSchException {
 		box.setSshKeyFile(null);
 		box.setPassword(null);
-//		box.setFingerprint(null);
 		Session sshSession = scf.getConnectedSession(box).getResult();
 		UtilForTe.sshEcho(sshSession, "abc");
 	}

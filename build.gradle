@@ -57,7 +57,7 @@ flyway {
 }
 
 archivesBaseName = 'mysql-backup'
-version = '1.1.4'
+version = '1.1.5'
 
 sourceSets {
     main {
@@ -153,7 +153,7 @@ task wrapper(type: Wrapper) {
 }
 
 task copyFilesToArchive(type: Copy) {
-    from "${buildDir}/../explained.docx", "${buildDir}/../start.bat", "${buildDir}/../stop.bat", "${buildDir}/../killapp.bat", "${buildDir}/../src/main/resources/application.properties"
+    from "${buildDir}/../explained.docx", "${buildDir}/../Vagrantfile", "${buildDir}/../start.bat", "${buildDir}/../stop.bat", "${buildDir}/../killapp.bat", "${buildDir}/../src/main/resources/application.properties"
     
     from("${buildDir}/../") {
         include "notingit/**", "templates/**", "static/**"

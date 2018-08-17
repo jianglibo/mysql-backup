@@ -19,6 +19,7 @@
 				<aside>
 					<p>SSH连接失败，请检查目标服务器的连通性，以及用户名和密码。</p>
 					<p th:text="${exp.getMessage()}"></p>
+					<p th:if="${extra}" th:text="${extra}"></p>
 				</aside>
 			</div>
 		</div>

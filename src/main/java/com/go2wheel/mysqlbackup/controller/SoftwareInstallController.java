@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.installer.Installer;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -30,8 +31,11 @@ import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.google.common.collect.Maps;
+import com.jcraft.jsch.JSchException;
 
 @Controller
 @RequestMapping(SoftwareInstallController.MAPPING_PATH)
@@ -42,6 +46,9 @@ public class SoftwareInstallController extends ControllerBase {
 
 	@Autowired
 	private SoftwareDbService softwareDbService;
+	
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
 	
 	private List<Installer<?>> installers;
 	
@@ -96,7 +103,7 @@ public class SoftwareInstallController extends ControllerBase {
 
 	@PostMapping("/{server}")
 	public String install(@PathVariable(name = "server") Server server, @RequestParam Software software, Model model,
-			HttpServletRequest request, RedirectAttributes ras) throws UnsupportedEncodingException {
+			HttpServletRequest request, RedirectAttributes ras) throws UnsupportedEncodingException, RunRemoteCommandException, JSchException {
 		Map<String, String[]> parameterMap = request.getParameterMap();
 		Map<String, String> parameters = parameterMap.entrySet().stream().filter(es -> es.getValue().length > 0)
 				.collect(Collectors.toMap(es -> es.getKey(), es -> es.getValue()[0]));
@@ -107,6 +114,7 @@ public class SoftwareInstallController extends ControllerBase {
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
+				SSHcommonUtil.echo(sshSessionFactory, server);
 				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, msgkey, aid, parameters);
 				String sid = request.getSession(true).getId();
 				SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);

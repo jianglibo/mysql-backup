@@ -38,6 +38,12 @@ public class PathUtil {
 		}
 	};
 	
+	
+	public static String getClassPathResourceName(Class<?> pc, String fn) {
+		String pn = pc.getPackage().getName().replace('.', '/');
+		return "classpath:" + pn + "/" + fn;
+	}
+	
 	public static Comparator<Path> PATH_NAME_DESC = new Comparator<Path>() {
 
 		@Override

@@ -250,7 +250,6 @@ public class GlobalStore {
 									}
 								}
 							}
-							result = (((FacadeResult<?>) o).isExpected() + "").toUpperCase();
 						} else {
 							result = o.toString();
 						}

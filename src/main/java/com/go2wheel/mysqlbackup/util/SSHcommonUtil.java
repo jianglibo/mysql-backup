@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.exception.Md5ChecksumException;
 import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
@@ -51,6 +52,22 @@ public class SSHcommonUtil {
 		if (bfs.isOriginExists()) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
+	}
+	
+	public static boolean echo(SshSessionFactory sshSessionFactory, Server server) throws RunRemoteCommandException, JSchException {
+		Session session = null;
+		try {
+			session = sshSessionFactory.getConnectedSession(server).getResult();
+			RemoteCommandResult rcr = runRemoteCommand(session, "echo hello");
+			String echoed = rcr.getAllTrimedNotEmptyLines().get(0);
+			return "hello".equals(echoed);
+		} finally {
+			if (session != null) {
+				session.disconnect();
+			}
+		}
+		
+		
 	}
 
 	public static void mkdirsp(Session session, String remoteFile) throws RunRemoteCommandException {

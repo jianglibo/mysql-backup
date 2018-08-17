@@ -43,8 +43,8 @@ import org.springframework.shell.standard.ShellOption;
 
 import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
-import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
@@ -163,7 +163,7 @@ public class BackupCommand {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private MyAppSettings appSettings;
+	private SettingsInDb settingsInDb;
 
 	@Autowired
 	private Environment environment;
@@ -456,11 +456,11 @@ public class BackupCommand {
 			return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
 		}
 		return Arrays.asList(
-				formatKeyVal("server profile dirctory", appSettings.getDataRoot().toAbsolutePath().toString()),
+				formatKeyVal("server profile dirctory", settingsInDb.getDataDir().toAbsolutePath().toString()),
 				formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
 				formatKeyVal("working directory", Paths.get("").toAbsolutePath().normalize().toString()),
 				formatKeyVal("download directory",
-						appSettings.getDownloadRoot().normalize().toAbsolutePath().toString()),
+						settingsInDb.getDownloadPath().normalize().toAbsolutePath().toString()),
 				formatKeyVal("log file", environment.getProperty("logging.file")),
 				formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
 				formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),

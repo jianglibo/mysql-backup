@@ -60,6 +60,7 @@ public class TestKnownHosts extends SpringBaseFort {
 	@Test()
 	public void testKnownHostFromInputStream() throws IOException, JSchException, RunRemoteCommandException, SchedulerException {
 		JSch jsch=new JSch();
+		clearDb();
 		createServer();
 		deleteAllJobs();
 		try (InputStream is = Files.newInputStream(Paths.get(myAppSettings.getSsh().getKnownHosts()))) {

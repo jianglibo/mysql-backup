@@ -30,52 +30,35 @@ public class SshSessionFactory {
 	public FacadeResult<Session> getConnectedSession(Server server) throws JSchException {
 		JSch jsch = new JSch();
 		Session session = null;
-//		try {
-			String userName = server.getUsername();
-			String host = server.getHost();
-			int port = server.getPort();
-			session = jsch.getSession(userName, host, port);
-			String knownHosts = appSettings.getSsh().getKnownHosts();
-			String idrsaFile = appSettings.getSsh().getSshIdrsa();
-			if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
-				return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
-			}
-			if (!Files.exists(Paths.get(knownHosts.trim()))) {
-				return FacadeResult.showMessageUnExpected(KNOWNHOSTS_NOTEXISTS, knownHosts);
-			}
-			jsch.setKnownHosts(Paths.get(knownHosts.trim()).toAbsolutePath().toString());
+		String userName = server.getUsername();
+		String host = server.getHost();
+		int port = server.getPort();
+		session = jsch.getSession(userName, host, port);
+		String knownHosts = appSettings.getSsh().getKnownHosts();
+		String idrsaFile = appSettings.getSsh().getSshIdrsa();
+		if (!StringUtil.hasAnyNonBlankWord(knownHosts)) {
+			return FacadeResult.showMessageUnExpected("ssh.auth.noknownhosts");
+		}
+		if (!Files.exists(Paths.get(knownHosts.trim()))) {
+			return FacadeResult.showMessageUnExpected(KNOWNHOSTS_NOTEXISTS, knownHosts);
+		}
+		jsch.setKnownHosts(Paths.get(knownHosts.trim()).toAbsolutePath().toString());
 
-			if (server.canSShKeyAuth()) {
-				jsch.addIdentity(Paths.get(server.getSshKeyFile().trim()).toAbsolutePath().toString());
-				session.connect();
-			} else if (server.canPasswordAuth()) {
-				session.setPassword(server.getPassword());
-				session.connect();
-			} else if (appSettings.getSsh().sshIdrsaExists()) {
-				jsch.addIdentity(Paths.get(idrsaFile.trim()).toAbsolutePath().toString());
-				session.connect();
-			} else {
-				return FacadeResult.showMessageUnExpected(SSHKEYFILE_NOTEXISTS, idrsaFile);
-			}
-//		} catch (Exception e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//			try {
-//				if (session != null) {
-//					session.disconnect();
-//				}
-//			} catch (Exception e1) {
-//			}
-//			if (e.getMessage().contains("Auth fail")) {
-//				return FacadeResult.unexpectedResult(e, "jsch.connect.authfailed");
-//			} else if (e.getMessage().contains("Connection timed out")) {
-//				return FacadeResult.unexpectedResult(e, "jsch.connect.failed");
-//			} else {
-//				return FacadeResult.unexpectedResult(e, "jsch.connect.failed");
-//			}
-//		}
+		if (server.canSShKeyAuth()) {
+			jsch.addIdentity(Paths.get(server.getSshKeyFile().trim()).toAbsolutePath().toString());
+			session.connect();
+		} else if (server.canPasswordAuth()) {
+			session.setPassword(server.getPassword());
+			session.connect();
+		} else if (appSettings.getSsh().sshIdrsaExists()) {
+			jsch.addIdentity(Paths.get(idrsaFile.trim()).toAbsolutePath().toString());
+			session.connect();
+		} else {
+			return FacadeResult.showMessageUnExpected(SSHKEYFILE_NOTEXISTS, idrsaFile);
+		}
 		return FacadeResult.doneExpectedResult(session, CommonActionResult.DONE);
 	}
-	
+
 	public static void closeSession(Session session) {
 		if (session != null && session.isConnected()) {
 			session.disconnect();

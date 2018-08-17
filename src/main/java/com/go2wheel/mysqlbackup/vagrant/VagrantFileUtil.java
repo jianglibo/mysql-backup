@@ -8,15 +8,15 @@ import java.nio.file.Path;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.SettingsInDb;
 
 @Component
 public class VagrantFileUtil {
 
-	private MyAppSettings appSettings;
+	private SettingsInDb settingsInDb;
 	
 	public VagrantFile loadVagrantFile() throws IOException {
-		Path p = appSettings.getDataRoot().getParent().resolve(VagrantFile.VAGRANT_FILE_NAME);
+		Path p = settingsInDb.getDataDir().getParent().resolve(VagrantFile.VAGRANT_FILE_NAME);
 		if (!Files.exists(p)) {
 			InputStream is = ClassLoader.class.getResourceAsStream("/" + VagrantFile.VAGRANT_FILE_NAME);
 			Files.copy(is, p);
@@ -27,8 +27,8 @@ public class VagrantFileUtil {
 
 
 	@Autowired
-	public void setAppSettings(MyAppSettings appSettings) {
-		this.appSettings = appSettings;
+	public void setAppSettings(SettingsInDb appSettings) {
+		this.settingsInDb = appSettings;
 	}
 	
 	

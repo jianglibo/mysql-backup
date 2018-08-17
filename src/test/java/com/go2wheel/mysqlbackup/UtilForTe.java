@@ -69,8 +69,8 @@ public class UtilForTe {
 		
 		try (InputStream is = ClassLoader.class.getResourceAsStream("/application-dev.properties")) {
 			MyAppSettings mas = new MyAppSettings();
-			mas.setDataRoot(Paths.get("boxes"));
-			mas.setDownloadRoot(Paths.get("notingit"));
+//			mas.setDataRoot(Paths.get("boxes"));
+//			mas.setDownloadRoot(Paths.get("notingit"));
 			Files.createDirectories(Paths.get("notingit"));
 			Files.createDirectories(Paths.get("boxes"));
 			SshConfig sc = new SshConfig();
