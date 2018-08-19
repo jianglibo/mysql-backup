@@ -29,7 +29,7 @@ import com.jcraft.jsch.Session;
 public class MysqlFlushLogJob implements Job {
 	
 	@Autowired
-	private MysqlService mysqlTaskFacade;
+	private MysqlService mysqlService;
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -50,7 +50,7 @@ public class MysqlFlushLogJob implements Job {
 			Server server = serverDbService.findById(sid);
 			server = serverDbService.loadFull(server);
 			session = sshSessionFactory.getConnectedSession(server).getResult();
-			FacadeResult<Path> fr = mysqlTaskFacade.mysqlFlushLogsAndReturnIndexFile(session, server);
+			FacadeResult<Path> fr = mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
 		} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedInputException | UnExpectedContentException | MysqlAccessDeniedException e) {
 			throw new ExceptionWrapper(e);

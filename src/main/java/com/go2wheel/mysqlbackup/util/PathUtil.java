@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
 public class PathUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(PathUtil.class);
-	
-	
+
 	public static Comparator<Path> PATH_NAME_ASC = new Comparator<Path>() {
 
 		@Override
@@ -37,13 +36,12 @@ public class PathUtil {
 			return o1.toString().compareTo(o2.toString());
 		}
 	};
-	
-	
+
 	public static String getClassPathResourceName(Class<?> pc, String fn) {
 		String pn = pc.getPackage().getName().replace('.', '/');
 		return "classpath:" + pn + "/" + fn;
 	}
-	
+
 	public static Comparator<Path> PATH_NAME_DESC = new Comparator<Path>() {
 
 		@Override
@@ -69,6 +67,8 @@ public class PathUtil {
 	}
 
 	private static String getZeros(int n) {
+		if (n < 1)
+			return "";
 		char[] chars = new char[n];
 		Arrays.fill(chars, '0');
 		return new String(chars);
@@ -113,6 +113,32 @@ public class PathUtil {
 
 	/**
 	 * 
+	 * @param fn
+	 *            abc.0000
+	 * @return
+	 */
+	public static String increamentFileName(String fn) {
+		Pattern ptn = Pattern.compile("^(.*\\.)(\\d*)$");
+		Matcher m = ptn.matcher(fn);
+		if (m.matches()) {
+			String s1 = m.group(1);
+			String s2 = m.group(2);
+			if (s2.length() == 0) {
+				return s1 + ".0";
+			} else {
+				String i2 = (Integer.valueOf(s2) + 1) + "";
+				int zero = s2.length() - i2.length();
+				String dt = getZeros(zero) + i2; 
+				return s1 + dt;
+			}
+		} else {
+			return fn + ".0";
+		}
+
+	}
+
+	/**
+	 * 
 	 * @param parentDir
 	 * @param fileOrDirName
 	 * @param postfixNumber
@@ -141,8 +167,7 @@ public class PathUtil {
 	private static List<Path> listVersionedFiles(Path parentDir, Pattern ptn) {
 		List<Path> paths = null;
 		try {
-			paths = Files.list(parentDir).filter(p -> ptn.matcher(p.toString()).matches())
-					.collect(Collectors.toList());
+			paths = Files.list(parentDir).filter(p -> ptn.matcher(p.toString()).matches()).collect(Collectors.toList());
 		} catch (IOException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return null;
@@ -173,11 +198,11 @@ public class PathUtil {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public static Path getMaxVersionByBaseName(Path originFileOrDir) throws IOException {
 		return getMaxVersionByBaseName(originFileOrDir, -1);
 	}
-	
+
 	public static Path getMaxVersionByBaseName(Path originFileOrDir, int postfix) throws IOException {
 		int pf = postfix;
 		if (pf < 0) {
@@ -194,10 +219,11 @@ public class PathUtil {
 			return null;
 		}
 	}
-	
+
 	/**
 	 * 
-	 * @param sampleFile. file.0001
+	 * @param sampleFile.
+	 *            file.0001
 	 * @return
 	 * @throws IOException
 	 */
@@ -212,9 +238,11 @@ public class PathUtil {
 			return getMaxVersionByBaseName(Paths.get(bn), di.length());
 		}
 	}
-	
+
 	/**
-	 * Given 'abc', check for abc.001 abc.004, if found return length of extension or else -1;
+	 * Given 'abc', check for abc.001 abc.004, if found return length of extension
+	 * or else -1;
+	 * 
 	 * @param originFileOrDir
 	 * @return
 	 * @throws IOException
@@ -236,14 +264,14 @@ public class PathUtil {
 		if (postfix.size() == 1) {
 			return postfix.values().iterator().next();
 		}
-		return  -1;
+		return -1;
 	}
-	
+
 	public static Path getNextAvailableBySample(Path sampleFile) throws IOException {
-		
+
 		Pattern ptn = Pattern.compile("(.*)\\.(\\d+)$");
 		Matcher m = ptn.matcher(sampleFile.toString());
-		
+
 		if (!m.matches()) {
 			return getNextAvailableByBaseName(sampleFile, 1);
 		} else {

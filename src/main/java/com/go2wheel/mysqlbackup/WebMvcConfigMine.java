@@ -80,6 +80,10 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
     }
     
 
+    /**
+     * This classpath template resolver has higher priority, when finding a template this resolver get hit first, If not found the normal routine follows.
+     * @return
+     */
 	@Bean
 	public SpringResourceTemplateResolver cpTemplateResolver() {
 		SpringResourceTemplateResolver resolver = new SpringResourceTemplateResolver();

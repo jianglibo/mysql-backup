@@ -63,7 +63,7 @@
 				activeOn: 'SINGLE',
 				onClick: { react: 'POST', url: '/app/report/mail', data: function() {
 					return {id: this.state.selectedItems[0].id};
-				}, settings: {dataType: 'json'},
+				}, settings: {},
 				 done: function(data) {
 					window.alert('已发送至：' + data.email);
 				}}

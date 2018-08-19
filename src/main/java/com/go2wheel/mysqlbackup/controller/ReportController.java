@@ -12,24 +12,15 @@ import java.util.Map;
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.mail.MailProperties;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.context.EnvironmentAware;
-import org.springframework.core.env.Environment;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,20 +36,12 @@ import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.value.IdBinder;
 import com.google.common.io.ByteStreams;
 
 @Controller
 @RequestMapping("/app/report")
-public class ReportController implements ApplicationContextAware, EnvironmentAware {
+public class ReportController {
 
-	private ApplicationContext applicationContext;
-	
-	private Environment environment;
-	
-	private Logger logger = LoggerFactory.getLogger(getClass());
-	
 	@Autowired
 	private MailProperties mailProperties;
 	
@@ -73,12 +56,6 @@ public class ReportController implements ApplicationContextAware, EnvironmentAwa
 	
 	@Autowired
 	private ChromePDFWriter pdfWriter;
-	
-	@ExceptionHandler
-	public ResponseEntity<String> handle(Exception ex) {
-		ExceptionUtil.logErrorException(logger, ex);
-		return ResponseEntity.ok("OK");
-	}
 
 	@GetMapping("/{tplName}")
 	public String ft(@PathVariable String tplName, @RequestParam Subscribe subscribe, Model model) {
@@ -128,25 +105,15 @@ public class ReportController implements ApplicationContextAware, EnvironmentAwa
 		return map;
 	}
 
-	@PostMapping("/mail")
+	@PostMapping(path = "/mail")
 	@ResponseBody
-	public Map<String, String> sendSubscribeMail(@ModelAttribute IdBinder idBinder, Model model) throws UnsupportedEncodingException, MessagingException {
-		Subscribe subscribe = subscribeDbService.findById(idBinder.getId());
+	public Map<String, String> sendSubscribeMail(@RequestParam String id, Model model) throws UnsupportedEncodingException, MessagingException {
+		Subscribe subscribe = subscribeDbService.findById(id);
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		mailerJob.mail(subscribe, sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
 		Map<String, String> map = new HashMap<>();
 		map.put("email", sgctx.getUser().getEmail());
 		return map;
-	}
-	
-	@Override
-	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-		this.applicationContext = applicationContext;
-	}
-
-	@Override
-	public void setEnvironment(Environment environment) {
-		this.environment = environment;
 	}
 
 }

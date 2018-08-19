@@ -18,7 +18,7 @@
       <tbody>
         <tr th:each="dump : ${serverCtx.mysqlDumps}">
           <td th:text="${#dates.format(dump.createdAt, 'yyyy-MM-dd')}">Onions</td>
-          <td th:text="${tplUtil.getFormatedSize(dump.fileSize)}">2.41</td>
+          <td th:text="${tplUtil.formatSize(dump.fileSize)}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(dump.timeCost)}">Onions</td>
           <!--/*-->
 		  <td th:text="${dump.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>

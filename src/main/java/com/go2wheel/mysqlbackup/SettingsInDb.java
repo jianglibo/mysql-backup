@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
+import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -220,7 +221,8 @@ public class SettingsInDb {
 				e.printStackTrace();
 			}
 		});
-		return PathUtil.getNextAvailableByBaseName(path, 7);
+		return PathUtil.getNextAvailableByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+		
 	}
 	
 	public Path getLocalMysqlDir(Server server) throws IOException {

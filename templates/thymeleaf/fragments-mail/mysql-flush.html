@@ -21,7 +21,7 @@
         <tr th:each="flush : ${serverCtx.mysqlFlushs}">
           <td th:text="${#dates.format(flush.createdAt, 'yyyy-MM-dd')}">Onions</td>
           <td th:text="${#dates.format(flush.createdAt, 'HH:mm:ss')}">Onions</td>
-          <td th:text="${tplUtil.getFormatedSize(flush.fileSize)}">2.41</td>
+          <td th:text="${tplUtil.formatSize(flush.fileSize)}">2.41</td>
           <td th:text="${flush.fileNumber}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(flush.timeCost)}">Onions</td>
         </tr>

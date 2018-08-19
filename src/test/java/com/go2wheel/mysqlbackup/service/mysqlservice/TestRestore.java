@@ -65,9 +65,9 @@ public class TestRestore extends MysqlServiceTbase {
 		
 		//init set
 		Server targetServer = createServer(HOST_DEFAULT_SET, true);
-		createMysqlIntance(targetServer, "654321");
+		createMysqlIntance(targetServer, "123456");
 		Session targetSession = createSession(targetServer);
-		installMysql(targetSession, targetServer, "654321");
+		installMysql(targetSession, targetServer, "123456");
 		
 		resetdb(targetSession, targetServer, targetServer.getMysqlInstance());
 		

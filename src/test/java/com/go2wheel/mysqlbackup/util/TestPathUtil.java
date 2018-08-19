@@ -37,6 +37,18 @@ public class TestPathUtil {
 		assertThat(s, equalTo("//"));
 	}
 	
+	@Test
+	public void testIncreamentFileName() {
+		String f = PathUtil.increamentFileName("000");
+		assertThat(f, equalTo("000.0"));
+
+		f = PathUtil.increamentFileName("x.000");
+		assertThat(f, equalTo("x.001"));
+		
+		f = PathUtil.increamentFileName("x.009");
+		assertThat(f, equalTo("x.010"));
+	}
+	
 	
 	@Test
 	public void testPathNameSort() throws IOException {

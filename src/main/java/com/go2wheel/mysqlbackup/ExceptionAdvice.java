@@ -4,6 +4,8 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -20,11 +22,14 @@ import com.jcraft.jsch.JSchException;
 @ControllerAdvice(assignableTypes = {ControllerBase.class})
 public class ExceptionAdvice {
 	
+	private Logger logger = LoggerFactory.getLogger(ExceptionAdvice.class);
+	
 	@Autowired
 	private MainMenuGroups menuGroups;
 	
 	@ExceptionHandler(JSchException.class)
 	public String exception(JSchException e, Model model) {
+		ExceptionUtil.logErrorException(logger, e);
 		model.addAttribute("exp", e);
 		if (e.getMessage() != null && e.getMessage().contains("UnknownHostKey")) {
 			model.addAttribute("extra", "如果是UnknownHostKey错误， 请尝试执行'ssh-keyscan -H -t rsa 目标服务器地址 >> .ssh/idsra'");
@@ -34,21 +39,24 @@ public class ExceptionAdvice {
 	
 	@ExceptionHandler(CommandNotFoundException.class)
 	public String exception(CommandNotFoundException e, Model model) {
+		ExceptionUtil.logErrorException(logger, e);
 		model.addAttribute("exp", e);
 		return "error-command";
 	}
 	
 	@ExceptionHandler(UnExpectedInputException.class)
-	public String unExpectedInputException(UnExpectedInputException ue, Model model) {
-		model.addAttribute("exp", ue);
+	public String unExpectedInputException(UnExpectedInputException e, Model model) {
+		ExceptionUtil.logErrorException(logger, e);
+		model.addAttribute("exp", e);
 		return "error-unexpectedinput";
 	}
 	
 	@ExceptionHandler
-	public String exceptionHandler(Exception ex, Model model, HttpServletRequest request) {
+	public String exceptionHandler(Exception e, Model model, HttpServletRequest request) {
+		ExceptionUtil.logErrorException(logger, e);
 		populateMainMenu(model, request);
-		model.addAttribute("exception",ex);
-		model.addAttribute("stacktrace", ExceptionUtil.stackTraceToString(ex));
+		model.addAttribute("exception",e);
+		model.addAttribute("stacktrace", ExceptionUtil.stackTraceToString(e));
 		return "error-exception";
 	}
 	

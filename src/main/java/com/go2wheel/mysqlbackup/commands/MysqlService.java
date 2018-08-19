@@ -158,7 +158,13 @@ public class MysqlService {
 		
 		try {
 			Path dumpDir = settingsInDb.getNextDumpDir(server);
+			//localDump file name is fixed. But remote dump file name varies.
 			Path localDumpFile = getDumpFile(dumpDir);
+			
+			// remote dump file varies.
+			String rdump = server.getMysqlInstance().getDumpFileName();
+			String rdumpp = RemotePathUtil.getParentWithoutEndingSlash(rdump);
+			SSHcommonUtil.mkdirsp(session, rdumpp);
 			
 			List<String> r = new MysqlDumpExpect(session, server).start();
 			if (r.size() == 2) {
@@ -463,9 +469,7 @@ public class MysqlService {
 			if (origin) {
 				enableLogbin(targetSession, targetServer);
 			}
-			
 			return b;
-
 		} finally {
 			if( targetSession != null) {
 				targetSession.disconnect();
@@ -474,9 +478,10 @@ public class MysqlService {
 	}
 
 	private Boolean restoreInternal(PlayBack playback, Server sourceServer, Server targetServer, Session targetSession, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedContentException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
+			// remoteFolder contains all logbin files and name fixed dump file.
 			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
-			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
-			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
+//			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
+//			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 			boolean importResult = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
 			if (!importResult) {
 				return false;
@@ -630,7 +635,8 @@ public class MysqlService {
 	
 	public boolean importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
 			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedContentException, MysqlAccessDeniedException {
-		String dumpfn = RemotePathUtil.getFileName(sourceMysqlInstance.getDumpFileName());
+		//local dump file is fixed.
+		String dumpfn = RemotePathUtil.getFileName(MysqlUtil.DUMP_FILE_NAME);
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 		String cmd = String.format("mysql -uroot -p < %s", dumpfn);
 

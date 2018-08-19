@@ -4,6 +4,8 @@ import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 public class MysqlDump extends BaseModel {
 	
+	public final static int DUMP_FOLDER_POSTFIX_LENGTH = 7;
+	
 	private Integer serverId;
 	
 	/*文件长度*/

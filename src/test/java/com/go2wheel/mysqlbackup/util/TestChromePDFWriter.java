@@ -20,7 +20,6 @@ public class TestChromePDFWriter extends SpringBaseFort {
 	@Test
 	public void tBaidu() throws IOException, InterruptedException {
 		KeyValue kv = keyValueDbService.findOneByKey(ChromePDFWriter.CHROME_EXECUTABLE_KEY);
-//		assumeFalse(kv == null || !StringUtil.hasAnyNonBlankWord(kv.getItemValue()));
 		Path p = chromePDFWriter.writePdf("http://www.baidu.com");
 		assertThat(Files.size(p), greaterThan(100L));
 		System.out.println(p.toAbsolutePath().toString());

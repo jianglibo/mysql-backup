@@ -17,9 +17,7 @@ import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SettingsInDb;
-import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -44,8 +42,6 @@ public class MysqlUtil {
 	public static final String MYSQL_PROMPT = "mysql> ";
 	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
 
-	private MyAppSettings appSettings;
-	
 	@Autowired
 	private SettingsInDb settingsInDb;
 
@@ -191,15 +187,6 @@ public class MysqlUtil {
 		}
 		Path dstFile = dstDir.resolve(rfile);
 		ScpUtil.from(session, rfile, dstFile.toAbsolutePath().toString());
-	}
-
-//	public Path getDescriptionFile(Server instance) {
-//		return appSettings.getDataRoot().resolve(instance.getHost()).resolve(BackupCommand.DESCRIPTION_FILENAME);
-//	}
-
-	@Autowired
-	public void setAppSettings(MyAppSettings appSettings) {
-		this.appSettings = appSettings;
 	}
 
 	public boolean tryPassword(Session session, String user, String password) {

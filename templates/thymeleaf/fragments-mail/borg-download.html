@@ -23,8 +23,8 @@
           <td th:text="${#dates.format(download.createdAt, 'yyyy-MM-dd')}">Onions</td>
           <td th:text="${download.totalFiles}">Onions</td>
           <td th:text="${download.downloadFiles}">Onions</td>
-          <td th:text="${tplUtil.getFormatedSize(download.totalBytes)}">2.41</td>
-          <td th:text="${tplUtil.getFormatedSize(download.downloadBytes)}">2.41</td>
+          <td th:text="${tplUtil.formatSize(download.totalBytes)}">2.41</td>
+          <td th:text="${tplUtil.formatSize(download.downloadBytes)}">2.41</td>
           <td th:text="${tplUtil.getFormatedTimeCosts(download.timeCost)}">Onions</td>
           <!--/*-->
           <td th:text="${download.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>
