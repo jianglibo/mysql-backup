@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.util;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -19,8 +20,20 @@ import org.junit.rules.TemporaryFolder;
 
 public class TestPathUtil {
 	
+	
     @Rule
     public TemporaryFolder tfolder= new TemporaryFolder();
+    
+    
+    @Test
+    public void tdouble() {
+    	long l1 = 5;
+    	long l2 = 6;
+    	
+    	double d = (double)l2/ l1;
+    	
+    	assertThat(d, greaterThan(1d));
+    }
 	
 	@Test
 	public void tReplaceDotWithSlash() {

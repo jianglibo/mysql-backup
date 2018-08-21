@@ -47,6 +47,7 @@
 	<div id="layout">
 		<div id="poll-result"></div>
 		<div id="bs-confirm-container"></div>
+		<div id="bs-modal-container"></div>
 		<a href="#menu" id="menuLink" class="menu-link">
 			<span></span>
 		</a>
@@ -299,7 +300,7 @@
 	</div>
 
 	<script src="/combo/1.1.2?/js/track-downloads.js&/js/ui.js&/js/rainbow/rainbow.min.js&/js/rainbow/language/generic.js&/js/rainbow/language/html.js&/js/rainbow/language/css.js&/js/rainbow/language/javascript.js&/js/rainbow/language/shell.js"></script>
-	<script th:src="@{/cache-forever/freact/main.8730a22b.js}" src="../cache-forever/freact/main.8730a22b.js"></script>
+	<script th:src="@{/cache-forever/freact/main.d99f4a71.js}" src="../cache-forever/freact/main.d99f4a71.js"></script>
 	<!--
 	<script th:src="@{/combo/1.18.13?/js/bootstrap.js}" src="../public/js/bootstrap.js"></script>
 	-->
@@ -307,6 +308,10 @@
 	<script>
 		var bsConfirm = function (callback) {
 			window.freact.confirm('bs-confirm-container', '确认操作', '继续或放弃？', callback);
+		}
+
+		var showModal = function (title, content, ttl, size) {
+			window.freact.showModal('bs-modal-container', title, content, ttl, size);
 		}
 
 		var pollResult = function (title, content) {

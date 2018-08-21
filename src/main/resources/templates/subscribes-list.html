@@ -65,7 +65,7 @@
 					return {id: this.state.selectedItems[0].id};
 				}, settings: {},
 				 done: function(data) {
-					window.alert('已发送至：' + data.email);
+					 showModal('发送邮件结果', '已发送至：' + data.email, 5000, 'modal-sm');
 				}}
 			}, {
 				actionId: 'htmlReport',

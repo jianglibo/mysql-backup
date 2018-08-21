@@ -3,6 +3,8 @@ package com.go2wheel.mysqlbackup.service;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -148,7 +150,14 @@ public class GlobalStore {
 		if (m == null) {
 			return new ArrayList<>();
 		} else {
-			return m.values().stream().collect(Collectors.toList());
+			List<SavedFuture> lists = m.values().stream().collect(Collectors.toList());
+			Collections.sort(lists, new Comparator<SavedFuture>() {
+				@Override
+				public int compare(SavedFuture o1, SavedFuture o2) {
+					return -(o1.getStartPoint().compareTo(o2.getStartPoint()));
+				}
+			});
+			return lists;
 		}
 	}
 	

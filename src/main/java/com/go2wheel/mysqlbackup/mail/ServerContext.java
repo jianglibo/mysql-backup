@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -21,6 +22,11 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ServerStateAvg;
 
 public class ServerContext {
+	
+	public static final String NORMAL = "server.state.normal";
+	public static final String DISK_FULL = "server.state.diskfull";
+	public static final String MEMROY_FULL = "server.state.memoryfull";
+	public static final String HEAVY_LOAD = "server.state.heavyload";
 
 	private List<ServerState> serverStates;
 	private List<MysqlFlush> mysqlFlushs;
@@ -44,6 +50,28 @@ public class ServerContext {
 		this.serverStates = serverStates;
 		this.storageStates = storageStates;
 		createMem();
+	}
+	
+	public String healthy() {
+		if (getServerStates() != null) {
+			Optional<ServerState> ss = getServerStates().stream().filter(one -> one.getAverageLoad() > 70).findAny();
+			if (ss.isPresent()) {
+				return HEAVY_LOAD;
+			}
+			
+			ss = getServerStates().stream().filter(one -> one.memPercent() > 0.6).findAny();
+			if (ss.isPresent()) {
+				return MEMROY_FULL;
+			}
+		}
+		
+		if (getStorageStates() != null) {
+			Optional<StorageState> sss = getStorageStates().stream().filter(one -> one.getUsedRatio() > 70).findAny();
+			if (sss.isPresent()) {
+				return DISK_FULL;
+			}
+		}
+		return NORMAL;
 	}
 
 	/**

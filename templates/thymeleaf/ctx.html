@@ -33,7 +33,7 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
   </head>
 
   <body>
-    <h1 style="text-align: center;color: blue;">浙江政务服务网奉化区服务器以及备份状况报表</h1>
+    <h1 th:style="${allHealthy} ? 'text-align: center;color: blue;' : 'text-align: center;color: red;'" style="text-align: center;color: blue;">浙江政务服务网奉化区服务器以及备份状况报表</h1>
     <p th:text="${serverGroup.ename}"></p>
     <table class="pure-table pure-table-bordered">
       <thead>
@@ -44,22 +44,27 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
       </tr>
     </thead>
     <tbody>
-      <tr th:each="serverCtx : ${servers}">
+      <tr th:each="serverCtx : ${servers}" th:style="${serverCtx.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
         <td th:text="${serverCtx.server.name}">Onions</td>
         <td th:text="${serverCtx.server.host}">2.41</td>
-        <td>正常</td>
+        <td th:text="#{${serverCtx.healthy()}}">正常</td>
+      </tr>
+      <tr th:style="${myself.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
+        <td th:text="${myself.server.name}">Onions</td>
+        <td th:text="${myself.server.host}">2.41</td>
+        <td th:text="#{${myself.healthy()}}">正常</td>
       </tr>
     </tbody>
     </table>
 <!--    [[${tplUtil}]] -->
     <h3>每台服务器的详细信息:</h3>
-    <div th:each="serverCtx : ${servers}">
+    <div th:each="serverCtx : ${servers}" th:style="${serverCtx.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
         <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
         <hr>
     </div>
 
     <h3>备份服务器自身状况</h3>
-    <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"></div>
+    <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"  th:style="${myself.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''"></div>
   </body>
 
 </html>

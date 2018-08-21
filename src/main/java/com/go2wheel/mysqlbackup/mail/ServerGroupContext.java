@@ -31,7 +31,19 @@ public class ServerGroupContext {
 		map.put("myself", myself);
 		map.put("tplUtil", new TplUtil());
 		map.put("jobLogs", jobLogs);
+		map.put("allHealthy", allHealthy());
 		return map;
+	}
+	
+	public boolean allHealthy() {
+		boolean b = true;
+		if (getServers() != null) {
+			b = getServers().stream().allMatch(s -> ServerContext.NORMAL.equals(s.healthy()));
+		}
+		if (b && myself != null) {
+			return ServerContext.NORMAL.equals(myself.healthy());
+		}
+		return b;
 	}
 	
 	public ServerGroupContext() {}

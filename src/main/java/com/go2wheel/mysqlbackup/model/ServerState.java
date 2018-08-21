@@ -9,6 +9,11 @@ public class ServerState extends BaseModel {
 	private long memUsed;
 	private Integer averageLoad = 0;
 	
+	
+	public double memPercent() {
+		return (double)getMemFree() / (getMemFree() + getMemUsed());
+	}
+	
 	public Integer getServerId() {
 		return serverId;
 	}
