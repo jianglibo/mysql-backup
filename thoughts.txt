@@ -31,6 +31,28 @@ systemctl start mysqld
 3、borgdownloadstatus, 
 
 powershell remote.
+##########################################
+#Show list of current WinRM Trusted Hosts#
+##########################################
+
+Get-Item WSMan:\localhost\Client\TrustedHosts
+
+#########################
+#Set WinRM Trusted Hosts#
+#########################
+
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'machineA'
+#OR
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'machineA,machineB'
+
+##############################################
+#Append (add to) existing WinRM Trusted Hosts#
+##############################################
+
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'machineB' -Concatenate
+#OR
+Set-Item WSMan:\localhost\Client\TrustedHosts -Value 'machineB,machineC' -Concatenate
+
 1.在服务端执行：Enable-PSRemoting
 2.在客户端执行如下命令，将IP为192.168.1.*的主机都加入信任列表
 Set-Item wsman:\localhost\Client\TrustedHosts -value 192.168.1.*
@@ -43,3 +65,6 @@ Copy-Item -Path .\Vagrantfile -Destination d:\ -ToSession $session
 read-host -assecurestring | convertfrom-securestring | out-file C:\cred.txt
 $password = get-content C:\cred.txt | convertto-securestring
 $credentials = new-object -typename System.Management.Automation.PSCredential -argumentlist "myusername",$pass
+
+# .NET framework version.
+[System.Runtime.InteropServices.RuntimeInformation]::get_FrameworkDescription()

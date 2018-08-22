@@ -5,3 +5,12 @@ build/
 .settings/
 .classpath
 .project
+node_modules/
+.vagrant/
+.vscode/
+log/
+servers/
+notingit/
+mail/
+boxes/
+dbdata/
