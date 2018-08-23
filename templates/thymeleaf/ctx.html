@@ -44,27 +44,27 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
       </tr>
     </thead>
     <tbody>
-      <tr th:each="serverCtx : ${servers}" th:style="${serverCtx.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
+      <tr th:each="serverCtx : ${servers}" th:with="hl=${serverCtx.healthy()}" th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'">
         <td th:text="${serverCtx.server.name}">Onions</td>
         <td th:text="${serverCtx.server.host}">2.41</td>
-        <td th:text="#{${serverCtx.healthy()}}">正常</td>
+        <td th:text="#{${hl.key}(${hl.o1}, ${hl.o2})}">正常</td>
       </tr>
-      <tr th:style="${myself.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
+      <tr th:with="hl=${myself.healthy()}" th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'">
         <td th:text="${myself.server.name}">Onions</td>
         <td th:text="${myself.server.host}">2.41</td>
-        <td th:text="#{${myself.healthy()}}">正常</td>
+        <td th:text="#{${hl.key}(${hl.o1}, ${hl.o2})}">正常</td>
       </tr>
     </tbody>
     </table>
 <!--    [[${tplUtil}]] -->
     <h3>每台服务器的详细信息:</h3>
-    <div th:each="serverCtx : ${servers}" th:style="${serverCtx.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''">
+    <div th:each="serverCtx : ${servers}" th:with="hl=${serverCtx.healthy()}" th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'">
         <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
         <hr>
     </div>
 
     <h3>备份服务器自身状况</h3>
-    <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}"  th:style="${myself.healthy()} != 'server.state.normal' ? 'color:red;font-weight:bolder;' : ''"></div>
+    <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}" th:with="hl=${myself.healthy()}"  th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'"></div>
   </body>
 
 </html>

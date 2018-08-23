@@ -6,7 +6,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.stream.Collectors;
@@ -19,14 +19,15 @@ import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.StorageState;
 import com.go2wheel.mysqlbackup.util.SQLTimeUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.MsgKeyAndFills2;
 import com.go2wheel.mysqlbackup.value.ServerStateAvg;
 
 public class ServerContext {
 	
-	public static final String NORMAL = "server.state.normal";
-	public static final String DISK_FULL = "server.state.diskfull";
-	public static final String MEMROY_FULL = "server.state.memoryfull";
-	public static final String HEAVY_LOAD = "server.state.heavyload";
+	public static final String NORMAL_MESSAGE_KEY = "server.state.normal";
+	public static final String DISK_FULL_MESSAGE_KEY = "server.state.diskfull";
+	public static final String MEMROY_FULL_MESSAGE_KEY = "server.state.memoryfull";
+	public static final String HEAVY_LOAD_MESSAGE_KEY = "server.state.heavyload";
 
 	private List<ServerState> serverStates;
 	private List<MysqlFlush> mysqlFlushs;
@@ -41,6 +42,14 @@ public class ServerContext {
 	public ServerContext() {
 	}
 
+	/**
+	 * The numbers of parameter lists can be configurated db settings.
+	 * @param serverStates
+	 * @param mysqlFlushs
+	 * @param storageStates
+	 * @param mysqlDumps
+	 * @param borgDownloads
+	 */
 	public ServerContext(List<ServerState> serverStates, List<MysqlFlush> mysqlFlushs, List<StorageState> storageStates,
 			List<MysqlDump> mysqlDumps, List<BorgDownload> borgDownloads) {
 		super();
@@ -52,26 +61,28 @@ public class ServerContext {
 		createMem();
 	}
 	
-	public String healthy() {
+	public MsgKeyAndFills2 healthy() {
 		if (getServerStates() != null) {
-			Optional<ServerState> ss = getServerStates().stream().filter(one -> one.getAverageLoad() > 70).findAny();
-			if (ss.isPresent()) {
-				return HEAVY_LOAD;
+			OptionalDouble od = getServerStates().stream().mapToInt(one -> one.getAverageLoad()).average();
+			double avd = od.isPresent() ? od.getAsDouble() : 0d;
+			if (avd > server.getLoadValve()) {
+				return new MsgKeyAndFills2(HEAVY_LOAD_MESSAGE_KEY, avd, server.getLoadValve());
 			}
-			
-			ss = getServerStates().stream().filter(one -> one.memPercent() > 0.6).findAny();
-			if (ss.isPresent()) {
-				return MEMROY_FULL;
+			od = getServerStates().stream().mapToInt(one -> one.memPercent()).average();
+			avd = od.isPresent() ? od.getAsDouble() : 0d;
+			if (avd > server.getMemoryValve()) {
+				return new MsgKeyAndFills2(MEMROY_FULL_MESSAGE_KEY, avd, server.getMemoryValve());
 			}
 		}
 		
 		if (getStorageStates() != null) {
-			Optional<StorageState> sss = getStorageStates().stream().filter(one -> one.getUsedRatio() > 70).findAny();
-			if (sss.isPresent()) {
-				return DISK_FULL;
+			OptionalDouble od = getStorageStates().stream().mapToDouble(one -> one.getUsedRatio()).max();
+			double avd = od.isPresent() ? od.getAsDouble() : 0d;
+			if (avd > server.getDiskValve()) {
+				return new MsgKeyAndFills2(DISK_FULL_MESSAGE_KEY, avd, server.getDiskValve());
 			}
 		}
-		return NORMAL;
+		return new MsgKeyAndFills2(NORMAL_MESSAGE_KEY);
 	}
 
 	/**

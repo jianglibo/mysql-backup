@@ -38,10 +38,10 @@ public class ServerGroupContext {
 	public boolean allHealthy() {
 		boolean b = true;
 		if (getServers() != null) {
-			b = getServers().stream().allMatch(s -> ServerContext.NORMAL.equals(s.healthy()));
+			b = getServers().stream().allMatch(s -> ServerContext.NORMAL_MESSAGE_KEY.equals(s.healthy().getKey()));
 		}
 		if (b && myself != null) {
-			return ServerContext.NORMAL.equals(myself.healthy());
+			return ServerContext.NORMAL_MESSAGE_KEY.equals(myself.healthy().getKey());
 		}
 		return b;
 	}

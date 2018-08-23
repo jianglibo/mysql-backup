@@ -10,7 +10,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.activation.MimetypesFileTypeMap;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 

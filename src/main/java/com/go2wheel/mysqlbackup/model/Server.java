@@ -59,6 +59,10 @@ public class Server extends BaseModel {
 	@CronExpressionConstraint(allowEmpty=true)
 	private String storageStateCron;
 	
+	private int loadValve = 70;
+	private int memoryValve = 70;
+	private int diskValve = 70;
+	
 	public Server() {}
 	
 	public Server(String host, String name) {
@@ -189,6 +193,30 @@ public class Server extends BaseModel {
 
 	public void setStorageStateCron(String storageStateCron) {
 		this.storageStateCron = storageStateCron;
+	}
+
+	public int getLoadValve() {
+		return loadValve;
+	}
+
+	public void setLoadValve(int loadValve) {
+		this.loadValve = loadValve;
+	}
+
+	public int getMemoryValve() {
+		return memoryValve;
+	}
+
+	public void setMemoryValve(int memoryValve) {
+		this.memoryValve = memoryValve;
+	}
+
+	public int getDiskValve() {
+		return diskValve;
+	}
+
+	public void setDiskValve(int diskValve) {
+		this.diskValve = diskValve;
 	}
 
 }

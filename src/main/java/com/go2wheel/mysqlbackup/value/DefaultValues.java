@@ -13,6 +13,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
@@ -44,7 +45,38 @@ public class DefaultValues {
 	
 	private KeyValueProperties defaultCount;
 	
+	@Autowired
+	private SettingsInDb settingsInDb;
+	
 	private boolean starting = true;
+	
+	private String getKey(String cn) {
+		return String.format("%s.%s", DEFAULT_COUNT_PREFIX, cn);
+	}
+	
+	public int getServerStateCount() {
+		return settingsInDb.getInteger(getKey(SERVER_STATE_CN), 2);
+	}
+	
+	public int getStorageStateCount() {
+		return settingsInDb.getInteger(getKey(STORAGE_STATE_CN), 7);
+	}
+
+	public int getJobLogCount() {
+		return settingsInDb.getInteger(getKey(JOB_LOG_CN), 20);
+	}
+
+	public int getMysqlDumpCount() {
+		return settingsInDb.getInteger(getKey(MYSQL_DUMP_CN), 2);
+	}
+
+	public int getBorgDownloadCount() {
+		return settingsInDb.getInteger(getKey(BORG_DOWNLOAD_CN), 20);
+	}
+	
+	public int getFlushCount() {
+		return settingsInDb.getInteger(getKey(MYSQL_FLUSH_CN), 10);
+	}
 	
 	@PostConstruct
 	public void post() throws ParseException {

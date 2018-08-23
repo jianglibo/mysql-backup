@@ -33,6 +33,9 @@ public class TestPathUtil {
     	double d = (double)l2/ l1;
     	
     	assertThat(d, greaterThan(1d));
+    	
+    	int i = (int) (((double)l2/ l1) * 100);
+    	assertThat(i, equalTo(120));
     }
 	
 	@Test

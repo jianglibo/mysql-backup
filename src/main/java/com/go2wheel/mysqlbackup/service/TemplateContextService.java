@@ -86,11 +86,11 @@ public class TemplateContextService {
 	}
 	
 	public ServerContext prepareServerContext(Server server) {
-		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getDefaultCount().getInteger(DefaultValues.SERVER_STATE_CN));
-		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getDefaultCount().getInteger(DefaultValues.MYSQL_FLUSH_CN));
-		List<StorageState> storageStates = storageStateDbService.getItemsInDays(server, dvs.getDefaultCount().getInteger(DefaultValues.STORAGE_STATE_CN));
-		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, dvs.getDefaultCount().getInteger(DefaultValues.MYSQL_DUMP_CN));
-		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, dvs.getDefaultCount().getInteger(DefaultValues.BORG_DOWNLOAD_CN));
+		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getServerStateCount());
+		List<MysqlFlush> mysqlFlushs = mysqlFlushDbService.getRecentItems(server, dvs.getFlushCount());
+		List<StorageState> storageStates = storageStateDbService.getItemsInDays(server, dvs.getStorageStateCount());
+		List<MysqlDump> mysqlDumps = mysqlDumpDbService.getRecentItems(server, dvs.getMysqlDumpCount());
+		List<BorgDownload> borgDownloads = borgDownloadDbService.getRecentItems(server, dvs.getBorgDownloadCount());
 		ServerContext osc = new ServerContext(serverStates, mysqlFlushs, storageStates, mysqlDumps,
 				borgDownloads);
 		osc.setServer(server);
