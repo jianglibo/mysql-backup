@@ -30,7 +30,7 @@ import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
@@ -134,7 +134,7 @@ public class SoftwareInstallController extends ControllerBase {
 	}
 
 	@Override
-	public List<MainMenuItem> getMenuItems() {
+	public MainMenuItemImpl getMenuItem() {
 		return null;
 	}
 

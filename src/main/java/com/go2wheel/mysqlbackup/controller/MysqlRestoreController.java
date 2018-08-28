@@ -28,7 +28,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
@@ -99,7 +99,7 @@ public class MysqlRestoreController extends ControllerBase {
 	}
 
 	@Override
-	public List<MainMenuItem> getMenuItems() {
+	public MainMenuItemImpl getMenuItem() {
 		return null;
 	}
 

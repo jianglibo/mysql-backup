@@ -22,7 +22,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.service.DbServiceBase;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.google.common.base.CaseFormat;
@@ -163,8 +163,8 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 
 	
 	@Override
-	public List<MainMenuItem> getMenuItems() {
-		return Arrays.asList(new MainMenuItem("appmodel", getLowerHyphenPlural(), getMappingUrl(), getMenuOrder()));
+	public MainMenuItemImpl getMenuItem() {
+		return new MainMenuItemImpl("appmodel", getLowerHyphenPlural(), getMappingUrl(), getMenuOrder());
 	}
 	
 	protected int getMenuOrder() {

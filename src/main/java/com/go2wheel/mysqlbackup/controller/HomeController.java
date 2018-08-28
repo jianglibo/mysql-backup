@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.TplUtil;
 
 
@@ -53,7 +53,7 @@ public class HomeController extends ControllerBase {
 	}
 
 	@Override
-	public List<MainMenuItem> getMenuItems() {
+	public MainMenuItemImpl getMenuItem() {
 		return null;
 	}
 

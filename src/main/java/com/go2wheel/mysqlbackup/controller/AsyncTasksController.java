@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.service.GlobalStore;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 
 @Controller
 @RequestMapping(AsyncTasksController.MAPPING_PATH)
@@ -49,8 +49,8 @@ public class AsyncTasksController extends ControllerBase {
 
 
 	@Override
-	public List<MainMenuItem> getMenuItems() {
-		return Arrays.asList(new MainMenuItem("appmodel", "async-tasks", getMappingUrl(), 1000));
+	public MainMenuItemImpl getMenuItem() {
+		return new MainMenuItemImpl("appmodel", "async-tasks", getMappingUrl(), 1000);
 	}
 
 }

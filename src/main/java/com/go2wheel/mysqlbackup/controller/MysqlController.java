@@ -34,7 +34,7 @@ import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -152,7 +152,7 @@ public class MysqlController extends ControllerBase {
 	}
 
 	@Override
-	public List<MainMenuItem> getMenuItems() {
+	public MainMenuItemImpl getMenuItem() {
 		return null;
 	}
 

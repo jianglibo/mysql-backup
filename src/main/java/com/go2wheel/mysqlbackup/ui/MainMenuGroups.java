@@ -57,11 +57,12 @@ public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 
 	public MainMenuGroups prepare(String currentUri) {
 		Assert.isTrue(cloned, "only cloned groups could be used.");
-		Optional<MainMenuItem> mi = getGroups().stream().flatMap(g -> g.getItems().stream())
-				.filter(it -> currentUri.equals(it.getPath())).findFirst();
-		if (mi.isPresent()) {
-			mi.get().setActive(true);
-		}
+//		Optional<MainMenuItemImpl> mi = getGroups().stream().flatMap(g -> g.getItems().stream())
+//				.filter(it -> currentUri.equals(it.getPath())).findFirst();
+//		if (mi.isPresent()) {
+//			mi.get().setActive(true);
+//		}
+		getGroups().stream().flatMap(g -> g.getItems().stream()).forEach(mi -> mi.alterState(currentUri));
 
 		for (int i = 1; i < getGroups().size(); i++) {
 			MainMenuGroup mg = getGroups().get(i);
@@ -89,7 +90,7 @@ public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 		});
 		
 		Map<String, ? extends ControllerBase> cbs = applicationContext.getBeansOfType(ControllerBase.class);
-		cbs.values().stream().map(cb -> cb.getMenuItems()).filter(Objects::nonNull).flatMap(mis -> mis.stream())
+		cbs.values().stream().map(cb -> cb.getMenuItem()).filter(Objects::nonNull)
 				.map(mi -> {
 					if (!mi.getName().startsWith("menu.")) {
 						mi.setName("menu." + mi.getName());
@@ -108,11 +109,11 @@ public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 		
 		// remove duplication items.
 		getGroups().forEach(g -> {
-			Map<String, List<MainMenuItem>> m = g.getItems().stream().collect(Collectors.groupingBy(mi -> {
+			Map<String, List<MainMenuItemImpl>> m = g.getItems().stream().collect(Collectors.groupingBy(mi -> {
 				return mi.getName();
 			}));
 			
-			List<MainMenuItem> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
+			List<MainMenuItemImpl> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
 			Collections.sort(lm);
 			g.setItems(lm);
 		});

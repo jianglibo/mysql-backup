@@ -4,21 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.google.common.base.MoreObjects;
+
 public class MainMenuGroup implements Comparable<MainMenuGroup>, Cloneable {
-	
+
 	private String name;
-	
+
 	private Integer order = 0;
-	
-	private List<MainMenuItem> items = new ArrayList<>();
-	
-	
-	public MainMenuGroup() {}
-	
+
+	private List<MainMenuItemImpl> items = new ArrayList<>();
+
+	public MainMenuGroup() {
+	}
+
 	public MainMenuGroup(String name) {
 		this.name = name;
 	}
-	
+
 	public MainMenuGroup clone() {
 		MainMenuGroup nmg = new MainMenuGroup();
 		nmg.setName(getName());
@@ -48,14 +50,18 @@ public class MainMenuGroup implements Comparable<MainMenuGroup>, Cloneable {
 		this.order = order;
 	}
 
-	public List<MainMenuItem> getItems() {
+	public List<MainMenuItemImpl> getItems() {
 		return items;
 	}
 
-	public void setItems(List<MainMenuItem> items) {
+	public void setItems(List<MainMenuItemImpl> items) {
 		this.items = items;
 	}
-	
-	
+
+	@Override
+	public String toString() {
+		return MoreObjects.toStringHelper(this).add("name", getName()).add("order", getOrder())
+				.add("items", getItems().size()).toString();
+	}
 
 }

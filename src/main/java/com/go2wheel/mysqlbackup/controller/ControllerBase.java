@@ -17,9 +17,10 @@ import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.TplUtil;
 
-public abstract class ControllerBase   implements ApplicationContextAware {
+public abstract class ControllerBase implements ApplicationContextAware {
 	
 	protected ApplicationContext applicationContext;
 	
@@ -61,7 +62,7 @@ public abstract class ControllerBase   implements ApplicationContextAware {
 		this.applicationContext = applicationContext;
 	}
 	
-	public abstract List<MainMenuItem> getMenuItems();
+	public abstract MainMenuItemImpl getMenuItem();
 	
 	public String getMappingUrl() {
 		return mappingUrl;
