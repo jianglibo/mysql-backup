@@ -103,6 +103,15 @@
 					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/download', { 'borgdescription': id });
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
+			}, {
+				actionId: 'backup-local-repo',
+				name: '备份本地仓库',
+				activeOn: 'SINGLE',
+				onClick: function() {
+					var id = this.state.selectedItems[0].id;
+					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/bk-local-repo', { 'borgdescription': id });
+					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+				}
 			}]);
 	</script>
 </body>

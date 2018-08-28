@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -25,6 +27,7 @@ import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
@@ -89,7 +92,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	
 	
 	@PostMapping("/{borgdescription}/download")
-	public String postDumps(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) {
+	public String postDownloads(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) {
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		server = serverDbService.loadFull(server);
 		
@@ -104,6 +107,15 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		
 		globalStore.saveFuture(sid, sf);
 		
+		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
+		return redirectMappingUrl();
+	}
+
+	@PostMapping("/{borgdescription}/bk-local-repo")
+	public String postBackupLocalRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException {
+		Server server = serverDbService.findById(borgDescription.getServerId());
+		final Path localRepo = settingsInDb.getBorgRepoDir(server);
+		FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return redirectMappingUrl();
 	}

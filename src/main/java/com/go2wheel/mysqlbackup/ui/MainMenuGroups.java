@@ -13,7 +13,6 @@ import javax.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
@@ -22,7 +21,6 @@ import org.springframework.util.Assert;
 import com.go2wheel.mysqlbackup.controller.ControllerBase;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
-@ConfigurationProperties(prefix = "menus")
 @Component
 public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 
@@ -57,11 +55,6 @@ public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 
 	public MainMenuGroups prepare(String currentUri) {
 		Assert.isTrue(cloned, "only cloned groups could be used.");
-//		Optional<MainMenuItemImpl> mi = getGroups().stream().flatMap(g -> g.getItems().stream())
-//				.filter(it -> currentUri.equals(it.getPath())).findFirst();
-//		if (mi.isPresent()) {
-//			mi.get().setActive(true);
-//		}
 		getGroups().stream().flatMap(g -> g.getItems().stream()).forEach(mi -> mi.alterState(currentUri));
 
 		for (int i = 1; i < getGroups().size(); i++) {
@@ -109,11 +102,11 @@ public class MainMenuGroups implements ApplicationContextAware, Cloneable {
 		
 		// remove duplication items.
 		getGroups().forEach(g -> {
-			Map<String, List<MainMenuItemImpl>> m = g.getItems().stream().collect(Collectors.groupingBy(mi -> {
+			Map<String, List<MainMenuItem>> m = g.getItems().stream().collect(Collectors.groupingBy(mi -> {
 				return mi.getName();
 			}));
 			
-			List<MainMenuItemImpl> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
+			List<MainMenuItem> lm = m.values().stream().map(list -> list.get(0)).collect(Collectors.toList());
 			Collections.sort(lm);
 			g.setItems(lm);
 		});

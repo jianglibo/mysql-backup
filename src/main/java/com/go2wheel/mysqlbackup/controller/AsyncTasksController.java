@@ -1,8 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -14,6 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.ui.MainMenuItem;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 
 @Controller
@@ -49,7 +48,7 @@ public class AsyncTasksController extends ControllerBase {
 
 
 	@Override
-	public MainMenuItemImpl getMenuItem() {
+	public MainMenuItem getMenuItem() {
 		return new MainMenuItemImpl("appmodel", "async-tasks", getMappingUrl(), 1000);
 	}
 

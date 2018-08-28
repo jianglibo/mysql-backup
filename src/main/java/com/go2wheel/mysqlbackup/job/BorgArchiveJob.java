@@ -74,9 +74,9 @@ public class BorgArchiveJob implements Job {
 			bd.setTimeCost(ts);
 			borgDownloadDbService.save(bd);
 			
-			final Path localRepo = settingsInDb.getBorgRepoDir(sv);
-			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
-		} catch (IOException | JSchException | CommandNotFoundException | NoSuchAlgorithmException e) {
+//			final Path localRepo = settingsInDb.getBorgRepoDir(sv);
+//			FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
+		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

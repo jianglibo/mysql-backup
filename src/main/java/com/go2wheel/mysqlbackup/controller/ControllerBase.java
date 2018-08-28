@@ -62,7 +62,7 @@ public abstract class ControllerBase implements ApplicationContextAware {
 		this.applicationContext = applicationContext;
 	}
 	
-	public abstract MainMenuItemImpl getMenuItem();
+	public abstract MainMenuItem getMenuItem();
 	
 	public String getMappingUrl() {
 		return mappingUrl;

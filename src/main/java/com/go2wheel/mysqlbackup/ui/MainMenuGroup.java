@@ -12,7 +12,7 @@ public class MainMenuGroup implements Comparable<MainMenuGroup>, Cloneable {
 
 	private Integer order = 0;
 
-	private List<MainMenuItemImpl> items = new ArrayList<>();
+	private List<MainMenuItem> items = new ArrayList<>();
 
 	public MainMenuGroup() {
 	}
@@ -50,11 +50,11 @@ public class MainMenuGroup implements Comparable<MainMenuGroup>, Cloneable {
 		this.order = order;
 	}
 
-	public List<MainMenuItemImpl> getItems() {
+	public List<MainMenuItem> getItems() {
 		return items;
 	}
 
-	public void setItems(List<MainMenuItemImpl> items) {
+	public void setItems(List<MainMenuItem> items) {
 		this.items = items;
 	}
 

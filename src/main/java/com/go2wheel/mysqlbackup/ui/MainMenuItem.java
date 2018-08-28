@@ -12,4 +12,9 @@ public interface MainMenuItem extends Comparable<MainMenuItem> {
 	default public int compareTo(MainMenuItem o) {
 		return this.getOrder().compareTo(o.getOrder());
 	}
+	void setGroupFirst(boolean b);
+	MainMenuItem clone();
+	void setGroupName(String name);
+	void setName(String name);
+	String getGroupName();
 }
