@@ -13,8 +13,11 @@ public interface Mailer {
 	public static final String THYMELEAF = "THYMELEAF";
 	public static final String FREEMARKER = "FREEMARKER";
 	
-	void sendMailWithInline(Subscribe subscribe,
+	void sendMail(Subscribe subscribe,
 			String email, String template, ServerGroupContext rc) throws MessagingException, UnsupportedEncodingException;
+	
+	void sendMailPlainText(String subject, String content,
+			String email) throws MessagingException, UnsupportedEncodingException;
 	
 	String renderTemplate(String template, ServerGroupContext rc);
 }

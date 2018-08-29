@@ -32,7 +32,7 @@ public class MailerImpl implements Mailer {
 	@Autowired
 	private ChromePDFWriter pdfWriter;
 
-	public void sendMailWithInline(Subscribe subscribe,
+	public void sendMail(Subscribe subscribe,
 			String email, String template, ServerGroupContext sgctx) throws MessagingException, UnsupportedEncodingException {
 		final MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
 		final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
@@ -54,5 +54,17 @@ public class MailerImpl implements Mailer {
 	@Override
 	public String renderTemplate(String template, ServerGroupContext rc) {
 		return emailViewRender.render(template, rc);
+	}
+
+	@Override
+	public void sendMailPlainText(String subject, String content, String email)
+			throws MessagingException, UnsupportedEncodingException {
+		final MimeMessage mimeMessage = this.javaMailSender.createMimeMessage();
+		final MimeMessageHelper message = new MimeMessageHelper(mimeMessage, true, "UTF-8"); // true = multipart
+		message.setFrom(mailProperties.getUsername());
+		message.setTo(email);
+		message.setSubject(MimeUtility.encodeText(subject));
+		message.setText(content, false); // true = isHtml
+		this.javaMailSender.send(mimeMessage);
 	}
 }

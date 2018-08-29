@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -25,10 +24,9 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.util.FileUtil;
-import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
 
@@ -67,6 +65,8 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		entityFromDb.setRepo(entityFromForm.getRepo());
 		entityFromDb.setIncludes(entityFromForm.getIncludes());
 		entityFromDb.setExcludes(entityFromForm.getExcludes());
+		entityFromDb.setLocalBackupCron(entityFromForm.getLocalBackupCron());
+		entityFromDb.setLocalBackupPruneCron(entityFromForm.getLocalBackupPruneCron());
 		return true;
 	}
 	
@@ -114,8 +114,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	@PostMapping("/{borgdescription}/bk-local-repo")
 	public String postBackupLocalRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException {
 		Server server = serverDbService.findById(borgDescription.getServerId());
-		final Path localRepo = settingsInDb.getBorgRepoDir(server);
-		FileUtil.backup(localRepo, 1, settingsInDb.getInteger("borg.repo.backups", 1), true);
+		borgService.backupLocalRepos(server);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		return redirectMappingUrl();
 	}

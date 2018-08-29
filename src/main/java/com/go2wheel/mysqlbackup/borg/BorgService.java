@@ -36,6 +36,7 @@ import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -482,6 +483,12 @@ public class BorgService {
 	public FacadeResult<?> archive(Session session, Server server) throws CommandNotFoundException {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), false);
+	}
+	
+	public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
+		final Path localRepo = settingsInDb.getBorgRepoDir(server);
+		FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups", 999999), true);
+		return FacadeResult.doneExpectedResult();
 	}
 
 	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) throws CommandNotFoundException {

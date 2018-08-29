@@ -96,8 +96,8 @@ public class PathUtil {
 	 * @param fileOrDirToBackup
 	 * @param postfixNumber
 	 * @param roundNumber
-	 *            when the number reaches, return to start.
-	 * @return
+	 * when the number reaches, return to start.
+	 * @return next available number.
 	 */
 	public static Path getNextAvailable(Path fileOrDirToBackup, int postfixNumber, int roundNumber) {
 		Path parent = fileOrDirToBackup.getParent();

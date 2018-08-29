@@ -59,6 +59,26 @@
 					</select>
 					<span class="pure-form-message-inline"></span>
 				</div>
+				<div class="pure-control-group pure-combo">
+					<label for="localBackupCron">本地卷備份計劃</label>
+					<input th:field="*{localBackupCron}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.pruneCron}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group pure-combo">
+					<label for="localBackupPruneCron">本地卷修剪計劃</label>
+					<input th:field="*{localBackupPruneCron}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.pruneCron}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
 				<div class="pure-control-group">
 					<label for="includes">备份目录</label>
 					<textarea th:field="*{includes}" placeholder=""></textarea>

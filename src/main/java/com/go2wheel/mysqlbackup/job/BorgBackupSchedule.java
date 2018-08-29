@@ -25,6 +25,10 @@ public class BorgBackupSchedule extends SchedulerBase {
 	public static final String BORG_ARCHIVE_GROUP = "BORG_ARCHIVE";
 
 	public static final String BORG_PRUNE_GROUP = "BORG_PRUNE";
+	
+	public static final String BORG_BACKUP_LOCAL_REPO = "BORG_BACKUP_LOCAL_REPO";
+	
+	public static final String BORG_BACKUP_LOCAL_REPO_PRUNE = "BORG_BACKUP_LOCAL_REPO_PRUNE";
 
 	//@formatter:off
 	
@@ -43,6 +47,19 @@ public class BorgBackupSchedule extends SchedulerBase {
 				BorgPruneJob.class,
 				jobKey(server.getHost(), BORG_PRUNE_GROUP),
 				triggerKey(server.getHost(), BORG_PRUNE_GROUP));
+		
+		createTrigger(server,
+				bd.getLocalBackupCron(),
+				BorgLocalRepoBackupJob.class,
+				jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO),
+				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO));
+		
+		createTrigger(server,
+				bd.getLocalBackupPruneCron(),
+				BorgLocalRepoBackupPruneJob.class,
+				jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE),
+				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE));
+
 	}
 	
 	@EventListener
@@ -63,6 +80,20 @@ public class BorgBackupSchedule extends SchedulerBase {
 				BorgPruneJob.class,
 				jobKey(server.getHost(), BORG_PRUNE_GROUP),
 				triggerKey(server.getHost(), BORG_PRUNE_GROUP));
+		
+		reschedule(server,
+				before.getLocalBackupCron(),
+				after.getLocalBackupCron(),
+				BorgLocalRepoBackupJob.class,
+				jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO),
+				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO));
+		
+		reschedule(server,
+				before.getLocalBackupPruneCron(),
+				after.getLocalBackupPruneCron(),
+				BorgLocalRepoBackupPruneJob.class,
+				jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE),
+				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE));
 	}
 	
 	@EventListener
@@ -74,5 +105,8 @@ public class BorgBackupSchedule extends SchedulerBase {
 		
 		scheduler.deleteJob(jobKey(server.getHost(), BORG_ARCHIVE_GROUP));
 		scheduler.deleteJob(jobKey(server.getHost(), BORG_PRUNE_GROUP));
+		
+		scheduler.deleteJob(jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO));
+		scheduler.deleteJob(jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE));
 	}
 }

@@ -5,6 +5,7 @@ import static org.junit.Assert.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -153,7 +154,7 @@ public class TestMailerJob extends JobBaseFort {
 		
 		mailerJob.setMailer(new Mailer() {
 			@Override
-			public void sendMailWithInline(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) throws MessagingException {
+			public void sendMail(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) throws MessagingException {
 				System.out.println(sgctx);
 				try {
 					Path pa = Paths.get("templates", "tplcontext.yml");
@@ -167,6 +168,11 @@ public class TestMailerJob extends JobBaseFort {
 			@Override
 			public String renderTemplate(String template, ServerGroupContext rc) {
 				return null;
+			}
+
+			@Override
+			public void sendMailPlainText(String subject, String content, String email)
+					throws MessagingException, UnsupportedEncodingException {
 			}
 		});
 		mailerJob.execute(context);

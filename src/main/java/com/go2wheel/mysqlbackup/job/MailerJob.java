@@ -56,7 +56,7 @@ public class MailerJob implements Job {
 	}
 	
 	public void mail(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) throws UnsupportedEncodingException, MessagingException {
-		this.mailer.sendMailWithInline(subscribe, email, template, sgctx);
+		this.mailer.sendMail(subscribe, email, template, sgctx);
 	}
 
 	public String renderTemplate(String template, ServerGroupContext sgctx) {

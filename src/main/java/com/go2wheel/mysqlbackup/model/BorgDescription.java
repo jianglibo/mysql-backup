@@ -22,8 +22,16 @@ public class BorgDescription extends BaseModel {
 	private String archiveFormat = BORG_ARCHIVE_FORMAT_DEFAULT;
 	@CronExpressionConstraint(allowEmpty=true)
 	private String archiveCron;
+	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String pruneCron;
+	
+	@CronExpressionConstraint(allowEmpty=true)
+	private String localBackupCron;
+	
+	@CronExpressionConstraint(allowEmpty=true)
+	private String localBackupPruneCron;
+
 	
 	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 	
@@ -100,6 +108,22 @@ public class BorgDescription extends BaseModel {
 		this.serverId = serverId;
 	}
 	
+	public String getLocalBackupCron() {
+		return localBackupCron;
+	}
+
+	public void setLocalBackupCron(String localBackupCron) {
+		this.localBackupCron = localBackupCron;
+	}
+
+	public String getLocalBackupPruneCron() {
+		return localBackupPruneCron;
+	}
+
+	public void setLocalBackupPruneCron(String localBackupPruneCron) {
+		this.localBackupPruneCron = localBackupPruneCron;
+	}
+
 	public static class BorgDescriptionBuilder {
 		private final Integer serverId;
 		private String repo = BORG_REPO_DEFAULT;
@@ -150,8 +174,6 @@ public class BorgDescription extends BaseModel {
 			bd.setServerId(serverId);
 			return bd;
 		}
-
-		
 
 	}
 }
