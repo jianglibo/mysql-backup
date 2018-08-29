@@ -37,7 +37,7 @@ public class TestPruneBackups {
 	private List<PathAndCt> fixturesInMinutes() {
 		List<PathAndCt> pcts = Lists.newArrayList();
 		Calendar c = getCalendar();
-		for (int i = 1; i < 6; i++) {
+		for (int i = 1; i < 3; i++) {
 			PathAndCt pct = new PathAndCt();
 			Instant ki = c.toInstant();
 			ki = ki.minusSeconds(i);
@@ -46,7 +46,7 @@ public class TestPruneBackups {
 		}
 		
 		c.add(Calendar.MINUTE, -2);
-		for (int i = 1; i < 6; i++) {
+		for (int i = 1; i < 3; i++) {
 			PathAndCt pct = new PathAndCt();
 			Instant ki = c.toInstant();
 			ki = ki.minusSeconds(i);
@@ -87,13 +87,13 @@ public class TestPruneBackups {
 	@Test
 	public void tSencondly() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		Map<Instant, List<PathAndCt>> m = pbf.prune(fixturesInMinutes(), 0, 2, 0, 0, 0, 0, 0);
+		Map<String, List<PathAndCt>> m = pbf.prune(fixturesInMinutes(), 2, 0, 0, 0, 0, 0, 0);
 		assertThat(m.size(), equalTo(2));
 		Iterator<List<PathAndCt>> it = m.values().iterator();
 		List<PathAndCt> l1 = it.next();
-		assertThat(l1.size(), equalTo(5));
+		assertThat(l1.size(), equalTo(2));
 		List<PathAndCt> l2 = it.next();
-		assertThat(l2.size(), equalTo(1));
+		assertThat(l2.size(), equalTo(2));
 		String is = l2.get(0).getInstant().toString();
 		assertThat(is, equalTo("2018-06-05T09:30:29Z")); // the latest is keeped.
 	}
@@ -101,7 +101,7 @@ public class TestPruneBackups {
 	@Test
 	public void tSencondly1() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		Map<Instant, List<PathAndCt>> m = pbf.byMinutes(fixturesInMinutes1(), 1);
+		Map<String, List<PathAndCt>> m = pbf.byMinutes(fixturesInMinutes1(), 1);
 		assertThat(m.size(), equalTo(5));
 		assertThat(m.values().iterator().next().size(), equalTo(1));
 	}
