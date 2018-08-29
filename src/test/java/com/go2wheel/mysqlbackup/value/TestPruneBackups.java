@@ -4,6 +4,8 @@ import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.Collections;
@@ -17,6 +19,8 @@ import com.go2wheel.mysqlbackup.value.PruneBackupedFiles.PathAndCt;
 import com.google.common.collect.Lists;
 
 public class TestPruneBackups {
+	
+	private DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
 
 	private Calendar getCalendar() {
 		Calendar c = Calendar.getInstance();
@@ -72,18 +76,18 @@ public class TestPruneBackups {
 	 * 以分钟分组，在分钟内保留的拷贝数就是secondly. For example. Today is, 2013-10-1 08:30:31
 	 * 2013-10-1 08:30:32 2013-10-1 08:30:33 2013-10-1 08:30:34 2013-10-2 08:30:31
 	 * 2013-10-2 08:30:32 2013-10-2 08:30:33 2013-10-2 08:30:34 The map has two
-	 * entries. The two keys are “2013-10-1 08:30" and "2013-10-2 08:30". Each has
+	 * entries. The two keys are �?2013-10-1 08:30" and "2013-10-2 08:30". Each has
 	 * value of 4 items list. If we keep secondly to 2 then 2 early item will be
 	 * deleted. what's remains? 2013-10-1 08:30:33 2013-10-1 08:30:34 2013-10-2
 	 * 08:30:33 2013-10-2 08:30:34 keep going on, If the hourly is 1. then the
 	 * result of byhours is: 2013-10-1 08 2013-10-2 08
 	 * 
-	 * 删除总是从第二个开始。
+	 * 删除总是从第二个�?始�??
 	 */
 	@Test
 	public void tSencondly() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		Map<Instant, List<PathAndCt>> m = pbf.byMinutes(fixturesInMinutes(), 1);
+		Map<Instant, List<PathAndCt>> m = pbf.prune(fixturesInMinutes(), 0, 2, 0, 0, 0, 0, 0);
 		assertThat(m.size(), equalTo(2));
 		Iterator<List<PathAndCt>> it = m.values().iterator();
 		List<PathAndCt> l1 = it.next();
@@ -91,7 +95,7 @@ public class TestPruneBackups {
 		List<PathAndCt> l2 = it.next();
 		assertThat(l2.size(), equalTo(1));
 		String is = l2.get(0).getInstant().toString();
-		assertThat(is, equalTo("2018-06-05T09:30:25Z")); // the latest is keeped.
+		assertThat(is, equalTo("2018-06-05T09:30:29Z")); // the latest is keeped.
 	}
 
 	@Test
