@@ -1,17 +1,25 @@
 package com.go2wheel.mysqlbackup.value;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Calendar;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.UnsupportedTemporalTypeException;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+
+import static java.util.stream.Collectors.*;
+import java.util.stream.Stream;
 
 import org.junit.Test;
 
@@ -20,90 +28,236 @@ import com.google.common.collect.Lists;
 
 public class TestPruneBackups {
 	
-	private DateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-
-	private Calendar getCalendar() {
-		Calendar c = Calendar.getInstance();
-		c.set(Calendar.YEAR, 2018);
-		c.set(Calendar.MONTH, 5);
-		c.set(Calendar.DAY_OF_MONTH, 5);
-		c.set(Calendar.HOUR, 5);
-		c.set(Calendar.MINUTE, 30);
-		c.set(Calendar.SECOND, 30);
-		c.set(Calendar.MILLISECOND, 0);
-		return c;
+	private List<PathAndCt> createSecondly(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for (int i = 1; i < num + 1; i++) { // 2018-12-27 23:59:58 --> 2018-12-27 23:59:54 Total is 5 items.
+			PathAndCt pct = new PathAndCt();
+			pct.setLdt(ldt.minusSeconds(i));
+			pcts.add(pct);
+		}
+		return pcts;
 	}
+	
+	private List<PathAndCt> createMinutely(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int minuteOfHour = 1; minuteOfHour < num + 1; minuteOfHour++) {
+			LocalDateTime nldt = ldt.minusMinutes(minuteOfHour);
+			pcts.addAll(createSecondly(nldt, num));
+		}
+		return pcts;
+	}
+	
+	private List<PathAndCt> createHourly(LocalDateTime ldt, int num) {
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int hourOfDay = 1; hourOfDay < num + 1; hourOfDay++) {
+			LocalDateTime nldt = ldt.minusHours(hourOfDay);
+			pcts.addAll(createMinutely(nldt, num));
+		}
+		return pcts;
+	}
+	
+	private List<PathAndCt> createDaily(LocalDateTime ldt, int num) {
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int dayOfMonth = 1; dayOfMonth < num + 1; dayOfMonth++) {
+			LocalDateTime nldt = ldt.minusDays(dayOfMonth);
+			pcts.addAll(createHourly(nldt, num));
+		}
+		return pcts;
+	}
+	
+	private List<PathAndCt> createWeekly(LocalDateTime ldt, int num) {
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int weekOfMonth = 1; weekOfMonth < num + 1; weekOfMonth++) {
+			LocalDateTime nldt = ldt.minusWeeks(weekOfMonth);
+			pcts.addAll(createDaily(nldt, num));
+		}
+		return pcts;
+	}
+	
+	private List<PathAndCt> createMonthly(LocalDateTime ldt, int num) {
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int monthOfYear = 1; monthOfYear < num + 1; monthOfYear++) {
+			LocalDateTime nldt = ldt.minusMonths(monthOfYear);
+			pcts.addAll(createWeekly(nldt, num));
+		}
+		return pcts;
+	}
+	
+	private List<PathAndCt> createYearly(LocalDateTime ldt, int num) {
+		List<PathAndCt> pcts = Lists.newArrayList();
+		for(int yearDelta = 1; yearDelta < num + 1; yearDelta++) {
+			LocalDateTime nldt = ldt.minusYears(yearDelta);
+			pcts.addAll(createMonthly(nldt, num));
+		}
+		return pcts;
+	}
+
 
 	private List<PathAndCt> fixturesInMinutes() {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		Calendar c = getCalendar();
-		for (int i = 1; i < 3; i++) {
-			PathAndCt pct = new PathAndCt();
-			Instant ki = c.toInstant();
-			ki = ki.minusSeconds(i);
-			pct.setInstant(ki);
-			pcts.add(pct);
-		}
+		LocalDateTime ldt = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
+		pcts.addAll(createYearly(ldt, 3)); // month 11,10,9,8
+		Collections.sort(pcts);
+		return pcts;
+	}
+	
+
+	@Test
+	public void tEachRange() {
+		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
+		int total = (int) Math.pow(4, 6);
+		List<PathAndCt> lists = fixturesInMinutes();
+		assertThat(lists.size(), equalTo(total));
+
+		Map<String, List<PathAndCt>> byMonthes = pbf.byMonthes(lists, 2000);
 		
-		c.add(Calendar.MINUTE, -2);
-		for (int i = 1; i < 3; i++) {
-			PathAndCt pct = new PathAndCt();
-			Instant ki = c.toInstant();
-			ki = ki.minusSeconds(i);
-			pct.setInstant(ki);
-			pcts.add(pct);
-		}
-
-		Collections.sort(pcts);
-		return pcts;
+		assertThat(byMonthes.size(), equalTo(5));
+		assertThat(byMonthes.keySet(), contains("201806", "201807", "201808","201809","201810")); // each month group contains 256 items.
+		assertThat(byMonthes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
+		
+		Map<String, List<PathAndCt>> byMonthes1 = pbf.byMonthes(lists, 20);
+		List<PathAndCt> latestMonth = byMonthes1.get("201810");
+		assertThat(latestMonth.size(), equalTo(768));
+		
+		Stream.of("201807", "201808","201809").map(m -> byMonthes1.get(m)).forEach(ll -> {
+			assertThat(ll.size(), equalTo(20));
+		});
+		
+		assertThat(byMonthes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(768L + 20 * 4)); // The other months except last one have 20 items each.
+		
+		Map<String, List<PathAndCt>> byDays = pbf.byDays(lists, 2000);
+		
+		assertThat(byDays.size(), equalTo(64));
+		assertThat(byDays.keySet().stream().limit(4).collect(toList()), contains("20180625", "20180626","20180627","20180628")); // each month group contains 256 items.
+		assertThat(byDays.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
+		
+		Map<String, List<PathAndCt>> byDays1 = pbf.byDays(lists, 20);
+		
+		byDays1.values().stream().limit(byDays.size() - 1).forEach(v -> {
+			assertThat(v.size(), equalTo(20));
+		});
+		
+		byDays1.values().stream().skip(byDays.size() - 1).forEach(v -> {
+			assertThat(v.size(), equalTo(64));
+		});
+		
+		Map<String, List<PathAndCt>> byminutes = pbf.byMinutes(lists, 40);
+		assertThat(byminutes.size(), equalTo(1024));
+		assertThat(byminutes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
+		
+		Map<String, List<PathAndCt>> byminutes1 = pbf.byMinutes(lists, 1);
+		assertThat(byminutes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(1024L + 3));
+		
+		Map<String, List<PathAndCt>> byWeeks = pbf.byWeeks(lists, 400);
+		assertThat(byWeeks.size(), equalTo(18));
+		assertThat(byWeeks.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
+		
+		Map<String, List<PathAndCt>> byWeeks1 = pbf.byWeeks(lists, 1);
+		
+		byWeeks1.values().stream().limit(byWeeks1.size() - 1).forEach(v -> {
+			assertThat(v.size(), equalTo(1));
+		});
+		
+		byWeeks1.values().stream().skip(byWeeks1.size() - 1).forEach(v -> {
+			assertThat(v.size(), equalTo(256));
+		});
+		assertThat(byWeeks1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(256L + 17));
 	}
-
-	private List<PathAndCt> fixturesInMinutes1() {
-		List<PathAndCt> pcts = Lists.newArrayList();
-		Calendar c = getCalendar();
-		for (int i = 1; i < 6; i++) {
-			PathAndCt pct = new PathAndCt();
-			Instant ki = c.toInstant();
-			ki = ki.minusSeconds(i * 61);
-			pct.setInstant(ki);
-			pcts.add(pct);
-		}
-		Collections.sort(pcts);
-		return pcts;
-	}
-
-	/**
-	 * 以分钟分组，在分钟内保留的拷贝数就是secondly. For example. Today is, 2013-10-1 08:30:31
-	 * 2013-10-1 08:30:32 2013-10-1 08:30:33 2013-10-1 08:30:34 2013-10-2 08:30:31
-	 * 2013-10-2 08:30:32 2013-10-2 08:30:33 2013-10-2 08:30:34 The map has two
-	 * entries. The two keys are �?2013-10-1 08:30" and "2013-10-2 08:30". Each has
-	 * value of 4 items list. If we keep secondly to 2 then 2 early item will be
-	 * deleted. what's remains? 2013-10-1 08:30:33 2013-10-1 08:30:34 2013-10-2
-	 * 08:30:33 2013-10-2 08:30:34 keep going on, If the hourly is 1. then the
-	 * result of byhours is: 2013-10-1 08 2013-10-2 08
-	 * 
-	 * 删除总是从第二个�?始�??
-	 */
+	
 	@Test
-	public void tSencondly() {
+	public void tReal() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		Map<String, List<PathAndCt>> m = pbf.prune(fixturesInMinutes(), 2, 0, 0, 0, 0, 0, 0);
-		assertThat(m.size(), equalTo(2));
-		Iterator<List<PathAndCt>> it = m.values().iterator();
-		List<PathAndCt> l1 = it.next();
-		assertThat(l1.size(), equalTo(2));
-		List<PathAndCt> l2 = it.next();
-		assertThat(l2.size(), equalTo(2));
-		String is = l2.get(0).getInstant().toString();
-		assertThat(is, equalTo("2018-06-05T09:30:29Z")); // the latest is keeped.
+		List<PathAndCt> lists = fixturesInMinutes();
+		
+		// keep latest 2 secondly, 2 minutely, 2 hourly, 2 daily, 2 weekly, 2 monthly.
+		Map<String, List<PathAndCt>> m = pbf.prune(lists, 2, 2, 2, 2, 2, 2, 0);
+		assertThat(m.size(), equalTo(1));
+		Map<String, List<PathAndCt>> msec = m.values()
+				.stream()
+				.flatMap(pp -> pp.stream())
+				.map(pc -> pc.refreshCt(PruneBackupedFiles.TILL_MINUTE))
+				.collect(groupingBy(
+						pc -> pc.getCt(),
+						TreeMap::new,
+						toList()));
+		assertThat(msec.size(), equalTo(16));
+		assertThat(msec.values().stream().mapToInt(l -> l.size()).sum(), equalTo(34L)); // the last group has 4 items.
+//		201806282258 2 in another month.
+//		201807292258 2 in another month.
+//		201808292258 2 in another month.
+//		201809282258 2 in another week.
+//		201810052258 2 in another week.
+//		201810122258 2 in another week.
+//		201810162258 2 in day 16th.
+//		201810172258 2 in day 17th.
+//		201810182258 2 in day 18th.
+//		201810191958 2 in hour 19th.
+//		201810192058 2 in hour 20th.
+//		201810192158 2 in hour 21th.
+//		201810192255 2 in minute 55th.
+//		201810192256 2 in minute 56th.
+//		201810192257 2 in minute 57th.
+//		201810192258 4 in minute 58th.
 	}
 
+	
 	@Test
-	public void tSencondly1() {
-		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		Map<String, List<PathAndCt>> m = pbf.byMinutes(fixturesInMinutes1(), 1);
-		assertThat(m.size(), equalTo(5));
-		assertThat(m.values().iterator().next().size(), equalTo(1));
+	public void testTruncated() {
+		Instant is = Instant.ofEpochMilli(1545926399000L);
+		Instant is1 = Instant.ofEpochMilli(1545926399000L + 55);
+		
+		LocalDateTime timePoint1 = LocalDateTime.ofInstant(is, ZoneId.systemDefault());
+		LocalDateTime timePoint2 = LocalDateTime.ofInstant(is1, ZoneId.systemDefault());
+		
+		assertFalse(timePoint1.equals(timePoint2));
+		
+		LocalDateTime localDateTimeTruncated1 = timePoint1.truncatedTo(ChronoUnit.SECONDS);
+		LocalDateTime localDateTimeTruncated2 = timePoint2.truncatedTo(ChronoUnit.SECONDS);
+		assertTrue(localDateTimeTruncated1.equals(localDateTimeTruncated2));
 	}
+	
+	@Test(expected=UnsupportedTemporalTypeException.class)
+	public void getFields() {
+		LocalDateTime timePoint1 = LocalDateTime.now();
+		timePoint1.truncatedTo(ChronoUnit.MONTHS);
+	}
+	
+	
+	@Test
+	public void tInstant() {
+		// 1545926399000, 2018-12-27T15:59:59Z
+		Instant is = Instant.ofEpochMilli(1545926399000L);
+		
+		LocalDateTime timePoint1 = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
+		
+		LocalDateTime timePoint1Copy = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
+		
+		assertTrue(timePoint1.equals(timePoint1Copy));
+		
+		LocalDateTime timePoint2 = LocalDateTime.ofInstant(is, ZoneId.systemDefault());
+		
+		
+		assertThat(timePoint1.getSecond(), equalTo(59));
+		assertThat(timePoint2.getSecond(), equalTo(59));
+		
+		assertThat(timePoint1.getDayOfMonth(), equalTo(27));
+		assertThat(timePoint2.getDayOfMonth(), equalTo(27));
+		
+		assertFalse(timePoint1.equals(timePoint2));
+		
+		String ds = timePoint1.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmssS"));
+		assertThat(ds, equalTo("201811272359590"));
+	}
+	
+	@Test
+	public void tChangeLc() {
+		LocalDateTime timePoint1 = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
+		
+		LocalDateTime timePoint2 = timePoint1.withDayOfMonth(1).withHour(22);
+		
+		assertFalse(timePoint1 == timePoint2);
+	}
+
+
 
 }
