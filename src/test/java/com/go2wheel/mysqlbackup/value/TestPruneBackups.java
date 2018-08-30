@@ -19,7 +19,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 import static java.util.stream.Collectors.*;
-import java.util.stream.Stream;
+
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -30,7 +31,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createSecondly(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for (int i = 1; i < num + 1; i++) { // 2018-12-27 23:59:58 --> 2018-12-27 23:59:54 Total is 5 items.
+		for (int i = 0; i < num; i++) { // 2018-12-27 23:59:58 --> 2018-12-27 23:59:54 Total is 5 items.
 			PathAndCt pct = new PathAndCt();
 			pct.setLdt(ldt.minusSeconds(i));
 			pcts.add(pct);
@@ -40,7 +41,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createMinutely(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int minuteOfHour = 1; minuteOfHour < num + 1; minuteOfHour++) {
+		for(int minuteOfHour = 0; minuteOfHour < num; minuteOfHour++) {
 			LocalDateTime nldt = ldt.minusMinutes(minuteOfHour);
 			pcts.addAll(createSecondly(nldt, num));
 		}
@@ -49,7 +50,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createHourly(LocalDateTime ldt, int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int hourOfDay = 1; hourOfDay < num + 1; hourOfDay++) {
+		for(int hourOfDay = 0; hourOfDay < num; hourOfDay++) {
 			LocalDateTime nldt = ldt.minusHours(hourOfDay);
 			pcts.addAll(createMinutely(nldt, num));
 		}
@@ -58,7 +59,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createDaily(LocalDateTime ldt, int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int dayOfMonth = 1; dayOfMonth < num + 1; dayOfMonth++) {
+		for(int dayOfMonth = 0; dayOfMonth < num; dayOfMonth++) {
 			LocalDateTime nldt = ldt.minusDays(dayOfMonth);
 			pcts.addAll(createHourly(nldt, num));
 		}
@@ -67,8 +68,8 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createWeekly(LocalDateTime ldt, int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int weekOfMonth = 1; weekOfMonth < num + 1; weekOfMonth++) {
-			LocalDateTime nldt = ldt.minusWeeks(weekOfMonth);
+		for(int weekOfYear = 0; weekOfYear < num; weekOfYear++) {
+			LocalDateTime nldt = ldt.minusWeeks(weekOfYear);
 			pcts.addAll(createDaily(nldt, num));
 		}
 		return pcts;
@@ -76,7 +77,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createMonthly(LocalDateTime ldt, int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int monthOfYear = 1; monthOfYear < num + 1; monthOfYear++) {
+		for(int monthOfYear = 0; monthOfYear < num; monthOfYear++) {
 			LocalDateTime nldt = ldt.minusMonths(monthOfYear);
 			pcts.addAll(createWeekly(nldt, num));
 		}
@@ -85,7 +86,7 @@ public class TestPruneBackups {
 	
 	private List<PathAndCt> createYearly(LocalDateTime ldt, int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
-		for(int yearDelta = 1; yearDelta < num + 1; yearDelta++) {
+		for(int yearDelta = 0; yearDelta < num; yearDelta++) {
 			LocalDateTime nldt = ldt.minusYears(yearDelta);
 			pcts.addAll(createMonthly(nldt, num));
 		}
@@ -93,10 +94,10 @@ public class TestPruneBackups {
 	}
 
 
-	private List<PathAndCt> fixturesInMinutes() {
+	private List<PathAndCt> fixturesInMinutes(int num) {
 		List<PathAndCt> pcts = Lists.newArrayList();
 		LocalDateTime ldt = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
-		pcts.addAll(createYearly(ldt, 3)); // month 11,10,9,8
+		pcts.addAll(createYearly(ldt, num)); // month 11,10,9,8
 		Collections.sort(pcts);
 		return pcts;
 	}
@@ -105,30 +106,31 @@ public class TestPruneBackups {
 	@Test
 	public void tEachRange() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		int total = (int) Math.pow(4, 6);
-		List<PathAndCt> lists = fixturesInMinutes();
+		int total = (int) Math.pow(3, 7);
+		List<PathAndCt> lists = fixturesInMinutes(3);
 		assertThat(lists.size(), equalTo(total));
 
 		Map<String, List<PathAndCt>> byMonthes = pbf.byMonthes(lists, 2000);
 		
-		assertThat(byMonthes.size(), equalTo(5));
-		assertThat(byMonthes.keySet(), contains("201806", "201807", "201808","201809","201810")); // each month group contains 256 items.
+		assertThat(byMonthes.size(), equalTo(9));
+		assertThat(byMonthes.keySet().stream().skip(byMonthes.size() - 2).collect(Collectors.toList()), contains("201810", "201811")); // each month group contains 256 items.
 		assertThat(byMonthes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
 		Map<String, List<PathAndCt>> byMonthes1 = pbf.byMonthes(lists, 20);
-		List<PathAndCt> latestMonth = byMonthes1.get("201810");
-		assertThat(latestMonth.size(), equalTo(768));
+		List<PathAndCt> latestMonth = byMonthes1.get("201811");
+		assertThat(latestMonth.size(), equalTo(243));
 		
-		Stream.of("201807", "201808","201809").map(m -> byMonthes1.get(m)).forEach(ll -> {
+		byMonthes1.values().stream().limit(byMonthes1.size() - 1).forEach(ll -> {
 			assertThat(ll.size(), equalTo(20));
 		});
 		
-		assertThat(byMonthes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(768L + 20 * 4)); // The other months except last one have 20 items each.
+		
+		assertThat(byMonthes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(243L + 20 * 8)); // The other months except last one have 20 items each.
 		
 		Map<String, List<PathAndCt>> byDays = pbf.byDays(lists, 2000);
 		
-		assertThat(byDays.size(), equalTo(64));
-		assertThat(byDays.keySet().stream().limit(4).collect(toList()), contains("20180625", "20180626","20180627","20180628")); // each month group contains 256 items.
+		assertThat(byDays.size(), equalTo(81));
+		assertThat(byDays.keySet().stream().skip(byDays.size() - 2).collect(toList()), contains("20181126", "20181127")); // each month group contains 256 items.
 		assertThat(byDays.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
 		Map<String, List<PathAndCt>> byDays1 = pbf.byDays(lists, 20);
@@ -138,18 +140,18 @@ public class TestPruneBackups {
 		});
 		
 		byDays1.values().stream().skip(byDays.size() - 1).forEach(v -> {
-			assertThat(v.size(), equalTo(64));
+			assertThat(v.size(), equalTo(27));
 		});
 		
 		Map<String, List<PathAndCt>> byminutes = pbf.byMinutes(lists, 40);
-		assertThat(byminutes.size(), equalTo(1024));
+		assertThat(byminutes.size(), equalTo(729));
 		assertThat(byminutes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
 		Map<String, List<PathAndCt>> byminutes1 = pbf.byMinutes(lists, 1);
-		assertThat(byminutes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(1024L + 3));
+		assertThat(byminutes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(728L + 3));
 		
 		Map<String, List<PathAndCt>> byWeeks = pbf.byWeeks(lists, 400);
-		assertThat(byWeeks.size(), equalTo(18));
+		assertThat(byWeeks.size(), equalTo(29));
 		assertThat(byWeeks.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
 		Map<String, List<PathAndCt>> byWeeks1 = pbf.byWeeks(lists, 1);
@@ -159,19 +161,19 @@ public class TestPruneBackups {
 		});
 		
 		byWeeks1.values().stream().skip(byWeeks1.size() - 1).forEach(v -> {
-			assertThat(v.size(), equalTo(256));
+			assertThat(v.size(), equalTo(81));
 		});
-		assertThat(byWeeks1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(256L + 17));
+		assertThat(byWeeks1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(81L + 28));
 	}
 	
 	@Test
-	public void tReal() {
+	public void tReal1() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		List<PathAndCt> lists = fixturesInMinutes();
+		List<PathAndCt> lists = fixturesInMinutes(3);
 		
 		// keep latest 2 secondly, 2 minutely, 2 hourly, 2 daily, 2 weekly, 2 monthly.
 		Map<String, List<PathAndCt>> m = pbf.prune(lists, 2, 2, 2, 2, 2, 2, 0);
-		assertThat(m.size(), equalTo(1));
+		assertThat(m.size(), equalTo(3));
 		Map<String, List<PathAndCt>> msec = m.values()
 				.stream()
 				.flatMap(pp -> pp.stream())
@@ -180,24 +182,56 @@ public class TestPruneBackups {
 						pc -> pc.getCt(),
 						TreeMap::new,
 						toList()));
-		assertThat(msec.size(), equalTo(16));
-		assertThat(msec.values().stream().mapToInt(l -> l.size()).sum(), equalTo(34L)); // the last group has 4 items.
-//		201806282258 2 in another month.
-//		201807292258 2 in another month.
-//		201808292258 2 in another month.
-//		201809282258 2 in another week.
-//		201810052258 2 in another week.
-//		201810122258 2 in another week.
-//		201810162258 2 in day 16th.
-//		201810172258 2 in day 17th.
-//		201810182258 2 in day 18th.
-//		201810191958 2 in hour 19th.
-//		201810192058 2 in hour 20th.
-//		201810192158 2 in hour 21th.
-//		201810192255 2 in minute 55th.
-//		201810192256 2 in minute 56th.
-//		201810192257 2 in minute 57th.
-//		201810192258 4 in minute 58th.
+//		msec.keySet().stream().forEach(System.out::println);
+		assertThat(msec.size(), equalTo(13));
+		assertThat(msec.values().stream().mapToInt(l -> l.size()).sum(), equalTo(27)); // the last group has 4 items.
+		
+//		201611272359 2 in another year.
+//		201711272359 2 in another year.
+//		201809272359 2 in another month.
+//		201810272359 2 in another month.
+//		201811132359 2 in another week.
+//		201811202359 2 in another week.
+//		201811252359 2 in day 25th.
+//		201811262359 2 in day 26th.
+//		201811272159 2 in hour 21th.
+//		201811272259 2 in hour 22th.
+//		201811272357 2 in minute 57th.
+//		201811272358 2 in minute 58th.
+//		201811272359 3 in minute 59th.
+	}
+	
+	@Test
+	public void tReal2() {
+		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
+		List<PathAndCt> lists = fixturesInMinutes(3);
+		
+		// 2 hourly, 2 daily, 2 weekly, 2 monthly.
+		Map<String, List<PathAndCt>> m = pbf.prune(lists, 0, 0, 2, 2, 2, 2, 2);
+		assertThat(m.size(), equalTo(3));
+		Map<String, List<PathAndCt>> msec = m.values()
+				.stream()
+				.flatMap(pp -> pp.stream())
+				.map(pc -> pc.refreshCt(PruneBackupedFiles.TILL_HOUR))
+				.collect(groupingBy(
+						pc -> pc.getCt(),
+						TreeMap::new,
+						toList()));
+		msec.keySet().stream().forEach(System.out::println);
+		assertThat(msec.size(), equalTo(11));
+		assertThat(msec.values().stream().mapToInt(l -> l.size()).sum(), equalTo(43)); // the last group has 4 items.
+		
+//		2016112723
+//		2017112723
+//		2018092723
+//		2018102723
+//		2018111323
+//		2018112023
+//		2018112523
+//		2018112623
+//		2018112721
+//		2018112722
+//		2018112723 
 	}
 
 	
