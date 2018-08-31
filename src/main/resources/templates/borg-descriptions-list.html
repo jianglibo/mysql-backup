@@ -12,6 +12,12 @@
 				<h1 th:text="#{${entityName}} + '列表'"></h1>
 			</div>
 			<div class="content">
+				<aside class="warn" th:if="${warnMessage}">
+					<p th:text="${warnMessage}">警告信息。</p>
+				</aside>
+				<aside class="success" th:if="${successMessage}">
+					<p th:text="${successMessage}">成功信息。</p>
+				</aside>
 				<aside class="success" th:if="${deleteResult}">
 					<p th:text="${deleteResult}">修改成功。</p>
 				</aside>
@@ -75,6 +81,15 @@
 		window.freact.renderActionMenuBar(mapping,
 			".item-list",
 			["edit", "delete", {
+				actionId: 'init-repo',
+				name: '初始化仓库',
+				activeOn: 'SINGLE',
+				onClick: function() {
+					var id = this.state.selectedItems[0].id;
+					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/initrepo', { 'borgdescription': id });
+					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+				}
+			}, {
 				actionId: 'create-archive',
 				name: '创建新卷',
 				activeOn: 'SINGLE',

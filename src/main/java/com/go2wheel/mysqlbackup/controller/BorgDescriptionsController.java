@@ -19,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
@@ -27,7 +29,13 @@ import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
+import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
+import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 
 @Controller
@@ -39,6 +47,9 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	
 	@Autowired
 	private ReusableCronDbService reuseableCronDbService;
+	
+	@Autowired
+	private SshSessionFactory sshSessionFactory;
 	
 	@Autowired
 	private ServerDbService serverDbService;
@@ -66,7 +77,6 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		entityFromDb.setIncludes(entityFromForm.getIncludes());
 		entityFromDb.setExcludes(entityFromForm.getExcludes());
 		entityFromDb.setLocalBackupCron(entityFromForm.getLocalBackupCron());
-		entityFromDb.setLocalBackupPruneCron(entityFromForm.getLocalBackupPruneCron());
 		entityFromDb.setPruneStrategy(entityFromForm.getPruneStrategy());
 		return true;
 	}
@@ -108,7 +118,37 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		
 		globalStore.saveFuture(sid, sf);
 		
-		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
+		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会通知您。");
+		return redirectMappingUrl();
+	}
+	
+	@PostMapping("/{borgdescription}/initrepo")
+	public String initRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException {
+		Server server = serverDbService.findById(borgDescription.getServerId());
+		server = serverDbService.loadFull(server);
+
+		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
+		Session session = frSession.getResult();
+		try {
+			FacadeResult<RemoteCommandResult> fr = borgService.initRepo(session, server.getBorgDescription().getRepo());
+			if (!fr.isExpected()) {
+				if (CommonMessageKeys.OBJECT_ALREADY_EXISTS.equals(fr.getMessage())) {
+					ras.addFlashAttribute("warnMessage", "仓库之前已经初始化了。");
+					return redirectMappingUrl();
+				} else {
+					RemoteCommandResult rcr = fr.getResult();
+					if (rcr != null) {
+						throw new UnExpectedContentException("10000", "borg.archive.unexpected", rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+					}
+				}
+				
+			}
+		} finally {
+			if (session != null && session.isConnected()) {
+				session.disconnect();
+			}
+		}
+		ras.addFlashAttribute("successMessage", "仓库初始化完毕。");
 		return redirectMappingUrl();
 	}
 

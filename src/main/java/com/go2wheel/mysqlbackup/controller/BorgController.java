@@ -19,6 +19,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
@@ -91,12 +92,15 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PutMapping("/archives/{server}")
-	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException {
+	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException, UnExpectedContentException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
 		try {
 			FacadeResult<BorgPruneResult> fr = borgService.pruneRepo(session, server);
+			if (!fr.isExpected()) {
+				throw new UnExpectedContentException("10000", "borg.archive.unexpected", fr.getMessage());
+			}
 		} finally {
 			if (session != null && session.isConnected()) {
 				session.disconnect();
@@ -108,12 +112,15 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException {
+	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedContentException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
 		try {
 			FacadeResult<RemoteCommandResult> fr = borgService.archive(frSession.getResult(), server, true);
+			if (!fr.isExpected()) {
+				throw new UnExpectedContentException("10000", "borg.archive.unexpected", fr.getResult().getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+			}
 		} finally {
 			if (session != null && session.isConnected()) {
 				session.disconnect();

@@ -31,8 +31,8 @@ public class BorgDescription extends BaseModel {
 	@CronExpressionConstraint(allowEmpty=true)
 	private String localBackupCron;
 	
-	@CronExpressionConstraint(allowEmpty=true)
-	private String localBackupPruneCron;
+//	@CronExpressionConstraint(allowEmpty=true)
+//	private String localBackupPruneCron;
 	
 	@BackupPruneStrategyConstraint(allowEmpty=true)
 	private String pruneStrategy = BORG_LOCAL_BACKUP_PRUNE_STRATEGY;
@@ -125,13 +125,13 @@ public class BorgDescription extends BaseModel {
 		this.localBackupCron = localBackupCron;
 	}
 
-	public String getLocalBackupPruneCron() {
-		return localBackupPruneCron;
-	}
-
-	public void setLocalBackupPruneCron(String localBackupPruneCron) {
-		this.localBackupPruneCron = localBackupPruneCron;
-	}
+//	public String getLocalBackupPruneCron() {
+//		return localBackupPruneCron;
+//	}
+//
+//	public void setLocalBackupPruneCron(String localBackupPruneCron) {
+//		this.localBackupPruneCron = localBackupPruneCron;
+//	}
 
 	public String getPruneStrategy() {
 		return pruneStrategy;
