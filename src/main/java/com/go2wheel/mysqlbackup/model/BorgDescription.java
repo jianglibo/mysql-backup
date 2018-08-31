@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -14,6 +15,7 @@ public class BorgDescription extends BaseModel {
 	public static final String BORG_ARCHIVE_PREFIX_DEFAULT = "ARCHIVE-";
 	public static final String BORG_REPO_DEFAULT = "/opt/borgrepos/repo";
 	public static final String BORG_ARCHIVE_FORMAT_DEFAULT = "yyyy-MM-dd-HH-mm-ss";
+	public static final String BORG_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
 	
 	private String repo = BORG_REPO_DEFAULT;
 	private List<String> includes = new ArrayList<>();
@@ -31,11 +33,18 @@ public class BorgDescription extends BaseModel {
 	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String localBackupPruneCron;
+	
+	@BackupPruneStrategyConstraint(allowEmpty=true)
+	private String pruneStrategy = BORG_LOCAL_BACKUP_PRUNE_STRATEGY;
 
 	
 	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 	
 	private Integer serverId;
+	
+	public BorgDescription() {
+		super();
+	}
 	
 	@Override
 	public String toString() {
@@ -124,6 +133,14 @@ public class BorgDescription extends BaseModel {
 		this.localBackupPruneCron = localBackupPruneCron;
 	}
 
+	public String getPruneStrategy() {
+		return pruneStrategy;
+	}
+
+	public void setPruneStrategy(String pruneStrategy) {
+		this.pruneStrategy = pruneStrategy;
+	}
+
 	public static class BorgDescriptionBuilder {
 		private final Integer serverId;
 		private String repo = BORG_REPO_DEFAULT;
@@ -134,10 +151,11 @@ public class BorgDescription extends BaseModel {
 		private String pruneCron;
 		private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 		
+		private String pruneStrategy = BORG_LOCAL_BACKUP_PRUNE_STRATEGY;
+		
 		public BorgDescriptionBuilder(int serverId) {
 			this.serverId = serverId;
 		}
-		
 		
 		public BorgDescriptionBuilder addInclude(String include) {
 			this.includes.add(include);
@@ -159,7 +177,10 @@ public class BorgDescription extends BaseModel {
 			this.pruneCron = pruneCron;
 			return this;
 		}
-		
+		public BorgDescriptionBuilder withPruneStragegy(String pruneStrategy) {
+			this.setPruneStrategy(pruneStrategy);
+			return this;
+		}	
 		
 		public BorgDescription build() {
 			BorgDescription bd = new BorgDescription();
@@ -172,7 +193,16 @@ public class BorgDescription extends BaseModel {
 			bd.setPruneCron(pruneCron);
 			bd.setRepo(repo);
 			bd.setServerId(serverId);
+			bd.setPruneStrategy(pruneStrategy);
 			return bd;
+		}
+
+		public String getPruneStrategy() {
+			return pruneStrategy;
+		}
+
+		public void setPruneStrategy(String pruneStrategy) {
+			this.pruneStrategy = pruneStrategy;
 		}
 
 	}

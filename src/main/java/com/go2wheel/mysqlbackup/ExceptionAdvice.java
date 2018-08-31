@@ -16,7 +16,6 @@ import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.ui.MainMenuGroups;
 import com.go2wheel.mysqlbackup.ui.MainMenuItem;
-import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.jcraft.jsch.JSchException;
 

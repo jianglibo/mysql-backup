@@ -80,6 +80,11 @@
 					<span class="pure-form-message-inline"></span>
 				</div>
 				<div class="pure-control-group">
+					<label for="pruneStrategy">本地卷修剪策略</label>
+					<input th:field="*{pruneStrategy}" type="text" placeholder="">
+					<span class="pure-form-message-inline">7 digital columns separated by space. </span>
+				</div>
+				<div class="pure-control-group">
 					<label for="includes">备份目录</label>
 					<textarea th:field="*{includes}" placeholder=""></textarea>
 					<span class="pure-form-message-inline"></span>

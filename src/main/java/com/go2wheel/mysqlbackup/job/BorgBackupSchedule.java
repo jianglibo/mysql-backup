@@ -48,6 +48,7 @@ public class BorgBackupSchedule extends SchedulerBase {
 				jobKey(server.getHost(), BORG_PRUNE_GROUP),
 				triggerKey(server.getHost(), BORG_PRUNE_GROUP));
 		
+
 		createTrigger(server,
 				bd.getLocalBackupCron(),
 				BorgLocalRepoBackupJob.class,
@@ -58,7 +59,7 @@ public class BorgBackupSchedule extends SchedulerBase {
 				bd.getLocalBackupPruneCron(),
 				BorgLocalRepoBackupPruneJob.class,
 				jobKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE),
-				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE));
+				triggerKey(server.getHost(), BORG_BACKUP_LOCAL_REPO_PRUNE));			
 
 	}
 	

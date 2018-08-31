@@ -67,6 +67,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		entityFromDb.setExcludes(entityFromForm.getExcludes());
 		entityFromDb.setLocalBackupCron(entityFromForm.getLocalBackupCron());
 		entityFromDb.setLocalBackupPruneCron(entityFromForm.getLocalBackupPruneCron());
+		entityFromDb.setPruneStrategy(entityFromForm.getPruneStrategy());
 		return true;
 	}
 	

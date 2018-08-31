@@ -11,21 +11,24 @@ import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
+import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
+import com.go2wheel.mysqlbackup.value.PruneBackupedFiles;
 
 @Component
 public class BorgLocalRepoBackupPruneJob implements Job {
 
 	@Autowired
-	private BorgService borgService;
-
-	@Autowired
 	private ServerDbService serverDbService;
+	
+	@Autowired
+	private SettingsInDb settingsInDb;
 
 	@Override
 	@TrapException(BorgLocalRepoBackupPruneJob.class)
@@ -55,7 +58,10 @@ public class BorgLocalRepoBackupPruneJob implements Job {
 	}
 
 	private void doWrk(Server sv) throws IOException {
-//		borgService.backupLocalRepos(sv);
+		BorgDescription bd = sv.getBorgDescription();
+		String pruneStrategy = bd.getPruneStrategy();
+		if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
+			new PruneBackupedFiles(settingsInDb.getBorgRepoDir(sv)).prune(pruneStrategy);
+		}
 	}
-
 }

@@ -1,5 +1,8 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 
 import org.slf4j.Logger;
@@ -21,6 +24,8 @@ import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 public class HelpController extends ControllerBase {
 
 	public static final String MAPPING_PATH = "/app/help";
+	
+	private Pattern editptn = Pattern.compile("^(.*)/\\d+/edit$");
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -33,6 +38,10 @@ public class HelpController extends ControllerBase {
 
 	@GetMapping("")
 	public String getHelp(@RequestParam String path, Model model, HttpServletRequest request) throws Exception {
+		Matcher m = editptn.matcher(path);
+		if (m.matches()) {
+			path = m.group(1) + "/create";
+		}
 		String tpl = "help" + path;
 		
 		String tpllc = tpl + "_" + LocaleContextHolder.getLocale().getLanguage();
