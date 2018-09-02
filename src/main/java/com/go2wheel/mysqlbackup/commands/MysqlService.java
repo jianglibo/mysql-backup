@@ -387,7 +387,7 @@ public class MysqlService {
 		}
 	}
 
-	public FacadeResult<String> getMyCnfFile(Session session, Server server) throws UnExpectedContentException {
+	public FacadeResult<String> getMyCnfFile(Session session, Server server) throws UnExpectedContentException, JSchException, IOException {
 		try {
 			return FacadeResult.doneExpectedResult(mysqlUtil.getEffectiveMyCnf(session, server), CommonActionResult.DONE);
 		} catch (RunRemoteCommandException e) {
@@ -515,7 +515,7 @@ public class MysqlService {
 			
 	}
 	
-	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, Path dumpFolder) throws IOException {
+	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, Path dumpFolder) throws IOException, JSchException {
 		List<StorageState> ss = sss.getStorageState(targetServer, targetSession, false);
 		Collections.sort(ss, StorageState.AVAILABLE_DESC);
 		
@@ -526,7 +526,7 @@ public class MysqlService {
 		return remoteDumpFolder;
 	}
 	
-	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, String dumpFolder) throws IOException {
+	public String uploadDumpFolder(Server sourceServer, Server targetServer,Session targetSession, String dumpFolder) throws IOException, JSchException {
 		Path dumpFolderToUpload = settingsInDb.getDumpsDir(sourceServer).resolve(dumpFolder);
 		return uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolderToUpload);
 	}

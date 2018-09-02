@@ -31,10 +31,10 @@ public class TestJschShellChannel extends SpringBaseFort {
 //	      InputStream inputext = channel.getExtInputStream();
 	      //commands
 	      ps.println("cd /etc");
-	      RemoteCommandResult string = SSHcommonUtil.readChannelOutputDoBest(channel, input, ".*#\\s*$");
+	      RemoteCommandResult string = SSHcommonUtil.readChannelOutputDoBest(channel, null, input, ".*#\\s*$");
 	      System.out.println(string.getStdOut());
 	      ps.println("ls");
-	      string = SSHcommonUtil.readChannelOutputDoBest(channel, input, ".*#\\s*$");
+	      string = SSHcommonUtil.readChannelOutputDoBest(channel,null, input, ".*#\\s*$");
 	      System.out.println(string.getStdOut());
 	      ps.close();
 

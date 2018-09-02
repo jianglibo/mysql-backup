@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,7 +17,7 @@ import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 @Service
 public class ProcessExecUtil {
 
-	public ProcessExecResult runDos(String... cmds) {
+	public ProcessExecResult runDosCommand(String... cmds) {
 
 		if (cmds.length < 1) {
 			return new ProcessExecResult(-2);
@@ -50,7 +51,8 @@ public class ProcessExecUtil {
 			Process process = pb.start();
 			List<String> stdOutLines = new ArrayList<>();
 			String line;
-			BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream()));
+			InputStreamReader isr = new InputStreamReader(process.getInputStream(), Charset.forName("GBK"));
+			BufferedReader stdout = new BufferedReader(isr);
 			while ((line = stdout.readLine()) != null) {
 				stdOutLines.add(line);
 			}

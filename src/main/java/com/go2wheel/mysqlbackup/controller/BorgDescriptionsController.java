@@ -123,7 +123,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	}
 	
 	@PostMapping("/{borgdescription}/initrepo")
-	public String initRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException {
+	public String initRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		server = serverDbService.loadFull(server);
 

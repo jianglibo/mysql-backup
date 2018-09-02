@@ -55,16 +55,16 @@ public class MysqlUtil {
 		return mfh;
 	}
 
-	public void restartMysql(Session session) throws RunRemoteCommandException {
+	public void restartMysql(Session session) throws RunRemoteCommandException, JSchException, IOException {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl restart mysqld");
 	}
 
-	public void stopMysql(Session session) throws RunRemoteCommandException {
+	public void stopMysql(Session session) throws RunRemoteCommandException, JSchException, IOException {
 		SSHcommonUtil.runRemoteCommand(session, "systemctl stop mysqld");
 	}
 
 	public String getEffectiveMyCnf(Session session, Server server)
-			throws RunRemoteCommandException, UnExpectedContentException {
+			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
 		String matcherline = ".*Default options are read from the following.*";
 		String cb = server.getMysqlInstance().getClientBin();
 		String cmd = String.format("%smysql --help --verbose", cb == null ? "" : cb);

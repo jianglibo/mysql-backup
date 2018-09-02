@@ -9,9 +9,11 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-public class RemoteTfolder extends ExternalResource {
+public class RemoteTfolderWin extends ExternalResource {
 	
 	private String remoteFolder;
+	
+	private boolean closeSession;
 	
 
 	public String getRemoteFolder() {
@@ -20,8 +22,9 @@ public class RemoteTfolder extends ExternalResource {
 
 	private Session session;
 	
-	public RemoteTfolder(String remoteFolder) {
+	public RemoteTfolderWin(String remoteFolder, boolean closeSession) {
 		this.remoteFolder = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
+		this.closeSession = closeSession;
 	}
 	
 	public void setSession(Session session) {
@@ -31,14 +34,29 @@ public class RemoteTfolder extends ExternalResource {
 	public void setRemoteFolder(String remoteFolder) {
 		this.remoteFolder = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
 	}
+	
+	private boolean goon() {
+		return this.session != null&& this.remoteFolder != null && this.remoteFolder.matches("^\\w:.*/.*");
+	}
+	
+	public void createRemoteFolder() throws RunRemoteCommandException, JSchException, IOException {
+		if (goon()) {
+			SSHcommonUtil.mkdirsp("win", session, remoteFolder);
+		}
+	}
+	
 	@Override
 	protected void after() {
-		if (this.session != null&& this.remoteFolder != null && this.remoteFolder.matches("/.*/.*")) {
+		if (goon()) {
 			try {
-				SSHcommonUtil.runRemoteCommand(session, String.format("rm -rf %s", this.remoteFolder));
+				SSHcommonUtil.deleteRemoteFolder("win", session, this.remoteFolder);
 			} catch (RunRemoteCommandException | JSchException | IOException e) {
+				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}
+		if (session != null && closeSession) {
+			session.disconnect();
 		}
 	}
 	

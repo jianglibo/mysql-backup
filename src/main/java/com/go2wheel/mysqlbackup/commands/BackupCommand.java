@@ -267,7 +267,7 @@ public class BackupCommand {
 			@ShowDefaultValue() @ShellOption(help = "端口", defaultValue = "22") int port,
 			@ShowDefaultValue() @ShellOption(help = "sshKey文件路径", defaultValue = ShellCommonParameterValue.NOT_EXIST_FILE) File sshKeyFile,
 			@ShowDefaultValue() @ShellOption(help = "knowHosts文件路径", defaultValue = ShellCommonParameterValue.NOT_EXIST_FILE) File knownHostsFile,
-			@ShowDefaultValue() @ShellOption(help = "密码", defaultValue = Server.NO_PASSWORD) String password) {
+			@ShowDefaultValue() @ShellOption(help = "密码", defaultValue = Server.NO_PASSWORD) String password) throws JSchException, IOException {
 		File sshk = ShellCommonParameterValue.NOT_EXIST_FILE.equals(sshKeyFile.getName()) ? null : sshKeyFile;
 		File knonwh = ShellCommonParameterValue.NOT_EXIST_FILE.equals(knownHostsFile.getName()) ? null : knownHostsFile;
 		String ppaw = Server.NO_PASSWORD.equals(password) ? null : password;
@@ -552,7 +552,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "安装borg。")
-	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) throws UnExpectedInputException {
+	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) throws UnExpectedInputException, JSchException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		return borgInstaller.install(getSession(), server, software, null);
@@ -676,7 +676,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "初始化borg的repo。")
-	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException, UnExpectedInputException {
+	public FacadeResult<?> borgRepoInit() throws RunRemoteCommandException, UnExpectedInputException, JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -688,7 +688,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "创建一次borg备份")
 	public FacadeResult<?> borgArchiveCreate(@ShellOption(help = "try to solve comman problems.") boolean solveProblems)
-			throws RunRemoteCommandException, UnExpectedInputException {
+			throws RunRemoteCommandException, UnExpectedInputException, JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -712,7 +712,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg创建的卷")
-	public FacadeResult<List<String>> borgArchiveList() throws UnExpectedInputException {
+	public FacadeResult<List<String>> borgArchiveList() throws UnExpectedInputException, JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		try {
@@ -723,7 +723,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "修剪borg创建的卷")
-	public String borgArchivePrune() throws RunRemoteCommandException, UnExpectedInputException {
+	public String borgArchivePrune() throws RunRemoteCommandException, UnExpectedInputException, JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		BorgPruneResult bpr = borgService.pruneRepo(getSession(), server).getResult();
@@ -732,7 +732,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "列出borg仓库的文件，这些文件的意义由borg来解释。")
-	public List<String> borgRepoListFiles() throws RunRemoteCommandException, UnExpectedInputException {
+	public List<String> borgRepoListFiles() throws RunRemoteCommandException, UnExpectedInputException, JSchException, IOException {
 		sureBorgConfigurated();
 		Server server = appState.getCurrentServer();
 		return borgService.listRepoFiles(getSession(), server).getResult().getAllTrimedNotEmptyLines();
@@ -1206,7 +1206,7 @@ public class BackupCommand {
 	public FacadeResult<?> testRunRemote(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
 			@ShellOption(help = "command to run.") String command
-			) throws RunRemoteCommandException, UnExpectedInputException {
+			) throws RunRemoteCommandException, UnExpectedInputException, JSchException, IOException {
 		ServerAndSession sas = null;
 		try {
 			sas = getServerAndSession(server);

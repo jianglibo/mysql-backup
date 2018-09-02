@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public class BorgController extends ControllerBase {
 	
 	@GetMapping("/info/{server}/{archive}")
 	@ResponseBody
-	public String infoArchive(@PathVariable(name="server") Server server, @PathVariable String archive, Model model, HttpServletRequest httpRequest) throws JSchException {
+	public String infoArchive(@PathVariable(name="server") Server server, @PathVariable String archive, Model model, HttpServletRequest httpRequest) throws JSchException, IOException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
@@ -70,7 +71,7 @@ public class BorgController extends ControllerBase {
 	
 	
 	@GetMapping("/archives/{server}")
-	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) throws JSchException, CommandNotFoundException {
+	public String listArchive(@PathVariable(name="server") Server server, Model model, HttpServletRequest httpRequest) throws JSchException, CommandNotFoundException, IOException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		if (!frSession.isExpected()) {
@@ -92,7 +93,7 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PutMapping("/archives/{server}")
-	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException, UnExpectedContentException {
+	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException, UnExpectedContentException, IOException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
@@ -112,7 +113,7 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedContentException {
+	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();

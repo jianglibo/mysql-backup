@@ -78,9 +78,11 @@ public class TestBorgService extends SpringBaseFort {
 	 * 
 	 * @throws RunRemoteCommandException
 	 * @throws CommandNotFoundException 
+	 * @throws IOException 
+	 * @throws JSchException 
 	 */
 	@Test
-	public void tRepoInit() throws RunRemoteCommandException, CommandNotFoundException {
+	public void tRepoInit() throws RunRemoteCommandException, CommandNotFoundException, JSchException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		SSHcommonUtil.runRemoteCommand(session, "rm -rvf /abc");
 		borgInstaller.install(session, server, software, null);
@@ -134,7 +136,7 @@ public class TestBorgService extends SpringBaseFort {
 
 
 	@Test(expected = UnExpectedContentException.class)
-	public void testArchive() throws CommandNotFoundException {
+	public void testArchive() throws CommandNotFoundException, JSchException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		FacadeResult<?> fr = borgInstaller.unInstall(session, server, software);
 		fr = borgService.archive(session, server);
@@ -150,7 +152,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException, NoSuchAlgorithmException {
+	public void tArchive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException, NoSuchAlgorithmException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		borgInstaller.install(session, server, software, null);
 		SSHcommonUtil.runRemoteCommand(session, String.format("rm -rvf %s", server.getBorgDescription().getRepo()));
@@ -181,7 +183,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 	@Test
-	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
+	public void tArchiveNoPath() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		borgInstaller.install(session, server, software, null);
 		BorgDescription bd = server.getBorgDescription();
@@ -195,7 +197,7 @@ public class TestBorgService extends SpringBaseFort {
 		assertThat(fr.getMessage(), equalTo("borg.archive.noincludes"));
 	}
 
-	private void archive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException {
+	private void archive() throws RunRemoteCommandException, InterruptedException, CommandNotFoundException, JSchException, IOException {
 		borgService.archive(session, server);
 		Thread.sleep(1000);
 	}

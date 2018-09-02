@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -47,7 +49,7 @@ public class BorgPruneJob implements Job {
 			}
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			borgTaskFacade.pruneRepo(session, server);
-		} catch (JSchException e) {
+		} catch (JSchException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -91,7 +92,7 @@ public class BorgArchiveJob implements Job {
 			bd.setTimeCost(ts);
 			borgDownloadDbService.save(bd);
 
-		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedContentException e) {
+		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedContentException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

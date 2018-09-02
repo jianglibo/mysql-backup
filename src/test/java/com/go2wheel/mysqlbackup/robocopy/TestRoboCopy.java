@@ -36,7 +36,7 @@ public class TestRoboCopy extends SpringBaseFort {
 	@Test
 	public void t() throws IOException, InterruptedException {
 		assumeTrue(Files.exists(src));
-		ProcessExecResult per = peu.runDos("dir", src.toAbsolutePath().toString());
+		ProcessExecResult per = peu.runDosCommand("dir", src.toAbsolutePath().toString());
 		assertThat(per.getExitValue(), equalTo(0));
 		assertTrue(per.getStdError().size() == 0);
 		assertTrue(per.getStdOut().size() > 0);

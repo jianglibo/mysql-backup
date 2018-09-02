@@ -39,7 +39,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		syncToDb();
 	}
 
-	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) {
+	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) throws JSchException, IOException {
 		try {
 			BorgInstallInfo ii = getBorgInstallInfo(session);
 			String rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
@@ -58,7 +58,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	public FacadeResult<InstallInfo> install(Session session, Server server, Software software,
-			Map<String, String> parasMap) {
+			Map<String, String> parasMap) throws JSchException {
 		BorgInstallInfo ii;
 		try {
 			String rbb = null;
@@ -123,7 +123,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		return software.getName().equals("BORG");
 	}
 
-	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException {
+	private BorgInstallInfo getBorgInstallInfo(Session session) throws RunRemoteCommandException, JSchException, IOException {
 		BorgInstallInfo ii = new BorgInstallInfo();
 		RemoteCommandResult rcr;
 		rcr = SSHcommonUtil.runRemoteCommand(session, "which borg;borg -V");
@@ -153,7 +153,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<InstallInfo> uninstall(Server server, Software software) throws JSchException {
+	public FacadeResult<InstallInfo> uninstall(Server server, Software software) throws JSchException, IOException {
 		return unInstall(getSession(server), server, software);
 	}
 
@@ -162,7 +162,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, uninstall(server, software)).withDescription(msgkey);
-			} catch (JSchException e) {
+			} catch (JSchException | IOException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgkey);
 			}
 		});

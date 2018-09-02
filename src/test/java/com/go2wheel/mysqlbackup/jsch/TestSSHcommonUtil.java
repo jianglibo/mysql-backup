@@ -78,7 +78,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	}
 	
 	@Test
-	public void testUploadFolder() throws IOException {
+	public void testUploadFolder() throws IOException, RunRemoteCommandException, JSchException {
 		rtfoler.setSession(session);
 		
 		File fo = tfolder.newFolder("fo");
@@ -133,7 +133,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	}
 	
 	@Test
-	public void testFileExists() throws RunRemoteCommandException {
+	public void testFileExists() throws RunRemoteCommandException, JSchException, IOException {
 		boolean b1 = SSHcommonUtil.fileExists(session, "/usr/bin");
 		assertTrue(b1);
 		boolean b2 = SSHcommonUtil.fileExists(session, "/usr/bin11");
@@ -141,13 +141,13 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	}
 	
 	@Test
-	public void isExecutable() throws RunRemoteCommandException {
+	public void isExecutable() throws RunRemoteCommandException, JSchException, IOException {
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "kkzx");
 		assertThat(rcr.getExitValue(), greaterThan(0));
 	}
 	
 	@Test
-	public void testCoreNumber() {
+	public void testCoreNumber() throws JSchException, IOException {
 		int cores = SSHcommonUtil.coreNumber(session);
 		assertThat(cores, greaterThan(0));
 	}

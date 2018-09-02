@@ -147,7 +147,7 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) throws CommandNotFoundException {
+	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) throws CommandNotFoundException, JSchException, IOException {
 		try {
 			if (!StringUtil.hasAnyNonBlankWord(repoPath)) {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
@@ -208,7 +208,7 @@ public class BorgService {
 	}
 
 	//@formatter:off
-	public FacadeResult<BorgPruneResult> pruneRepo(Session session, Server server) {
+	public FacadeResult<BorgPruneResult> pruneRepo(Session session, Server server) throws JSchException, IOException {
 		try {
 			String cmd = String.format("borg prune --list --verbose --prefix %s --show-rc --keep-daily %s --keep-weekly %s --keep-monthly %s %s",
 					server.getBorgDescription().getArchiveNamePrefix(), 7, 4, 6,
@@ -341,7 +341,7 @@ public class BorgService {
 				bd = playBackResultDbService.save(bd);
 				fr.setResult(bd);
 				return new AsyncTaskValue(id, fr);
-			} catch (IOException e) {
+			} catch (IOException | RunRemoteCommandException | JSchException e) {
 				throw new ExceptionWrapper(e);
 			} finally {
 				SshSessionFactory.closeSession(sessions[0]);
@@ -359,7 +359,7 @@ public class BorgService {
 		});
 	}
 	
-	public FacadeResult<PlayBackResult> playbackSync(PlayBack playback, String localRepo) throws IOException {
+	public FacadeResult<PlayBackResult> playbackSync(PlayBack playback, String localRepo) throws IOException, RunRemoteCommandException, JSchException {
 		Server serverSource = serverDbService.findById(playback.getSourceServerId());
 		Server serverTarget = serverDbService.findById(playback.getTargetServerId());
 		Session[] sessions = new Session[2];
@@ -374,7 +374,7 @@ public class BorgService {
 		return playback(sessions[0], sessions[1], serverSource, serverTarget, playback, localRepo);
 	}
 	
-	public FacadeResult<PlayBackResult> playback(Session sessionSource, Session sessiontarget, Server serverSource, Server serverTarget, PlayBack playback, String localRepo) throws IOException {
+	public FacadeResult<PlayBackResult> playback(Session sessionSource, Session sessiontarget, Server serverSource, Server serverTarget, PlayBack playback, String localRepo) throws IOException, RunRemoteCommandException, JSchException {
 		// from server get borgdescription, get repo properties. Create a directory on playback server. and upload local repo. Then invoke borg command on that server, listing extracting.
 		if (serverSource.getBorgDescription() == null) {
 			serverSource = serverDbService.loadFull(serverSource);
@@ -388,7 +388,7 @@ public class BorgService {
 	}
 
 	@Exclusive(TaskLocks.TASK_BORG)
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) throws CommandNotFoundException {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) throws CommandNotFoundException, JSchException, IOException {
 		try {
 			BorgDescription borgDescription = server.getBorgDescription();
 			List<String> cmdparts = new ArrayList<>();
@@ -431,12 +431,12 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException {
+	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
 		return listArchives(session, server.getBorgDescription().getRepo());
 	}
 	
 	
-	public FacadeResult<BorgListResult> listArchives(Session session, String repo) throws CommandNotFoundException {
+	public FacadeResult<BorgListResult> listArchives(Session session, String repo) throws CommandNotFoundException, JSchException, IOException {
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", repo));
 			rcr.isCommandNotFound();
@@ -448,7 +448,7 @@ public class BorgService {
 	}
 	
 //	borg info /path/to/repo::2017-06-29T11:00-srv
-	public FacadeResult<List<String>> archiveInfo(Session session, Server server, String archive) {
+	public FacadeResult<List<String>> archiveInfo(Session session, Server server, String archive) throws JSchException, IOException {
 		try {
 			BorgDescription bd = server.getBorgDescription();
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg info %s::%s", bd.getRepo(), archive));
@@ -459,7 +459,7 @@ public class BorgService {
 		}
 	}
 
-	public FacadeResult<RemoteCommandResult> listRepoFiles(Session session, Server server) {
+	public FacadeResult<RemoteCommandResult> listRepoFiles(Session session, Server server) throws JSchException, IOException {
 		try {
 			BorgDescription bd = server.getBorgDescription();
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lR %s", bd.getRepo()));
@@ -479,8 +479,10 @@ public class BorgService {
 	 * @param server
 	 * @return
 	 * @throws CommandNotFoundException 
+	 * @throws IOException 
+	 * @throws JSchException 
 	 */
-	public FacadeResult<?> archive(Session session, Server server) throws CommandNotFoundException {
+	public FacadeResult<?> archive(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), false);
 	}
@@ -491,12 +493,12 @@ public class BorgService {
 		return FacadeResult.doneExpectedResult();
 	}
 
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) throws CommandNotFoundException {
+	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) throws CommandNotFoundException, JSchException, IOException {
 		BorgDescription bd = server.getBorgDescription();
 		return archive(session, server, bd.getArchiveNamePrefix(), solveProblems);
 	}
 
-	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget,Server serverSource, Server serverTarget, /*String sourceRepo,*/ String archive, String extractFolder) {
+	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget,Server serverSource, Server serverTarget, /*String sourceRepo,*/ String archive, String extractFolder) throws RunRemoteCommandException, JSchException, IOException {
 		String sourceRepo = serverSource.getBorgDescription().getRepo();
 		if (!sourceRepo.endsWith("/")) {
 			sourceRepo = sourceRepo + "/";

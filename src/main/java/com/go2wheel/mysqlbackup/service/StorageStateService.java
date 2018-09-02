@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -22,6 +23,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Service
@@ -35,7 +37,7 @@ public class StorageStateService {
 	@Autowired
 	private StorageStateDbService storageStateDbService;
 
-	private List<DiskFreeAllString> getDiskUsage(Server server, Session session) {
+	private List<DiskFreeAllString> getDiskUsage(Server server, Session session) throws JSchException, IOException {
 		String command = "df -l";
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
@@ -47,7 +49,7 @@ public class StorageStateService {
 		return new ArrayList<>();
 	}
 	
-	public List<StorageState> getStorageState(Server server, Session session, boolean saveToDb) {
+	public List<StorageState> getStorageState(Server server, Session session, boolean saveToDb) throws JSchException, IOException {
 		List<StorageState> lss;
 		if ("localhost".equals(server.getHost())) {
 			lss = getWinLocalDiskFree(server, saveToDb);
@@ -58,11 +60,11 @@ public class StorageStateService {
 		
 	}
 	
-	public List<StorageState> getStorageState(Server server, Session session) {
+	public List<StorageState> getStorageState(Server server, Session session) throws JSchException, IOException {
 		return getStorageState(server, session, true);
 	}
 
-	private List<StorageState> getLinuxStorageState(Server server, Session session, boolean saveToDb) {
+	private List<StorageState> getLinuxStorageState(Server server, Session session, boolean saveToDb) throws JSchException, IOException {
 		List<DiskFreeAllString> dfss = getDiskUsage(server, session);
 		List<StorageState> dfs = dfss.stream().map(dd -> dd.toStorageState()).filter(it -> !myAppSettings.getStorageExcludes().contains(it.getRoot())).collect(Collectors.toList());
 		final Date d = new Date();

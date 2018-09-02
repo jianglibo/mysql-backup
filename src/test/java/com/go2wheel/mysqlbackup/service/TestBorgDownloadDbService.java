@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.service;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.junit.Before;
@@ -40,13 +41,13 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 	}
 
 	@Test(expected=UnExpectedContentException.class)
-	public void tNoBorgInstalled() throws JobExecutionException {
+	public void tNoBorgInstalled() throws JobExecutionException, JSchException, IOException {
 		borgInstaller.unInstall(session, server, software);
 		borgArchiveJob.execute(context);
 	}
 	
 	@Test
-	public void tBorgInstalled() throws JobExecutionException {
+	public void tBorgInstalled() throws JobExecutionException, JSchException {
 		software = softwareDbService.findByName("BORG").get(0);
 		
 		borgInstaller.install(session, server, software, null);

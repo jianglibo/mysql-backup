@@ -14,8 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
+import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
 
 public class TestServerStateService extends JobBaseFort {
 
@@ -23,7 +25,7 @@ public class TestServerStateService extends JobBaseFort {
 	private ServerStateService serverStateService;
 
 	@Test
-	public void t() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
+	public void tLinux() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
 		clearDb();
 		createServer();
 		deleteAllJobs();
@@ -40,7 +42,34 @@ public class TestServerStateService extends JobBaseFort {
 		assertThat(sssdb.size(), equalTo(1));
 		
 		
-		ss = serverStateService.createWinServerState(server, session, true);
+		ss = serverStateService.createWinServerStateLocal(server, session, true);
+		assertThat(ss.getAverageLoad(), greaterThan(1));
+		assertThat(ss.getMemFree(), greaterThan(10L));
+		assertThat(ss.getMemUsed(), greaterThan(10L));
+
+	}
+	
+	@Test
+	public void tWin() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
+		clearDb();
+		Server sv = createServer("localhost");
+		sv.setOs("win");
+		sv.setUsername(System.getProperty("user.name"));
+		deleteAllJobs();
+		Session sess = createSession(sv);
+		
+		ServerState ss = serverStateService.createServerState(sv, sess, true);
+		
+		assertThat(ss.getAverageLoad(), greaterThan(1));
+		assertThat(ss.getMemFree(), greaterThan(10L));
+		assertThat(ss.getMemUsed(), greaterThan(10L));
+		
+		List<ServerState> sssdb = serverStateDbService.findAll();
+		
+		assertThat(sssdb.size(), equalTo(1));
+		
+		
+		ss = serverStateService.createWinServerStateLocal(sv, sess, true);
 		assertThat(ss.getAverageLoad(), greaterThan(1));
 		assertThat(ss.getMemFree(), greaterThan(10L));
 		assertThat(ss.getMemUsed(), greaterThan(10L));

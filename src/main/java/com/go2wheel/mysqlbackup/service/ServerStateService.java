@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -20,8 +21,10 @@ import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Service
@@ -35,7 +38,7 @@ public class ServerStateService {
 	private ServerStateDbService serverStateDbService;
 	
 //	23:44:09 up  3:02,  1 user,  load average: 0.00, 0.01, 0.05
-	private String getUpTime(Session session) throws UnExpectedContentException {
+	private String getUpTime(Session session) throws UnExpectedContentException, JSchException, IOException {
 		String command = "uptime";
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
@@ -57,7 +60,7 @@ public class ServerStateService {
 		}
 	}
 	
-	public int getCoreNumber(Server server, Session session) {
+	public int getCoreNumber(Server server, Session session) throws JSchException, IOException {
 		if (session == null) {
 			String command = "Get-WmiObject win32_processor | Format-List -Property *";
 			ProcessExecResult pcr = PSUtil.runPsCommand(command);
@@ -67,20 +70,21 @@ public class ServerStateService {
 		return SSHcommonUtil.coreNumber(session);
 	}
 	
-	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException {
-		if ("localhost".equals(server.getHost())) {
-			return createWinServerState(server, session, saveToDb);
+	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException, RunRemoteCommandException, JSchException, IOException {
+		OsTypeWrapper otw = OsTypeWrapper.of(server.getOs());
+		if (otw.isWin()) {
+			return createWinServerStateSsh(server, session, saveToDb);
 		} else {
 			return createLinuxServerState(server, session, saveToDb);
 		}
 	}
 	
 	
-	public ServerState createServerState(Server server, Session session) throws UnExpectedContentException {
+	public ServerState createServerState(Server server, Session session) throws UnExpectedContentException, RunRemoteCommandException, JSchException, IOException {
 		return createServerState(server, session, true);
 	}
 	
-	public ServerState createLinuxServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException {
+	public ServerState createLinuxServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException, JSchException, IOException {
 		ServerState ss = new ServerState();
 		String loadstr = getUpTime(session);
 		int load = (int) (Float.parseFloat(loadstr) * 100);
@@ -103,7 +107,30 @@ public class ServerStateService {
 		}
 	}
 	
-	public ServerState createWinServerState(Server server, Session session, boolean saveToDb) {
+	public ServerState createWinServerStateSsh(Server server, Session session, boolean saveToDb) throws RunRemoteCommandException, JSchException, IOException {
+		ServerState ss = new ServerState();
+		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
+		
+		Map<String, String> mss = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
+		String lbt = mss.get("LastBootUpTime");
+		ss.setMemFree(StringUtil.parseLong(mss.get("FreePhysicalMemory")) * 1024);
+		ss.setMemUsed(StringUtil.parseLong(mss.get("TotalVisibleMemorySize"))  * 1024 - ss.getMemFree());
+		
+		command = "Get-WmiObject win32_processor | Format-List -Property *";
+		rcr = SSHcommonUtil.runRemoteCommand(session, command);
+		mss = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0); // LoadPercentage, NumberOfCores
+		
+		ss.setAverageLoad(StringUtil.parseInt(mss.get("LoadPercentage")));
+		ss.setServerId(server.getId());
+		if (saveToDb) {
+			return serverStateDbService.save(ss);
+		} else {
+			return ss;
+		}
+	}
+	
+	public ServerState createWinServerStateLocal(Server server, Session session, boolean saveToDb) {
 		ServerState ss = new ServerState();
 		String command = "Get-CimInstance -ClassName win32_operatingsystem | Format-List -Property *"; // FreePhysicalMemory, TotalVisibleMemorySize
 		ProcessExecResult pcr = PSUtil.runPsCommand(command);

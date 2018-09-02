@@ -32,7 +32,7 @@ public class ExceptionAdvice {
 		ExceptionUtil.logErrorException(logger, e);
 		model.addAttribute("exp", e);
 		if (e.getMessage() != null && e.getMessage().contains("UnknownHostKey")) {
-			model.addAttribute("extra", "如果是UnknownHostKey错误， 请尝试执行'ssh-keyscan -H -t rsa 目标服务器地址 >> .ssh/idsra'");
+			model.addAttribute("extra", "如果是UnknownHostKey错误， 请尝试执行'ssh-keyscan -H -t rsa 目标服务器地址 >> .ssh/known_hosts'");
 		}
 		return "error-jsch";
 	}

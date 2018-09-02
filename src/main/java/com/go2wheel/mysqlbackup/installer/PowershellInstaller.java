@@ -34,7 +34,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 		syncToDb();
 	}
 
-	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) {
+	public FacadeResult<InstallInfo> unInstall(Session session, Server server, Software software) throws JSchException, IOException {
 		try {
 			SSHcommonUtil.runRemoteCommand(session, "yum install -y powershell");
 			return FacadeResult.doneExpectedResult(getInstallInfo(session), CommonActionResult.DONE);
@@ -45,7 +45,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	public FacadeResult<InstallInfo> install(Session session, Server server, Software software,
-			Map<String, String> parasMap) {
+			Map<String, String> parasMap) throws JSchException, IOException {
 		PowershellInstallInfo ii;
 		try {
 			ii = getInstallInfo(session);
@@ -77,7 +77,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 
 	@Override
 	public FacadeResult<InstallInfo> install(Server server, Software software, Map<String, String> parasMap)
-			throws JSchException {
+			throws JSchException, IOException {
 		return install(getSession(server), server, software, parasMap);
 	}
 
@@ -87,7 +87,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, install(server, software, parasMap)).withDescription(msgkey);
-			} catch (JSchException e) {
+			} catch (JSchException | IOException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgkey);
 			}
 		});
@@ -98,7 +98,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 		return software.getName().equals("POWERSHELL");
 	}
 
-	private PowershellInstallInfo getInstallInfo(Session session) throws RunRemoteCommandException {
+	private PowershellInstallInfo getInstallInfo(Session session) throws RunRemoteCommandException, JSchException, IOException {
 		PowershellInstallInfo ii = new PowershellInstallInfo();
 		RemoteCommandResult rcr;
 		rcr = SSHcommonUtil.runRemoteCommand(session, "which pwsh;pwsh -v");
@@ -123,7 +123,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<InstallInfo> uninstall(Server server, Software software) throws JSchException {
+	public FacadeResult<InstallInfo> uninstall(Server server, Software software) throws JSchException, IOException {
 		return unInstall(getSession(server), server, software);
 	}
 
@@ -132,7 +132,7 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, uninstall(server, software)).withDescription(msgkey);
-			} catch (JSchException e) {
+			} catch (JSchException | IOException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgkey);
 			}
 		});

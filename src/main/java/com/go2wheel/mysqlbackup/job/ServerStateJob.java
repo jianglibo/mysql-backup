@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
+import java.io.IOException;
+
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -45,7 +47,7 @@ public class ServerStateJob implements Job {
 				}
 			}
 			serverStateService.createServerState(server, session);
-		} catch (JSchException | UnExpectedContentException e) {
+		} catch (JSchException | UnExpectedContentException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

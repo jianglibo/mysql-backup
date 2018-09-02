@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
@@ -103,7 +104,7 @@ public class SoftwareInstallController extends ControllerBase {
 
 	@PostMapping("/{server}")
 	public String install(@PathVariable(name = "server") Server server, @RequestParam Software software, Model model,
-			HttpServletRequest request, RedirectAttributes ras) throws UnsupportedEncodingException, RunRemoteCommandException, JSchException {
+			HttpServletRequest request, RedirectAttributes ras) throws RunRemoteCommandException, JSchException, IOException {
 		Map<String, String[]> parameterMap = request.getParameterMap();
 		Map<String, String> parameters = parameterMap.entrySet().stream().filter(es -> es.getValue().length > 0)
 				.collect(Collectors.toMap(es -> es.getKey(), es -> es.getValue()[0]));

@@ -203,6 +203,17 @@ public class SpringBaseFort {
 		}
 	}
 	
+	
+	protected void createSessionLocalHostWindows() throws JSchException {
+		if (server == null) {
+			createServerLocalhostWindows();
+		}
+		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
+		if (frs.isExpected()) {
+			session = frs.getResult();
+		}
+	}
+	
 	protected Session createSession(Server server) throws JSchException {
 		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
 		if (frs.isExpected()) {
@@ -225,6 +236,13 @@ public class SpringBaseFort {
 	
 	protected Server createServer() {
 		server = createServer(HOST_DEFAULT_GET);
+		return server;
+	}
+	
+	protected Server createServerLocalhostWindows() {
+		server = createServer("localhost");
+		server.setOs("win");
+		server.setUsername(System.getProperty("user.name"));
 		return server;
 	}
 	
@@ -285,7 +303,7 @@ public class SpringBaseFort {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, null, in);
 			assertThat(cmdOut.getStdOut().trim(), equalTo(content));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
@@ -322,7 +340,7 @@ public class SpringBaseFort {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel,null, in);
 			assertThat(cmdOut.getStdOut().trim(), equalTo(""));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 		} finally {
@@ -331,6 +349,10 @@ public class SpringBaseFort {
 	}
 
 	public Path createALocalFile(Path tmpFile, String content) throws IOException {
+		Path parent = tmpFile.toAbsolutePath().getParent();
+		if (!Files.exists(parent)) {
+			Files.createDirectories(parent);
+		}
 		Files.write(tmpFile, content.getBytes());
 		return tmpFile;
 	}

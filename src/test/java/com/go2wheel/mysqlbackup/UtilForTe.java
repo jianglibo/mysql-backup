@@ -151,7 +151,7 @@ public class UtilForTe {
 			InputStream in = channel.getInputStream();
 			channel.connect();
 
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, in);
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel,null, in);
 			assertThat(cmdOut.getStdOut().trim(), equalTo(str));
 			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
 			return cmdOut.getStdOut();
