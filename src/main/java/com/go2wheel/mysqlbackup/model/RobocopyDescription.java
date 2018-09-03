@@ -1,10 +1,8 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+
+import javax.validation.constraints.NotEmpty;
 
 import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
@@ -14,15 +12,11 @@ public class RobocopyDescription extends BaseModel {
 
 	public static final String ROBO_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
 	
+	@NotEmpty
 	private String repo;
-	private List<String> includes = new ArrayList<>();
-	private List<String> excludes = new ArrayList<>();
 	
 	@CronExpressionConstraint(allowEmpty=true)
-	private String archiveCron;
-	
-	@CronExpressionConstraint(allowEmpty=true)
-	private String pruneCron;
+	private String invokeCron;
 	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String localBackupCron;
@@ -45,39 +39,18 @@ public class RobocopyDescription extends BaseModel {
 		return repo;
 	}
 	
-	public String getArchiveCron() {
-		return archiveCron;
+
+
+	public String getInvokeCron() {
+		return invokeCron;
 	}
 
-	public void setArchiveCron(String archiveCron) {
-		this.archiveCron = archiveCron;
+	public void setInvokeCron(String invokeCron) {
+		this.invokeCron = invokeCron;
 	}
 
 	public void setRepo(String repo) {
 		this.repo = repo;
-	}
-	public List<String> getIncludes() {
-		return includes;
-	}
-	public void setIncludes(List<String> includes) {
-		this.includes = includes;
-	}
-
-	public List<String> getExcludes() {
-		return excludes;
-	}
-
-	public void setExcludes(List<String> excludes) {
-		this.excludes = excludes;
-	}
-
-
-	public String getPruneCron() {
-		return pruneCron;
-	}
-
-	public void setPruneCron(String pruneCron) {
-		this.pruneCron = pruneCron;
 	}
 
 	@Override
@@ -112,10 +85,8 @@ public class RobocopyDescription extends BaseModel {
 	public static class RobocopyDescriptionBuilder {
 		private final Integer serverId;
 		private String repo;
-		private Set<String> includes = new HashSet<>();
-		private Set<String> excludes = new HashSet<>();
-		private String archiveCron;
-		private String pruneCron;
+		private String invokeCron;
+		private String localBackupCron;
 		
 		private String pruneStrategy = ROBO_LOCAL_BACKUP_PRUNE_STRATEGY;
 		
@@ -123,24 +94,14 @@ public class RobocopyDescription extends BaseModel {
 			this.serverId = serverId;
 		}
 		
-		public RobocopyDescriptionBuilder addInclude(String include) {
-			this.includes.add(include);
-			return this;
-		}
-		
-		public RobocopyDescriptionBuilder addExclude(String exclude) {
-			this.excludes.add(exclude);
-			return this;
-		}
-		
-		public RobocopyDescriptionBuilder withArchiveCron(String archiveCron) {
-			this.archiveCron = archiveCron;
+		public RobocopyDescriptionBuilder withInvokeCron(String invokeCron) {
+			this.invokeCron = invokeCron;
 			return this;
 		}
 
 		
-		public RobocopyDescriptionBuilder withPruneCron(String pruneCron) {
-			this.pruneCron = pruneCron;
+		public RobocopyDescriptionBuilder withLocalBackupCron(String localBackupCron) {
+			this.localBackupCron = localBackupCron;
 			return this;
 		}
 		public RobocopyDescriptionBuilder withPruneStragegy(String pruneStrategy) {
@@ -150,11 +111,9 @@ public class RobocopyDescription extends BaseModel {
 		
 		public RobocopyDescription build() {
 			RobocopyDescription bd = new RobocopyDescription();
-			bd.setArchiveCron(archiveCron);
+			bd.setInvokeCron(invokeCron);
 			bd.setCreatedAt(new Date());
-			bd.setExcludes(new ArrayList<>(excludes));
-			bd.setIncludes(new ArrayList<>(includes));
-			bd.setPruneCron(pruneCron);
+			bd.setLocalBackupCron(localBackupCron);
 			bd.setRepo(repo);
 			bd.setServerId(serverId);
 			bd.setPruneStrategy(pruneStrategy);

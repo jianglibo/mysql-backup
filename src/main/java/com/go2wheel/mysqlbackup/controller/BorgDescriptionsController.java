@@ -27,6 +27,7 @@ import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -183,7 +184,9 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		model.addAttribute(ID_ENTITY_MAP, servers.stream().collect(Collectors.toMap(Server::getId, s -> s)));
 	}
 	
-	protected int getMenuOrder() {
-		return 600;
+	@Override
+	public MainMenuItemImpl getMenuItem() {
+		return null;
 	}
+
 }
