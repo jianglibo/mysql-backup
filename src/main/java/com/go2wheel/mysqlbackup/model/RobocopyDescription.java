@@ -10,18 +10,14 @@ import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
-public class BorgDescription extends BaseModel {
+public class RobocopyDescription extends BaseModel {
 
-	public static final String BORG_ARCHIVE_PREFIX_DEFAULT = "ARCHIVE-";
-	public static final String BORG_REPO_DEFAULT = "/opt/borgrepos/repo";
-	public static final String BORG_ARCHIVE_FORMAT_DEFAULT = "yyyy-MM-dd-HH-mm-ss";
-	public static final String BORG_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
+	public static final String ROBO_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
 	
-	private String repo = BORG_REPO_DEFAULT;
+	private String repo;
 	private List<String> includes = new ArrayList<>();
 	private List<String> excludes = new ArrayList<>();
-
-	private String archiveFormat = BORG_ARCHIVE_FORMAT_DEFAULT;
+	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String archiveCron;
 	
@@ -32,14 +28,11 @@ public class BorgDescription extends BaseModel {
 	private String localBackupCron;
 	
 	@BackupPruneStrategyConstraint(allowEmpty=true)
-	private String pruneStrategy = BORG_LOCAL_BACKUP_PRUNE_STRATEGY;
-
-	
-	private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
+	private String pruneStrategy = ROBO_LOCAL_BACKUP_PRUNE_STRATEGY;
 	
 	private Integer serverId;
 	
-	public BorgDescription() {
+	public RobocopyDescription() {
 		super();
 	}
 	
@@ -52,6 +45,14 @@ public class BorgDescription extends BaseModel {
 		return repo;
 	}
 	
+	public String getArchiveCron() {
+		return archiveCron;
+	}
+
+	public void setArchiveCron(String archiveCron) {
+		this.archiveCron = archiveCron;
+	}
+
 	public void setRepo(String repo) {
 		this.repo = repo;
 	}
@@ -62,13 +63,6 @@ public class BorgDescription extends BaseModel {
 		this.includes = includes;
 	}
 
-	public String getArchiveFormat() {
-		return archiveFormat;
-	}
-	public void setArchiveFormat(String archiveFormat) {
-		this.archiveFormat = archiveFormat;
-	}
-
 	public List<String> getExcludes() {
 		return excludes;
 	}
@@ -77,13 +71,6 @@ public class BorgDescription extends BaseModel {
 		this.excludes = excludes;
 	}
 
-	public String getArchiveNamePrefix() {
-		return archiveNamePrefix;
-	}
-
-	public void setArchiveNamePrefix(String archiveNamePrefix) {
-		this.archiveNamePrefix = archiveNamePrefix;
-	}
 
 	public String getPruneCron() {
 		return pruneCron;
@@ -91,14 +78,6 @@ public class BorgDescription extends BaseModel {
 
 	public void setPruneCron(String pruneCron) {
 		this.pruneCron = pruneCron;
-	}
-
-	public String getArchiveCron() {
-		return archiveCron;
-	}
-
-	public void setArchiveCron(String archiveCron) {
-		this.archiveCron = archiveCron;
 	}
 
 	@Override
@@ -122,14 +101,6 @@ public class BorgDescription extends BaseModel {
 		this.localBackupCron = localBackupCron;
 	}
 
-//	public String getLocalBackupPruneCron() {
-//		return localBackupPruneCron;
-//	}
-//
-//	public void setLocalBackupPruneCron(String localBackupPruneCron) {
-//		this.localBackupPruneCron = localBackupPruneCron;
-//	}
-
 	public String getPruneStrategy() {
 		return pruneStrategy;
 	}
@@ -138,52 +109,48 @@ public class BorgDescription extends BaseModel {
 		this.pruneStrategy = pruneStrategy;
 	}
 
-	public static class BorgDescriptionBuilder {
+	public static class RobocopyDescriptionBuilder {
 		private final Integer serverId;
-		private String repo = BORG_REPO_DEFAULT;
+		private String repo;
 		private Set<String> includes = new HashSet<>();
 		private Set<String> excludes = new HashSet<>();
-		private String archiveFormat = BORG_ARCHIVE_FORMAT_DEFAULT;
 		private String archiveCron;
 		private String pruneCron;
-		private String archiveNamePrefix = BORG_ARCHIVE_PREFIX_DEFAULT;
 		
-		private String pruneStrategy = BORG_LOCAL_BACKUP_PRUNE_STRATEGY;
+		private String pruneStrategy = ROBO_LOCAL_BACKUP_PRUNE_STRATEGY;
 		
-		public BorgDescriptionBuilder(int serverId) {
+		public RobocopyDescriptionBuilder(int serverId) {
 			this.serverId = serverId;
 		}
 		
-		public BorgDescriptionBuilder addInclude(String include) {
+		public RobocopyDescriptionBuilder addInclude(String include) {
 			this.includes.add(include);
 			return this;
 		}
 		
-		public BorgDescriptionBuilder addExclude(String exclude) {
+		public RobocopyDescriptionBuilder addExclude(String exclude) {
 			this.excludes.add(exclude);
 			return this;
 		}
 		
-		public BorgDescriptionBuilder withArchiveCron(String archiveCron) {
+		public RobocopyDescriptionBuilder withArchiveCron(String archiveCron) {
 			this.archiveCron = archiveCron;
 			return this;
 		}
 
 		
-		public BorgDescriptionBuilder withPruneCron(String pruneCron) {
+		public RobocopyDescriptionBuilder withPruneCron(String pruneCron) {
 			this.pruneCron = pruneCron;
 			return this;
 		}
-		public BorgDescriptionBuilder withPruneStragegy(String pruneStrategy) {
+		public RobocopyDescriptionBuilder withPruneStragegy(String pruneStrategy) {
 			this.setPruneStrategy(pruneStrategy);
 			return this;
 		}	
 		
-		public BorgDescription build() {
-			BorgDescription bd = new BorgDescription();
+		public RobocopyDescription build() {
+			RobocopyDescription bd = new RobocopyDescription();
 			bd.setArchiveCron(archiveCron);
-			bd.setArchiveFormat(archiveFormat);
-			bd.setArchiveNamePrefix(archiveNamePrefix);
 			bd.setCreatedAt(new Date());
 			bd.setExcludes(new ArrayList<>(excludes));
 			bd.setIncludes(new ArrayList<>(includes));

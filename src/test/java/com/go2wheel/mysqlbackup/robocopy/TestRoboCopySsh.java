@@ -8,6 +8,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,7 +54,7 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		createALocalFile(rt.resolve("a/afile.txt"), "abc");
 		return rt;
 	}
-    
+	
 	@Test
 	public void tLocal() throws IOException, InterruptedException {
 		Path dst = tfolder.getRoot().toPath();
@@ -78,14 +81,14 @@ public class TestRoboCopySsh extends SpringBaseFort {
 	//Get-ChildItem c:\db -Recurse |Select-Object FullName | 
 	// Get-ChildItem c:\db -Recurse |ForEach-Object {$_.FullName -replace '^c:\\db\\',''}
 	
-	@Test
-	public void tCd() throws JSchException, IOException {
-		clearDb();
-		createSessionLocalHostWindows();
-		String cmd = "set-location";
-		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, null, cmd);
-		assertThat(rcr.getAllTrimedNotEmptyLines().size(), equalTo(2));
-	}
+//	@Test
+//	public void tCd() throws JSchException, IOException {
+//		clearDb();
+//		createSessionLocalHostWindows();
+//		String cmd = "set-location";
+//		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, null, cmd);
+//		assertThat(rcr.getAllTrimedNotEmptyLines().size(), equalTo(2));
+//	}
 	
 	
 	@Test
@@ -95,6 +98,19 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		String cmd = "'a', 'b' | write-host";
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, null, cmd);
 		assertThat(rcr.getAllTrimedNotEmptyLines().size(), equalTo(2));
+	}
+	
+	@Test
+	public void tHowlongCommand() throws JSchException, IOException {
+		int num = 6500;
+		String c = IntStream.range(0, num).mapToObj(i -> String.valueOf(i)).collect(Collectors.joining(","));
+		c += " | Write-Output";
+		clearDb();
+		createSessionLocalHostWindows();
+		int length = c.length();
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", c);
+		assertThat(rcr.getAllTrimedNotEmptyLines().size(), equalTo(num));
+		assertThat(rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining(",")).length() + " | Write-Output".length(), equalTo(length));
 	}
 	
 	@Test
@@ -111,8 +127,26 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		
 		Path afile = dst.resolve("a").resolve("afile.txt");
 		assertTrue(Files.exists(afile));
-		rcr.getAllTrimedNotEmptyLines().stream()
-		.forEach(System.out::println);
+	}
+	
+	
+	@Test
+	public void tSshHasChineseFileName() throws IOException, InterruptedException, SchedulerException, JSchException {
+		clearDb();
+		createSessionLocalHostWindows();
+		Path dst = tfolder.getRoot().toPath();
+		deleteAllJobs();
+		// this command return only the lines of the files changed or created.
+//		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
+		
+		Path src = srcfolder.getRoot().toPath();
+		createALocalFile(src.resolve("中文目录/afile.txt"), "abc");
+		
+		String cmd = String.format("Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", cmd);
+		
+		Path afile = dst.resolve("中文目录").resolve("afile.txt");
+		assertTrue(Files.exists(afile));
 	}
 	
 //	'C:\Documents and Settings\User01\My Documents\My Pictures' | Split-Path

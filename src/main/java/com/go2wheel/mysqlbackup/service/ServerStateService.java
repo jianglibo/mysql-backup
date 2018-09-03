@@ -27,6 +27,11 @@ import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
+/**
+ * The average loader must divide by  the number of the cores.
+ * @author jianglibo@gmail.com
+ *
+ */
 @Service
 public class ServerStateService {
 	
@@ -61,13 +66,14 @@ public class ServerStateService {
 	}
 	
 	public int getCoreNumber(Server server, Session session) throws JSchException, IOException {
-		if (session == null) {
-			String command = "Get-WmiObject win32_processor | Format-List -Property *";
-			ProcessExecResult pcr = PSUtil.runPsCommand(command);
-			Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
-			return StringUtil.parseInt(mss.get("NumberOfCores"));
-		}
-		return SSHcommonUtil.coreNumber(session);
+//		OsTypeWrapper otw = OsTypeWrapper.of(server.getOs());
+//		if (otw.isWin()) {
+//			String command = "Get-WmiObject win32_processor | Format-List -Property *";
+//			ProcessExecResult pcr = PSUtil.runPsCommand(command);
+//			Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
+//			return StringUtil.parseInt(mss.get("NumberOfCores"));
+//		}
+		return SSHcommonUtil.coreNumber(server.getOs(), session);
 	}
 	
 	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException, RunRemoteCommandException, JSchException, IOException {
@@ -88,6 +94,10 @@ public class ServerStateService {
 		ServerState ss = new ServerState();
 		String loadstr = getUpTime(session);
 		int load = (int) (Float.parseFloat(loadstr) * 100);
+		
+		if (server.getCoreNumber() > 0) {
+			load = load/server.getCoreNumber();
+		}
 		ss.setAverageLoad(load);
 		ss.setServerId(server.getId());
 		

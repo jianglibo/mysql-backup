@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -10,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -481,6 +483,50 @@ public class SSHcommonUtil {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + ".1", remoteFile));
 		}
 	}
+	
+	public static int coreNumber(String os, Session session) throws JSchException, IOException {
+		OsTypeWrapper otw = OsTypeWrapper.of(os);
+		if (otw.isWin()) {
+			String command = "Get-WmiObject win32_processor | Format-List -Property *";
+			try {
+				RemoteCommandResult rcr = runRemoteCommand(session, command);
+				Map<String, String> mss = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0); // LoadPercentage, NumberOfCores
+				String k = "NumberOfCores";
+				if(mss.containsKey(k)) {
+					return StringUtil.parseInt(mss.get(k));
+				} else {
+					return -1;
+				}
+//				if (rcr.getExitValue() == 0) {
+//					return Integer.valueOf(rcr.getStdOut().trim());
+//				} else {
+//					ExceptionUtil.logRemoteCommandResult(logger, rcr);
+//					return -1;
+//				}
+			} catch (RunRemoteCommandException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return -1;
+			}
+			
+//			ProcessExecResult pcr = PSUtil.runPsCommand(command);
+//			Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
+//			return StringUtil.parseInt(mss.get("NumberOfCores"));
+		} else {
+			String command = "grep 'model name' /proc/cpuinfo | wc -l";
+			try {
+				RemoteCommandResult rcr = runRemoteCommand(session, command);
+				if (rcr.getExitValue() == 0) {
+					return Integer.valueOf(rcr.getStdOut().trim());
+				} else {
+					ExceptionUtil.logRemoteCommandResult(logger, rcr);
+					return -1;
+				}
+			} catch (RunRemoteCommandException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return -1;
+			}
+		}
+	}
 
 	public static int coreNumber(Session session) throws JSchException, IOException {
 		String command = "grep 'model name' /proc/cpuinfo | wc -l";
@@ -495,6 +541,33 @@ public class SSHcommonUtil {
 		} catch (RunRemoteCommandException e) {
 			ExceptionUtil.logErrorException(logger, e);
 			return -1;
+		}
+	}
+	
+	public static RemoteCommandResult runRemoteCommand(Session session, String outCharset, String commandCharset, String command)
+			throws JSchException, IOException {
+		byte[] bytes;
+		if (StringUtil.hasAnyNonBlankWord(commandCharset)) {
+			bytes = command.getBytes(commandCharset);	
+		} else {
+			bytes = command.getBytes(StandardCharsets.UTF_8);
+		}
+
+		final Channel channel = session.openChannel("exec");
+		try {
+			((ChannelExec) channel).setCommand(bytes);
+			channel.setInputStream(null);
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			((ChannelExec) channel).setErrStream(baos);
+			InputStream in = channel.getInputStream();
+			channel.connect();
+			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, outCharset, in);
+			String errOut = baos.toString();
+			cmdOut.setErrOut(errOut);
+			cmdOut.setCommand(command);
+			return cmdOut;
+		} finally {
+			channel.disconnect();
 		}
 	}
 

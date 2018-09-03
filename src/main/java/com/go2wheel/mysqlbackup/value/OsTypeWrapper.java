@@ -6,7 +6,7 @@ public class OsTypeWrapper {
 	
 	
 	public static OsTypeWrapper of(String os) {
-		return new OsTypeWrapper(os);
+		return new OsTypeWrapper(os != null ? os : "");
 	}
 	
 	private OsTypeWrapper(String os) {
