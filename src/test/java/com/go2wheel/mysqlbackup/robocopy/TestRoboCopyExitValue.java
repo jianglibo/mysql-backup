@@ -1,0 +1,106 @@
+package com.go2wheel.mysqlbackup.robocopy;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.borg.RobocopyService;
+import com.go2wheel.mysqlbackup.borg.RobocopyService.RobocopyResult;
+import com.go2wheel.mysqlbackup.util.ProcessExecUtil;
+import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
+import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.jcraft.jsch.JSchException;
+
+public class TestRoboCopyExitValue extends SpringBaseFort {
+	
+    @Rule
+    public TemporaryFolder tfolder= new TemporaryFolder();
+    
+    @Rule
+    public TemporaryFolder srcfolder= new TemporaryFolder();
+    
+    @Autowired
+    private RobocopyService robocopyService;
+
+    
+//    private Path robocopysrc = Paths.get("fixtures", "robocopysrc");
+
+//    Robocopy.exe .\elm-workspace\ .\elm-workspace-copy  /e /xd log log1
+//    0	No files were copied. No failure was encountered. No files were mismatched. The files already exist in the destination directory; therefore, the copy operation was skipped.
+//    1	All files were copied successfully.
+//    2	There are some additional files in the destination directory that are not present in the source directory. No files were copied.
+//    3	Some files were copied. Additional files were present. No failure was encountered.
+//    5	Some files were copied. Some files were mismatched. No failure was encountered.
+//    6	Additional files and mismatched files exist. No files were copied and no failures were encountered. This means that the files already exist in the destination directory.
+//    7	Files were copied, a file mismatch was present, and additional files were present.
+//    8	Several files did not copy.
+    
+	@Autowired
+	private ProcessExecUtil peu;
+	
+	private Path createDemoSrc() throws IOException {
+		Path rt = srcfolder.getRoot().toPath();
+		createALocalFile(rt.resolve("a/afile.txt"), "abc");
+		return rt;
+	}
+	
+	@Test
+	public void tNoTarget() throws JSchException, SchedulerException, IOException {
+		creates();
+		Path dst = tfolder.getRoot().toPath();
+		String cmd = String.format("Robocopy.exe %s;$LASTEXITCODE", dst.toAbsolutePath().toString());
+		RobocopyResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
+		assertThat(rr.exitCode(), equalTo(16));
+	}
+	
+	@Test
+	public void tNormalCopy() throws IOException, InterruptedException, SchedulerException, JSchException {
+		creates();
+		Path dst = tfolder.getRoot().toPath();
+		// this command return only the lines of the files changed or created.
+//		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
+		Path src = createDemoSrc();
+		
+		String cmd = String.format("Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
+		RobocopyResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
+		assertThat(rr.exitCode(), equalTo(1));
+		rr = robocopyService.invokeRoboCopyCommand(session, cmd);
+		assertThat(rr.exitCode(), equalTo(0));
+	}
+	
+	@Test
+	public void tSshNoFile() throws IOException, InterruptedException, SchedulerException, JSchException {
+		clearDb();
+		createSessionLocalHostWindows();
+		Path dst = tfolder.getRoot().toPath();
+		deleteAllJobs();
+		// this command return only the lines of the files changed or created.
+//		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
+		Path src = createDemoSrc();
+		String cmd = String.format("Robocopy.exe %s %s *.kkk /xd log log1 /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", cmd);
+		assertThat(rcr.getExitValue(), equalTo(0));
+	}
+	
+	private void creates() throws JSchException, SchedulerException {
+		clearDb();
+		createSessionLocalHostWindows();
+		deleteAllJobs();
+	}
+}

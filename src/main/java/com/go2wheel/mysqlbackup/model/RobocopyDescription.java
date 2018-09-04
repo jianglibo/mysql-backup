@@ -39,15 +39,26 @@ public class RobocopyDescription extends BaseModel {
 		return repo;
 	}
 	
+	public String workingSpaceEndWithSlash() {
+		String repoSlash = getRepo().replace('\\', '/');
+		if (!repoSlash.endsWith("/")) {
+			repoSlash += "/";
+		}
+		return repoSlash + "workingspace/";
+	}
+	
 	public String appendToRepo(String relative) {
 		String repoSlash = getRepo().replace('\\', '/');
 		String relativeSlash = relative.replace('\\', '/');
-		
-		if (!repoSlash.endsWith("/") && !relative.startsWith("/")) {
-			return repoSlash + '/' + relativeSlash;
-		} else {
-			return repoSlash + relativeSlash;
+		if (!repoSlash.endsWith("/")) {
+			repoSlash += "/";
 		}
+		
+		if (relativeSlash.startsWith("/")) {
+			relativeSlash = relativeSlash.substring(1);
+		}
+		
+		return repoSlash + "archive/" + relativeSlash;
 	}
 
 

@@ -129,6 +129,17 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		assertTrue(Files.exists(afile));
 	}
 	
+	@Test
+	public void tExitCode() throws JSchException, SchedulerException, IOException {
+		clearDb();
+		createSessionLocalHostWindows();
+		Path dst = tfolder.getRoot().toPath();
+		deleteAllJobs();
+		String cmd = String.format("Robocopy1.exe %s", dst.toAbsolutePath().toString());
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", cmd);
+		assertThat(rcr.getExitValue(), equalTo(0));
+	}
+	
 	
 	@Test
 	public void tSshHasChineseFileName() throws IOException, InterruptedException, SchedulerException, JSchException {

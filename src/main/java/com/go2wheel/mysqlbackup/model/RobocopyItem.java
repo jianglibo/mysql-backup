@@ -7,7 +7,9 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.google.common.collect.Lists;
 
 public class RobocopyItem extends BaseModel {
 	
@@ -155,5 +157,38 @@ public class RobocopyItem extends BaseModel {
 
 	public void setDstCalced(String dstCalced) {
 		this.dstCalced = dstCalced;
+	}
+	
+	public String getFileParametersNullSafe() {
+		return fileParameters != null ? fileParameters : "*.*";
+	}
+
+
+	public List<String> getExcludeFilesNullSafe() {
+		return excludeFiles != null ? excludeFiles : new ArrayList<>();
+	}
+
+	public List<String> getExcludeDirectoriesNullSafe() {
+		return excludeDirectories != null ? excludeDirectories : new ArrayList<>();
+	}
+	
+	public List<String> getCopyOptionsNullSafe() {
+		return copyOptions != null ? copyOptions : new ArrayList<>();
+	}
+
+	public List<String> getFileSelectionOptionsNullSafe() {
+		return fileSelectionOptions != null ? fileSelectionOptions : new ArrayList<>();
+	}
+
+	public List<String> getRetryOptionsNullSafe() {
+		return retryOptions != null ? retryOptions : new ArrayList<>();
+	}
+
+	public List<String> getLoggingOptionsNullSafe() {
+		return loggingOptions != null && loggingOptions.size() > 0 ? loggingOptions : Lists.newArrayList("/fp", "/njh", "/njs");
+	}
+
+	public List<String> getJobOptionsNullSafe() {
+		return jobOptions != null  ? jobOptions : new ArrayList<>();
 	}
 }

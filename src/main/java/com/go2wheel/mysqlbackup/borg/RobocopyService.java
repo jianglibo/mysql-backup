@@ -1,18 +1,18 @@
 package com.go2wheel.mysqlbackup.borg;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +38,6 @@ import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
@@ -72,7 +71,6 @@ public class RobocopyService {
 	public static final String BORG_DOWNLOAD_TASK_KEY = "taskkey.borg.download";
 	public static final String BORG_RESTORE_TASK_KEY = "taskkey.borg.restore";
 
-
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 
@@ -98,7 +96,7 @@ public class RobocopyService {
 	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
 		Path lrp = settingsInDb.getBorgRepoDir(sourceServer);
 		List<Path> pathes = Lists.newArrayList();
-		pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
+		pathes = Files.list(lrp.getParent()).collect(toList());
 		Collections.sort(pathes, (o1, o2) -> {
 			try {
 				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
@@ -108,11 +106,11 @@ public class RobocopyService {
 				return 0;
 			}
 		});
-		return pathes.stream().map(BorgRepoWrapper::new).collect(Collectors.toList());
+		return pathes.stream().map(BorgRepoWrapper::new).collect(toList());
 	}
 
 	public static class BorgRepoWrapper {
-		
+
 		private final Path repo;
 
 		public BorgRepoWrapper(Path repo) {
@@ -149,14 +147,15 @@ public class RobocopyService {
 		}
 	}
 
-	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath) throws CommandNotFoundException, JSchException, IOException {
+	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath)
+			throws CommandNotFoundException, JSchException, IOException {
 		try {
 			if (!StringUtil.hasAnyNonBlankWord(repoPath)) {
 				return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, repoPath);
 			}
 			String command = String.format("borg init --encryption=none %s", repoPath);
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
-			rcr.isCommandNotFound(); 
+			rcr.isCommandNotFound();
 			if (rcr.getExitValue() != 0) {
 				boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
 						.anyMatch(line -> line.contains("FileNotFoundError"));
@@ -266,7 +265,7 @@ public class RobocopyService {
 
 			rcr = SSHcommonUtil.runRemoteCommand(session, md5Cmd);
 			List<String> md5s = rcr.getAllTrimedNotEmptyLines().stream().map(line -> line.split("\\s+", 2))
-					.filter(ss -> ss.length == 2).map(ss -> ss[0]).collect(Collectors.toList());
+					.filter(ss -> ss.length == 2).map(ss -> ss[0]).collect(toList());
 			fid.setMd5s(md5s);
 
 			final Path rRepo = Paths.get(bd.getRepo());
@@ -275,7 +274,7 @@ public class RobocopyService {
 			List<FileToCopyInfo> fis = fid.getFiles().stream().map(fi -> {
 				fi.setLfileAbs(localRepo.resolve(rRepo.relativize(Paths.get(fi.getRfileAbs()))));
 				return fi;
-			}).collect(Collectors.toList());
+			}).collect(toList());
 			
 			BorgDownload bdrs = new BorgDownload();
 			bdrs.setTotalFiles(fis.size());
@@ -307,7 +306,7 @@ public class RobocopyService {
 			List<Path> pathes = Files.walk(localRepo)
 					.filter(p -> Files.isRegularFile(p))
 					.filter(p -> !fid.fileExists(p))
-					.collect(Collectors.toList());
+					.collect(toList());
 			
 			for(Path p : pathes) {
 				Files.delete(p);
@@ -388,68 +387,55 @@ public class RobocopyService {
 		SSHcommonUtil.copyFolder(sessiontarget, local, serverRepo);
 		return null;
 	}
+	
+	public RobocopyResult invokeRoboCopyCommand(Session session, String cmd) throws JSchException, IOException {
+		String command = cmd + ";$LASTEXITCODE";
+		return new RobocopyResult(SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", command));
+	}
 
 	@Exclusive(TaskLocks.TASK_FILEBACKUP)
-	public FacadeResult<RemoteCommandResult> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
-		try {
-			String repo = robocopyDescription.getRepo();
+	public FacadeResult<List<RobocopyResult>> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
+		
 			items.stream().forEach(it -> {
 				it.setDstCalced(robocopyDescription.appendToRepo(it.getDstRelative()));
 			});
 			
+			List<RobocopyResult> results = Lists.newArrayList();
 			
 			for(RobocopyItem item : items) {
-				
-				
-				
-				
 				StringBuffer sb = new StringBuffer("Robocopy.exe");
-				sb.append(' ');
-				sb.append(str)
+				sb.append(' ').append(item.getSource())
+				.append(' ').append(item.getDstCalced())
+				.append(' ').append(item.getFileParametersNullSafe());
 				
-				String cmd = String.format("Robocopy.exe %s %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
+				if (item.getExcludeFilesNullSafe().size() > 0) {
+					sb.append(' ').append("/xf ").append(item.getExcludeFilesNullSafe().stream().collect(joining(" ")));					
+				}
 				
-				BorgDescription borgDescription = server.getBorgDescription();
-				List<String> cmdparts = new ArrayList<>();
-				cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
-				if (borgDescription.getExcludes() != null) {
-					for (String f : borgDescription.getExcludes()) {
-						cmdparts.add("--exclude");
-						cmdparts.add("'" + f + "'");
-					}
+				if (item.getExcludeDirectoriesNullSafe().size() > 0) {
+					sb.append(' ').append("/xd ").append(item.getExcludeDirectoriesNullSafe().stream().collect(joining(" ")));							
 				}
-				cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
-						+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
-				for (String f : borgDescription.getIncludes()) {
-					cmdparts.add(f);
+				
+				/**
+				 * /xf and /xd are special and excluded.
+				 */
+				if (item.getFileSelectionOptionsNullSafe().size() > 0) {
+					sb.append(' ').append(item.getFileSelectionOptionsNullSafe().stream().collect(joining(" ")));							
 				}
-				String cmd = String.join(" ", cmdparts);
-				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
-				rcr.isCommandNotFound();
-				if (rcr.getExitValue() == 0) {
-					return FacadeResult.doneExpectedResultDone(rcr);
-				} else {
-					List<String> lines = rcr.getAllTrimedNotEmptyLines();
-					String errOut = rcr.getErrOut();
-					if (errOut != null) {
-						if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH") || line.contains("the following arguments are required: PATH"))) {
-							return FacadeResult.unexpectedResult(NO_INCLUDES);
-						} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
-							return FacadeResult.unexpectedResult(REPO_NON_INIT);
-						} else {
-							logger.error(rcr.getErrOut());
-							return FacadeResult.unexpectedResult(UNKNOWN);
-						}
-					} else {
-						return FacadeResult.unexpectedResult(UNKNOWN);
-					}
+				
+				if (item.getCopyOptionsNullSafe().size() > 0) {
+					sb.append(' ').append(item.getCopyOptionsNullSafe().stream().collect(joining(" ")));							
 				}
-			} catch (RunRemoteCommandException e) {
-				ExceptionUtil.logErrorException(logger, e);
-				return FacadeResult.unexpectedResult(e);
-			}		
+				
+				if (item.getLoggingOptionsNullSafe().size() > 0) {
+					sb.append(' ').append(item.getLoggingOptionsNullSafe().stream().collect(joining(" ")));							
+				}
+				
+				sb.append(' ').append("|ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}\", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString())");
+				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
+				results.add(new RobocopyResult(rcr));
 			}
-
+			return FacadeResult.doneExpectedResultDone(results);
 	}
 
 	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
@@ -491,35 +477,80 @@ public class RobocopyService {
 		}
 	}
 	
-	//@formatter:on
+	public static class RobocopyResult {
+		
+		private final RemoteCommandResult rcr;
+		private final List<String> outLines;
+		
+		private final String lastLine;
+		public static RobocopyResult of(RemoteCommandResult rcr) {
+			return new RobocopyResult(rcr);
+		}
+		
+		private RobocopyResult(RemoteCommandResult rcr) {
+			this.rcr = rcr;
+			int sz = rcr.getAllTrimedNotEmptyLines().size();
+			outLines = rcr.getAllTrimedNotEmptyLines().stream().limit(sz - 1).collect(toList());
+			lastLine = rcr.getAllTrimedNotEmptyLines().get(sz - 1);
+		}
+		
+		/**
+		 * different from ssh command exitvalue. 
+		 * @return
+		 */
+		public int exitCode() {
+			return Integer.valueOf(lastLine);
+		}
 
-	/**
-	 * borg产生的卷是有时间顺序的，每个卷都有一个名称，�?以可以恢复到各个时间点�?�prune之后，比如剩�?7个天备份�?4个月备份，那么恢复的粒度就不是每天了�?
-	 * 
-	 * @param session
-	 * @param server
-	 * @return
-	 * @throws CommandNotFoundException 
-	 * @throws IOException 
-	 * @throws JSchException 
-	 */
-	public FacadeResult<?> archive(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
-		BorgDescription bd = server.getBorgDescription();
-		return archive(session, server, bd.getArchiveNamePrefix(), false);
+		public RemoteCommandResult getRcr() {
+			return rcr;
+		}
+
+		public List<String> getOutLines() {
+			return outLines;
+		}
+
+		public String getLastLine() {
+			return lastLine;
+		}
 	}
 	
-	public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
-		final Path localRepo = settingsInDb.getBorgRepoDir(server);
-		FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups", 999999), true);
-		return FacadeResult.doneExpectedResult();
-	}
+//	//@formatter:on
+	//
+	// /**
+	// *
+	// borg产生的卷是有时间顺序的，每个卷都有一个名称，�??以可以恢复到各个时间点�?�prune之后，比如剩�??7个天备份�??4个月备份，那么恢复的粒度就不是每天了�??
+	// *
+	// * @param session
+	// * @param server
+	// * @return
+	// * @throws CommandNotFoundException
+	// * @throws IOException
+	// * @throws JSchException
+	// */
+	// public FacadeResult<?> archive(Session session, Server server) throws
+	// CommandNotFoundException, JSchException, IOException {
+	// BorgDescription bd = server.getBorgDescription();
+	// return archive(session, server, bd.getArchiveNamePrefix(), false);
+	// }
+	//
+	// public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
+	// final Path localRepo = settingsInDb.getBorgRepoDir(server);
+	// FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups",
+	// 999999), true);
+	// return FacadeResult.doneExpectedResult();
+	// }
+	//
+	// public FacadeResult<RemoteCommandResult> archive(Session session, Server
+	// server, boolean solveProblems) throws CommandNotFoundException,
+	// JSchException, IOException {
+	// BorgDescription bd = server.getBorgDescription();
+	// return archive(session, server, bd.getArchiveNamePrefix(), solveProblems);
+	// }
 
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, boolean solveProblems) throws CommandNotFoundException, JSchException, IOException {
-		BorgDescription bd = server.getBorgDescription();
-		return archive(session, server, bd.getArchiveNamePrefix(), solveProblems);
-	}
-
-	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget,Server serverSource, Server serverTarget, /*String sourceRepo,*/ String archive, String extractFolder) throws RunRemoteCommandException, JSchException, IOException {
+	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget, Server serverSource, Server serverTarget,
+			/* String sourceRepo, */ String archive, String extractFolder)
+			throws RunRemoteCommandException, JSchException, IOException {
 		String sourceRepo = serverSource.getBorgDescription().getRepo();
 		if (!sourceRepo.endsWith("/")) {
 			sourceRepo = sourceRepo + "/";
@@ -529,7 +560,7 @@ public class RobocopyService {
 		}
 		SSHcommonUtil.deleteRemoteFolder(sessionTarget, extractFolder);
 		SSHcommonUtil.mkdirsp(sessionTarget, extractFolder);
-		String cmd = String.format("cd %s;borg extract %s%s",extractFolder, sourceRepo, archive);
+		String cmd = String.format("cd %s;borg extract %s%s", extractFolder, sourceRepo, archive);
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(sessionTarget, cmd);
 		List<String> includes = serverSource.getBorgDescription().getIncludes();
 		List<LinuxLsl> extracted = SSHcommonUtil.listRemoteFiles(sessionTarget, extractFolder);
