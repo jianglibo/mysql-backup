@@ -8,7 +8,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TaskLocks {
 	
 	public static final String TASK_MYSQL = "mysql";
-	public static final String TASK_BORG = "borg";
+	public static final String TASK_FILEBACKUP = "borg";
 	
 	private static final Map<String, Lock> locks = new ConcurrentHashMap<>();
 	

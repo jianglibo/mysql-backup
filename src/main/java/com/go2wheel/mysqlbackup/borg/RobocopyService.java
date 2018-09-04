@@ -31,6 +31,8 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.PlayBackResult;
+import com.go2wheel.mysqlbackup.model.RobocopyDescription;
+import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
@@ -58,7 +60,7 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 @Service
-public class BorgService {
+public class RobocopyService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -388,47 +390,66 @@ public class BorgService {
 	}
 
 	@Exclusive(TaskLocks.TASK_FILEBACKUP)
-	public FacadeResult<RemoteCommandResult> archive(Session session, Server server, String archiveNamePrefix, boolean solveProblems) throws CommandNotFoundException, JSchException, IOException {
+	public FacadeResult<RemoteCommandResult> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
 		try {
-			BorgDescription borgDescription = server.getBorgDescription();
-			List<String> cmdparts = new ArrayList<>();
-			cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
-			if (borgDescription.getExcludes() != null) {
-				for (String f : borgDescription.getExcludes()) {
-					cmdparts.add("--exclude");
-					cmdparts.add("'" + f + "'");
+			String repo = robocopyDescription.getRepo();
+			items.stream().forEach(it -> {
+				it.setDstCalced(robocopyDescription.appendToRepo(it.getDstRelative()));
+			});
+			
+			
+			for(RobocopyItem item : items) {
+				
+				
+				
+				
+				StringBuffer sb = new StringBuffer("Robocopy.exe");
+				sb.append(' ');
+				sb.append(str)
+				
+				String cmd = String.format("Robocopy.exe %s %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
+				
+				BorgDescription borgDescription = server.getBorgDescription();
+				List<String> cmdparts = new ArrayList<>();
+				cmdparts.add("borg create --stats --verbose --compression lz4 --exclude-caches");
+				if (borgDescription.getExcludes() != null) {
+					for (String f : borgDescription.getExcludes()) {
+						cmdparts.add("--exclude");
+						cmdparts.add("'" + f + "'");
+					}
 				}
-			}
-			cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
-					+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
-			for (String f : borgDescription.getIncludes()) {
-				cmdparts.add(f);
-			}
-			String cmd = String.join(" ", cmdparts);
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
-			rcr.isCommandNotFound();
-			if (rcr.getExitValue() == 0) {
-				return FacadeResult.doneExpectedResultDone(rcr);
-			} else {
-				List<String> lines = rcr.getAllTrimedNotEmptyLines();
-				String errOut = rcr.getErrOut();
-				if (errOut != null) {
-					if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH") || line.contains("the following arguments are required: PATH"))) {
-						return FacadeResult.unexpectedResult(NO_INCLUDES);
-					} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
-						return FacadeResult.unexpectedResult(REPO_NON_INIT);
+				cmdparts.add(borgDescription.getRepo() + "::" + archiveNamePrefix
+						+ new SimpleDateFormat(borgDescription.getArchiveFormat()).format(new Date()));
+				for (String f : borgDescription.getIncludes()) {
+					cmdparts.add(f);
+				}
+				String cmd = String.join(" ", cmdparts);
+				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+				rcr.isCommandNotFound();
+				if (rcr.getExitValue() == 0) {
+					return FacadeResult.doneExpectedResultDone(rcr);
+				} else {
+					List<String> lines = rcr.getAllTrimedNotEmptyLines();
+					String errOut = rcr.getErrOut();
+					if (errOut != null) {
+						if (lines.stream().anyMatch(line -> line.contains("Need at least one PATH") || line.contains("the following arguments are required: PATH"))) {
+							return FacadeResult.unexpectedResult(NO_INCLUDES);
+						} else if (lines.stream().anyMatch(line -> line.trim().matches("Repository .* does not exist."))) {
+							return FacadeResult.unexpectedResult(REPO_NON_INIT);
+						} else {
+							logger.error(rcr.getErrOut());
+							return FacadeResult.unexpectedResult(UNKNOWN);
+						}
 					} else {
-						logger.error(rcr.getErrOut());
 						return FacadeResult.unexpectedResult(UNKNOWN);
 					}
-				} else {
-					return FacadeResult.unexpectedResult(UNKNOWN);
 				}
+			} catch (RunRemoteCommandException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
+			}		
 			}
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
+
 	}
 
 	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
@@ -473,7 +494,7 @@ public class BorgService {
 	//@formatter:on
 
 	/**
-	 * borg产生的卷是有时间顺序的，每个卷都有一个名称，所以可以恢复到各个时间点。prune之后，比如剩下7个天备份，4个月备份，那么恢复的粒度就不是每天了。
+	 * borg产生的卷是有时间顺序的，每个卷都有一个名称，�?以可以恢复到各个时间点�?�prune之后，比如剩�?7个天备份�?4个月备份，那么恢复的粒度就不是每天了�?
 	 * 
 	 * @param session
 	 * @param server

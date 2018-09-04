@@ -53,7 +53,7 @@ public class BorgArchiveJob implements Job {
 		Server sv = serverDbService.findById(sid);
 		sv = serverDbService.loadFull(sv);
 
-		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_BORG);
+		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {

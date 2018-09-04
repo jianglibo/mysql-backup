@@ -13,25 +13,14 @@
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
 				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
-					<form action="#" method="POST" th:action="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">
-						<button class="pure-button" type="submit">创建一个卷</button>
-						<a class="pure-button" href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a>
+					<form action="#" method="POST" th:action="@{/app/robocopy/fullcopy/{serverId}(serverId=${singleItem.serverId})}">
+						<button class="pure-button" type="submit">创建一个全备份</button>
+						<a class="pure-button" href="#" th:href="@{/app/robocopy/fullcopies/{serverId}(serverId=${singleItem.serverId})}">备份卷列表</a>
 					</form>
 				</div>
 				<div class="pure-control-group">
 					<label for="repo">仓库路径</label>
 					<input th:field="*{repo}" type="text" placeholder="">
-					<span class="pure-form-message-inline"></span>
-				</div>
-
-				<div class="pure-control-group">
-					<label for="archiveFormat">卷格式</label>
-					<input th:field="*{archiveFormat}" type="text" placeholder="">
-					<span class="pure-form-message-inline"></span>
-				</div>
-				<div class="pure-control-group">
-					<label for="archiveNamePrefix">卷前缀</label>
-					<input th:field="*{archiveNamePrefix}" type="text" placeholder="">
 					<span class="pure-form-message-inline"></span>
 				</div>
 				<div class="pure-control-group">
@@ -40,20 +29,10 @@
 					<span class="pure-form-message-inline"></span>
 				</div>				
 				<div class="pure-control-group pure-combo">
-					<label for="archiveCron">卷計劃</label>
-					<input th:field="*{archiveCron}" type="text" placeholder="">
+					<label for="invokeCron">卷計劃</label>
+					<input th:field="*{invokeCron}" type="text" placeholder="">
 					<select th:remove="all-but-first">
-						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.archiveCron}">AL</option>
-						<option>CA</option>
-						<option>IL</option>
-					</select>
-					<span class="pure-form-message-inline"></span>
-				</div>
-				<div class="pure-control-group pure-combo">
-					<label for="pruneCron">卷修剪計劃</label>
-					<input th:field="*{pruneCron}" type="text" placeholder="">
-					<select th:remove="all-but-first">
-						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.pruneCron}">AL</option>
+						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.invokeCron}">AL</option>
 						<option>CA</option>
 						<option>IL</option>
 					</select>
@@ -74,22 +53,11 @@
 					<input th:field="*{pruneStrategy}" type="text" placeholder="">
 					<span class="pure-form-message-inline">7 digital columns separated by space. </span>
 				</div>
-				<div class="pure-control-group">
-					<label for="includes">备份目录</label>
-					<textarea th:field="*{includes}" placeholder=""></textarea>
-					<span class="pure-form-message-inline"></span>
-				</div>
-				<div class="pure-control-group">
-					<label for="excludes">排除目录</label>
-					<textarea th:field="*{excludes}" placeholder=""></textarea>
-					<span class="pure-form-message-inline"></span>
-				</div>
 			</div>
 		</div>
 	</div>
 	<script>
 		window.freact.pureCombo();
-
 	</script>
 </body>
 

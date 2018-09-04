@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
@@ -34,6 +35,7 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -86,20 +88,33 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	@Override
 	String getCreate(Model model, HttpServletRequest httpRequest) {
 		String serverId = httpRequest.getParameter("server");
+		String rd = null;
 		if (serverId == null) {
-			return redirectMappingUrl();
+			rd =  redirectMappingUrl();
+		} else {
+			Server server = serverDbService.findById(serverId);
+			if (OsTypeWrapper.of(server.getOs()).isWin()) {
+				ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(httpRequest);
+				ucb.replacePath(RobocopyDescriptionsController.MAPPING_PATH + "/create");
+				String uri = ucb.build().toUriString();
+				rd = "redirect:" + uri;
+			} else {
+				BorgDescription mi = getDbService().findByServerId(serverId);
+				if (mi != null) {
+					rd = redirectEditGet(mi.getId());
+				} else {
+					mi = newModel();
+					mi.setServerId(Integer.parseInt(serverId));
+					model.addAttribute(OB_NAME, mi);
+					model.addAttribute("editting", false);
+					commonAttribute(model);
+					formAttribute(model);
+					return getFormTpl();
+				}
+			}
 		}
-		BorgDescription mi = getDbService().findByServerId(serverId);
-		if (mi != null) {
-			return redirectEditGet(mi.getId());
-		}
-		mi = newModel();
-		mi.setServerId(Integer.parseInt(serverId));
-		model.addAttribute(OB_NAME, mi);
-		model.addAttribute("editting", false);
-		commonAttribute(model);
-		formAttribute(model);
-		return getFormTpl();
+		model.asMap().clear();
+		return rd;
 	}
 	
 	

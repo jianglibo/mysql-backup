@@ -1,7 +1,11 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.beans.Transient;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
@@ -11,9 +15,16 @@ public class RobocopyItem extends BaseModel {
 	public static final int EXIT_ALL_COPY_SUCCESS = 1;
 	public static final int EXIT_NO_COPY_AND_DST_WIN = 2;
 	
+	@NotNull
 	private Integer descriptionId;
 	
+	@NotEmpty
 	private String source;
+	
+	@NotEmpty
+	private String dstRelative;
+	
+	private String dstCalced;
 	
 	/**
 	 * default is *.* include file dosn't has an extension.
@@ -127,5 +138,22 @@ public class RobocopyItem extends BaseModel {
 
 	public void setDescriptionId(Integer descriptionId) {
 		this.descriptionId = descriptionId;
+	}
+
+	public String getDstRelative() {
+		return dstRelative;
+	}
+
+	public void setDstRelative(String dstRelative) {
+		this.dstRelative = dstRelative;
+	}
+
+	@Transient
+	public String getDstCalced() {
+		return dstCalced;
+	}
+
+	public void setDstCalced(String dstCalced) {
+		this.dstCalced = dstCalced;
 	}
 }

@@ -39,6 +39,16 @@ public class RobocopyDescription extends BaseModel {
 		return repo;
 	}
 	
+	public String appendToRepo(String relative) {
+		String repoSlash = getRepo().replace('\\', '/');
+		String relativeSlash = relative.replace('\\', '/');
+		
+		if (!repoSlash.endsWith("/") && !relative.startsWith("/")) {
+			return repoSlash + '/' + relativeSlash;
+		} else {
+			return repoSlash + relativeSlash;
+		}
+	}
 
 
 	public String getInvokeCron() {

@@ -10,6 +10,8 @@ import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
+import com.go2wheel.mysqlbackup.model.RobocopyDescription;
+import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Software;
@@ -20,6 +22,8 @@ import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.SoftwareDbService;
@@ -53,6 +57,13 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	@Autowired
 	private PlayBackDbService playBackDbService;
+	
+	@Autowired
+	private RobocopyDescriptionDbService robocopyDescriptionDbService;
+	
+	@Autowired
+	private RobocopyItemDbService robocopyItemDbService;
+
 	
 	@Autowired
 	private SoftwareDbService softwareDbService;
@@ -91,6 +102,10 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) softwareDbService.findById(source);
 			} else if (modelType == PlayBack.class) {
 				return (T) playBackDbService.findById(source);
+			} else if (modelType == RobocopyDescription.class) {
+				return (T) robocopyDescriptionDbService.findById(source);
+			} else if (modelType == RobocopyItem.class) {
+				return (T) robocopyItemDbService.findById(source);
 			} else {
 				return (T) null;
 			}
