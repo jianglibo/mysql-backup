@@ -6,6 +6,8 @@ CREATE TABLE robocopy_description
   invoke_cron VARCHAR(128),
   local_backup_cron VARCHAR(128),
   prune_strategy VARCHAR(128),
+  compress_command VARCHAR(256),
+  expand_command VARCHAR(256),
   created_at TIMESTAMP(2),
   CONSTRAINT fk_robo_description_server FOREIGN KEY (server_id)  REFERENCES server (id),
   CONSTRAINT unique_robo_description_server_id UNIQUE (server_id)

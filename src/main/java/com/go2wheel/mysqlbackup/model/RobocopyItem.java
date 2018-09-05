@@ -7,7 +7,6 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 
@@ -123,6 +122,13 @@ public class RobocopyItem extends BaseModel {
 		super();
 	}
 	
+	public RobocopyItem(Integer descriptionId, String source, String dstRelative) {
+		super();
+		this.descriptionId = descriptionId;
+		this.source = source;
+		this.dstRelative = dstRelative;
+	}
+	
 	@Override
 	public String toString() {
 		return YamlInstance.INSTANCE.yaml.dumpAsMap(this);
@@ -173,7 +179,7 @@ public class RobocopyItem extends BaseModel {
 	}
 	
 	public List<String> getCopyOptionsNullSafe() {
-		return copyOptions != null ? copyOptions : new ArrayList<>();
+		return copyOptions != null && copyOptions.size() > 0 ? copyOptions : Lists.newArrayList("/e");
 	}
 
 	public List<String> getFileSelectionOptionsNullSafe() {

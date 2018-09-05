@@ -2,15 +2,9 @@ package com.go2wheel.mysqlbackup.robocopy;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -20,10 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.RobocopyService;
-import com.go2wheel.mysqlbackup.borg.RobocopyService.RobocopyResult;
+import com.go2wheel.mysqlbackup.borg.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.util.ProcessExecUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
@@ -65,7 +58,7 @@ public class TestRoboCopyExitValue extends SpringBaseFort {
 		creates();
 		Path dst = tfolder.getRoot().toPath();
 		String cmd = String.format("Robocopy.exe %s;$LASTEXITCODE", dst.toAbsolutePath().toString());
-		RobocopyResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
+		SSHPowershellInvokeResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
 		assertThat(rr.exitCode(), equalTo(16));
 	}
 	
@@ -78,7 +71,7 @@ public class TestRoboCopyExitValue extends SpringBaseFort {
 		Path src = createDemoSrc();
 		
 		String cmd = String.format("Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString());
-		RobocopyResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
+		SSHPowershellInvokeResult rr = robocopyService.invokeRoboCopyCommand(session, cmd);
 		assertThat(rr.exitCode(), equalTo(1));
 		rr = robocopyService.invokeRoboCopyCommand(session, cmd);
 		assertThat(rr.exitCode(), equalTo(0));
@@ -86,10 +79,8 @@ public class TestRoboCopyExitValue extends SpringBaseFort {
 	
 	@Test
 	public void tSshNoFile() throws IOException, InterruptedException, SchedulerException, JSchException {
-		clearDb();
-		createSessionLocalHostWindows();
+		creates();
 		Path dst = tfolder.getRoot().toPath();
-		deleteAllJobs();
 		// this command return only the lines of the files changed or created.
 //		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
 		Path src = createDemoSrc();

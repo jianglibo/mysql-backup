@@ -1,8 +1,10 @@
 package com.go2wheel.mysqlbackup.model;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
@@ -24,7 +26,14 @@ public class RobocopyDescription extends BaseModel {
 	@BackupPruneStrategyConstraint(allowEmpty=true)
 	private String pruneStrategy = ROBO_LOCAL_BACKUP_PRUNE_STRATEGY;
 	
+	@NotNull
 	private Integer serverId;
+	
+	private String compressCommand;
+	
+	private String expandCommand;
+	
+	private List<RobocopyItem> robocopyItems;
 	
 	public RobocopyDescription() {
 		super();
@@ -39,28 +48,40 @@ public class RobocopyDescription extends BaseModel {
 		return repo;
 	}
 	
-	public String workingSpaceEndWithSlash() {
-		String repoSlash = getRepo().replace('\\', '/');
-		if (!repoSlash.endsWith("/")) {
-			repoSlash += "/";
+	public String getWorkingSpaceCompressed(String...subs) {
+		String[] ns = new String[subs.length + 1];
+		ns[0] = "compressed";
+		for(int i =0 ;i <subs.length;i++) {
+			ns[i+1] = subs[i];
 		}
-		return repoSlash + "workingspace/";
+		return abs("workingspace", ns);
 	}
 	
-	public String appendToRepo(String relative) {
-		String repoSlash = getRepo().replace('\\', '/');
-		String relativeSlash = relative.replace('\\', '/');
-		if (!repoSlash.endsWith("/")) {
-			repoSlash += "/";
-		}
-		
-		if (relativeSlash.startsWith("/")) {
-			relativeSlash = relativeSlash.substring(1);
-		}
-		
-		return repoSlash + "archive/" + relativeSlash;
+	public String getWorkingSpaceExpanded() {
+		return abs("workingspace", new String[] {"expanded"});
 	}
 
+	
+	public String getWorkingSpaceAbsolute(String...subs) {
+		return abs("workingspace", subs);
+	}
+	
+	public String getRobocopyDst(String...subs) {
+		return abs("robocopydst", subs);
+	}
+	
+	private String abs(String rootNameInRepo, String[] subs) {
+		String baseSlash = getRepo().replace('\\', '/');
+		if (!baseSlash.endsWith("/")) {
+			baseSlash += "/";
+		}
+		if (subs.length == 0) {
+			return baseSlash + rootNameInRepo;
+		} else {
+			return baseSlash + rootNameInRepo + "/" + String.join("/", subs);			
+		}
+
+	}
 
 	public String getInvokeCron() {
 		return invokeCron;
@@ -103,16 +124,41 @@ public class RobocopyDescription extends BaseModel {
 		this.pruneStrategy = pruneStrategy;
 	}
 
+	public List<RobocopyItem> getRobocopyItems() {
+		return robocopyItems;
+	}
+
+	public void setRobocopyItems(List<RobocopyItem> robocopyItems) {
+		this.robocopyItems = robocopyItems;
+	}
+
+	public String getCompressCommand() {
+		return compressCommand;
+	}
+
+	public void setCompressCommand(String compressCommand) {
+		this.compressCommand = compressCommand;
+	}
+
+	public String getExpandCommand() {
+		return expandCommand;
+	}
+
+	public void setExpandCommand(String expandCommand) {
+		this.expandCommand = expandCommand;
+	}
+
 	public static class RobocopyDescriptionBuilder {
 		private final Integer serverId;
-		private String repo;
+		private final String repo;
 		private String invokeCron;
 		private String localBackupCron;
 		
 		private String pruneStrategy = ROBO_LOCAL_BACKUP_PRUNE_STRATEGY;
 		
-		public RobocopyDescriptionBuilder(int serverId) {
+		public RobocopyDescriptionBuilder(int serverId, String repo) {
 			this.serverId = serverId;
+			this.repo = repo;
 		}
 		
 		public RobocopyDescriptionBuilder withInvokeCron(String invokeCron) {

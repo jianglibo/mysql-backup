@@ -60,6 +60,7 @@ myapp.storage_excludes[5]=/run/user/0
 myapp.storage_excludes[6]=/run/user/1000
 myapp.storage_excludes[7]=\u6302\u8F7D\u70B9
 myapp.cache.combo=0
+myapp.app.archive=C:/Program Files/WinRAR/Rar.exe
 
 using.spring.schedulerFactory=true
 expectit.echo=true

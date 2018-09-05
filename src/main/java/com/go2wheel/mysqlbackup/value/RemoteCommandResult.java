@@ -58,6 +58,10 @@ public class RemoteCommandResult {
 		return Stream.of(getStdOut(), getErrOut()).flatMap(str -> StringUtil.splitLines(str).stream()).filter(line -> StringUtil.hasAnyNonBlankWord(line)).collect(Collectors.toList());
 	}
 	
+	public List<String> getAllTrimedNotEmptyLinesErrorFirst() {
+		return Stream.of(getErrOut(), getStdOut()).flatMap(str -> StringUtil.splitLines(str).stream()).filter(line -> StringUtil.hasAnyNonBlankWord(line)).collect(Collectors.toList());
+	}
+	
 	@Override
 	public String toString() {
 		return ObjectUtil.dumpObjectAsMap(this);

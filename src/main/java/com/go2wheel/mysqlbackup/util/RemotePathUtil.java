@@ -47,6 +47,7 @@ public class RemotePathUtil {
 	}
 
 	public static String getFileName(String filename) {
+		filename = filename.replace('\\', '/');
 		if (filename.endsWith("/")) {
 			filename = filename.substring(0, filename.length() - 1);
 		}

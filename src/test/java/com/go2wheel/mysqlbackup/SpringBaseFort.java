@@ -43,6 +43,7 @@ import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackDbService;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
@@ -118,6 +119,9 @@ public class SpringBaseFort {
 	protected KeyValueDbService keyValueDbService;
 	
 	@Autowired
+	protected RobocopyDescriptionDbService robocopyDescriptionDbService;
+	
+	@Autowired
 	protected BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
@@ -189,6 +193,7 @@ public class SpringBaseFort {
 		subscribeDbService.deleteAll();
 		userAccountDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
+		robocopyDescriptionDbService.deleteAll();
 		serverDbService.deleteAll();
 		serverGrpDbService.deleteAll();
 	}

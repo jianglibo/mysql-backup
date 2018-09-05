@@ -388,19 +388,63 @@ public class RobocopyService {
 		return null;
 	}
 	
-	public RobocopyResult invokeRoboCopyCommand(Session session, String cmd) throws JSchException, IOException {
+	public SSHPowershellInvokeResult invokeRoboCopyCommand(Session session, String cmd) throws JSchException, IOException {
 		String command = cmd + ";$LASTEXITCODE";
-		return new RobocopyResult(SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", command));
+		return new SSHPowershellInvokeResult(SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", command));
+	}
+	
+	public SSHPowershellInvokeResult compressArchive(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, IOException {
+		String archiveSrc = robocopyDescription.getRobocopyDst();
+		
+		String dst = robocopyDescription.getWorkingSpaceCompressed(RemotePathUtil.getFileName(archiveSrc));
+		String cmd = String.format(robocopyDescription.getCompressCommand(), dst, archiveSrc);
+		if (!cmd.startsWith("&")) {
+			cmd = "& " + cmd;
+		}
+		cmd = cmd + ";$LASTEXITCODE";
+//		& 'C:/Program Files/WinRAR/Rar.exe' a C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/workingspace/compressed C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/robocopydst;$LASTEXITCODE
+		return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
+	}
+	
+	public SSHPowershellInvokeResult expandArchive(Session session, Server server, RobocopyDescription robocopyDescription, String archive, String expandDst) throws JSchException, IOException {
+		archive = archive.replace('\\', '/');
+		expandDst = expandDst.replace('\\', '/');
+		if (!expandDst.endsWith("/")) {
+			expandDst += "/";
+		}
+		// expandDst must have directory trail. / or \.
+		String cmd = String.format(robocopyDescription.getExpandCommand(), archive, expandDst);
+		if (!cmd.startsWith("&")) {
+			cmd = "& " + cmd;
+		}
+		cmd = cmd + ";$LASTEXITCODE";
+		return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
+		
+//		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
 	}
 
+	
+
+	/**
+	 * repo stores robocopied folders. workingspace has two subdirectories, compressed for ziped file, expanded for extracted files.
+	 * 
+	 * @param session
+	 * @param server
+	 * @param robocopyDescription
+	 * @param items
+	 * @return
+	 * @throws CommandNotFoundException
+	 * @throws JSchException
+	 * @throws IOException
+	 */
 	@Exclusive(TaskLocks.TASK_FILEBACKUP)
-	public FacadeResult<List<RobocopyResult>> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
+	public FacadeResult<List<SSHPowershellInvokeResult>> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
 		
 			items.stream().forEach(it -> {
-				it.setDstCalced(robocopyDescription.appendToRepo(it.getDstRelative()));
+				it.setDstCalced(robocopyDescription.getRobocopyDst(it.getDstRelative()));
 			});
 			
-			List<RobocopyResult> results = Lists.newArrayList();
+			List<SSHPowershellInvokeResult> results = Lists.newArrayList();
 			
 			for(RobocopyItem item : items) {
 				StringBuffer sb = new StringBuffer("Robocopy.exe");
@@ -431,9 +475,11 @@ public class RobocopyService {
 					sb.append(' ').append(item.getLoggingOptionsNullSafe().stream().collect(joining(" ")));							
 				}
 				
-				sb.append(' ').append("|ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}\", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString())");
-				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
-				results.add(new RobocopyResult(rcr));
+				SSHPowershellInvokeResult rr = invokeRoboCopyCommand(session, sb.toString());
+				
+//				sb.append(' ').append("|ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}\", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString())");
+//				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
+				results.add(rr);
 			}
 			return FacadeResult.doneExpectedResultDone(results);
 	}
@@ -477,21 +523,23 @@ public class RobocopyService {
 		}
 	}
 	
-	public static class RobocopyResult {
+	public static class SSHPowershellInvokeResult {
 		
 		private final RemoteCommandResult rcr;
 		private final List<String> outLines;
 		
 		private final String lastLine;
-		public static RobocopyResult of(RemoteCommandResult rcr) {
-			return new RobocopyResult(rcr);
+		public static SSHPowershellInvokeResult of(RemoteCommandResult rcr) {
+			return new SSHPowershellInvokeResult(rcr);
 		}
 		
-		private RobocopyResult(RemoteCommandResult rcr) {
+		private SSHPowershellInvokeResult(RemoteCommandResult rcr) {
 			this.rcr = rcr;
-			int sz = rcr.getAllTrimedNotEmptyLines().size();
-			outLines = rcr.getAllTrimedNotEmptyLines().stream().limit(sz - 1).collect(toList());
-			lastLine = rcr.getAllTrimedNotEmptyLines().get(sz - 1);
+			List<String> all = rcr.getAllTrimedNotEmptyLinesErrorFirst();
+			int sz = all.size();
+			
+			outLines = all.stream().limit(sz - 1).collect(toList());
+			lastLine = all.get(sz - 1);
 		}
 		
 		/**

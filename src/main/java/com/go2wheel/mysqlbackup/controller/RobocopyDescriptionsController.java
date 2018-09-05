@@ -107,7 +107,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		
 		globalStore.saveFuture(sid, sf);
 		
-		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会�?�知您�??");
+		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会�?�知您�??");
 		return redirectMappingUrl();
 	}
 	
@@ -122,7 +122,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 //			FacadeResult<RemoteCommandResult> fr = borgService.initRepo(session, server.getRobocopyDescription().getRepo());
 //			if (!fr.isExpected()) {
 //				if (CommonMessageKeys.OBJECT_ALREADY_EXISTS.equals(fr.getMessage())) {
-//					ras.addFlashAttribute("warnMessage", "仓库之前已经初始化了�?");
+//					ras.addFlashAttribute("warnMessage", "仓库之前已经初始化了�?");
 //					return redirectMappingUrl();
 //				} else {
 //					RemoteCommandResult rcr = fr.getResult();
@@ -137,7 +137,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 //				session.disconnect();
 //			}
 //		}
-//		ras.addFlashAttribute("successMessage", "仓库初始化完毕�??");
+//		ras.addFlashAttribute("successMessage", "仓库初始化完毕�??");
 //		return redirectMappingUrl();
 //	}
 
@@ -145,7 +145,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	public String postBackupLocalRepo(@PathVariable(name = "RobocopyDescription") RobocopyDescription RobocopyDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException {
 		Server server = serverDbService.findById(RobocopyDescription.getServerId());
 		borgService.backupLocalRepos(server);
-		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会�?�知您�??");
+		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会�?�知您�??");
 		return redirectMappingUrl();
 	}
 	
@@ -156,7 +156,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 
 	@Override
 	public RobocopyDescription newModel() {
-		return new RobocopyDescription.RobocopyDescriptionBuilder(0).build();
+		return new RobocopyDescription.RobocopyDescriptionBuilder(0, "").build();
 	}
 
 	@Override
