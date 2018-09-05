@@ -8,11 +8,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -57,6 +59,18 @@ public class UtilForTe {
 			jks.addAll(scheduler.getJobKeys(groupEquals(groupName)));
 		}
 		return jks;
+	}
+	
+	public static String getMyAppSetting(String key) throws IOException {
+		try (InputStream is = ClassLoader.class.getResourceAsStream("/application-dev.properties")) {
+			String s= StringUtil.inputstreamToString(is);
+			List<String> lines = StringUtil.splitLines(s);
+			Optional<String>  line = lines.stream().filter(it -> it.startsWith(key + "=")).findFirst();
+			if (line.isPresent()) {
+				return line.get().split("=", 2)[1].trim();
+			}
+		}
+		return null;
 	}
 	
 	public static MyAppSettings getMyAppSettings() throws IOException {

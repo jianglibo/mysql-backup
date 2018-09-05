@@ -17,12 +17,16 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
+import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
+import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -34,7 +38,6 @@ import com.go2wheel.mysqlbackup.model.PlayBackResult;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -45,14 +48,12 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
-import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.FileInAdirectory;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
-import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -63,22 +64,11 @@ public class RobocopyService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-	public static final String NO_INCLUDES = "borg.archive.noincludes";
-
-	public static final String UNKNOWN = "borg.archive.unknown";
-
-	public static final String REPO_NON_INIT = "borg.repo.noinit";
-	public static final String BORG_DOWNLOAD_TASK_KEY = "taskkey.borg.download";
-	public static final String BORG_RESTORE_TASK_KEY = "taskkey.borg.restore";
-
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
 	private ServerDbService serverDbService;
-
-	@Autowired
-	private BorgDownloadDbService borgDownloadDbService;
 
 	@Autowired
 	private PlayBackResultDbService playBackResultDbService;
@@ -146,6 +136,67 @@ public class RobocopyService {
 			return StringUtil.formatSize(size, 2);
 		}
 	}
+	
+	@EventListener
+	public void whenRobocopyDescriptionCreate(ModelCreatedEvent<RobocopyDescription> rde) throws IOException {
+		String rdst = rde.getModel().getRobocopyDst();
+		Path p = Paths.get(rdst);
+		if (!Files.exists(p)) {
+			Files.createDirectories(p);
+		}
+		
+		String working = rde.getModel().getWorkingSpaceCompressed();
+		p = Paths.get(working);
+		if (!Files.exists(p)) {
+			Files.createDirectories(p);
+		}
+		
+		working = rde.getModel().getWorkingSpaceExpanded();
+		p = Paths.get(working);
+		if (!Files.exists(p)) {
+			Files.createDirectories(p);
+		}
+	}
+	
+	@EventListener
+	public void whenRobocopyDescriptionChange(ModelChangedEvent<RobocopyDescription> rde) throws IOException {
+		String rdst = rde.getBefore().getRobocopyDst();
+		String rdst1 = rde.getAfter().getRobocopyDst();
+		Path p;
+		if (!rdst.equals(rdst1)) {
+			p = Paths.get(rdst1);
+			if (!Files.exists(p)) {
+				Files.createDirectories(p);
+			}
+		}
+		
+		String working = rde.getBefore().getWorkingSpaceCompressed();
+		String working1 = rde.getAfter().getWorkingSpaceCompressed();
+		
+		if (!working.equals(working1)) {
+			p = Paths.get(working1);
+			if (!Files.exists(p)) {
+				Files.createDirectories(p);
+			}
+		}
+		
+		working = rde.getBefore().getWorkingSpaceExpanded();
+		working1 = rde.getAfter().getWorkingSpaceExpanded();
+		
+		if (!working.equals(working1)) {
+			p = Paths.get(working1);
+			if (!Files.exists(p)) {
+				Files.createDirectories(p);
+			}
+		}
+		
+	}
+
+	@EventListener
+	public void whenRobocopyDescriptionDelete(ModelDeletedEvent<RobocopyDescription> rde) {
+		
+	}
+
 
 	public FacadeResult<RemoteCommandResult> initRepo(Session session, String repoPath)
 			throws CommandNotFoundException, JSchException, IOException {
@@ -236,7 +287,7 @@ public class RobocopyService {
 				BorgDownload bd = fr.getResult();
 				bd.setTimeCost(fr.getEndTime() - fr.getStartTime());
 				bd.setServerId(server.getId());
-				bd = borgDownloadDbService.save(bd);
+//				bd = borgDownloadDbService.save(bd);
 				fr.setResult(bd);
 				return new AsyncTaskValue(id, fr);
 			} catch (JSchException | NoSuchAlgorithmException e1) {
@@ -394,9 +445,9 @@ public class RobocopyService {
 	}
 	
 	public SSHPowershellInvokeResult compressArchive(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, IOException {
-		String archiveSrc = robocopyDescription.getRobocopyDst();
+		String archiveSrc = robocopyDescription.getRobocopyDst().replace('\\', '/');
 		
-		String dst = robocopyDescription.getWorkingSpaceCompressed(RemotePathUtil.getFileName(archiveSrc));
+		String dst = robocopyDescription.getWorkingSpaceCompressed(RemotePathUtil.getFileName(archiveSrc)).replace('\\', '/');
 		String cmd = String.format(robocopyDescription.getCompressCommand(), dst, archiveSrc);
 		if (!cmd.startsWith("&")) {
 			cmd = "& " + cmd;
@@ -484,44 +535,6 @@ public class RobocopyService {
 			return FacadeResult.doneExpectedResultDone(results);
 	}
 
-	public FacadeResult<BorgListResult> listArchives(Session session, Server server) throws CommandNotFoundException, JSchException, IOException {
-		return listArchives(session, server.getBorgDescription().getRepo());
-	}
-	
-	
-	public FacadeResult<BorgListResult> listArchives(Session session, String repo) throws CommandNotFoundException, JSchException, IOException {
-		try {
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg list %s", repo));
-			rcr.isCommandNotFound();
-			return FacadeResult.doneExpectedResult(new BorgListResult(rcr), CommonActionResult.DONE);
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
-	
-//	borg info /path/to/repo::2017-06-29T11:00-srv
-	public FacadeResult<List<String>> archiveInfo(Session session, Server server, String archive) throws JSchException, IOException {
-		try {
-			BorgDescription bd = server.getBorgDescription();
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("borg info %s::%s", bd.getRepo(), archive));
-			return FacadeResult.doneExpectedResult(rcr.getAllTrimedNotEmptyLines(), CommonActionResult.DONE);
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
-
-	public FacadeResult<RemoteCommandResult> listRepoFiles(Session session, Server server) throws JSchException, IOException {
-		try {
-			BorgDescription bd = server.getBorgDescription();
-			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lR %s", bd.getRepo()));
-			return FacadeResult.doneExpectedResult(rcr, CommonActionResult.DONE);
-		} catch (RunRemoteCommandException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
-		}
-	}
 	
 	public static class SSHPowershellInvokeResult {
 		
@@ -561,57 +574,5 @@ public class RobocopyService {
 		public String getLastLine() {
 			return lastLine;
 		}
-	}
-	
-//	//@formatter:on
-	//
-	// /**
-	// *
-	// borg产生的卷是有时间顺序的，每个卷都有一个名称，�??以可以恢复到各个时间点�?�prune之后，比如剩�??7个天备份�??4个月备份，那么恢复的粒度就不是每天了�??
-	// *
-	// * @param session
-	// * @param server
-	// * @return
-	// * @throws CommandNotFoundException
-	// * @throws IOException
-	// * @throws JSchException
-	// */
-	// public FacadeResult<?> archive(Session session, Server server) throws
-	// CommandNotFoundException, JSchException, IOException {
-	// BorgDescription bd = server.getBorgDescription();
-	// return archive(session, server, bd.getArchiveNamePrefix(), false);
-	// }
-	//
-	// public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
-	// final Path localRepo = settingsInDb.getBorgRepoDir(server);
-	// FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups",
-	// 999999), true);
-	// return FacadeResult.doneExpectedResult();
-	// }
-	//
-	// public FacadeResult<RemoteCommandResult> archive(Session session, Server
-	// server, boolean solveProblems) throws CommandNotFoundException,
-	// JSchException, IOException {
-	// BorgDescription bd = server.getBorgDescription();
-	// return archive(session, server, bd.getArchiveNamePrefix(), solveProblems);
-	// }
-
-	public FacadeResult<List<LinuxLsl>> extract(Session sessionTarget, Server serverSource, Server serverTarget,
-			/* String sourceRepo, */ String archive, String extractFolder)
-			throws RunRemoteCommandException, JSchException, IOException {
-		String sourceRepo = serverSource.getBorgDescription().getRepo();
-		if (!sourceRepo.endsWith("/")) {
-			sourceRepo = sourceRepo + "/";
-		}
-		if (!archive.startsWith("::")) {
-			archive = "::" + archive;
-		}
-		SSHcommonUtil.deleteRemoteFolder(sessionTarget, extractFolder);
-		SSHcommonUtil.mkdirsp(sessionTarget, extractFolder);
-		String cmd = String.format("cd %s;borg extract %s%s", extractFolder, sourceRepo, archive);
-		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(sessionTarget, cmd);
-		List<String> includes = serverSource.getBorgDescription().getIncludes();
-		List<LinuxLsl> extracted = SSHcommonUtil.listRemoteFiles(sessionTarget, extractFolder);
-		return FacadeResult.doneExpectedResult(extracted, CommonActionResult.DONE);
 	}
 }

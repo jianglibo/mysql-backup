@@ -70,6 +70,12 @@ public class RobocopyDescription extends BaseModel {
 		return abs("robocopydst", subs);
 	}
 	
+	public String getRobocopyDstNoRoot(String...subs) {
+		String s =  abs("robocopydst", subs);
+		int i = s.indexOf('/');
+		return s.substring(i + 1);
+	}
+	
 	private String abs(String rootNameInRepo, String[] subs) {
 		String baseSlash = getRepo().replace('\\', '/');
 		if (!baseSlash.endsWith("/")) {

@@ -53,9 +53,7 @@ public class TestFullbackup extends SpringBaseFort {
 		rd.setCompressCommand(compress);
 		String expand = String.format("& '%s' x -o+ %%s %%s", zipApp);
 		rd.setExpandCommand(expand);
-		
 		//	& "C:\Program Files\WinRAR\Rar.exe" x -o+ upload  .\\upload ALWAYS TREAT extract destination as a folder.
-		
 		// -ms
 		
 //        If <list> is not specified, -ms switch will use the default
@@ -63,7 +61,6 @@ public class TestFullbackup extends SpringBaseFort {
 //
 //        7z, ace, arj, bz2, cab, gz, jpeg, jpg, lha, lz, lzh, mp3,
 //        rar, taz, tgz, xz, z, zip, zipx
-		
 		RobocopyItem ri = new RobocopyItem(0, srcfolder.getRoot().toPath().toAbsolutePath().toString(), "abc");
 		rd.setRobocopyItems(Lists.newArrayList(ri));
 		return rd;
@@ -108,7 +105,10 @@ public class TestFullbackup extends SpringBaseFort {
 		sshpir = robocopyService.expandArchive(session, server, rd, zipPath.toAbsolutePath().toString(), extractPath.toAbsolutePath().toString());
 		assertThat(sshpir.exitCode(), equalTo(0));
 		
-		afile = extractPath.resolve("robocopydst").resolve("a").resolve("afile.txt");
+		String rp = rd.getRobocopyDstNoRoot();
+		
+		// abc folder is one robocopyitem's dst.
+		afile = extractPath.resolve(rp).resolve("abc").resolve("a").resolve("afile.txt");
 		
 		assertTrue(Files.exists(afile));
 	}
