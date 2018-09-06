@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 
 import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
@@ -33,6 +34,13 @@ public class RobocopyDescription extends BaseModel {
 	
 	private String expandCommand;
 	
+	private boolean alwaysFullBackup;
+	
+
+	@NotEmpty
+	@Pattern(regexp=".*\\.\\w{3}")
+	private String archiveName;
+	
 	private List<RobocopyItem> robocopyItems;
 	
 	public RobocopyDescription() {
@@ -57,6 +65,10 @@ public class RobocopyDescription extends BaseModel {
 		return abs("workingspace", ns);
 	}
 	
+	public String getWorkingSpaceCompressedArchive() {
+		return getWorkingSpaceCompressed(getArchiveName());
+	}
+	
 	public String getWorkingSpaceExpanded() {
 		return abs("workingspace", new String[] {"expanded"});
 	}
@@ -66,9 +78,14 @@ public class RobocopyDescription extends BaseModel {
 		return abs("workingspace", subs);
 	}
 	
-	public String getRobocopyDst(String...subs) {
-		return abs("robocopydst", subs);
+	public String getRobocopyDst() {
+		return abs("robocopydst", new String[] {});
 	}
+	
+	public String getRobocopyItemDst(String itemName) {
+		return abs("robocopydst", new String[] {itemName});
+	}
+
 	
 	public String getRobocopyDstNoRoot(String...subs) {
 		String s =  abs("robocopydst", subs);
@@ -89,6 +106,9 @@ public class RobocopyDescription extends BaseModel {
 
 	}
 
+	public boolean isAlwaysFullBackup() {
+		return alwaysFullBackup;
+	}
 	public String getInvokeCron() {
 		return invokeCron;
 	}
@@ -152,6 +172,20 @@ public class RobocopyDescription extends BaseModel {
 
 	public void setExpandCommand(String expandCommand) {
 		this.expandCommand = expandCommand;
+	}
+
+	public String getArchiveName() {
+		return archiveName;
+	}
+
+	public void setArchiveName(String archiveName) {
+		this.archiveName = archiveName;
+	}
+
+
+
+	public void setAlwaysFullBackup(boolean alwaysFullBackup) {
+		this.alwaysFullBackup = alwaysFullBackup;
 	}
 
 	public static class RobocopyDescriptionBuilder {

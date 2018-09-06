@@ -60,7 +60,7 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		borgDownloadDbService.count();
 		assertThat(borgDownloadDbService.count(), equalTo(3L));
 		
-		Path repop = settingsIndb.getBorgRepoDir(server);
+		Path repop = settingsIndb.getRepoDir(server);
 		assertThat(repop.getFileName().toString(), equalTo("repo"));
 		
 		long c = Files.list(repop.getParent()).count();

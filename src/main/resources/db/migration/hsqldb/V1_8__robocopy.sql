@@ -8,6 +8,8 @@ CREATE TABLE robocopy_description
   prune_strategy VARCHAR(128),
   compress_command VARCHAR(256),
   expand_command VARCHAR(256),
+  archive_name VARCHAR(128),
+  always_full_backup BOOLEAN NOT NULL,
   created_at TIMESTAMP(2),
   CONSTRAINT fk_robo_description_server FOREIGN KEY (server_id)  REFERENCES server (id),
   CONSTRAINT unique_robo_description_server_id UNIQUE (server_id)

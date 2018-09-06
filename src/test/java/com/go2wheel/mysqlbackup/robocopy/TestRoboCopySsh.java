@@ -7,7 +7,6 @@ import static org.junit.Assert.assertTrue;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -20,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.util.ProcessExecUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
@@ -54,27 +52,6 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		return rt;
 	}
 	
-	@Test
-	public void tLocal() throws IOException, InterruptedException {
-		Path dst = tfolder.getRoot().toPath();
-		
-		Path src = createDemoSrc();
-		ProcessExecResult per = peu.run(Arrays.asList("robocopy.exe", src.toString(), dst.toString(),"/unicode", "/e", "/xd", "log", "log1"));
-		assertThat(per.getExitValue(), equalTo(1)); // all files were copied.
-		assertTrue(per.getStdError().size() == 0);
-		per.getStdOut().stream()
-//		.map(line -> {
-//			try {
-//				byte[] bytes = line.getBytes();
-//				return new String(bytes, "GBK");
-//			} catch (UnsupportedEncodingException e) {
-//				e.printStackTrace();
-//				return "";
-//			}
-//		})
-		.forEach(System.out::println);
-	}
-	
 	//Set-Location C:\db\;Get-ChildItem -Recurse |Resolve-Path -Relative
 	
 	//Get-ChildItem c:\db -Recurse |Select-Object FullName | 
@@ -91,9 +68,8 @@ public class TestRoboCopySsh extends SpringBaseFort {
 	
 	
 	@Test
-	public void tRunArrayBegin() throws JSchException, IOException {
-		clearDb();
-		createSessionLocalHostWindows();
+	public void tRunArrayBegin() throws JSchException, IOException, SchedulerException {
+		createSessionLocalHostWindowsAfterClear();
 		String cmd = "'a', 'b' | write-host";
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, null, cmd);
 		assertThat(rcr.getAllTrimedNotEmptyLines().size(), equalTo(2));
@@ -114,10 +90,8 @@ public class TestRoboCopySsh extends SpringBaseFort {
 	
 	@Test
 	public void tSsh() throws IOException, InterruptedException, SchedulerException, JSchException {
-		clearDb();
-		createSessionLocalHostWindows();
+		createSessionLocalHostWindowsAfterClear();
 		Path dst = tfolder.getRoot().toPath();
-		deleteAllJobs();
 		// this command return only the lines of the files changed or created.
 //		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
 		Path src = createDemoSrc();
@@ -128,27 +102,13 @@ public class TestRoboCopySsh extends SpringBaseFort {
 		assertTrue(Files.exists(afile));
 	}
 	
-	@Test
-	public void tExitCode() throws JSchException, SchedulerException, IOException {
-		clearDb();
-		createSessionLocalHostWindows();
-		Path dst = tfolder.getRoot().toPath();
-		deleteAllJobs();
-		String cmd = String.format("Robocopy1.exe %s", dst.toAbsolutePath().toString());
-		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", cmd);
-		assertThat(rcr.getExitValue(), equalTo(0));
-	}
-	
 	
 	@Test
 	public void tSshHasChineseFileName() throws IOException, InterruptedException, SchedulerException, JSchException {
-		clearDb();
-		createSessionLocalHostWindows();
+		createSessionLocalHostWindowsAfterClear();
 		Path dst = tfolder.getRoot().toPath();
-		deleteAllJobs();
 		// this command return only the lines of the files changed or created.
 //		Robocopy.exe %s %s /xd log log1 /e /bytes /fp /njh /njs |ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\$'} | Where-Object {($_ -split  '\s+').length -gt 2}
-		
 		Path src = srcfolder.getRoot().toPath();
 		createALocalFile(src.resolve("中文目录/afile.txt"), "abc");
 		

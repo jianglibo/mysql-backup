@@ -60,7 +60,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	public static final String TASK_KEY = "taskkey.installmysql";
+//	public static final String TASK_KEY = "taskkey.installmysql";
 
 	private static final String MYSQL_COMMUNITY_RELEASE_BINARY_URL = "https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm";
 
@@ -336,6 +336,11 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
+	}
+
+	@Override
+	public String getDescriptionMessageKey() {
+		return "taskkey.installmysql";
 	}
 
 }

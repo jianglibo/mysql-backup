@@ -396,6 +396,12 @@ public class SpringBaseFort {
 		}
 		
 	}
+	
+	protected void createSessionLocalHostWindowsAfterClear() throws JSchException, SchedulerException {
+		clearDb();
+		createSessionLocalHostWindows();
+		deleteAllJobs();
+	}
 }
 
 

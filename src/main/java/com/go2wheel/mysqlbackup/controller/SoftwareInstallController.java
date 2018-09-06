@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -25,7 +24,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.installer.Installer;
-import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -82,11 +80,11 @@ public class SoftwareInstallController extends ControllerBase {
 	public String unInstall(@RequestParam Server server,
 			@RequestParam Software software, HttpServletRequest request) {
 		
-		String msgkey = getI18nedMessage(MySqlInstaller.TASK_KEY, server.getHost());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
+				String msgkey = getI18nedMessage(il.getDescriptionMessageKey(), server.getHost());
 				CompletableFuture<AsyncTaskValue> cf = il.uninstallAsync(server, software, msgkey, aid);
 				String sid = request.getSession(true).getId();
 				SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
@@ -109,12 +107,12 @@ public class SoftwareInstallController extends ControllerBase {
 		Map<String, String> parameters = parameterMap.entrySet().stream().filter(es -> es.getValue().length > 0)
 				.collect(Collectors.toMap(es -> es.getKey(), es -> es.getValue()[0]));
 		
-		String msgkey = getI18nedMessage(MySqlInstaller.TASK_KEY, server.getHost());
 		
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		
 		for(Installer<?> il: installers) {
 			if(il.canHandle(software)) {
+				String msgkey = getI18nedMessage(il.getDescriptionMessageKey(), server.getHost());
 				SSHcommonUtil.echo(sshSessionFactory, server);
 				CompletableFuture<AsyncTaskValue> cf = il.installAsync(server, software, msgkey, aid, parameters);
 				String sid = request.getSession(true).getId();

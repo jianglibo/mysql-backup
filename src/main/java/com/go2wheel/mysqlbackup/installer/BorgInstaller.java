@@ -168,4 +168,9 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 		});
 	}
 
+	@Override
+	public String getDescriptionMessageKey() {
+		return "taskkey.installborg";
+	}
+
 }

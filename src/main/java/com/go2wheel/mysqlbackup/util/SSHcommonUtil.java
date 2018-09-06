@@ -228,6 +228,12 @@ public class SSHcommonUtil {
     
 	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile, int postfix)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
+		String remoteMd5 = getRemoteFileMd5(session, rfile);
+		return downloadWithTmpDownloadingFile(session, rfile, remoteMd5, lfile, postfix);
+	}
+	
+	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, String remoteMd5, Path lfile, int postfix)
+			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
 			Files.createDirectories(localDir);
@@ -235,9 +241,6 @@ public class SSHcommonUtil {
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
 		
 		ScpUtil.from(session, rfile, localTmpFile.toString());
-		
-		String remoteMd5 = getRemoteFileMd5(session, rfile);
-		
 		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
 		
 		if (remoteMd5.equalsIgnoreCase(localMd5)) {
@@ -255,6 +258,11 @@ public class SSHcommonUtil {
 	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		return downloadWithTmpDownloadingFile(session, rfile, lfile, -1);
+	}
+	
+	public static Path downloadWithTmpDownloadingFile(Session session, String rfile,String remoteMd5, Path lfile)
+			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
+		return downloadWithTmpDownloadingFile(session, rfile, remoteMd5, lfile, -1);
 	}
 	
 	public static boolean copy(Session session, Path local, String remote) throws RunRemoteCommandException, JSchException, IOException {

@@ -67,6 +67,10 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		entityFromDb.setLocalBackupCron(entityFromForm.getLocalBackupCron());
 		entityFromDb.setPruneStrategy(entityFromForm.getPruneStrategy());
 		entityFromDb.setRepo(entityFromForm.getRepo());
+		entityFromDb.setAlwaysFullBackup(entityFromForm.isAlwaysFullBackup());
+		entityFromDb.setArchiveName(entityFromForm.getArchiveName());
+		entityFromDb.setCompressCommand(entityFromForm.getCompressCommand());
+		entityFromDb.setExpandCommand(entityFromForm.getExpandCommand());
 		return true;
 	}
 	

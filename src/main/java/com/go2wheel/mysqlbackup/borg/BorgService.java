@@ -94,7 +94,7 @@ public class BorgService {
 	 * @throws IOException
 	 */
 	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
-		Path lrp = settingsInDb.getBorgRepoDir(sourceServer);
+		Path lrp = settingsInDb.getRepoDir(sourceServer);
 		List<Path> pathes = Lists.newArrayList();
 		pathes = Files.list(lrp.getParent()).collect(Collectors.toList());
 		Collections.sort(pathes, (o1, o2) -> {
@@ -268,7 +268,7 @@ public class BorgService {
 			fid.setMd5s(md5s);
 
 			final Path rRepo = Paths.get(bd.getRepo());
-			final Path localRepo = settingsInDb.getBorgRepoDir(server);
+			final Path localRepo = settingsInDb.getRepoDir(server);
 
 			List<FileToCopyInfo> fis = fid.getFiles().stream().map(fi -> {
 				fi.setLfileAbs(localRepo.resolve(rRepo.relativize(Paths.get(fi.getRfileAbs()))));
@@ -382,7 +382,7 @@ public class BorgService {
 		BorgDescription bd = serverSource.getBorgDescription();
 		String serverRepo = bd.getRepo();
 		SSHcommonUtil.mkdirsp(sessiontarget, serverRepo);
-		Path local = settingsInDb.getBorgRepoDir(serverSource).getParent().resolve(localRepo);
+		Path local = settingsInDb.getRepoDir(serverSource).getParent().resolve(localRepo);
 		SSHcommonUtil.copyFolder(sessiontarget, local, serverRepo);
 		return null;
 	}
@@ -488,7 +488,7 @@ public class BorgService {
 	}
 	
 	public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
-		final Path localRepo = settingsInDb.getBorgRepoDir(server);
+		final Path localRepo = settingsInDb.getRepoDir(server);
 		FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups", 999999), true);
 		return FacadeResult.doneExpectedResult();
 	}

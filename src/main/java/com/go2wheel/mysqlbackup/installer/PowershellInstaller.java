@@ -137,4 +137,9 @@ public class PowershellInstaller extends InstallerBase<InstallInfo> {
 			}
 		});
 	}
+
+	@Override
+	public String getDescriptionMessageKey() {
+		return "taskkey.installpowershell";
+	}
 }

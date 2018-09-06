@@ -20,5 +20,7 @@ public interface Installer<I extends InstallInfo> {
 	
 	boolean canHandle(Software software);
 	
+	String getDescriptionMessageKey();
+	
 	void syncToDb();
 }
