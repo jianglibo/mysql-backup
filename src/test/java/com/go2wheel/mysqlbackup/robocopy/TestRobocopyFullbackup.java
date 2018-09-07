@@ -17,7 +17,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -82,8 +81,10 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		RobocopyDescription robocopyDescription = grpd();
 		
 		String json = objectMapper.writeValueAsString(robocopyDescription);
-		
-		json = StringUtil.quotation(json, false);
+//		KeyValue kv = new KeyValue("json", json);
+//		
+//		json = objectMapper.writeValueAsString(kv);
+		json = StringUtil.espacePowershellString(json);
 		
 		String[] names = applicationContext.getBeanNamesForType(ObjectMapper.class);
 		assertThat(names.length, equalTo(1));

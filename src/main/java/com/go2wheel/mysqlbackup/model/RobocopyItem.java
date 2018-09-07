@@ -50,6 +50,10 @@ public class RobocopyItem extends BaseModel {
 		return source;
 	}
 
+	public String getSourceSlash() {
+		return source.replace('\\', '/');
+	}
+	
 	public void setSource(String source) {
 		this.source = source;
 	}

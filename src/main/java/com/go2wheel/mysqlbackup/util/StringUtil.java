@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import org.quartz.JobKey;
 import org.quartz.TriggerKey;
 
+import com.fasterxml.jackson.databind.deser.DataFormatReaders.Match;
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
@@ -58,12 +59,29 @@ public class StringUtil {
 		return Arrays.asList(str.split("\\R+"));
 	}
 	
+	public static String espacePowershellString(String origin) {
+		char q = '"';
+		return q + origin.replaceAll("\"", "`\"") + q;
+	}
+	
 	public static String quotation(String origin, boolean single) {
 		String q = single ? "'" : "\"";
 		String s = single ? "\\\\'" : "\\\\\"";
 		
 		return q + origin.replaceAll(q, s) + q;
 	}
+	
+	public static Pattern assignLinePtn = Pattern.compile("^\\s*#\\s*assign_line\\s*\\{(.+)\\}\\s*$");
+	
+//	# assignblock{RobocopyDescription}
+	public static String parseAssignLine(String assignLine) {
+		Matcher m = assignLinePtn.matcher(assignLine);
+		if (m.matches()){
+			return m.group(1);
+		}
+		return null;
+	}
+	
 
 	/**
 	 * input a=b\nc:d or a=b,c=d

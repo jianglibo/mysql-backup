@@ -80,6 +80,14 @@ public class RobocopyDescription extends BaseModel {
 		return abs("workingspace", new String[] {"robocopy.log"});
 	}
 	
+	public String getWorkingSpaceChangeList() {
+		return abs("workingspace", new String[] {"changelist.txt"});
+	}
+
+	public String getWorkingSpace() {
+		return abs("workingspace", new String[] {});
+	}
+	
 	public String getWorkingSpaceAbsolute(String...subs) {
 		return abs("workingspace", subs);
 	}

@@ -5,9 +5,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +51,6 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
-import com.google.common.io.ByteStreams;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -143,56 +140,56 @@ public class RobocopyService {
 
 	@EventListener
 	public void whenRobocopyDescriptionCreate(ModelCreatedEvent<RobocopyDescription> rde) throws IOException {
-		String rdst = rde.getModel().getRobocopyDst();
-		Path p = Paths.get(rdst);
-		if (!Files.exists(p)) {
-			Files.createDirectories(p);
-		}
-
-		String working = rde.getModel().getWorkingSpaceCompressed();
-		p = Paths.get(working);
-		if (!Files.exists(p)) {
-			Files.createDirectories(p);
-		}
-
-		working = rde.getModel().getWorkingSpaceExpanded();
-		p = Paths.get(working);
-		if (!Files.exists(p)) {
-			Files.createDirectories(p);
-		}
+//		String rdst = rde.getModel().getRobocopyDst();
+//		Path p = Paths.get(rdst);
+//		if (!Files.exists(p)) {
+//			Files.createDirectories(p);
+//		}
+//
+//		String working = rde.getModel().getWorkingSpaceCompressed();
+//		p = Paths.get(working);
+//		if (!Files.exists(p)) {
+//			Files.createDirectories(p);
+//		}
+//
+//		working = rde.getModel().getWorkingSpaceExpanded();
+//		p = Paths.get(working);
+//		if (!Files.exists(p)) {
+//			Files.createDirectories(p);
+//		}
 	}
 
 	@EventListener
 	public void whenRobocopyDescriptionChange(ModelChangedEvent<RobocopyDescription> rde) throws IOException {
-		String rdst = rde.getBefore().getRobocopyDst();
-		String rdst1 = rde.getAfter().getRobocopyDst();
-		Path p;
-		if (!rdst.equals(rdst1)) {
-			p = Paths.get(rdst1);
-			if (!Files.exists(p)) {
-				Files.createDirectories(p);
-			}
-		}
-
-		String working = rde.getBefore().getWorkingSpaceCompressed();
-		String working1 = rde.getAfter().getWorkingSpaceCompressed();
-
-		if (!working.equals(working1)) {
-			p = Paths.get(working1);
-			if (!Files.exists(p)) {
-				Files.createDirectories(p);
-			}
-		}
-
-		working = rde.getBefore().getWorkingSpaceExpanded();
-		working1 = rde.getAfter().getWorkingSpaceExpanded();
-
-		if (!working.equals(working1)) {
-			p = Paths.get(working1);
-			if (!Files.exists(p)) {
-				Files.createDirectories(p);
-			}
-		}
+//		String rdst = rde.getBefore().getRobocopyDst();
+//		String rdst1 = rde.getAfter().getRobocopyDst();
+//		Path p;
+//		if (!rdst.equals(rdst1)) {
+//			p = Paths.get(rdst1);
+//			if (!Files.exists(p)) {
+//				Files.createDirectories(p);
+//			}
+//		}
+//
+//		String working = rde.getBefore().getWorkingSpaceCompressed();
+//		String working1 = rde.getAfter().getWorkingSpaceCompressed();
+//
+//		if (!working.equals(working1)) {
+//			p = Paths.get(working1);
+//			if (!Files.exists(p)) {
+//				Files.createDirectories(p);
+//			}
+//		}
+//
+//		working = rde.getBefore().getWorkingSpaceExpanded();
+//		working1 = rde.getAfter().getWorkingSpaceExpanded();
+//
+//		if (!working.equals(working1)) {
+//			p = Paths.get(working1);
+//			if (!Files.exists(p)) {
+//				Files.createDirectories(p);
+//			}
+//		}
 	}
 
 	@EventListener
@@ -375,7 +372,7 @@ public class RobocopyService {
 		
 		for(RobocopyItem item : items) {
 			StringBuffer sb = new StringBuffer("Robocopy.exe");
-			sb.append(' ').append(item.getSource())
+			sb.append(' ').append(item.getSourceSlash())
 			.append(' ').append(item.getDstCalced())
 			.append(' ').append(item.getFileParametersNullSafe());
 			
@@ -437,7 +434,6 @@ public class RobocopyService {
 	public boolean increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
 		SSHcommonUtil.deleteRemoteFolder("win", session, robocopyDescription.getWorkingSpaceRoboLog());
 		FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session, server, robocopyDescription, items);
-		
 		return true;
 	}
 	
@@ -447,17 +443,29 @@ public class RobocopyService {
 		try(InputStream is = r.getInputStream()) {
 			List<String> scriptLines = StringUtil.splitLines(StringUtil.inputstreamToString(is));
 			List<String> afterLines = Lists.newArrayList();
-			
+//			# assign_line{RobocopyDescription}
 			for(String line: scriptLines) {
-				if ("# replace block.".equals(line)) {
-					String s = String.format("$RobocopyDescription='%s'", objectMapper.writeValueAsString(robocopyDescription));
-					afterLines.add(StringUtil.quotation(s, true));
+				String assignName = StringUtil.parseAssignLine(line);
+				if (assignName != null) {
+//					String s = String.format("$%s=%s",assignName,StringUtil.espacePowershellString(objectMapper.writeValueAsString(robocopyDescription)));
+					//here document.
+					if ("robocopyDescription".equals(assignName)) {
+						String s = String.format("$%s=@\"", assignName);
+						afterLines.add(s);
+						afterLines.add(objectMapper.writeValueAsString(robocopyDescription));
+						afterLines.add("\"@");
+					} else if ("robocopies".equals(assignName)) {
+						List<String> sl =  getBackupScripts(session, server, robocopyDescription, items);
+						String s = String.format("$%s='%s'", assignName, sl.stream().collect(joining(",")));
+						afterLines.add(s);
+					}
 				} else {
 					afterLines.add(line);
 				}
 			}
 			
-			byte[] bb = ByteStreams.toByteArray(r.getInputStream());
+			byte[] bb = afterLines.stream().collect(joining("\n")).getBytes();
+			
 			SSHcommonUtil.copy("win", session, robocopyDescription.getWorkingSpaceScriptFile(), bb);
 			FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session, server, robocopyDescription, items);
 			boolean failed = fr.getResult().stream().anyMatch(it -> it.hasError());

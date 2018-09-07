@@ -48,6 +48,18 @@ public class TestStringUtil {
 	}
 	
 	@Test
+	public void tEscapePowershellString() {
+		String origin = "a'bbcde";
+		String after = StringUtil.espacePowershellString(origin);
+		assertThat(after, equalTo("\"a'bbcde\""));
+		
+		origin = "a\"bbcde";
+		after = StringUtil.espacePowershellString(origin);
+		assertThat(after, equalTo("\"a`\"bbcde\""));
+
+	}
+	
+	@Test
 	public void tQuotation() {
 		String origin = "a'bbcde";
 		
