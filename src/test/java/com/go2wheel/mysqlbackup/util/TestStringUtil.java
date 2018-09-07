@@ -48,6 +48,32 @@ public class TestStringUtil {
 	}
 	
 	@Test
+	public void tQuotation() {
+		String origin = "a'bbcde";
+		
+		String after = StringUtil.quotation(origin, true);
+		
+		assertThat(after, equalTo("'a\\'bbcde'"));
+		
+		after = StringUtil.quotation(origin, false);
+		
+		assertThat(after, equalTo("\"a\'bbcde\""));
+		
+		
+		origin = "a\"bbcde";
+		
+		after = StringUtil.quotation(origin, true);
+		
+		assertThat(after, equalTo("'a\"bbcde'"));
+		
+		after = StringUtil.quotation(origin, false);
+		
+		assertThat(after, equalTo("\"a\\\"bbcde\""));
+		System.out.println(after);
+		
+	}
+	
+	@Test
 	public void tGetLastPartOfUrl() {
 		assertThat(StringUtil.getLastPartOfUrl("https://dev.mysql.com/get/mysql57-community-release-el7-11.noarch.rpm"), equalTo("mysql57-community-release-el7-11.noarch.rpm"));
 	}

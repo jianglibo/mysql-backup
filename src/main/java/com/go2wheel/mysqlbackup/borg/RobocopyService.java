@@ -4,13 +4,11 @@ import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -18,10 +16,12 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
-import org.springframework.util.Assert;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.Exclusive;
 import com.go2wheel.mysqlbackup.aop.MeasureTimeCost;
@@ -53,6 +53,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
+import com.google.common.io.ByteStreams;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -72,6 +73,12 @@ public class RobocopyService {
 
 	@Autowired
 	private SettingsInDb settingsInDb;
+	
+	@Autowired
+	private ApplicationContext applicationContext;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	/**
 	 * list all saved versions, choose one to play back.
@@ -80,59 +87,59 @@ public class RobocopyService {
 	 * @return
 	 * @throws IOException
 	 */
-	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
-		Path lrp = settingsInDb.getRepoDir(sourceServer);
-		List<Path> pathes = Lists.newArrayList();
-		pathes = Files.list(lrp.getParent()).collect(toList());
-		Collections.sort(pathes, (o1, o2) -> {
-			try {
-				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
-				BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
-				return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
-			} catch (IOException e) {
-				return 0;
-			}
-		});
-		return pathes.stream().map(BorgRepoWrapper::new).collect(toList());
-	}
+//	public List<BorgRepoWrapper> listLocalRepos(Server sourceServer) throws IOException {
+//		Path lrp = settingsInDb.getRepoDir(sourceServer);
+//		List<Path> pathes = Lists.newArrayList();
+//		pathes = Files.list(lrp.getParent()).collect(toList());
+//		Collections.sort(pathes, (o1, o2) -> {
+//			try {
+//				BasicFileAttributes attr1 = Files.readAttributes(o1, BasicFileAttributes.class);
+//				BasicFileAttributes attr2 = Files.readAttributes(o2, BasicFileAttributes.class);
+//				return attr1.lastAccessTime().toInstant().compareTo(attr2.lastAccessTime().toInstant());
+//			} catch (IOException e) {
+//				return 0;
+//			}
+//		});
+//		return pathes.stream().map(BorgRepoWrapper::new).collect(toList());
+//	}
 
-	public static class BorgRepoWrapper {
-
-		private final Path repo;
-
-		public BorgRepoWrapper(Path repo) {
-			Assert.notNull(repo, "should not be null.");
-			this.repo = repo;
-		}
-
-		public String getRepoFolderName() {
-			if (repo != null && repo.getFileName() != null) {
-				return repo.getFileName().toString();
-			} else {
-				return "";
-			}
-		}
-
-		public Date getCreateTime() throws IOException {
-			BasicFileAttributes bfa = Files.readAttributes(repo, BasicFileAttributes.class);
-			return new Date(bfa.lastAccessTime().toMillis());
-		}
-
-		public long getFileCount() throws IOException {
-			return Files.walk(repo).count();
-		}
-
-		public String getSize() throws IOException {
-			long size = Files.walk(repo).filter(Files::isRegularFile).mapToLong(value -> {
-				try {
-					return Files.size(value);
-				} catch (IOException e) {
-					return 0L;
-				}
-			}).sum();
-			return StringUtil.formatSize(size, 2);
-		}
-	}
+//	public static class BorgRepoWrapper {
+//
+//		private final Path repo;
+//
+//		public BorgRepoWrapper(Path repo) {
+//			Assert.notNull(repo, "should not be null.");
+//			this.repo = repo;
+//		}
+//
+//		public String getRepoFolderName() {
+//			if (repo != null && repo.getFileName() != null) {
+//				return repo.getFileName().toString();
+//			} else {
+//				return "";
+//			}
+//		}
+//
+//		public Date getCreateTime() throws IOException {
+//			BasicFileAttributes bfa = Files.readAttributes(repo, BasicFileAttributes.class);
+//			return new Date(bfa.lastAccessTime().toMillis());
+//		}
+//
+//		public long getFileCount() throws IOException {
+//			return Files.walk(repo).count();
+//		}
+//
+//		public String getSize() throws IOException {
+//			long size = Files.walk(repo).filter(Files::isRegularFile).mapToLong(value -> {
+//				try {
+//					return Files.size(value);
+//				} catch (IOException e) {
+//					return 0L;
+//				}
+//			}).sum();
+//			return StringUtil.formatSize(size, 2);
+//		}
+//	}
 
 	@EventListener
 	public void whenRobocopyDescriptionCreate(ModelCreatedEvent<RobocopyDescription> rde) throws IOException {
@@ -186,7 +193,6 @@ public class RobocopyService {
 				Files.createDirectories(p);
 			}
 		}
-
 	}
 
 	@EventListener
@@ -359,7 +365,7 @@ public class RobocopyService {
 //		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
 	}
 	
-	public List<String> getFullBackupScripts(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) {
+	public List<String> getBackupScripts(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) {
 		
 		items.stream().forEach(it -> {
 			it.setDstCalced(robocopyDescription.getRobocopyItemDst(it.getDstRelative()));
@@ -380,6 +386,8 @@ public class RobocopyService {
 			if (item.getExcludeDirectoriesNullSafe().size() > 0) {
 				sb.append(' ').append("/xd ").append(item.getExcludeDirectoriesNullSafe().stream().collect(joining(" ")));							
 			}
+			
+			sb.append(" /log+:").append(robocopyDescription.getWorkingSpaceRoboLog());
 			
 			/**
 			 * /xf and /xd are special and excluded.
@@ -417,13 +425,47 @@ public class RobocopyService {
 	 * @throws IOException
 	 */
 	@Exclusive(TaskLocks.TASK_FILEBACKUP)
-	public FacadeResult<List<SSHPowershellInvokeResult>> fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
-		List<String> individualCommands = getFullBackupScripts(session, server, robocopyDescription, items);
+	public FacadeResult<List<SSHPowershellInvokeResult>> executeRobocopies(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
+		List<String> individualCommands = getBackupScripts(session, server, robocopyDescription, items);
 		List<SSHPowershellInvokeResult> results = Lists.newArrayList();
 		for(String command: individualCommands) {
 			results.add(invokeRoboCopyCommand(session, command));
 		}
 		return FacadeResult.doneExpectedResultDone(results);
+	}
+	
+	public boolean increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
+		SSHcommonUtil.deleteRemoteFolder("win", session, robocopyDescription.getWorkingSpaceRoboLog());
+		FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session, server, robocopyDescription, items);
+		
+		return true;
+	}
+	
+	
+	public boolean fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+		Resource r = applicationContext.getResource("classpath:powershell/robocopyjob.ps1");
+		try(InputStream is = r.getInputStream()) {
+			List<String> scriptLines = StringUtil.splitLines(StringUtil.inputstreamToString(is));
+			List<String> afterLines = Lists.newArrayList();
+			
+			for(String line: scriptLines) {
+				if ("# replace block.".equals(line)) {
+					String s = String.format("$RobocopyDescription='%s'", objectMapper.writeValueAsString(robocopyDescription));
+					afterLines.add(StringUtil.quotation(s, true));
+				} else {
+					afterLines.add(line);
+				}
+			}
+			
+			byte[] bb = ByteStreams.toByteArray(r.getInputStream());
+			SSHcommonUtil.copy("win", session, robocopyDescription.getWorkingSpaceScriptFile(), bb);
+			FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session, server, robocopyDescription, items);
+			boolean failed = fr.getResult().stream().anyMatch(it -> it.hasError());
+			if (failed)return false;
+			compressArchive(session, server, robocopyDescription);
+			downloadCompressed(session, server, robocopyDescription);
+			return true;
+		}
 	}
 
 	
@@ -452,6 +494,10 @@ public class RobocopyService {
 		 */
 		public int exitCode() {
 			return Integer.valueOf(lastLine);
+		}
+		
+		public boolean hasError() {
+			return exitCode() > 8;
 		}
 
 		public RemoteCommandResult getRcr() {

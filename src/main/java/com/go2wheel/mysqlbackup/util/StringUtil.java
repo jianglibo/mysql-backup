@@ -57,6 +57,13 @@ public class StringUtil {
 	public static List<String> splitLines(String str) {
 		return Arrays.asList(str.split("\\R+"));
 	}
+	
+	public static String quotation(String origin, boolean single) {
+		String q = single ? "'" : "\"";
+		String s = single ? "\\\\'" : "\\\\\"";
+		
+		return q + origin.replaceAll(q, s) + q;
+	}
 
 	/**
 	 * input a=b\nc:d or a=b,c=d

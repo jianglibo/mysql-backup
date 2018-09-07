@@ -24,10 +24,13 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.util.StringUtils;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
@@ -101,6 +104,14 @@ public class StartPointer {
 	public JdbcTemplate jdbcTemplate(DataSource ds) {
 		return new JdbcTemplate(ds);
 	}
+	
+    @Bean()
+    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder build) {
+    	build.featuresToDisable(SerializationFeature.INDENT_OUTPUT);
+    	ObjectMapper mapper = build.build();
+    	return mapper;
+    }
+    
 
 	@Bean
 	public MessageSource messageSource() {

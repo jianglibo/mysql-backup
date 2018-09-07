@@ -35,7 +35,6 @@ public class RobocopyDescription extends BaseModel {
 	private String expandCommand;
 	
 	private boolean alwaysFullBackup;
-	
 
 	@NotEmpty
 	@Pattern(regexp=".*\\.\\w{3}")
@@ -73,6 +72,13 @@ public class RobocopyDescription extends BaseModel {
 		return abs("workingspace", new String[] {"expanded"});
 	}
 
+	public String getWorkingSpaceScriptFile() {
+		return abs("workingspace", new String[] {"robocopy.ps1"});
+	}
+
+	public String getWorkingSpaceRoboLog() {
+		return abs("workingspace", new String[] {"robocopy.log"});
+	}
 	
 	public String getWorkingSpaceAbsolute(String...subs) {
 		return abs("workingspace", subs);

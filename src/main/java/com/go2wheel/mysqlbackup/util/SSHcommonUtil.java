@@ -609,6 +609,15 @@ public class SSHcommonUtil {
 	public static void deleteRemoteFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		runRemoteCommand(session, String.format("rm %s", remoteFile));
 	}
+	
+	public static void deleteRemoteFile(String os, Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+		OsTypeWrapper otw = OsTypeWrapper.of(os);
+		if (otw.isWin()) {
+			runRemoteCommand(session, String.format("Remove-Item -Path %s -Force", remoteFile));
+		} else {
+			deleteRemoteFile(session, remoteFile);
+		}
+	}
 
 	public static void deleteRemoteFolder(Session session, String remotectFolder) throws RunRemoteCommandException, JSchException, IOException {
 		runRemoteCommand(session, String.format("rm -rf %s", remotectFolder));
@@ -625,6 +634,15 @@ public class SSHcommonUtil {
 
 	public static void deleteRemoteFile(Session session, List<String> remoteFiles) throws RunRemoteCommandException, JSchException, IOException {
 		runRemoteCommand(session, String.format("rm %s", String.join(" ", remoteFiles)));
+	}
+	
+	public static void deleteRemoteFile(String os, Session session, List<String> remoteFiles) throws RunRemoteCommandException, JSchException, IOException {
+		OsTypeWrapper otw = OsTypeWrapper.of(os);
+		if (otw.isWin()) {
+			runRemoteCommand(session, String.format("Remove-Item -Path %s -Force", String.join(",", remoteFiles)));
+		} else {
+			runRemoteCommand(session, String.format("rm %s", String.join(" ", remoteFiles)));
+		}
 	}
 
 	/**

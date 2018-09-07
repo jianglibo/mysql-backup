@@ -387,15 +387,15 @@ public class SpringBaseFort {
 		assertTrue(true);
 	}
 	
-	@TestConfiguration
-	public static  class Tcc {
-		@Bean
-		public ObjectMapper prettyprintOm() {
-			ObjectMapper om = new ObjectMapper();
-			return om;
-		}
-		
-	}
+//	@TestConfiguration
+//	public static  class Tcc {
+//		@Bean
+//		public ObjectMapper prettyprintOm() {
+//			ObjectMapper om = new ObjectMapper();
+//			return om;
+//		}
+//		
+//	}
 	
 	protected void createSessionLocalHostWindowsAfterClear() throws JSchException, SchedulerException {
 		clearDb();
