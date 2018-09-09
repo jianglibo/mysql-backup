@@ -66,10 +66,10 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	}
 	
 	@Override
-	String getListPage(Model model, HttpServletRequest httpRequest) {
-		String serverGrpId = httpRequest.getParameter("server-grp");
+	String getListPage(Model model, HttpServletRequest request) {
+		String serverGrpId = request.getParameter("server-grp");
 		if (serverGrpId == null) {
-			return super.getListPage(model, httpRequest);
+			return super.getListPage(model, request);
 		} else {
 			ServerGrp serverGrp = serverGrpDbService.findById(serverGrpId);
 			List<Server> grpServers = serverGrpDbService.getServers(serverGrp);
@@ -86,9 +86,9 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	}
 	
 	@PostMapping("/{server}/install")
-	public String installSoftware(@PathVariable Server server, @RequestParam Software software) {
+	public String installSoftware(@PathVariable Server server,HttpServletRequest request, @RequestParam Software software) {
 		
-		return redirectMappingUrl();
+		return redirectMappingUrl(request);
 	}
 
 	@Override

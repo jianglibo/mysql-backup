@@ -48,6 +48,25 @@ public class TestStringUtil {
 	}
 	
 	@Test
+	public void tExtractExecutable() {
+		String cc = "& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
+		String executable = StringUtil.extractExecutable(cc);
+		assertThat(executable, equalTo("C:/Program Files/WinRAR/Rar.exe"));
+
+		cc = " \"C:/Program Files/WinRAR/Rar.exe\" a -ms %s %s";
+		executable = StringUtil.extractExecutable(cc);
+		assertThat(executable, equalTo("C:/Program Files/WinRAR/Rar.exe"));
+		
+		cc = " 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
+		executable = StringUtil.extractExecutable(cc);
+		assertThat(executable, equalTo("C:/Program Files/WinRAR/Rar.exe"));
+
+		cc = " C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
+		executable = StringUtil.extractExecutable(cc);
+		assertThat(executable, equalTo("C:/Program"));
+	}
+	
+	@Test
 	public void tEscapePowershellString() {
 		String origin = "a'bbcde";
 		String after = StringUtil.espacePowershellString(origin);

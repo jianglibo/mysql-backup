@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import org.quartz.JobKey;
 import org.quartz.TriggerKey;
 
-import com.fasterxml.jackson.databind.deser.DataFormatReaders.Match;
 import com.go2wheel.mysqlbackup.exception.StringReplaceException;
 import com.google.common.base.CaseFormat;
 import com.google.common.base.Converter;
@@ -82,6 +81,9 @@ public class StringUtil {
 		return null;
 	}
 	
+	public static boolean isAllDigitsAndNotEmpty(String str) {
+		return ALL_DIGITS_PTN.matcher(str).matches();
+	}
 
 	/**
 	 * input a=b\nc:d or a=b,c=d
@@ -275,6 +277,29 @@ public class StringUtil {
 			e.printStackTrace();
 		}
 		return "";
+	}
+	
+	public static String extractExecutable(String cc) {
+		String ce = "";
+		if (cc != null) {
+			cc = cc.trim();
+			if (cc.startsWith("&")) {
+				cc = cc.substring(1);
+				cc = cc.trim();
+			}
+			if (cc.length() > 0) {
+				char q = cc.charAt(0);
+				if (q == '\'' || q == '"') {
+					int another = cc.indexOf(q, 1);
+					if (another != -1) {
+						ce = cc.substring(1, another);
+					}
+				} else {
+					ce = cc.split("\\s+")[0];
+				}
+			}
+		}
+		return ce;
 	}
 
 	public static boolean isNullString(String str) {

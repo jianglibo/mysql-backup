@@ -1,6 +1,7 @@
-package com.go2wheel.mysqlbackup.robocopy;
+package com.go2wheel.mysqlbackup.service.robocopy;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -21,12 +22,14 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.borg.RobocopyService;
-import com.go2wheel.mysqlbackup.borg.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
+import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -61,7 +64,7 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		String expand = String.format("& '%s' x -o+ %%s %%s", zipApp);
 		rd.setExpandCommand(expand);
 		rd.setArchiveName("hello.rar");
-		//	& "C:\Program Files\WinRAR\Rar.exe" x -o+ upload  .\\upload ALWAYS TREAT extract destination as a folder.
+		//	& 'C:\Program Files\WinRAR\Rar.exe' x -o+ upload  .\\upload ALWAYS TREAT extract destination as a folder.
 		// -ms
 //        If <list> is not specified, -ms switch will use the default
 //        set of extensions, which includes the following file types:
@@ -81,9 +84,6 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		RobocopyDescription robocopyDescription = grpd();
 		
 		String json = objectMapper.writeValueAsString(robocopyDescription);
-//		KeyValue kv = new KeyValue("json", json);
-//		
-//		json = objectMapper.writeValueAsString(kv);
 		json = StringUtil.espacePowershellString(json);
 		
 		String[] names = applicationContext.getBeanNamesForType(ObjectMapper.class);
@@ -91,18 +91,32 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		
 		List<String> lines = StringUtil.splitLines(json);
 		assertThat(lines.size(), equalTo(1));
-		
-		
 	}
 	
 	@Test
-	public void tFullback() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedContentException, CommandNotFoundException {
+	public void tIncreamental() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedContentException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc();
 		RobocopyDescription robocopyDescription = grpd();
 		
-		Path workingCompressed = Paths.get(robocopyDescription.getWorkingSpaceCompressed());
-		Files.createDirectories(workingCompressed);
+		assertFalse(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceChangeList())));
+		assertFalse(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceIncreamentalArchive())));
+		robocopyService.copyScriptToServer(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+		SSHPowershellInvokeResult b = robocopyService.increamentalBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+		assertThat(b.exitCode(), equalTo(0));
+		
+		assertTrue(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceChangeList())));
+		assertTrue(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceIncreamentalArchive())));
+		
+		FacadeResult<Path> fp = robocopyService.downloadIncreamentalArchive(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+		assertThat(Files.size(fp.getResult()), equalTo(Files.size(Paths.get(robocopyDescription.getWorkingSpaceIncreamentalArchive()))));
+		
+	}
+	@Test
+	public void tFullback() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedContentException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
+		createSessionLocalHostWindowsAfterClear();
+		createDemoSrc();
+		RobocopyDescription robocopyDescription = grpd();
 		boolean b = robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
 		assertTrue(b);
 		assertTrue(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceScriptFile())));
@@ -115,11 +129,17 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 
 	
 	@Test
-	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedContentException {
+	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedContentException, RunRemoteCommandException, ScpException {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc();
 		RobocopyDescription robocopyDescription = grpd();
 		
+		Files.list(settingsIndb.getRepoDir(server)).forEach(f -> {
+			try {
+				Files.delete(f);
+			} catch (IOException e) {
+			}
+		});
 
 		
 		List<String> scripts = robocopyService.getBackupScripts(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
@@ -143,12 +163,6 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		 * compress the robocopydst folder in repofolder to the compressed folder in repofolder.
 		 */
 		SSHPowershellInvokeResult sshpir = robocopyService.compressArchive(session, server, robocopyDescription);
-		assertThat(sshpir.exitCode(), equalTo(9)); // when compress dst folder does'nt exists.
-		
-		Path workingCompressed = Paths.get(robocopyDescription.getWorkingSpaceCompressed());
-		Files.createDirectories(workingCompressed);
-		
-		sshpir = robocopyService.compressArchive(session, server, robocopyDescription);
 		assertThat(sshpir.exitCode(), equalTo(0));
 		
 		Path zipPath = Paths.get(robocopyDescription.getWorkingSpaceCompressedArchive()); 
@@ -170,6 +184,7 @@ public class TestRobocopyFullbackup extends SpringBaseFort {
 		assertTrue(Files.exists(p.getResult()));
 		assertThat(p.getResult().getFileName().toString(), equalTo(robocopyDescription.getArchiveName()));
 		p = robocopyService.downloadCompressed(session, server, robocopyDescription); // download again.
+		assertTrue(Files.exists(p.getResult()));
 		assertThat(Files.list(settingsIndb.getRepoDir(server)).count(), equalTo(1L));
 	}
 }

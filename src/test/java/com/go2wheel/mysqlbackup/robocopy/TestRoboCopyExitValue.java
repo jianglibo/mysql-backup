@@ -13,8 +13,8 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.borg.RobocopyService;
-import com.go2wheel.mysqlbackup.borg.RobocopyService.SSHPowershellInvokeResult;
+import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService;
+import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.util.ProcessExecUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;

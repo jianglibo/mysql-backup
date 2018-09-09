@@ -13,6 +13,14 @@ public class KeyValue extends BaseModel {
 	private String itemValue;
 	
 	public KeyValue() {}
+	
+	public static KeyValue of(String key, String value) {
+		return new KeyValue(key, value);
+	}
+
+	public static KeyValue of(String key, int value) {
+		return new KeyValue(key, value + "");
+	}
 
 	public KeyValue(String key, String value) {
 		this.setItemKey(key);

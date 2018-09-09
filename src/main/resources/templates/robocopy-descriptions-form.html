@@ -13,9 +13,9 @@
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
 				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
-					<form action="#" method="POST" th:action="@{/app/robocopy/fullcopy/{serverId}(serverId=${singleItem.serverId})}">
+					<form action="#" method="POST" th:action="@{/app/robocopy/fullcopy/{descriptionId}(descriptionId=${singleItem.id})}">
 						<button class="pure-button" type="submit">创建一个全备份</button>
-						<a class="pure-button" href="#" th:href="@{/app/robocopy/fullcopies/{serverId}(serverId=${singleItem.serverId})}">备份卷列表</a>
+						<a class="pure-button" href="#" th:href="@{/app/robocopy-items(descriptionId=${singleItem.id})}">单个目录描述列表</a>
 					</form>
 				</div>
 				<div class="pure-control-group">
@@ -28,6 +28,20 @@
 					<input th:field="*{serverId}" type="text" placeholder="" readonly>
 					<span class="pure-form-message-inline"></span>
 				</div>				
+				<div class="pure-control-group">
+					<label for="compressCommand">压缩命令模板</label>
+					<input th:field="*{compressCommand}" type="text" placeholder="& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s">
+					<span class="pure-form-message-inline"></span>
+				</div>				
+				<div class="pure-control-group">
+					<label for="expandCommand">解压命令模板</label>
+					<input th:field="*{expandCommand}" type="text" placeholder="& 'C:/Program Files/WinRAR/Rar.exe'x -o+ %s %s">
+					<span class="pure-form-message-inline"></span>
+				</div>				
+				<div class="pure-control-group">
+					<label th:for="${#ids.next('alwaysFullBackup')}" th:text="总是全备份" class="pure-checkbox">总是全备份</label>
+					<input th:field="*{alwaysFullBackup}" type="checkbox"/>
+				</div>
 				<div class="pure-control-group pure-combo">
 					<label for="invokeCron">卷計劃</label>
 					<input th:field="*{invokeCron}" type="text" placeholder="">

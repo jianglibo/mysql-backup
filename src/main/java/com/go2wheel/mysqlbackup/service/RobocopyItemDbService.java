@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.util.List;
+
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
 
@@ -13,6 +15,10 @@ public class RobocopyItemDbService extends DbServiceBase<RobocopyItemRecord, Rob
 	
 	public RobocopyItemDbService(RobocopyItemRepository repo) {
 		super(repo);
+	}
+
+	public List<RobocopyItem> findByDescriptionId(String descriptionId) {
+		return ((RobocopyItemRepository)repo).findByDescriptionId(Integer.parseInt(descriptionId));
 	}
 
 }

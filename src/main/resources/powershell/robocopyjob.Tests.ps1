@@ -7,6 +7,7 @@ $v = @"
     "repo":"TestDrive:/repo","invokeCron":null,"localBackupCron":null,
     "pruneStrategy":"0 0 2 7 4 1 1","serverId":147,
     "compressCommand":"& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s",
+    "compressExe": "C:/Program Files/WinRAR/Rar.exe",
     "expandCommand":"& 'C:/Program Files/WinRAR/Rar.exe' x -o+ %s %s",
     "alwaysFullBackup":false,"archiveName":"hello.rar",
     "robocopyItems":[
@@ -21,13 +22,27 @@ $v = @"
             "fileParameters":"*.*","excludeFiles":[],"excludeDirectories":[],"copyOptions":[],"fileSelectionOptions":[],"retryOptions":[],"loggingOptions":[],"jobOptions":[],"excludeDirectoriesNullSafe":[],"fileParametersNullSafe":"*.*","excludeFilesNullSafe":[],"copyOptionsNullSafe":["/e"],"fileSelectionOptionsNullSafe":[],"loggingOptionsNullSafe":["/fp","/njh","/njs"],"retryOptionsNullSafe":[],"jobOptionsNullSafe":[]}
     ],
     "workingSpaceScriptFile":"TestDrive:/repo/workingspace/robocopy.ps1",
-    "workingSpaceCompressedArchive":"TestDrive:/repo/workingspace/compressed/hello.rar",
+    "workingSpaceCompressedArchive":"TestDrive:/repo/workingspace/hello.rar",
     "workingSpaceExpanded":"TestDrive:/repo/workingspace/expanded",
     "workingSpaceRoboLog":"TestDrive:/repo/workingspace/robocopy.log",
     "workingSpaceChangeList":"TestDrive:/repo/workingspace/changelist.txt",
     "workingSpace":"TestDrive:/repo/workingspace",
+    "compressCommandInstance": "& 'C:/Program Files/WinRAR/Rar.exe' a -ms TestDrive:/repo/workingspace/compressed/hello.rar TestDrive:/repo/robocopydst;$LASTEXITCODE",
+    "workingSpaceIncreamentalArchive": "TestDrive:/repo/workingspace/increamental.rar",
     "robocopyDst":"TestDrive:/repo/robocopydst"}
 "@
+
+function RobocopyExecutables {
+    Param(
+        [parameter(Mandatory = $true, Position = 1)]
+        [RobocopyDescription]$RobocopyDescription
+    )
+    foreach ($ht in $RobocopyDescription.robocopyItems) {
+        $v = "Robocopy.exe {0} {1} /e /fp /njh /njs /log+:{2}" -f $ht.source, (Join-Path -Path $RobocopyDescription.robocopyDst -ChildPath $ht.dstRelative), $RobocopyDescription.workingSpaceRoboLog | Out-String
+        $v.Trim()
+    }
+}
+
 function hp() {
     Param(
         [Parameter(Mandatory = $true)]
@@ -43,7 +58,7 @@ Describe "hashtable as parameter" {
     }
 
     It "should be array assign" {
-        $robocopies=$robocopies='Robocopy.exe C:/Users/admin/AppData/Local/Temp/junit1530064060961660901 C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/robocopydst/abc *.* /log+:C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/workingspace/robocopy.log /e /fp /njh /njs,Robocopy.exe C:/Users/admin/AppData/Local/Temp/junit1530064060961660901 C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/robocopydst/abc1 *.* /log+:C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/workingspace/robocopy.log /e /fp /njh /njs'
+        $robocopies = 'Robocopy.exe C:/Users/admin/AppData/Local/Temp/junit1530064060961660901 C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/robocopydst/abc *.* /log+:C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/workingspace/robocopy.log /e /fp /njh /njs,Robocopy.exe C:/Users/admin/AppData/Local/Temp/junit1530064060961660901 C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/robocopydst/abc1 *.* /log+:C:/Users/admin/AppData/Local/Temp/junit6917332990589298536/workingspace/robocopy.log /e /fp /njh /njs'
         $robocopies -split "," | Measure-Object | Select-Object -ExpandProperty Count | Should -Be 2
     }
 }
@@ -70,71 +85,51 @@ Describe "json should work" {
         $RobocopyDescriptionJsonValue = $v | ConvertFrom-Json
         $RobocopyDescriptionJsonValue | Should -BeOfType [PSCustomObject]
         $RobocopyDescriptionJsonValue | Select-Object  -ExpandProperty pruneStrategy | Should -Be "0 0 2 7 4 1 1"
-        [RobocopyDescription]$RobocopyDescription = convertTo-RobocopyDescription $RobocopyDescriptionJsonValue
+        [RobocopyDescription]$RobocopyDsc = ConvertTo-RobocopyDescription $RobocopyDescriptionJsonValue
 
-        $roboexecs = RobocopyExecutables $RobocopyDescription
+        $RobocopyDsc.workingSpaceChangeList = $RobocopyDsc.workingSpaceChangeList -replace "TestDrive:", $TestDrive
+        $RobocopyDsc.workingSpaceIncreamentalArchive = $RobocopyDsc.workingSpaceIncreamentalArchive -replace "TestDrive:", $TestDrive
+
+        $roboexecs = RobocopyExecutables ($RobocopyDsc -as [RobocopyDescription])
         $roboexecs | Should -Be @('Robocopy.exe TestDrive:/src/1 TestDrive:\repo\robocopydst\abc /e /fp /njh /njs /log+:TestDrive:/repo/workingspace/robocopy.log',
-         'Robocopy.exe TestDrive:/src/2 TestDrive:\repo\robocopydst\abc1 /e /fp /njh /njs /log+:TestDrive:/repo/workingspace/robocopy.log')
+            'Robocopy.exe TestDrive:/src/2 TestDrive:\repo\robocopydst\abc1 /e /fp /njh /njs /log+:TestDrive:/repo/workingspace/robocopy.log')
 
-        Test-Path $RobocopyDescription.workingSpaceRoboLog | Should -Be $false
-        # robocopy.exe don't understand TestDrive.
-        $output = $roboexecs |ForEach-Object {$_ -replace "TestDrive:",$TestDrive} | Invoke-Expression
-        $LASTEXITCODE | Should -Be 1
-        Test-Path $RobocopyDescription.workingSpaceRoboLog | Should -Be $true
+        $roboexecs = $roboexecs | ForEach-Object {$_ -replace "TestDrive:", $TestDrive}
 
-        $content = Get-Content $RobocopyDescription.workingSpaceRoboLog
-        $changedFiles = $content |
-         ForEach-Object {$_.trim() -replace "\\", "/"} |
-         Where-Object {$_ -notmatch '.*/$'} |
-         Where-Object {($_ -split  '\s+').Length -gt 2} |
-         ForEach-Object {($_ -split '\s+')[-1]}
+        New-Item -Path $RobocopyDsc.workingspace -Type Directory -ErrorAction SilentlyContinue
 
-        $changedFiles.length | Should -Be 4
-        Remove-Item -Path $RobocopyDescription.workingSpaceRoboLog -Force
+        Test-Path $RobocopyDsc.workingSpaceRoboLog | Should -Be $false
+        Test-Path $RobocopyDsc.workingSpaceIncreamentalArchive | Should -Be $false
+        Test-Path $RobocopyDsc.workingSpaceChangeList | Should -Be $false
+        $output = Start-Robocopy $RobocopyDsc $roboexecs
 
-        $output = $roboexecs |ForEach-Object {$_ -replace "TestDrive:",$TestDrive} | Invoke-Expression
-        $LASTEXITCODE | Should -Be 0
-        $content = Get-Content $RobocopyDescription.workingSpaceRoboLog
-        $changedFiles = $content |
-         ForEach-Object {$_.trim() -replace "\\", "/"} |
-         Where-Object {$_ -notmatch '.*/$'} |
-          Where-Object {($_ -split  '\s+').Length -gt 2} |
-         ForEach-Object {($_ -split '\s+')[-1]}
+        $output[1] | Should -Be 0
 
-        $changedFiles.length | Should -Be 0
+        Test-Path $output[0] | Should -Be $true
 
-    }
+        Test-Path $RobocopyDsc.workingSpaceRoboLog | Should -Be $true
+        Test-Path $RobocopyDsc.workingSpaceIncreamentalArchive | Should -Be $true
+        Test-Path $RobocopyDsc.workingSpaceChangeList | Should -Be $true
 
-    It "directory setup right." {
-        Test-Path $repo | Should -Be $true
-        $repo | Should -BeOfType [string]
-    }
+        # run again
+        $output = Start-Robocopy $RobocopyDsc $roboexecs
+        $output | Should -Be "-1"
 
-    It "works" {
-        $str = "{`"id`":null,`"createdAt`":`"2018-09-07T01:37:39.258+0000`",`"repo`":`"TestDrive:\\repo`",`"invokeCron`":null,`"localBackupCron`":null,`"pruneStrategy`":`"0 0 2 7 4 1 1`",`"serverId`":123,`"compressCommand`":`"& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s`",`"expandCommand`":`"& 'C:/Program Files/WinRAR/Rar.exe' x -o+ %s %s`",`"alwaysFullBackup`":false,`"archiveName`":`"hello.rar`",`"robocopyItems`":[{`"id`":null,`"createdAt`":`"2018-09-07T01:37:39.258+0000`",`"descriptionId`":0,`"source`":`"TestDrive:\\src\\2`",`"dstRelative`":`"abc`",`"fileParameters`":`"*.*`",`"excludeFiles`":[],`"excludeDirectories`":[],`"copyOptions`":[],`"fileSelectionOptions`":[],`"retryOptions`":[],`"loggingOptions`":[],`"jobOptions`":[],`"fileParametersNullSafe`":`"*.*`",`"excludeFilesNullSafe`":[],`"copyOptionsNullSafe`":[`"/e`"],`"excludeDirectoriesNullSafe`":[],`"loggingOptionsNullSafe`":[`"/fp`",`"/njh`",`"/njs`"],`"fileSelectionOptionsNullSafe`":[],`"retryOptionsNullSafe`":[],`"jobOptionsNullSafe`":[]},{`"id`":null,`"createdAt`":`"2018-09-07T01:37:39.258+0000`",`"descriptionId`":0,`"source`":`"TestDrive:\\src\\1`",`"dstRelative`":`"abc1`",`"fileParameters`":`"*.*`",`"excludeFiles`":[],`"excludeDirectories`":[],`"copyOptions`":[],`"fileSelectionOptions`":[],`"retryOptions`":[],`"loggingOptions`":[],`"jobOptions`":[],`"fileParametersNullSafe`":`"*.*`",`"excludeFilesNullSafe`":[],`"copyOptionsNullSafe`":[`"/e`"],`"excludeDirectoriesNullSafe`":[],`"loggingOptionsNullSafe`":[`"/fp`",`"/njh`",`"/njs`"],`"fileSelectionOptionsNullSafe`":[],`"retryOptionsNullSafe`":[],`"jobOptionsNullSafe`":[]}],`"workingSpaceCompressedArchive`":`"C:/Users/admin/AppData/Local/Temp/junit2278459246675582538/workingspace/compressed/hello.rar`",`"workingSpaceScriptFile`":`"C:/Users/admin/AppData/Local/Temp/junit2278459246675582538/workingspace/robocopy.ps1`",`"workingSpaceExpanded`":`"C:/Users/admin/AppData/Local/Temp/junit2278459246675582538/workingspace/expanded`",`"workingSpaceRoboLog`":`"C:/Users/admin/AppData/Local/Temp/junit2278459246675582538/workingspace/robocopy.log`",`"robocopyDst`":`"C:/Users/admin/AppData/Local/Temp/junit2278459246675582538/robocopydst`"}";
-        $RobocopyDescriptionJsonValue = $str | ConvertFrom-Json
-        $RobocopyDescriptionJsonValue | Select-Object  -ExpandProperty pruneStrategy | Should -Be "0 0 2 7 4 1 1"
-        $RobocopyDescriptionJsonValue | Should -BeOfType [System.Management.Automation.PSCustomObject]
+        Test-Path $RobocopyDsc.workingSpaceRoboLog | Should -Be $true
+        Test-Path $RobocopyDsc.workingSpaceIncreamentalArchive | Should -Be $false
+        Test-Path $RobocopyDsc.workingSpaceChangeList | Should -Be $false
     }
 }
 
 Describe "robocopyjob" {
     It "does something useful" {
         $src1 = "TestDrive:\repo"
-        New-Item -ItemType Directory -Path srco
+        New-Item -ItemType Directory -Path $src1
         $testfile = Join-Path -Path $src1 -ChildPath "abc.txt"
         1 | Out-File $testfile
         New-Item -ItemType Directory -Path $src1 -Force
         Test-Path $testfile | Should -Be $true
         Get-Content $testfile | Should -Be "1"
         Test-Path $src1 | Should -Be $true
-    }
-
-    It "shoud create sub directories" {
-        $src1 = "TestDrive:\ttt\repo"
-        $src1 | Robocopyjob -dirpair @{a = 1; b = 2}
-
-        "robocobydst", "compressed", "log" |ForEach-Object {Join-Path -Path $src1 -ChildPath $_} | Test-Path | Should -Be @($true, $true, $true)
-        Get-Content -Path (Join-Path $src1 -ChildPath number.txt) | Should -BeExactly "0"
     }
 }

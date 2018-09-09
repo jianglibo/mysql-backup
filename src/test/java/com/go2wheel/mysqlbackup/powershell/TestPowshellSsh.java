@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.robocopy;
+package com.go2wheel.mysqlbackup.powershell;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
@@ -22,7 +22,7 @@ import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 
-public class TestRoboCopySsh extends SpringBaseFort {
+public class TestPowshellSsh extends SpringBaseFort {
 	
     @Rule
     public TemporaryFolder tfolder= new TemporaryFolder();

@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
+import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.service.DbServiceBase;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -59,7 +61,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	
 	@GetMapping("")
 	String getListPage(Model model, HttpServletRequest httpRequest) {
-		model.addAttribute(LIST_OB_NAME, getItemList());
+		model.addAttribute(LIST_OB_NAME, getItemList(httpRequest));
 		commonAttribute(model);
 		listExtraAttributes(model);
 		return getListTpl();
@@ -80,7 +82,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		Integer[] intIds =  Splitter.on(',').trimResults().omitEmptyStrings().splitToList(ids).stream().map(Integer::parseInt).toArray(size -> new Integer[size]);
 		List<T> entities = dbService.findByIds(intIds);
 		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
-		return redirectMappingUrl();
+		return redirectMappingUrl(request);
 	}
 	
 
@@ -94,7 +96,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 
 	@PostMapping("/create")
-	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, RedirectAttributes ras) {
+	String postCreate(@Validated @ModelAttribute(OB_NAME) T entityFromForm, final BindingResult bindingResult,Model model, HttpServletRequest request, RedirectAttributes ras) {
 	    if (bindingResult.hasErrors()) {
 	    	commonAttribute(model);
 	    	formAttribute(model);
@@ -115,11 +117,11 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	        return getFormTpl();
 		}
 	    ras.addFlashAttribute("formProcessSuccessed", true);
-	    return afterCreate(entityFromForm);
+	    return afterCreate(entityFromForm, request);
 	}
 
-	protected String afterCreate(T entityFromForm) {
-	    return redirectMappingUrl();
+	protected String afterCreate(T entityFromForm, HttpServletRequest request) {
+	    return redirectMappingUrl(request);
 	}
 
 	protected void parseDuplicateKeyException(DuplicateKeyException de, String unique, BindingResult bindingResult) {
@@ -132,28 +134,36 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	@GetMapping("/{id}/edit")
 	String getEdit(@PathVariable(name="id") T entityFromDb, Model model) {
 		model.addAttribute(OB_NAME, entityFromDb);
+		return getEditNoObName(model);
+	}
+	
+	protected String getEditNoObName(Model model) {
 		model.addAttribute("editing", true);
 		commonAttribute(model);
 		formAttribute(model);
 		return getFormTpl();
 	}
-
+	
 
 	@PutMapping("/{id}/edit")
-	String putEdit(@Validated @ModelAttribute(OB_NAME) T entityFromForm, @PathVariable(name="id") T entityFromDb,  final BindingResult bindingResult,Model model, RedirectAttributes ras) {
+	String putEdit(@Validated @ModelAttribute(OB_NAME) T entityFromForm,  final BindingResult bindingResult, @PathVariable(name="id") T entityFromDb,Model model, HttpServletRequest request, RedirectAttributes ras) {
 		if (bindingResult.hasErrors()) {
-			formAttribute(model);
-			return getFormTpl();
+			return getEditNoObName(model);
 		}
 		if (copyProperties(entityFromForm, entityFromDb)) {
 			save(entityFromDb);
 		}
         ras.addFlashAttribute("formProcessSuccessed", true);
-	    return redirectMappingUrl();
+        return redirectMappingUrl(request);
 	}
-	
-	public String redirectMappingUrl() {
-		return "redirect:" + getMappingUrl();
+
+	public String redirectMappingUrl(HttpServletRequest request, KeyValue...keyValues) {
+		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
+		for(KeyValue kv : keyValues) {
+			ucb.queryParam(kv.getItemKey(), kv.getItemValue());
+		}
+		String uri = ucb.replacePath(getMappingUrl()).build().toUriString();
+		return "redirect:" + uri;
 	}
 	
 	protected String redirectEditGet(Integer id) {
@@ -170,7 +180,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		return 100000;
 	}
 	
-	public List<T> getItemList() {
+	public List<T> getItemList(HttpServletRequest request) {
 		return dbService.findAllSortByCreatedAtDesc();
 	}
 	

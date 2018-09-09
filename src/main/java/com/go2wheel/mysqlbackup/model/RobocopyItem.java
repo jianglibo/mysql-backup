@@ -7,6 +7,7 @@ import java.util.List;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
+import com.go2wheel.mysqlbackup.validator.FileNameOnlyConstraint;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 
@@ -23,6 +24,7 @@ public class RobocopyItem extends BaseModel {
 	private String source;
 	
 	@NotEmpty
+	@FileNameOnlyConstraint
 	private String dstRelative;
 	
 	private String dstCalced;
@@ -45,6 +47,14 @@ public class RobocopyItem extends BaseModel {
 	private List<String> loggingOptions = new ArrayList<>(); 
 	
 	private List<String> jobOptions = new ArrayList<>();
+	
+	public RobocopyItem(Integer descriptionId, String source, String dstRelative) {
+		super();
+		this.descriptionId = descriptionId;
+		this.source = source;
+		this.dstRelative = dstRelative;
+	}
+	
 	
 	public String getSource() {
 		return source;
@@ -124,13 +134,6 @@ public class RobocopyItem extends BaseModel {
 
 	public RobocopyItem() {
 		super();
-	}
-	
-	public RobocopyItem(Integer descriptionId, String source, String dstRelative) {
-		super();
-		this.descriptionId = descriptionId;
-		this.source = source;
-		this.dstRelative = dstRelative;
 	}
 	
 	@Override

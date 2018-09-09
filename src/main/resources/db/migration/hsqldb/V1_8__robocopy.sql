@@ -9,7 +9,7 @@ CREATE TABLE robocopy_description
   compress_command VARCHAR(256),
   expand_command VARCHAR(256),
   archive_name VARCHAR(128),
-  always_full_backup BOOLEAN NOT NULL,
+  always_full_backup BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP(2),
   CONSTRAINT fk_robo_description_server FOREIGN KEY (server_id)  REFERENCES server (id),
   CONSTRAINT unique_robo_description_server_id UNIQUE (server_id)
@@ -30,5 +30,6 @@ CREATE TABLE robocopy_item
   job_options VARCHAR(256) ARRAY DEFAULT ARRAY[],
   created_at TIMESTAMP(2),
   CONSTRAINT fk_robo_item_description FOREIGN KEY (description_id)  REFERENCES robocopy_description (id),
-  CONSTRAINT unique_robo_item_src_dst UNIQUE (source, dst_relative)
+  CONSTRAINT unique_robo_item_dst_relative UNIQUE (dst_relative),
+  CONSTRAINT unique_robo_item_source UNIQUE (source)
 );

@@ -1,0 +1,51 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title th:replace="form-parts :: title"></title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1 th:replace="form-parts :: header">编辑或新建</h1>
+			</div>
+			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
+				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
+					<a class="pure-button" href="#" th:href="@{/app/robocopy-items(descriptionId=${singleItem.id})}">返回单个目录定义列表</a>
+				</div>
+				<div class="pure-control-group">
+					<label for="repo">需要备份的目录</label>
+					<input th:field="*{source}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="descriptionId">父对象ID</label>
+					<input th:field="*{descriptionId}" type="text" placeholder="" readonly>
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="dstRelative">复制对应的目录名</label>
+					<input th:field="*{dstRelative}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="excludeFiles">排除文件名模式</label>
+					<textarea th:field="*{excludeFiles}" placeholder=""></textarea>
+					<span class="pure-form-message-inline"></span>
+				</div>				
+				<div class="pure-control-group">
+					<label for="excludeDirectories">排除目录的模式</label>
+					<textarea th:field="*{excludeDirectories}" placeholder=""></textarea>
+					<span class="pure-form-message-inline"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script>
+		window.freact.pureCombo();
+	</script>
+</body>
+
+</html>

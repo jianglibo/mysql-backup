@@ -30,15 +30,15 @@ public class RobocopyDescription extends BaseModel {
 	@NotNull
 	private Integer serverId;
 	
-	private String compressCommand;
+	private String compressCommand = "& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
 	
-	private String expandCommand;
+	private String expandCommand = "& 'C:/Program Files/WinRAR/Rar.exe'x -o+ %s %s";
 	
 	private boolean alwaysFullBackup;
 
 	@NotEmpty
 	@Pattern(regexp=".*\\.\\w{3}")
-	private String archiveName;
+	private String archiveName = "fullbackup.rar";
 	
 	private List<RobocopyItem> robocopyItems;
 	
@@ -55,17 +55,30 @@ public class RobocopyDescription extends BaseModel {
 		return repo;
 	}
 	
-	public String getWorkingSpaceCompressed(String...subs) {
-		String[] ns = new String[subs.length + 1];
-		ns[0] = "compressed";
-		for(int i =0 ;i <subs.length;i++) {
-			ns[i+1] = subs[i];
+	public List<RobocopyItem> modifiItems(List<RobocopyItem> items) {
+		items.stream().forEach(it -> {
+			it.setDstCalced(getRobocopyItemDst(it.getDstRelative()));
+		});
+		return items;
+	}
+	
+	public String getCompressCommandInstance() {
+		String archiveSrc = getRobocopyDst().replace('\\', '/');
+		String dst = getWorkingSpaceCompressedArchive();
+		String cmd = String.format(getCompressCommand(), dst, archiveSrc);
+		if (!cmd.startsWith("&")) {
+			cmd = "& " + cmd;
 		}
-		return abs("workingspace", ns);
+		cmd = cmd + ";$LASTEXITCODE";
+		return cmd;
 	}
 	
 	public String getWorkingSpaceCompressedArchive() {
-		return getWorkingSpaceCompressed(getArchiveName());
+		return abs("workingspace",new String[] {getArchiveName()});
+	}
+
+	public String getWorkingSpaceIncreamentalArchive() {
+		return abs("workingspace",new String[] {"increamental.rar"});
 	}
 	
 	public String getWorkingSpaceExpanded() {
