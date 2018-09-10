@@ -13,11 +13,10 @@
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
 				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
-					<form action="#" method="POST" th:action="@{/app/robocopy/fullcopy/{descriptionId}(descriptionId=${singleItem.id})}">
-						<button class="pure-button" type="submit">创建一个全备份</button>
-						<a class="pure-button" href="#" th:href="@{/app/robocopy-items(descriptionId=${singleItem.id})}">单个目录描述列表</a>
-						<a class="pure-button entity-delete-btn" href="#" th:href="@{{mapping}/{id}(mapping=${mapping}, id=${singleItem.id})}">删除自己</a>
-					</form>
+					<a class="pure-button post-link" href="#" th:href="@{/app/robocopy/fullcopies/{id}(id=${singleItem.id})}">新增全备份</a>
+					<a class="pure-button post-link" href="#" th:href="@{/app/robocopy/increamental/{id}(id=${singleItem.id})}">新增增量备份</a>
+					<a class="pure-button" href="#" th:href="@{/app/robocopy-items(descriptionId=${singleItem.id})}">单个目录描述列表</a>
+					<a class="pure-button entity-delete-btn" href="#" th:href="@{{mapping}/{id}(mapping=${mapping}, id=${singleItem.id})}">删除自己</a>
 				</div>
 				<div class="pure-control-group">
 					<label for="repo">仓库路径</label>

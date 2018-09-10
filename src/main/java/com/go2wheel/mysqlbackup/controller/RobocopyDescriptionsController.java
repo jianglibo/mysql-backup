@@ -21,12 +21,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
+import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -42,6 +44,9 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	
 	@Autowired
 	private ReusableCronDbService reuseableCronDbService;
+	
+	@Autowired
+	private RobocopyItemDbService robocopyItemDbService;
 	
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
@@ -78,13 +83,12 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	@DeleteMapping("/{id}")
 	String deleteOne(@PathVariable Integer id, HttpServletRequest request, RedirectAttributes ras) {
 		List<RobocopyDescription> entities = getDbService().findByIds(new Integer[] {id});
-		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
+		robocopyItemDbService.findByDescriptionId(id).stream().forEach(it -> {
+			robocopyItemDbService.delete(it);
+		});
+		
+		ras.addFlashAttribute("deleteResult", deleteEntities(entities, true));
 		return "redirect:/app/servers";
-	}
-	
-	@Override
-	protected String deleteEntities(List<RobocopyDescription> entities, boolean execute) {
-		return super.deleteEntities(entities, true);
 	}
 	
 	@GetMapping("/create")

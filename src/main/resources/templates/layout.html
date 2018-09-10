@@ -348,6 +348,12 @@
 				}
 			});
 		});
+
+		jQuery('.post-link').on('click', function(event){
+			event.preventDefault();
+			var url =  jQuery(this).attr('href');
+			window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
+		});
 	</script>
 	<th:block th:replace="${script}" />
 	<script>

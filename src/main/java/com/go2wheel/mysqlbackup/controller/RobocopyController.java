@@ -1,6 +1,9 @@
 package com.go2wheel.mysqlbackup.controller;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -22,14 +25,20 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
+import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
 import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService;
+import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
@@ -58,28 +67,13 @@ public class RobocopyController extends ControllerBase {
 	private RobocopyDescriptionDbService robocopyDescriptionDbService;
 	
 	@Autowired
+	private RobocopyItemDbService robocopyItemDbService;
+	
+	@Autowired
 	private ServerDbService serverDbService;
 	
 	public RobocopyController() {
 		super(MAPPING_PATH);
-	}
-	
-//	borg info /path/to/repo::2017-06-29T11:00-srv
-	
-	@GetMapping("/info/{server}/{archive}")
-	@ResponseBody
-	public String infoArchive(@PathVariable(name="server") Server server, @PathVariable String archive, Model model, HttpServletRequest httpRequest) throws JSchException, IOException {
-		server = serverDbService.loadFull(server);
-		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
-		Session session = frSession.getResult();
-		try {
-			FacadeResult<List<String>> fr = borgService.archiveInfo(session, server, archive);
-			return fr.getResult().stream().collect(Collectors.joining("\n"));
-		} finally {
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
-		}
 	}
 	
 	
@@ -105,31 +99,39 @@ public class RobocopyController extends ControllerBase {
 		return "borg-archives-list";
 	}
 	
-	@PutMapping("/archives/{server}")
-	public String pruneArchive(@PathVariable(name="server") Server server,  HttpServletRequest request) throws JSchException, UnExpectedContentException, IOException {
-		server = serverDbService.loadFull(server);
+	@PostMapping("/increamental/{description}")
+	public String increamental(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException, UnExpectedInputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
+		Server server = serverDbService.findById(robocopyDescription.getServerId());
+		
+		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(robocopyDescription.getId());
+		robocopyDescription.setRobocopyItems(items);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
-		try {
-			FacadeResult<BorgPruneResult> fr = borgService.pruneRepo(session, server);
-			if (!fr.isExpected()) {
-				throw new UnExpectedContentException("10000", "borg.archive.unexpected", fr.getMessage());
-			}
-		} finally {
-			if (session != null && session.isConnected()) {
-				session.disconnect();
+		SSHPowershellInvokeResult sshir = robocopyService.increamentalBackup(session, server, robocopyDescription, robocopyDescription.modifiItems(items));
+		if (sshir.exitCode() == -1) {
+			ras.addFlashAttribute("formProcessSuccessed", "任务结束。没有发现有变化的文件。");
+		} else {
+			FacadeResult<Path> fp = robocopyService.downloadIncreamentalArchive(session, server, robocopyDescription, items);
+			if (fp.isExpected() && Files.exists(fp.getResult())) {
+				ras.addFlashAttribute("formProcessSuccessed", "任务结束。生成了新的增量文件。");
+			} else {
+				ras.addFlashAttribute("errorMessage", "任务结束。但结果不是期盼值。" + fp.getException() != null ? fp.getException().getMessage() : "UNKNOWN.");
 			}
 		}
+		
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
-		String uri = ucb.build().toUriString();
+		String editPage = "/app/robocopy-descriptions/" + robocopyDescription.getId() + "/edit";
+		String uri = ucb.replacePath(editPage).build().toUriString();
 		return "redirect:" + uri;
 	}
 	
-	@PostMapping("/fullcopies/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
-		RobocopyDescription robocopyDescription = robocopyDescriptionDbService.findByServerId(server.getId());
-		
+	@PostMapping("/fullcopies/{description}")
+	public String creatArchive(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
+		Server server = serverDbService.findById(robocopyDescription.getServerId());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
+		
+		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(robocopyDescription.getId());
+		robocopyDescription.setRobocopyItems(items);
 
 		String msgkey = getI18nedMessage("taskkey.robocopy.fullbackup", server.getHost());
 		CompletableFuture<AsyncTaskValue> cf = robocopyService.fullBackupAsync(server, robocopyDescription, robocopyDescription.modifiItems(robocopyDescription.getRobocopyItems()), msgkey, aid);
@@ -140,7 +142,8 @@ public class RobocopyController extends ControllerBase {
 		
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
-		String uri = ucb.build().toUriString();
+		String editPage = "/app/robocopy-descriptions/" + robocopyDescription.getId() + "/edit";
+		String uri = ucb.replacePath(editPage).build().toUriString();
 		return "redirect:" + uri;
 	}
 

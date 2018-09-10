@@ -200,9 +200,22 @@ public class RobocopyService {
 	public void whenRobocopyDescriptionDelete(ModelDeletedEvent<RobocopyDescription> rde) {
 
 	}
-
-
 	
+	/**
+	 * increamental archive is a fixed name.
+	 * @param session
+	 * @param server
+	 * @param robocopyDescription
+	 * @param items
+	 * @return
+	 * @throws CommandNotFoundException
+	 * @throws JSchException
+	 * @throws IOException
+	 * @throws UnExpectedContentException
+	 * @throws RunRemoteCommandException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ScpException
+	 */
 	public FacadeResult<Path> downloadIncreamentalArchive(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedContentException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
 		robocopyDescription.modifiItems(items);
 		

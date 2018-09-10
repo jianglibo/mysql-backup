@@ -64,7 +64,6 @@ public class DemoController {
 
 	@GetMapping("/mysql")
 	public String createMysql() throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException {
-		String serverHost1 = "192.168.33.111";
 		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT_GET);
 
 		if (server == null) {
@@ -83,11 +82,28 @@ public class DemoController {
 			server.setMysqlInstance(mysqlInstanceDbService.save(mi));
 		}
 
+		String serverHost1 = "192.168.33.111";
 		Server server1 = serverDbService.findByHost(serverHost1);
 		if (server1 == null) {
 			server1 = new Server(serverHost1, "b server.");
 			server1.setServerRole("SET");
 			server1 = serverDbService.save(server1);
+		}
+		
+//		E:\wamp\bin\mysql\mysql5.5.24
+		serverHost1 = "10.74.111.39";
+		server1 = serverDbService.findByHost(serverHost1);
+		if (server1 == null) {
+			server1 = new Server(serverHost1, "c server.");
+			server1.setServerRole(Server.ROLE_GET);
+			server1 = serverDbService.save(server1);
+		}
+		
+		server1 = serverDbService.loadFull(server1);
+		
+		if (server1.getMysqlInstance() == null) {
+			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server1.getId(), "q1w2e3r4").build();
+			server1.setMysqlInstance(mysqlInstanceDbService.save(mi));
 		}
 
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
