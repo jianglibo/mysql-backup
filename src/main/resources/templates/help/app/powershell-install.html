@@ -1,0 +1,33 @@
+<!doctype html>
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>帮助文件</h1>
+				<h2></h2>
+			</div>
+			<div class="content">
+				<h2 class="content-subhead">Powershell Installation guide.</h2>
+				<p>
+					下载安装包从
+					<a href="https://www.microsoft.com/en-us/download/details.aspx?id=54616" target="_blank">https://www.microsoft.com/en-us/download/details.aspx?id=54616</a>,
+					也许还需要<a href="https://docs.microsoft.com/en-us/powershell/wmf/5.1/install-configure">https://docs.microsoft.com/en-us/powershell/wmf/5.1/install-configure</a>
+				</p>
+				<p>
+					<ol>
+						<li>运行get-executionpolicy以查看当前脚本运行政策。</li>
+						<li>set-executionpolicy remotesigned</li>
+					</ol>
+				</p>
+				<p>Install Win32-OpenSSh, https://github.com/PowerShell/Win32-OpenSSH/wiki/Install-Win32-OpenSSH</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

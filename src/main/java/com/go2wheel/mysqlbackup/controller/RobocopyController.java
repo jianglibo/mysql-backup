@@ -26,9 +26,9 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -36,7 +36,6 @@ import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 

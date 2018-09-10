@@ -18,7 +18,11 @@ public class RobocopyItemDbService extends DbServiceBase<RobocopyItemRecord, Rob
 	}
 
 	public List<RobocopyItem> findByDescriptionId(String descriptionId) {
-		return ((RobocopyItemRepository)repo).findByDescriptionId(Integer.parseInt(descriptionId));
+		return findByDescriptionId(Integer.parseInt(descriptionId));
+	}
+
+	public List<RobocopyItem> findByDescriptionId(Integer descriptionId) {
+		return ((RobocopyItemRepository)repo).findByDescriptionId(descriptionId);
 	}
 
 }

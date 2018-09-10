@@ -342,7 +342,11 @@
 			event.preventDefault();
 			var url =  jQuery(this).attr('href');
 			console.log(url);
-			window.freact.formUtil.createFormSubmit({action: url, method: 'DELETE'}, {});
+			window.freact.confirm('bs-confirm-container', '确认操作', '继续或放弃？', function(b) {
+				if (b) {
+					window.freact.formUtil.createFormSubmit({action: url, method: 'DELETE'}, {});
+				}
+			});
 		});
 	</script>
 	<th:block th:replace="${script}" />
