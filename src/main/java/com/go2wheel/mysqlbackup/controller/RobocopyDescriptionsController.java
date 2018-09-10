@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -74,6 +75,18 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		return true;
 	}
 	
+	@DeleteMapping("/{id}")
+	String deleteOne(@PathVariable Integer id, HttpServletRequest request, RedirectAttributes ras) {
+		List<RobocopyDescription> entities = getDbService().findByIds(new Integer[] {id});
+		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
+		return "redirect:/app/servers";
+	}
+	
+	@Override
+	protected String deleteEntities(List<RobocopyDescription> entities, boolean execute) {
+		return super.deleteEntities(entities, true);
+	}
+	
 	@GetMapping("/create")
 	@Override
 	String getCreate(Model model, HttpServletRequest request) {
@@ -83,6 +96,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		}
 		RobocopyDescription mi = getDbService().findByServerId(serverId);
 		if (mi != null) {
+			model.asMap().remove("mapping");
 			return redirectEditGet(mi.getId());
 		}
 		mi = newModel();

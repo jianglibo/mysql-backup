@@ -139,19 +139,19 @@ public class WebMvcConfigMine implements WebMvcConfigurer {
         .addResourceLocations("file:static/");
         
         registry.addResourceHandler("/img/**")
-        .addResourceLocations("classpath:/public/img/")
+        .addResourceLocations("classpath:public/img/")
         .setCachePeriod(31556926);
         
         registry.addResourceHandler("/pure/**")
-        .addResourceLocations("classpath:/public/pure/")
+        .addResourceLocations("classpath:public/pure/")
         .setCachePeriod(31536000);
 
         registry.addResourceHandler("/jquery/**")
-        .addResourceLocations("classpath:/public/jquery/")
+        .addResourceLocations("classpath:public/jquery/")
         .setCachePeriod(31536000);
 
         registry.addResourceHandler("/cache-forever/**")
-        .addResourceLocations("classpath:/cache-forever/")
+        .addResourceLocations("classpath:cache-forever/")
         .setCachePeriod(myAppSettings.getCache().getCombo());
 	}
 	

@@ -337,6 +337,13 @@
 			);
 		}
 		jQuery('aside.success').fadeOut(3000);
+
+		jQuery('.entity-delete-btn').on('click', function(event){
+			event.preventDefault();
+			var url =  jQuery(this).attr('href');
+			console.log(url);
+			window.freact.formUtil.createFormSubmit({action: url, method: 'DELETE'}, {});
+		});
 	</script>
 	<th:block th:replace="${script}" />
 	<script>

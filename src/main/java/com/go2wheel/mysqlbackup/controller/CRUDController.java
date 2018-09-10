@@ -85,6 +85,12 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		return redirectMappingUrl(request);
 	}
 	
+	@DeleteMapping("/{id}")
+	String deleteOne(@PathVariable Integer id, HttpServletRequest request, RedirectAttributes ras) {
+		List<T> entities = dbService.findByIds(new Integer[] {id});
+		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
+		return redirectMappingUrl(request);
+	}
 
 	protected String deleteEntities(List<T> entities, boolean execute) {
 		if (execute) {

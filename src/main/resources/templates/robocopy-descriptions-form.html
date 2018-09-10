@@ -16,6 +16,7 @@
 					<form action="#" method="POST" th:action="@{/app/robocopy/fullcopy/{descriptionId}(descriptionId=${singleItem.id})}">
 						<button class="pure-button" type="submit">创建一个全备份</button>
 						<a class="pure-button" href="#" th:href="@{/app/robocopy-items(descriptionId=${singleItem.id})}">单个目录描述列表</a>
+						<a class="pure-button entity-delete-btn" href="#" th:href="@{{mapping}/{id}(mapping=${mapping}, id=${singleItem.id})}">删除自己</a>
 					</form>
 				</div>
 				<div class="pure-control-group">

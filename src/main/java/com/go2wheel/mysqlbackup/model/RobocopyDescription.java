@@ -7,6 +7,7 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 
+import com.go2wheel.mysqlbackup.validator.AbsolutePathConstraint;
 import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
@@ -16,6 +17,7 @@ public class RobocopyDescription extends BaseModel {
 	public static final String ROBO_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
 	
 	@NotEmpty
+	@AbsolutePathConstraint
 	private String repo;
 	
 	@CronExpressionConstraint(allowEmpty=true)
