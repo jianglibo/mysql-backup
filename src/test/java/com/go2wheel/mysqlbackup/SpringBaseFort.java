@@ -42,6 +42,7 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.PlayBackDbService;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
+import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateDbService;
@@ -120,6 +121,9 @@ public class SpringBaseFort {
 	protected RobocopyDescriptionDbService robocopyDescriptionDbService;
 	
 	@Autowired
+	protected RobocopyItemDbService robocopyItemDbService;
+	
+	@Autowired
 	protected BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
@@ -191,6 +195,7 @@ public class SpringBaseFort {
 		subscribeDbService.deleteAll();
 		userAccountDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
+		robocopyItemDbService.deleteAll();
 		robocopyDescriptionDbService.deleteAll();
 		serverDbService.deleteAll();
 		serverGrpDbService.deleteAll();
@@ -210,6 +215,7 @@ public class SpringBaseFort {
 	protected void createSessionLocalHostWindows() throws JSchException {
 		if (server == null) {
 			createServerLocalhostWindows();
+			server = serverDbService.save(server);
 		}
 		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
 		if (frs.isExpected()) {

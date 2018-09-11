@@ -52,9 +52,6 @@ public class JobBaseFort extends SpringBaseFort {
 		assertTrue(true);
 	}
 	
-	
-
-	
 	protected void createContext() {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());

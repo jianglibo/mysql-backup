@@ -43,6 +43,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.PlayBackResultDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.RemotePathUtil;
@@ -196,6 +197,13 @@ public class RobocopyService {
 //		}
 	}
 
+
+	public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
+		final Path localRepo = settingsInDb.getRepoDir(server);
+		FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups", 999999), false);
+		return FacadeResult.doneExpectedResult();
+	}
+
 	@EventListener
 	public void whenRobocopyDescriptionDelete(ModelDeletedEvent<RobocopyDescription> rde) {
 
@@ -232,7 +240,9 @@ public class RobocopyService {
 
 		final String rFile = md5Item.get("Path");
 		
-		Path localPaht = settingsInDb.getRepoDir(server).resolve(RemotePathUtil.getFileName(rFile));
+		Path currentRepo = settingsInDb.getRepoDir(server); 
+		
+		Path localPaht = currentRepo.resolve(RemotePathUtil.getFileName(rFile));
 		
 		localPaht = PathUtil.getNextAvailable(localPaht, 7);
 		
@@ -432,13 +442,30 @@ public class RobocopyService {
 	}
 	
 	
-	public SSHPowershellInvokeResult increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedInputException {
+	public SSHPowershellInvokeResult increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedInputException, UnExpectedContentException {
 		if (items == null || items.isEmpty()) {
 			throw new UnExpectedInputException("1000", "validator.emptyornull", "No Source directories assigned.");
 		}
 		robocopyDescription.modifiItems(items);
 		String cmd = robocopyDescription.getWorkingSpaceScriptFile() + " -action increamental";
-		return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
+		SSHPowershellInvokeResult sshir =  SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
+		if (sshir.isCommandNotFound()) {
+			copyScriptToServer(session, server, robocopyDescription, items);
+			sshir =  SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
+		}
+		if (sshir.exitCode() > 8) {
+			throw new UnExpectedContentException("1000", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")), sshir.getRcr().getCommand());
+		}
+		return sshir;
+	}
+	
+	public Path increamentalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedContentException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
+		SSHPowershellInvokeResult sshir =  increamentalBackup(session, server, robocopyDescription, items);
+		if (sshir.exitCode() != -1) {
+			FacadeResult<Path> fp = downloadIncreamentalArchive(session, server, robocopyDescription, items);
+			return fp.getResult();
+		}
+		return null;
 	}
 	
 	private String serializeToJson(RobocopyDescription robocopyDescription) throws JsonProcessingException {
@@ -549,6 +576,10 @@ public class RobocopyService {
 		 */
 		public int exitCode() {
 			return Integer.valueOf(lastLine);
+		}
+		
+		public boolean isCommandNotFound() {
+			return rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.indexOf("CommandNotFoundException") != -1);
 		}
 		
 		public boolean hasError() {

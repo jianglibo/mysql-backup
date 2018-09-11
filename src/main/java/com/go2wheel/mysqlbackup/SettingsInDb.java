@@ -178,9 +178,41 @@ public class SettingsInDb {
 		return createIfNotExists(getDirInHost(server, "repos/repo"));
 	}
 	
+	public Path getReposDir(Server server) throws IOException {
+		Path p = getDirInHost(server, "repos");
+		if (!Files.exists(p)) {
+			Files.createDirectories(p);
+		}
+		return p;
+	}
+	
+	public Path getCurrentRepoDir(Server server) throws IOException {
+		Path path = getReposDir(server).resolve("repo"); 
+		return PathUtil.getMaxVersionByBaseName(path);
+	}
+	
+	public Path getNextRepoDir(Server server) throws IOException {
+		Path path = getDumpsDir(server).resolve("repo"); 
+		Files.list(path.getParent()).forEach(p -> {
+			try {
+				if (Files.list(p).toArray().length == 0) {
+					Files.delete(p);
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
+		return PathUtil.getNextAvailableByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+	}
+	
 	private Path createIfNotExists(Path path) throws IOException {
 		if (!Files.exists(path)) {
-			return Files.createDirectories(path);
+			try {
+				return Files.createDirectories(path);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return path;
+			}
 		} else {
 			return path;			
 		}
@@ -222,7 +254,6 @@ public class SettingsInDb {
 			}
 		});
 		return PathUtil.getNextAvailableByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
-		
 	}
 	
 	public Path getLocalMysqlDir(Server server) throws IOException {
