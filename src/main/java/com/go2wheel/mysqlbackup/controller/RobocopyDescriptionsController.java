@@ -21,7 +21,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
-import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -31,15 +30,14 @@ import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 
 
 @Controller
-@RequestMapping(RobocopyDescriptionsController.MAPPING_PATH)
+@RequestMapping(RobocopyDescriptionsController.LISTING_PATH)
 public class RobocopyDescriptionsController  extends CRUDController<RobocopyDescription, RobocopyDescriptionDbService> {
 	
-	public static final String MAPPING_PATH = "/app/robocopy-descriptions";
+	public static final String LISTING_PATH = "/app/robocopy-descriptions";
 	
 	
 	@Autowired
@@ -47,9 +45,6 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	
 	@Autowired
 	private RobocopyItemDbService robocopyItemDbService;
-	
-	@Autowired
-	private SshSessionFactory sshSessionFactory;
 	
 	@Autowired
 	private ServerDbService serverDbService;
@@ -64,7 +59,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	
 	@Autowired
 	public RobocopyDescriptionsController(RobocopyDescriptionDbService dbService) {
-		super(RobocopyDescription.class, dbService, MAPPING_PATH);
+		super(RobocopyDescription.class, dbService, LISTING_PATH);
 	}
 
 	@Override
@@ -91,17 +86,22 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		return "redirect:/app/servers";
 	}
 	
+	@Override
+	protected String afterEdit(HttpServletRequest request, RedirectAttributes ras) {
+		return redirectEditUrl();
+	}
+	
 	@GetMapping("/create")
 	@Override
 	String getCreate(Model model, HttpServletRequest request) {
 		String serverId = request.getParameter("server");
 		if (serverId == null) {
-			return redirectMappingUrl(request);
+			return redirectListingUrl(request);
 		}
 		RobocopyDescription mi = getDbService().findByServerId(serverId);
 		if (mi != null) {
 			model.asMap().remove("mapping");
-			return redirectEditGet(mi.getId());
+			return redirectEditUrl(mi.getId());
 		}
 		mi = newModel();
 		mi.setServerId(Integer.parseInt(serverId));
@@ -130,7 +130,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		globalStore.saveFuture(sid, sf);
 		
 		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会�?�知您�??");
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 
 	@PostMapping("/{RobocopyDescription}/bk-local-repo")
@@ -138,12 +138,12 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 		Server server = serverDbService.findById(RobocopyDescription.getServerId());
 		borgService.backupLocalRepos(server);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会�?�知您�??");
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 	
 	@Override
 	protected String afterCreate(RobocopyDescription entityFromForm, HttpServletRequest request) {
-		return "redirect:" + MAPPING_PATH + "/" + entityFromForm.getId() + "/edit";
+		return "redirect:" + LISTING_PATH + "/" + entityFromForm.getId() + "/edit";
 	}
 
 	@Override

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
@@ -26,33 +25,22 @@ import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 
 @Controller
-@RequestMapping(RobocopyItemsController.MAPPING_PATH)
+@RequestMapping(RobocopyItemsController.LISTING_PATH)
 public class RobocopyItemsController  extends CRUDController<RobocopyItem, RobocopyItemDbService> {
 	
-	public static final String MAPPING_PATH = "/app/robocopy-items";
+	public static final String LISTING_PATH = "/app/robocopy-items";
 	
 	
 	@Autowired
 	private ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
-	private SshSessionFactory sshSessionFactory;
-	
-	@Autowired
-	private ServerDbService serverDbService;
-	
-	@Autowired
 	private RobocopyDescriptionDbService robocopyDescriptionDbService;
-	
-	@Autowired
-	private BorgService borgService;
 	
     @InitBinder
     public void initBinder(WebDataBinder binder) {
@@ -61,7 +49,7 @@ public class RobocopyItemsController  extends CRUDController<RobocopyItem, Roboc
 	
 	@Autowired
 	public RobocopyItemsController(RobocopyItemDbService dbService) {
-		super(RobocopyItem.class, dbService, MAPPING_PATH);
+		super(RobocopyItem.class, dbService, LISTING_PATH);
 	}
 
 	@Override
@@ -84,7 +72,7 @@ public class RobocopyItemsController  extends CRUDController<RobocopyItem, Roboc
 	String getCreate(Model model, HttpServletRequest request) {
 		String descriptionId = request.getParameter("descriptionId");
 		if (!StringUtil.isAllDigitsAndNotEmpty(descriptionId)) {
-			return redirectMappingUrl(request);
+			return redirectListingUrl(request);
 		}
 		RobocopyDescription rd = robocopyDescriptionDbService.findById(descriptionId);
 		RobocopyItem ri = newModel();
@@ -106,33 +94,13 @@ public class RobocopyItemsController  extends CRUDController<RobocopyItem, Roboc
 			save(entityFromDb);
 		}
         ras.addFlashAttribute("formProcessSuccessed", true);
-        return redirectMappingUrl(request, KeyValue.of("descriptionId", entityFromDb.getDescriptionId()));
+        return redirectListingUrl(request, KeyValue.of("descriptionId", entityFromDb.getDescriptionId()));
 	}
 	
 	
-//	@PostMapping("/{RobocopyItem}/download")
-//	public String postDownloads(@PathVariable(name = "RobocopyItem") RobocopyItem RobocopyItem, Model model, HttpServletRequest request, RedirectAttributes ras) {
-//		Server server = serverDbService.findById(RobocopyItem.getServerId());
-//		server = serverDbService.loadFull(server);
-//		
-//		Long aid = GlobalStore.atomicLong.getAndIncrement();
-//		
-//		String msgkey = getI18nedMessage(BorgService.BORG_DOWNLOAD_TASK_KEY, server.getHost());
-//		
-//		CompletableFuture<AsyncTaskValue> cf = borgService.downloadRepoAsync(server, msgkey, aid);
-//		String sid = request.getSession(true).getId();
-//		
-//		SavedFuture sf = SavedFuture.newSavedFuture(aid, msgkey, cf);
-//		
-//		globalStore.saveFuture(sid, sf);
-//		
-//		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会�?�知您�??");
-//		return redirectMappingUrl();
-//	}
-
 	@Override
 	protected String afterCreate(RobocopyItem entityFromForm, HttpServletRequest request) {
-		return "redirect:" + MAPPING_PATH + "/" + entityFromForm.getId() + "/edit";
+		return "redirect:" + LISTING_PATH + "/" + entityFromForm.getId() + "/edit";
 	}
 
 	@Override

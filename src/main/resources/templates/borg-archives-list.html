@@ -85,11 +85,11 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var serverId = /*[[${server.id}]]*/ "0";
 		var cache = {};
 		var modal = jQuery('#myModal');
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			[{
 				actionId: 'archiveDetail',

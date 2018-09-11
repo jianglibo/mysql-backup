@@ -1,4 +1,4 @@
-url jdbc:hsqldb:file:${user.home}/db/personal;shutdown=truejdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true;crypt_key=3e0903ab7b2f500d805752efe94ed27c;crypt_type=AES;crypt_lobs=true
+url jdbc:hsqldb:file:c:/db/mysqlbackup/devdb;shutdown=true;crypt_key=3e0903ab7b2f500d805752efe94ed27c;crypt_type=AES;crypt_lobs=true
 username SA
 password
 driver org.hsqldb.jdbc.JDBCDriver

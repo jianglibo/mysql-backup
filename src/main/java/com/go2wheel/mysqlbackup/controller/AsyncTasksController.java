@@ -49,7 +49,7 @@ public class AsyncTasksController extends ControllerBase {
 
 	@Override
 	public MainMenuItem getMenuItem() {
-		return new MainMenuItemImpl("appmodel", "async-tasks", getMappingUrl(), 1000);
+		return new MainMenuItemImpl("appmodel", "async-tasks", getListingUrl(), 1000);
 	}
 
 }

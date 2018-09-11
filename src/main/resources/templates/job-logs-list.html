@@ -51,8 +51,8 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
-		window.freact.renderActionMenuBar(mapping,
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["edit", "delete"]);
 	</script>

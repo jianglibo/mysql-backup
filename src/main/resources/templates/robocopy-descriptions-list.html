@@ -68,7 +68,7 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var borgdescriptions = /*[[${listItems}]]*/ [];
 
 		function findById(bid) {
@@ -78,7 +78,7 @@
 				}
 			}
 		}
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["edit", "delete", {
 				actionId: 'init-repo',
@@ -86,7 +86,7 @@
 				activeOn: 'SINGLE',
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
-					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/initrepo', { 'borgdescription': id });
+					var url = window.freact.strUtil.format(listingUrl + '/{borgdescription}/initrepo', { 'borgdescription': id });
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
 			}, {
@@ -115,7 +115,7 @@
 				activeOn: 'SINGLE',
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
-					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/download', { 'borgdescription': id });
+					var url = window.freact.strUtil.format(listingUrl + '/{borgdescription}/download', { 'borgdescription': id });
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
 			}, {
@@ -124,7 +124,7 @@
 				activeOn: 'SINGLE',
 				onClick: function() {
 					var id = this.state.selectedItems[0].id;
-					var url = window.freact.strUtil.format(mapping + '/{borgdescription}/bk-local-repo', { 'borgdescription': id });
+					var url = window.freact.strUtil.format(listingUrl + '/{borgdescription}/bk-local-repo', { 'borgdescription': id });
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
 			}]);

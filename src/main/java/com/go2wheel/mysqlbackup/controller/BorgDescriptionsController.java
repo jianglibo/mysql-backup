@@ -90,18 +90,18 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		String serverId = httpRequest.getParameter("server");
 		String rd = null;
 		if (serverId == null) {
-			rd =  redirectMappingUrl(httpRequest);
+			rd =  redirectListingUrl(httpRequest);
 		} else {
 			Server server = serverDbService.findById(serverId);
 			if (OsTypeWrapper.of(server.getOs()).isWin()) {
 				ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(httpRequest);
-				ucb.replacePath(RobocopyDescriptionsController.MAPPING_PATH + "/create");
+				ucb.replacePath(RobocopyDescriptionsController.LISTING_PATH + "/create");
 				String uri = ucb.build().toUriString();
 				rd = "redirect:" + uri;
 			} else {
 				BorgDescription mi = getDbService().findByServerId(serverId);
 				if (mi != null) {
-					rd = redirectEditGet(mi.getId());
+					rd = redirectEditUrl(mi.getId());
 				} else {
 					mi = newModel();
 					mi.setServerId(Integer.parseInt(serverId));
@@ -135,7 +135,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		globalStore.saveFuture(sid, sf);
 		
 		ras.addFlashAttribute("successMessage", "任务已异步发送，稍后会通知您。");
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 	
 	@PostMapping("/{borgdescription}/initrepo")
@@ -150,7 +150,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 			if (!fr.isExpected()) {
 				if (CommonMessageKeys.OBJECT_ALREADY_EXISTS.equals(fr.getMessage())) {
 					ras.addFlashAttribute("warnMessage", "仓库之前已经初始化了。");
-					return redirectMappingUrl(request);
+					return redirectListingUrl(request);
 				} else {
 					RemoteCommandResult rcr = fr.getResult();
 					if (rcr != null) {
@@ -165,7 +165,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 			}
 		}
 		ras.addFlashAttribute("successMessage", "仓库初始化完毕。");
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 
 	@PostMapping("/{borgdescription}/bk-local-repo")
@@ -173,7 +173,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		borgService.backupLocalRepos(server);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 	
 	@Override

@@ -68,7 +68,7 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/robocopy-items";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/robocopy-items";
 		var descriptionId = /*[[${#request.getParameter('descriptionId')}]]*/ null;
 
 		function findById(bid) {
@@ -78,7 +78,7 @@
 				}
 			}
 		}
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			[{
 				actionId: 'create',
@@ -86,7 +86,7 @@
 				activeOn: 'ALWAYS',
 				onClick: {
 					react: 'GET',
-					url: mapping + '/create?descriptionId=' + descriptionId
+					url: listingUrl + '/create?descriptionId=' + descriptionId
 				} 
 			},
 				"edit",

@@ -74,10 +74,10 @@
 		window.afterAsyncDone = function(data) {
 			window.location.reload(true);
 		}
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
 
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			[{
 				actionId: 'clear-completed',

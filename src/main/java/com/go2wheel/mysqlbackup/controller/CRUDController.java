@@ -82,14 +82,14 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		Integer[] intIds =  Splitter.on(',').trimResults().omitEmptyStrings().splitToList(ids).stream().map(Integer::parseInt).toArray(size -> new Integer[size]);
 		List<T> entities = dbService.findByIds(intIds);
 		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 	
 	@DeleteMapping("/{id}")
 	String deleteOne(@PathVariable Integer id, HttpServletRequest request, RedirectAttributes ras) {
 		List<T> entities = dbService.findByIds(new Integer[] {id});
 		ras.addFlashAttribute("deleteResult", deleteEntities(entities, false));
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 
 	protected String deleteEntities(List<T> entities, boolean execute) {
@@ -127,7 +127,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	}
 
 	protected String afterCreate(T entityFromForm, HttpServletRequest request) {
-	    return redirectMappingUrl(request);
+	    return redirectListingUrl(request);
 	}
 
 	protected void parseDuplicateKeyException(DuplicateKeyException de, String unique, BindingResult bindingResult) {
@@ -159,27 +159,41 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 		if (copyProperties(entityFromForm, entityFromDb)) {
 			save(entityFromDb);
 		}
-        ras.addFlashAttribute("formProcessSuccessed", true);
-        return redirectMappingUrl(request);
+        ras.addFlashAttribute("formProcessSuccessed", "已保存");
+        return afterEdit(request, ras);
+        
 	}
 
-	public String redirectMappingUrl(HttpServletRequest request, KeyValue...keyValues) {
+	protected String afterEdit(HttpServletRequest request, RedirectAttributes ras) {
+		return redirectListingUrl(request);
+	}
+
+	/**
+	 * append parameters to mapping url.
+	 * @param request
+	 * @param keyValues
+	 * @return
+	 */
+	public String redirectListingUrl(HttpServletRequest request, KeyValue...keyValues) {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		for(KeyValue kv : keyValues) {
 			ucb.queryParam(kv.getItemKey(), kv.getItemValue());
 		}
-		String uri = ucb.replacePath(getMappingUrl()).build().toUriString();
+		String uri = ucb.replacePath(getListingUrl()).build().toUriString();
 		return "redirect:" + uri;
 	}
 	
-	protected String redirectEditGet(Integer id) {
-		return "redirect:" + getMappingUrl() + "/" + id + "/edit";
+	protected String redirectEditUrl(Integer id) {
+		return "redirect:" + getListingUrl() + "/" + id + "/edit";
 	}
 
+	protected String redirectEditUrl() {
+		return "redirect:" + getListingUrl() + "/{id}/edit";
+	}
 	
 	@Override
 	public MainMenuItemImpl getMenuItem() {
-		return new MainMenuItemImpl("appmodel", getLowerHyphenPlural(), getMappingUrl(), getMenuOrder());
+		return new MainMenuItemImpl("appmodel", getLowerHyphenPlural(), getListingUrl(), getMenuOrder());
 	}
 	
 	protected int getMenuOrder() {

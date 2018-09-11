@@ -69,11 +69,11 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	String getCreate(Model model, HttpServletRequest httpRequest) {
 		String serverId = httpRequest.getParameter("server");
 		if (serverId == null) {
-			return redirectMappingUrl(httpRequest);
+			return redirectListingUrl(httpRequest);
 		}
 		MysqlInstance mi = getDbService().findByServerId(serverId);
 		if (mi != null) {
-			return redirectEditGet(mi.getId());
+			return redirectEditUrl(mi.getId());
 		}
 		mi = newModel();
 		mi.setServerId(Integer.parseInt(serverId));

@@ -58,8 +58,8 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
-		window.freact.renderActionMenuBar(mapping,
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["edit", "delete", {
 				actionId: 'dump-flushes',
@@ -67,7 +67,7 @@
 				activeOn: 'SINGLE',
 				onClick: function() {
 					var mi = this.state.selectedItems[0].id;
-					var url = mapping + '/' + mi + "/viewdumps";
+					var url = listingUrl + '/' + mi + "/viewdumps";
 					window.location.href = url;
 				}
 			}]);

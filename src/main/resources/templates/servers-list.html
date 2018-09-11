@@ -78,9 +78,9 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var grpId = /*[[${serverGrp != null ? serverGrp.id : ''}]]*/ 0;
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["create", "edit", "delete", {
 				actionId: 'createmysql',

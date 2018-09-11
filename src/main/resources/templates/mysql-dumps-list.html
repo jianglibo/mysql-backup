@@ -62,9 +62,9 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var server = /*[[${server}]]*/ {};
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			[{
 				actionId: 'dump',
@@ -72,7 +72,7 @@
 				activeOn: 'ALWAYS',
 				confirm: '确认重新DUMP?',
 				onClick: function() {
-					var url = mapping + '/' + server.id + '/dumps';
+					var url = listingUrl + '/' + server.id + '/dumps';
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
 			},{
@@ -81,7 +81,7 @@
 				activeOn: 'ALWAYS',
 				confirm: '确认FLUSH日志?',
 				onClick: function() {
-					var url = mapping + '/' + server.id + '/flushes';
+					var url = listingUrl + '/' + server.id + '/flushes';
 					window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 				}
 			}]);

@@ -53,8 +53,8 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
-		window.freact.renderActionMenuBar(mapping,
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["create", "edit", "delete", {
 				actionId: 'playback',
@@ -62,7 +62,7 @@
 				activeOn: 'SINGLE',
 				onClick: { 
 					react: 'GET',
-					url: mapping + '/{id}'
+					url: listingUrl + '/{id}'
 				}
 			}]);
 	</script>

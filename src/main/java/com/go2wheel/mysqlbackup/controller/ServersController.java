@@ -88,7 +88,7 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	@PostMapping("/{server}/install")
 	public String installSoftware(@PathVariable Server server,HttpServletRequest request, @RequestParam Software software) {
 		
-		return redirectMappingUrl(request);
+		return redirectListingUrl(request);
 	}
 
 	@Override

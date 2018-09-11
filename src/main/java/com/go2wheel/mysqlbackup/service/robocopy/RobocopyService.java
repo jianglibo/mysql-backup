@@ -408,7 +408,8 @@ public class RobocopyService {
 				}
 			}
 		}).exceptionally(e -> {
-			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(((ExceptionWrapper)e).getException())).withDescription(taskDescription);
+			ExceptionWrapper we = (ExceptionWrapper) e.getCause();
+			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(we.getException())).withDescription(taskDescription);
 		});
 	}
 

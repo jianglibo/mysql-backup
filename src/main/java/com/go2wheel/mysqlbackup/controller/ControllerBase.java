@@ -41,17 +41,17 @@ public abstract class ControllerBase implements ApplicationContextAware {
 	@Autowired
 	protected MessageSource messageSource;
 	
-	private final String mappingUrl;
+	private final String listingUrl;
 	
-	public ControllerBase(String mappingUrl) {
-		this.mappingUrl = mappingUrl;
+	public ControllerBase(String listingUrl) {
+		this.listingUrl = listingUrl;
 	}
 
 	@ModelAttribute
 	public void populateMainMenu(Model model, HttpServletRequest request) {
 		List<MainMenuItem> items = menuGroups.clone().prepare(request.getRequestURI()).getMenuItems();
 		model.addAttribute("menus", items);
-		model.addAttribute("mapping", mappingUrl);
+		model.addAttribute("listingUrl", listingUrl);
 		model.addAttribute("tplUtil", new TplUtil());
 	}
 	
@@ -63,8 +63,8 @@ public abstract class ControllerBase implements ApplicationContextAware {
 	
 	public abstract MainMenuItem getMenuItem();
 	
-	public String getMappingUrl() {
-		return mappingUrl;
+	public String getListingUrl() {
+		return listingUrl;
 	}
 	
 	public String getI18nedMessage(String msgkey, Object...substitutes) {

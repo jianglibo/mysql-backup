@@ -58,11 +58,11 @@
 	</div>
 
 	<script th:inline="javascript">
-		var mapping = /*[[${mapping}]]*/ "/app/listItems";
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
 		var ruri = /*[[${#request.getRequestURI()}]]*/ "/requestURI";
 		var sourceServer = /*[[${sourceServer}]]*/ null;
 		var targetServer = /*[[${targetServer}]]*/ null;
-		window.freact.renderActionMenuBar(mapping,
+		window.freact.renderActionMenuBar(listingUrl,
 			".item-list",
 			["edit", "delete", {
 				actionId: 'repo-restore',
