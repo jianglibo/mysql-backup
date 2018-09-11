@@ -216,6 +216,9 @@ public class PathUtil {
 		if (pathes.size() > 0) {
 			return pathes.get(0);
 		} else {
+			if (postfix > 0) {
+				return getNextAvailable(originFileOrDir, postfix);
+			}
 			return null;
 		}
 	}

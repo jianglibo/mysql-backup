@@ -24,23 +24,23 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.value.PruneBackupedFiles.PathAndCt;
+import com.go2wheel.mysqlbackup.value.PruneBackupedFiles.PathAndCreationTime;
 import com.google.common.collect.Lists;
 
 public class TestPruneBackups {
 	
-	private List<PathAndCt> createSecondly(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createSecondly(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for (int i = 0; i < num; i++) { // 2018-12-27 23:59:58 --> 2018-12-27 23:59:54 Total is 5 items.
-			PathAndCt pct = new PathAndCt();
-			pct.setLdt(ldt.minusSeconds(i));
+			PathAndCreationTime pct = new PathAndCreationTime();
+			pct.setLocalDateTime(ldt.minusSeconds(i));
 			pcts.add(pct);
 		}
 		return pcts;
 	}
 	
-	private List<PathAndCt> createMinutely(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createMinutely(LocalDateTime ldt, int num) { // wouldn't change ldt in body of function.
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int minuteOfHour = 0; minuteOfHour < num; minuteOfHour++) {
 			LocalDateTime nldt = ldt.minusMinutes(minuteOfHour);
 			pcts.addAll(createSecondly(nldt, num));
@@ -48,8 +48,8 @@ public class TestPruneBackups {
 		return pcts;
 	}
 	
-	private List<PathAndCt> createHourly(LocalDateTime ldt, int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createHourly(LocalDateTime ldt, int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int hourOfDay = 0; hourOfDay < num; hourOfDay++) {
 			LocalDateTime nldt = ldt.minusHours(hourOfDay);
 			pcts.addAll(createMinutely(nldt, num));
@@ -57,8 +57,8 @@ public class TestPruneBackups {
 		return pcts;
 	}
 	
-	private List<PathAndCt> createDaily(LocalDateTime ldt, int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createDaily(LocalDateTime ldt, int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int dayOfMonth = 0; dayOfMonth < num; dayOfMonth++) {
 			LocalDateTime nldt = ldt.minusDays(dayOfMonth);
 			pcts.addAll(createHourly(nldt, num));
@@ -66,8 +66,8 @@ public class TestPruneBackups {
 		return pcts;
 	}
 	
-	private List<PathAndCt> createWeekly(LocalDateTime ldt, int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createWeekly(LocalDateTime ldt, int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int weekOfYear = 0; weekOfYear < num; weekOfYear++) {
 			LocalDateTime nldt = ldt.minusWeeks(weekOfYear);
 			pcts.addAll(createDaily(nldt, num));
@@ -75,8 +75,8 @@ public class TestPruneBackups {
 		return pcts;
 	}
 	
-	private List<PathAndCt> createMonthly(LocalDateTime ldt, int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createMonthly(LocalDateTime ldt, int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int monthOfYear = 0; monthOfYear < num; monthOfYear++) {
 			LocalDateTime nldt = ldt.minusMonths(monthOfYear);
 			pcts.addAll(createWeekly(nldt, num));
@@ -84,8 +84,8 @@ public class TestPruneBackups {
 		return pcts;
 	}
 	
-	private List<PathAndCt> createYearly(LocalDateTime ldt, int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> createYearly(LocalDateTime ldt, int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		for(int yearDelta = 0; yearDelta < num; yearDelta++) {
 			LocalDateTime nldt = ldt.minusYears(yearDelta);
 			pcts.addAll(createMonthly(nldt, num));
@@ -94,8 +94,8 @@ public class TestPruneBackups {
 	}
 
 
-	private List<PathAndCt> fixturesInMinutes(int num) {
-		List<PathAndCt> pcts = Lists.newArrayList();
+	private List<PathAndCreationTime> fixturesInMinutes(int num) {
+		List<PathAndCreationTime> pcts = Lists.newArrayList();
 		LocalDateTime ldt = LocalDateTime.of(2018, 11, 27, 23, 59, 59);
 		pcts.addAll(createYearly(ldt, num)); // month 11,10,9,8
 		Collections.sort(pcts);
@@ -107,17 +107,17 @@ public class TestPruneBackups {
 	public void tEachRange() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
 		int total = (int) Math.pow(3, 7);
-		List<PathAndCt> lists = fixturesInMinutes(3);
+		List<PathAndCreationTime> lists = fixturesInMinutes(3);
 		assertThat(lists.size(), equalTo(total));
 
-		Map<String, List<PathAndCt>> byMonthes = pbf.byMonthes(lists, 2000);
+		Map<String, List<PathAndCreationTime>> byMonthes = pbf.byMonthes(lists, 2000);
 		
 		assertThat(byMonthes.size(), equalTo(9));
 		assertThat(byMonthes.keySet().stream().skip(byMonthes.size() - 2).collect(Collectors.toList()), contains("201810", "201811")); // each month group contains 256 items.
 		assertThat(byMonthes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
-		Map<String, List<PathAndCt>> byMonthes1 = pbf.byMonthes(lists, 20);
-		List<PathAndCt> latestMonth = byMonthes1.get("201811");
+		Map<String, List<PathAndCreationTime>> byMonthes1 = pbf.byMonthes(lists, 20);
+		List<PathAndCreationTime> latestMonth = byMonthes1.get("201811");
 		assertThat(latestMonth.size(), equalTo(243));
 		
 		byMonthes1.values().stream().limit(byMonthes1.size() - 1).forEach(ll -> {
@@ -127,13 +127,13 @@ public class TestPruneBackups {
 		
 		assertThat(byMonthes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(243L + 20 * 8)); // The other months except last one have 20 items each.
 		
-		Map<String, List<PathAndCt>> byDays = pbf.byDays(lists, 2000);
+		Map<String, List<PathAndCreationTime>> byDays = pbf.byDays(lists, 2000);
 		
 		assertThat(byDays.size(), equalTo(81));
 		assertThat(byDays.keySet().stream().skip(byDays.size() - 2).collect(toList()), contains("20181126", "20181127")); // each month group contains 256 items.
 		assertThat(byDays.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
-		Map<String, List<PathAndCt>> byDays1 = pbf.byDays(lists, 20);
+		Map<String, List<PathAndCreationTime>> byDays1 = pbf.byDays(lists, 20);
 		
 		byDays1.values().stream().limit(byDays.size() - 1).forEach(v -> {
 			assertThat(v.size(), equalTo(20));
@@ -143,18 +143,18 @@ public class TestPruneBackups {
 			assertThat(v.size(), equalTo(27));
 		});
 		
-		Map<String, List<PathAndCt>> byminutes = pbf.byMinutes(lists, 40);
+		Map<String, List<PathAndCreationTime>> byminutes = pbf.byMinutes(lists, 40);
 		assertThat(byminutes.size(), equalTo(729));
 		assertThat(byminutes.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
-		Map<String, List<PathAndCt>> byminutes1 = pbf.byMinutes(lists, 1);
+		Map<String, List<PathAndCreationTime>> byminutes1 = pbf.byMinutes(lists, 1);
 		assertThat(byminutes1.values().stream().flatMap(pp -> pp.stream()).count(), equalTo(728L + 3));
 		
-		Map<String, List<PathAndCt>> byWeeks = pbf.byWeeks(lists, 400);
+		Map<String, List<PathAndCreationTime>> byWeeks = pbf.byWeeks(lists, 400);
 		assertThat(byWeeks.size(), equalTo(29));
 		assertThat(byWeeks.values().stream().flatMap(pp -> pp.stream()).count(), equalTo((long)total));
 		
-		Map<String, List<PathAndCt>> byWeeks1 = pbf.byWeeks(lists, 1);
+		Map<String, List<PathAndCreationTime>> byWeeks1 = pbf.byWeeks(lists, 1);
 		
 		byWeeks1.values().stream().limit(byWeeks1.size() - 1).forEach(v -> {
 			assertThat(v.size(), equalTo(1));
@@ -169,17 +169,17 @@ public class TestPruneBackups {
 	@Test
 	public void tReal1() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		List<PathAndCt> lists = fixturesInMinutes(3);
+		List<PathAndCreationTime> lists = fixturesInMinutes(3);
 		
 		// keep latest 2 secondly, 2 minutely, 2 hourly, 2 daily, 2 weekly, 2 monthly.
-		Map<String, List<PathAndCt>> m = pbf.prune(lists, 2, 2, 2, 2, 2, 2, 0);
+		Map<String, List<PathAndCreationTime>> m = pbf.prune(lists, 2, 2, 2, 2, 2, 2, 0);
 		assertThat(m.size(), equalTo(3));
-		Map<String, List<PathAndCt>> msec = m.values()
+		Map<String, List<PathAndCreationTime>> msec = m.values()
 				.stream()
 				.flatMap(pp -> pp.stream())
-				.map(pc -> pc.refreshCt(PruneBackupedFiles.TILL_MINUTE))
+				.map(pc -> pc.refreshCreationTime(PruneBackupedFiles.TILL_MINUTE))
 				.collect(groupingBy(
-						pc -> pc.getCt(),
+						pc -> pc.getCreationTime(),
 						TreeMap::new,
 						toList()));
 //		msec.keySet().stream().forEach(System.out::println);
@@ -204,17 +204,17 @@ public class TestPruneBackups {
 	@Test
 	public void tReal2() {
 		PruneBackupedFiles pbf = new PruneBackupedFiles(Paths.get(""));
-		List<PathAndCt> lists = fixturesInMinutes(3);
+		List<PathAndCreationTime> lists = fixturesInMinutes(3);
 		
 		// 2 hourly, 2 daily, 2 weekly, 2 monthly.
-		Map<String, List<PathAndCt>> m = pbf.prune(lists, 0, 0, 2, 2, 2, 2, 2);
+		Map<String, List<PathAndCreationTime>> m = pbf.prune(lists, 0, 0, 2, 2, 2, 2, 2);
 		assertThat(m.size(), equalTo(3));
-		Map<String, List<PathAndCt>> msec = m.values()
+		Map<String, List<PathAndCreationTime>> msec = m.values()
 				.stream()
 				.flatMap(pp -> pp.stream())
-				.map(pc -> pc.refreshCt(PruneBackupedFiles.TILL_HOUR))
+				.map(pc -> pc.refreshCreationTime(PruneBackupedFiles.TILL_HOUR))
 				.collect(groupingBy(
-						pc -> pc.getCt(),
+						pc -> pc.getCreationTime(),
 						TreeMap::new,
 						toList()));
 		msec.keySet().stream().forEach(System.out::println);

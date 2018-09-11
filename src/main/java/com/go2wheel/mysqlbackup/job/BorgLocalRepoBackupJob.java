@@ -63,7 +63,6 @@ public class BorgLocalRepoBackupJob implements Job {
 
 	private void doWrk(Server sv) throws IOException {
 		borgService.backupLocalRepos(sv);
-		
 		BorgDescription bd = sv.getBorgDescription();
 		String pruneStrategy = bd.getPruneStrategy();
 		if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {

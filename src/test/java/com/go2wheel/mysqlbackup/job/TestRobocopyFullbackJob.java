@@ -30,13 +30,13 @@ import com.go2wheel.mysqlbackup.service.robocopy.RobocopyBaseT;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.jcraft.jsch.JSchException;
 
-public class TestRobocopyIncreamentalJob extends RobocopyBaseT {
+public class TestRobocopyFullbackJob extends RobocopyBaseT {
 	
 	@MockBean
 	protected JobExecutionContext context;
 	
 	@Autowired
-	private RobocopyInvokeJob robocopyInvokeJob;
+	private RobocopyLocalRepoBackupJob robocopyLocalbackupJob;
 	
     @Rule
     public TemporaryFolder repofolder= new TemporaryFolder();
@@ -64,10 +64,9 @@ public class TestRobocopyIncreamentalJob extends RobocopyBaseT {
 		deleteAllJobs();
 		
 		try {
-			robocopyInvokeJob.execute(context);
+			robocopyLocalbackupJob.execute(context);
 		} catch (Exception e) {
 			assertTrue(e instanceof ExceptionWrapper);
-			
 			ExceptionWrapper we = (ExceptionWrapper) e;
 			assertTrue(we.getException() instanceof UnExpectedInputException);
 		}
@@ -100,18 +99,18 @@ public class TestRobocopyIncreamentalJob extends RobocopyBaseT {
 		assertThat(countJobs(), equalTo(1L)); // new add mysqlinstance job.
 		deleteAllJobs();
 		
-		robocopyInvokeJob.execute(context);
+		robocopyLocalbackupJob.execute(context);
 		
-		List<Path> files = Files.list(settingsIndb.getRepoDir(server)).collect(Collectors.toList());
+		List<Path> files = Files.list(settingsIndb.getCurrentRepoDir(server)).collect(Collectors.toList());
 		
 		assertThat(files.size(), equalTo(0)); //no increamental archive download.
 		
 	}
 	
 	private void deleteRepo(Server server) throws IOException {
-		Files.list(settingsIndb.getRepoDir(server)).forEach(f -> {
+		Files.list(settingsIndb.getReposDir(server)).forEach(d -> {
 			try {
-				Files.delete(f);
+				FileUtil.deleteFolder(d, false);
 			} catch (IOException e) {
 			}
 		});
@@ -144,11 +143,23 @@ public class TestRobocopyIncreamentalJob extends RobocopyBaseT {
 		assertThat(countJobs(), equalTo(1L)); // new add mysqlinstance job.
 		deleteAllJobs();
 		
-		robocopyInvokeJob.execute(context);
+		robocopyLocalbackupJob.execute(context);
 		
-		List<Path> files = Files.list(settingsIndb.getRepoDir(server)).collect(Collectors.toList());
+		List<Path> files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
 		
-		assertThat(files.size(), equalTo(1));
+		assertThat(files.size(), equalTo(2));
+		
+		// execute again. no file changed.
+		robocopyLocalbackupJob.execute(context);
+		files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
+		assertThat(files.size(), equalTo(3));
+		
+		// add a new file.
+		createALocalFile(srcfolder.getRoot().toPath().resolve("xx/axk.txt"), "abc");
+		robocopyLocalbackupJob.execute(context);
+		files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
+		assertThat(files.size(), equalTo(4));
+
 	}
 	
 	protected long countJobs() throws SchedulerException {

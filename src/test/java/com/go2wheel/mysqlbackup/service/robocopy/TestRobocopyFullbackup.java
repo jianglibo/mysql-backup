@@ -27,6 +27,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
+import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -84,8 +85,8 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
-		boolean b = robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		assertTrue(b);
+		robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+		assertTrue(Files.exists(settingsIndb.getCurrentRepoDir(server).resolve(RemotePathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()))));
 		assertTrue(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceScriptFile())));
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, robocopyDescription.getWorkingSpaceScriptFile() + " -action echo");
@@ -101,7 +102,7 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
 		
-		Files.list(settingsIndb.getRepoDir(server)).forEach(f -> {
+		Files.list(settingsIndb.getCurrentRepoDir(server)).forEach(f -> {
 			try {
 				Files.delete(f);
 			} catch (IOException e) {
@@ -152,6 +153,6 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 		assertThat(p.getResult().getFileName().toString(), equalTo(robocopyDescription.getArchiveName()));
 		p = robocopyService.downloadCompressed(session, server, robocopyDescription); // download again.
 		assertTrue(Files.exists(p.getResult()));
-		assertThat(Files.list(settingsIndb.getRepoDir(server)).count(), equalTo(1L));
+		assertThat(Files.list(settingsIndb.getCurrentRepoDir(server)).count(), equalTo(1L));
 	}
 }

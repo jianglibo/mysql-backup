@@ -188,11 +188,15 @@ public class SettingsInDb {
 	
 	public Path getCurrentRepoDir(Server server) throws IOException {
 		Path path = getReposDir(server).resolve("repo"); 
-		return PathUtil.getMaxVersionByBaseName(path);
+		path = PathUtil.getMaxVersionByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+		if (!Files.exists(path)) {
+			Files.createDirectories(path);
+		}
+		return path;
 	}
 	
 	public Path getNextRepoDir(Server server) throws IOException {
-		Path path = getDumpsDir(server).resolve("repo"); 
+		Path path = getReposDir(server).resolve("repo"); 
 		Files.list(path.getParent()).forEach(p -> {
 			try {
 				if (Files.list(p).toArray().length == 0) {

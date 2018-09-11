@@ -24,6 +24,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
+ * sort by creation time, so file name doesn't matter.
  * 将备份文件按不同的粒度分组，同时保留排位最新的分组不受干扰。比如按分钟分组，如果要保留secondly是5个，那么所有的分钟分组中都保留5个secondly。在下一轮分组中，比如以小时分组，此时对最新一组的5个secondly不做处理，但是对其它分组的5个secondly计入minutely分组，
  * 如果minutely是2个，那么5个中的3个将被minutely剔除。以此类推。
  * 如果小颗粒的保留个数大于大颗粒的单位，那么大颗粒的值将影响小颗粒的设定。比如，设定secondly的值是70，那么minutely分组后，其中10个将归入另一个minutely单元。
@@ -45,6 +46,10 @@ public class PruneBackupedFiles {
 	private Path origin;
 	private final boolean originExists;
 
+	/**
+	 * 
+	 * @param origin origin file doesn't have digital extension.
+	 */
 	public PruneBackupedFiles(Path origin) {
 		this.origin = origin;
 		originExists = Files.exists(origin);
@@ -56,7 +61,7 @@ public class PruneBackupedFiles {
 	}
 
 	// secondly, minutely, hourly, daily, weekly, monthly, yearly.
-	public Map<String, List<PathAndCt>> prune(String prunePattern) {
+	public Map<String, List<PathAndCreationTime>> prune(String prunePattern) {
 		Pattern ptn = Pattern.compile("^\\s*(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s+(\\d+)\\s*$");
 		Matcher m = ptn.matcher(prunePattern);
 		if (m.matches()) {
@@ -72,9 +77,9 @@ public class PruneBackupedFiles {
 		return null;
 	}
 
-	protected Map<String, List<PathAndCt>> prune(List<PathAndCt> backups, int secondly, int minutely, int hourly,
+	protected Map<String, List<PathAndCreationTime>> prune(List<PathAndCreationTime> backups, int secondly, int minutely, int hourly,
 			int daily, int weekly, int monthly, int yearly) {
-		List<PathAndCt> listOfAc = backups;
+		List<PathAndCreationTime> listOfAc = backups;
 		Collections.sort(listOfAc);
 		if (secondly > 0)
 			listOfAc = byMinutes(listOfAc, secondly).values().stream().flatMap(la -> la.stream())
@@ -93,27 +98,33 @@ public class PruneBackupedFiles {
 		if (monthly > 0)
 			listOfAc = byYears(listOfAc, monthly).values().stream().flatMap(la -> la.stream())
 					.collect(Collectors.toList());
-			return listOfAc.stream().collect(Collectors.groupingBy(ptc -> ptc.getCt(), TreeMap::new, toList()));
+			return listOfAc.stream().collect(Collectors.groupingBy(ptc -> ptc.getCreationTime(), TreeMap::new, toList()));
 	}
 
-	public List<PathAndCt> init() {
-		List<PathAndCt> lst = Lists.newArrayList();
+	public List<PathAndCreationTime> init() {
+		List<PathAndCreationTime> lst = Lists.newArrayList();
 		String ofn = this.origin.getFileName().toString();
 		Pattern ptn = Pattern.compile(ofn + "\\.\\d+$");
 		try {
 			lst = Files.list(origin.toAbsolutePath().getParent())
-					.filter(p -> ptn.matcher(p.getFileName().toString()).matches()).map(p -> new PathAndCt(p))
-					.filter(p -> p.getCt() != null && p.getPath() != null).collect(toList());
+					.filter(p -> {
+						String pn = p.getFileName().toString();
+						boolean b = ptn.matcher(pn).matches(); 
+						return b;
+					})
+					.map(p -> new PathAndCreationTime(p))
+					.filter(p -> p.getLocalDateTime() != null && p.getPath() != null).collect(toList());
 		} catch (IOException e) {
 		}
 		return lst;
 	}
 
-	private Map<String, List<PathAndCt>> process(Map<String, List<PathAndCt>> rs, int keepCount) {
-		if (keepCount == 0) {
+	private Map<String, List<PathAndCreationTime>> process(Map<String, List<PathAndCreationTime>> rs, int keepCount) {
+		if (keepCount == 0 || rs.size() == 0) {
 			return rs;
 		}
-		Map<String, List<PathAndCt>> nrs = Maps.newTreeMap();
+		
+		Map<String, List<PathAndCreationTime>> nrs = Maps.newTreeMap();
 
 		rs.entrySet().stream().skip(rs.size() - 1).forEach(en -> {
 			nrs.put(en.getKey(), en.getValue());
@@ -122,11 +133,11 @@ public class PruneBackupedFiles {
 		rs.entrySet().stream().limit(rs.size() - 1).forEach(en -> {
 			String k = en.getKey();
 
-			List<PathAndCt> lpc = en.getValue();
+			List<PathAndCreationTime> lpc = en.getValue();
 			int dele = lpc.size() - keepCount;
 
 			if (dele > 0) {
-				List<PathAndCt> dellist = lpc.subList(0, dele);
+				List<PathAndCreationTime> dellist = lpc.subList(0, dele);
 				dellist.stream().filter(p -> p.getPath() != null).filter(p -> Files.exists(p.getPath())).forEach(p -> {
 					Path pp = p.getPath();
 					if (Files.isDirectory(pp)) {
@@ -148,63 +159,63 @@ public class PruneBackupedFiles {
 		return nrs;
 	}
 
-	public Map<String, List<PathAndCt>> byMinutes(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_MINUTE))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byMinutes(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_MINUTE))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	public Map<String, List<PathAndCt>> byHours(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_HOUR))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byHours(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_HOUR))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	public Map<String, List<PathAndCt>> byDays(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_DAY))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byDays(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_DAY))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	public Map<String, List<PathAndCt>> byWeeks(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_WEEK))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byWeeks(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_WEEK))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	public Map<String, List<PathAndCt>> byMonthes(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_MONTH))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byMonthes(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_MONTH))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	public Map<String, List<PathAndCt>> byYears(List<PathAndCt> pcts, int keepCount) {
-		Map<String, List<PathAndCt>> rs = pcts.stream().map(pct -> pct.refreshCt(TILL_YEAR))
-				.collect(groupingBy(pct -> pct.getCt(), TreeMap::new, toList()));
+	public Map<String, List<PathAndCreationTime>> byYears(List<PathAndCreationTime> pcts, int keepCount) {
+		Map<String, List<PathAndCreationTime>> rs = pcts.stream().map(pct -> pct.refreshCreationTime(TILL_YEAR))
+				.collect(groupingBy(pct -> pct.getCreationTime(), TreeMap::new, toList()));
 		return process(rs, keepCount);
 	}
 
-	protected static class PathAndCt implements Comparable<PathAndCt> {
+	protected static class PathAndCreationTime implements Comparable<PathAndCreationTime> {
 		private Path path;
-		private String ct;
-		private LocalDateTime ldt;
+		private String creationTime;
+		private LocalDateTime localDateTime;
 
-		public PathAndCt() {
+		public PathAndCreationTime() {
 		}
 
-		public PathAndCt(Path path) {
+		public PathAndCreationTime(Path path) {
 			if (Files.exists(path)) {
 				this.path = path;
 				try {
 					BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class);
-					ldt = LocalDateTime.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault());
+					localDateTime = LocalDateTime.ofInstant(attr.creationTime().toInstant(), ZoneId.systemDefault());
 				} catch (IOException e) {
 				}
 			}
 		}
 
-		public PathAndCt refreshCt(DateTimeFormatter dtf) {
-			setCt(getLdt().format(dtf));
+		public PathAndCreationTime refreshCreationTime(DateTimeFormatter dtf) {
+			setCreationTime(getLocalDateTime().format(dtf));
 			return this;
 		}
 
@@ -216,33 +227,33 @@ public class PruneBackupedFiles {
 			this.path = path;
 		}
 
-		public String getCt() {
-			return ct;
+		public String getCreationTime() {
+			return creationTime;
 		}
 
-		public void setCt(String ct) {
-			this.ct = ct;
+		public void setCreationTime(String creationTIme) {
+			this.creationTime = creationTIme;
 		}
 
-		public LocalDateTime getLdt() {
-			return ldt;
+		public LocalDateTime getLocalDateTime() {
+			return localDateTime;
 		}
 
-		public void setLdt(LocalDateTime ldt) {
-			this.ldt = ldt;
+		public void setLocalDateTime(LocalDateTime localDateTime) {
+			this.localDateTime = localDateTime;
 		}
 
 		@Override
-		public int compareTo(PathAndCt o) {
-			return this.getLdt().compareTo(o.getLdt());
+		public int compareTo(PathAndCreationTime o) {
+			return this.getLocalDateTime().compareTo(o.getLocalDateTime());
 		}
 
 		@Override
 		public String toString() {
 			return MoreObjects.toStringHelper(this)
 					.add("path", getPath() != null ? getPath().toAbsolutePath().toString() : "null")
-					.add("ct", getCt())
-					.add("ldt", getLdt().toString())
+					.add("ct", getCreationTime())
+					.add("ldt", getLocalDateTime().toString())
 					.toString();
 		}
 	}
