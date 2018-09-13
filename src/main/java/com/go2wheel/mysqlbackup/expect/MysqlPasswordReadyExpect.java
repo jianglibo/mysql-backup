@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.expect;
 
+import static net.sf.expectit.filter.Filters.removeColors;
+import static net.sf.expectit.filter.Filters.removeNonPrintable;
 import static net.sf.expectit.matcher.Matchers.contains;
 import static net.sf.expectit.matcher.Matchers.times;
 
@@ -8,13 +10,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
@@ -22,9 +24,11 @@ import com.jcraft.jsch.Session;
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectIOException;
 
-public abstract class MysqlPasswordReadyExpect {
+public abstract class MysqlPasswordReadyExpect<T> {
 	
 	public static final String BASH_PROMPT = "]#";
+	public static final String POWERSHELL_START = "---start---";
+	public static final String POWERSHELL_END = "---end---";
 
 	protected final Session session;
 	protected final Server server;
@@ -47,12 +51,13 @@ public abstract class MysqlPasswordReadyExpect {
 	}
 	
 	
-	public List<String> start() throws UnExpectedContentException, MysqlAccessDeniedException {
+	public T start() throws UnExpectedContentException, MysqlAccessDeniedException {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {
-			expect = ExpectitUtil.getExpectBuilder(channel, !ApplicationState.IS_PROD_MODE).build();			
-			tillPasswordRequired();
+			expect = ExpectitUtil.getExpectBuilder(channel, false).withInputFilters(removeColors()).build();
+			
+			invokeCommandWhichCausePasswordPrompt();
 			expect.expect(contains("password: "));
 			expect.sendLine(server.getMysqlInstance().getPassword());
 			return afterLogin();
@@ -71,14 +76,24 @@ public abstract class MysqlPasswordReadyExpect {
 		}
 	}
 	
-	protected abstract void tillPasswordRequired() throws IOException;
+	protected abstract void invokeCommandWhichCausePasswordPrompt() throws IOException;
 	
 	protected String expectBashPromptAndReturnRaw(int num) throws IOException {
-		return expect.expect(times(num, contains(BASH_PROMPT))).getBefore();
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			return expect.expect(times(num, contains(POWERSHELL_END))).getBefore();
+		} else {
+			return expect.expect(times(num, contains(BASH_PROMPT))).getBefore();
+		}
+		
 	}
 	
 	protected String expectBashPromptAndReturnRaw(int num, long duration, TimeUnit tu) throws IOException {
-		return expect.withTimeout(duration, tu).expect(times(num, contains(BASH_PROMPT))).getBefore();
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			return expect.withTimeout(duration, tu).expect(times(num, contains(POWERSHELL_END))).getBefore();
+		} else {
+			return expect.withTimeout(duration, tu).expect(times(num, contains(BASH_PROMPT))).getBefore();
+		}
+		
 	}
 
 	protected void checkAccessDenied(List<String> s) throws MysqlAccessDeniedException {
@@ -88,7 +103,11 @@ public abstract class MysqlPasswordReadyExpect {
 	}
 	
 	protected List<String> expectBashPromptAndReturnList() throws IOException {
-		return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			return StringUtil.splitLines(expect.expect(contains(POWERSHELL_END)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
+		} else {
+			return StringUtil.splitLines(expect.expect(contains(BASH_PROMPT)).getBefore()).stream().filter(s -> !s.trim().isEmpty()).collect(Collectors.toList());
+		}
 	}
 	
 	/**
@@ -97,5 +116,5 @@ public abstract class MysqlPasswordReadyExpect {
 	 * @throws IOException
 	 * @throws MysqlAccessDeniedException 
 	 */
-	protected abstract List<String> afterLogin() throws IOException, MysqlAccessDeniedException;
+	protected abstract T afterLogin() throws IOException, MysqlAccessDeniedException;
 }

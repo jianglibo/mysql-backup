@@ -154,11 +154,12 @@ Describe "backupfiles conitnuous directories" {
     }
     
     It "should parse mysql output" {
-        $vnames = "innodb_version", "protocol_version", "version", "version_comment", "version_compile_machine", "version_compile_os"
+        $vnames = @('innodb_version', "protocol_version", "version", "version_comment", "version_compile_machine", "version_compile_os")
 
         E:\wamp64\bin\mysql\mysql5.7.21\bin\mysql.exe -uroot -p123456 -e "show variables"  |
         Where-Object {$_} |
         Where-Object {$vnames -contains ($_ -split "\s+")[0] } |
+        ForEach-Object -Begin {'---start---'} -Process { '-+-' + $_ + '-+-'} -End {'---end---'} |
         Out-Host
     }
 }

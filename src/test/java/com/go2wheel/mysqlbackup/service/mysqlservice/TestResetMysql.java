@@ -70,7 +70,7 @@ public class TestResetMysql extends MysqlServiceTbase {
 		assertTrue("password should be changed.", b);
 		MysqlPasswordReadyExpect mr = new MysqlPasswordReadyExpect(session, server) {
 			@Override
-			protected void tillPasswordRequired() throws IOException {
+			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				String cmd = "mysql -uroot -p -e \"show variables\"";
 				expect.sendLine(cmd);
 			}

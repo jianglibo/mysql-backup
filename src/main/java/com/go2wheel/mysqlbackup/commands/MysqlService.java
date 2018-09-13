@@ -546,9 +546,9 @@ public class MysqlService {
 			
 			String sourceCmd = String.format("mysql -u root -p -e \"source %s\"", remoteTmpSqlFile);
 			
-			MysqlPasswordReadyExpect mpre = new MysqlPasswordReadyExpect(targetSession, targetServer) {
+			MysqlPasswordReadyExpect<List<String>> mpre = new MysqlPasswordReadyExpect<List<String>>(targetSession, targetServer) {
 				@Override
-				protected void tillPasswordRequired() throws IOException {
+				protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 					expect.sendLine(sourceCmd);
 				}
 				
@@ -688,10 +688,10 @@ public class MysqlService {
 		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
 		String cmd = String.format("mysql -uroot -p < %s", dumpfn);
 
-		MysqlPasswordReadyExpect mpre = new MysqlPasswordReadyExpect(targetSession, targetServer) {
+		MysqlPasswordReadyExpect<List<String>> mpre = new MysqlPasswordReadyExpect<List<String>>(targetSession, targetServer) {
 			
 			@Override
-			protected void tillPasswordRequired() throws IOException {
+			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				expect.sendLine(cmd);
 			}
 			

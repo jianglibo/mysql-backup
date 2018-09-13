@@ -20,7 +20,7 @@ import com.jcraft.jsch.Session;
  * @author admin
  *
  */
-public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
+public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect<List<String>> {
 	
 	private List<String> bf;
 
@@ -60,7 +60,7 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect {
 	}
 
 	@Override
-	protected void tillPasswordRequired() throws IOException {
+	protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 		bf = catIndex();
 		String cmd = "mysqladmin -u%s -p flush-logs";
 		cmd = String.format(cmd, StringUtil.notEmptyValue(server.getMysqlInstance().getUsername()).orElse("root"));

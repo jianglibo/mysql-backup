@@ -12,7 +12,7 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.jcraft.jsch.Session;
 
-public class MysqlDumpExpect extends MysqlPasswordReadyExpect {
+public class MysqlDumpExpect extends MysqlPasswordReadyExpect<List<String>> {
 
 	
 	public MysqlDumpExpect(Session session, Server server) {
@@ -55,7 +55,7 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect {
 
 
 	@Override
-	protected void tillPasswordRequired() throws IOException {
+	protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 		String cmd = getCmd();
 		expect.sendLine(cmd);
 	}

@@ -124,31 +124,30 @@ public class MysqlUtil {
 	public MysqlVariables getLogbinStateWin(Session session, MysqlInstance mysqlInstance)
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		
-		
-//		return new MysqlInteractiveExpect<MysqlVariables>(session) {
-//			@Override
-//			protected MysqlVariables afterLogin() {
-//				Map<String, String> binmap = new HashMap<>();
-//				try {
-//					List<String> vnames = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
-//							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
-//							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR);
-//					
-//					for(String vname: vnames) {
-//						expect.sendLine("charset gbk;");
-//						List<String> result = expectMysqlPromptAndReturnList();
-//						expect.sendLine(String.format("show variables like '%s';", vname));
-//						result = expectMysqlPromptAndReturnList();
-//						int i = result.size();
-//					}
-////					binmap = vnames.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
-//					expect.sendLine("exit");
-//				} catch (IOException e) {
-//					logger.error("mysql logbin obtain failed: {}", e.getMessage());
-//				}
-//				return new MysqlVariables(binmap);
-//			}
-//		}.start(mysqlInstance);
+		return new MysqlInteractiveExpect<MysqlVariables>(session) {
+			@Override
+			protected MysqlVariables afterLogin() {
+				Map<String, String> binmap = new HashMap<>();
+				try {
+					List<String> vnames = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR);
+					
+					for(String vname: vnames) {
+						expect.sendLine("charset gbk;");
+						List<String> result = expectMysqlPromptAndReturnList();
+						expect.sendLine(String.format("show variables like '%s';", vname));
+						result = expectMysqlPromptAndReturnList();
+						int i = result.size();
+					}
+//					binmap = vnames.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
+					expect.sendLine("exit");
+				} catch (IOException e) {
+					logger.error("mysql logbin obtain failed: {}", e.getMessage());
+				}
+				return new MysqlVariables(binmap);
+			}
+		}.start(mysqlInstance);
 	}
 	
 	public MysqlVariables getLogbinStateCentos(Session session,MysqlInstance mysqlInstance)
@@ -363,9 +362,9 @@ public class MysqlUtil {
 	
 	
 	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedContentException, MysqlAccessDeniedException {
-		return (new MysqlPasswordReadyExpect(session, server) {
+		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
-			protected void tillPasswordRequired() throws IOException {
+			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				String cmd = String.format("mysql -uroot -p -e \"%s\"", sql);
 				expect.sendLine(cmd);
 			}
@@ -381,9 +380,9 @@ public class MysqlUtil {
 	
 	
 	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException, MysqlAccessDeniedException {
-		return (new MysqlPasswordReadyExpect(session, server) {
+		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
-			protected void tillPasswordRequired() throws IOException {
+			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				String cmd = String.format("mysql -uroot -p -e \"%s\"", "show databases");
 				expect.sendLine(cmd);
 			}
@@ -398,9 +397,9 @@ public class MysqlUtil {
 	}
 	
 	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedContentException, MysqlAccessDeniedException {
-		return (new MysqlPasswordReadyExpect(session, server) {
+		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
-			protected void tillPasswordRequired() throws IOException {
+			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				String cmd = String.format("mysql -uroot -p -e \"%s\"", String.format("create database %s charset utf8", database));
 				expect.sendLine(cmd);
 			}
