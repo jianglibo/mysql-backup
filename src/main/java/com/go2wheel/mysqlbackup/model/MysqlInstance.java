@@ -226,9 +226,6 @@ public class MysqlInstance extends BaseModel {
 	}
 
 	public void setClientBin(String clientBin) {
-		if (StringUtil.hasAnyNonBlankWord(clientBin) && !clientBin.endsWith("/")) {
-			clientBin = clientBin + "/";
-		}
 		this.clientBin = clientBin;
 	}
 

@@ -222,6 +222,13 @@ public class GlobalStore {
 		private Instant startPoint;
 		private Long millisecs;
 		
+		public String appendExtraToResult(String result) {
+			if (result.indexOf("UnknownHostKey:") != -1) {
+				result += "\nssh-keyscan -H -t rsa target-server >> .ssh/known_hosts";
+			}
+			return result;
+		}
+		
 		private SavedFuture() {}
 		
 		public static SavedFuture newSavedFuture(Long id, String description, CompletableFuture<AsyncTaskValue> cf) {
@@ -257,6 +264,7 @@ public class GlobalStore {
 									if (result == null || result.isEmpty()) {
 										result = fo.getException().getClass().getName();
 									}
+									result = appendExtraToResult(result);
 								}
 							}
 						} else {
@@ -335,6 +343,8 @@ public class GlobalStore {
 			sfo.get().stopCounting();
 		}
 	}
+
+
 
 	public void clearCompleted(String sid) {
 		Map<Long, SavedFuture> lsmap = sessionAndFutures.get(sid);

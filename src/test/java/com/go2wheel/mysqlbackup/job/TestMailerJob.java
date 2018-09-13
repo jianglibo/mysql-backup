@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.mail.Mailer;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
@@ -66,7 +67,7 @@ public class TestMailerJob extends JobBaseFort {
 	private Software software;
 	
 	
-	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException, UnExpectedInputException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -98,7 +99,7 @@ public class TestMailerJob extends JobBaseFort {
 		return usg;
 	}
 	
-	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
+	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException, UnExpectedInputException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -144,7 +145,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, MysqlAccessDeniedException, UnExpectedInputException {
 		
 		Subscribe subscribe = simulation();
 		

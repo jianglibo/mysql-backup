@@ -26,6 +26,7 @@ public class AbsolutePathValidator implements ConstraintValidator<AbsolutePathCo
 			} else if(!StringUtil.hasAnyNonBlankWord(value)) {
 				return false;
 			} else {
+				// wrong, what about running on linux server.
 				return Paths.get(value).isAbsolute();
 			}
 		} catch (Exception e) {

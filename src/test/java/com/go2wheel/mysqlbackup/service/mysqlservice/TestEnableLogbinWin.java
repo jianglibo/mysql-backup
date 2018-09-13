@@ -13,6 +13,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
@@ -25,19 +26,25 @@ import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.jcraft.jsch.JSchException;
 
-public class TestEnableLogbin extends MysqlServiceTbase {
+public class TestEnableLogbinWin extends MysqlServiceTbase {
 
 	
 	@Rule
 	@Autowired
 	public ServerDataCleanerRule sdc; 
 	
+	@Value("${myapp.app.client-bin}")
+	private String clientBin;
+	
 	
 	@Test
 	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
-		clearDb();
-		installMysql();
+		createSessionLocalHostWindowsAfterClear();
 		sdc.setHost(server.getHost());
+		createMysqlIntance(server, "123456");
+		
+		server.getMysqlInstance().setClientBin(clientBin);
+		
 		FacadeResult<?> fr = mysqlService.disableLogbin(session, server);
 		assertTrue(fr.isExpected());
 		assertFalse(server.getMysqlInstance().getLogBinSetting().isEnabled());

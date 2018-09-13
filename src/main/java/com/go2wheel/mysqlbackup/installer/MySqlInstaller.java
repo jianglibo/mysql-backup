@@ -23,6 +23,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -74,7 +75,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	private SshSessionFactory sshSessionFactory;
 	
 	public FacadeResult<MysqlInstallInfo> resetMysql(Session session, Server server,
-			String newPassword) throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+			String newPassword) throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
 		mysqlUtil.stopMysql(session);
 		String datadir = mi.getVariables().get(MysqlVariables.DATA_DIR);
@@ -88,7 +89,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		}
 	}
 	
-	public boolean resetPassword(Session session, Server server, String oldPassword, String newPassword) throws MysqlAccessDeniedException, JSchException, IOException, AppNotStartedException {
+	public boolean resetPassword(Session session, Server server, String oldPassword, String newPassword) throws MysqlAccessDeniedException, JSchException, IOException, AppNotStartedException, UnExpectedInputException {
 		MysqlInteractiveExpect<Boolean> mie = new MysqlInteractiveExpect<Boolean>(session) {
 			@Override
 			protected Boolean afterLogin() throws IOException {
@@ -103,11 +104,11 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				}
 				return s.indexOf("ERROR") == -1;
 			}};
-		return mie.start(server.getMysqlInstance().getUsername(), oldPassword);
+		return mie.start(server.getMysqlInstance(), server.getMysqlInstance().getUsername(), oldPassword);
 	}
 
 	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software,
-			String initPassword) throws MysqlAccessDeniedException, AppNotStartedException {
+			String initPassword) throws MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		try {
 			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(software.getVersion()))) {
 				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", software.getVersion()));
@@ -207,7 +208,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		}
 	}
 
-	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server server, Software software) throws MysqlAccessDeniedException, AppNotStartedException {
+	public FacadeResult<MysqlInstallInfo> unInstall(Session session, Server server, Software software) throws MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		try {
 			MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 			if (!info.isInstalled()) {
@@ -244,7 +245,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException {
+	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException, UnExpectedInputException {
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
 		FacadeResult<MysqlInstallInfo> fr = null;
 		try {
@@ -265,7 +266,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, install(server, software, parasMap)).withDescription(msgKey);
-			} catch (JSchException e) {
+			} catch (JSchException | UnExpectedInputException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
@@ -319,7 +320,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) throws JSchException {
+	public FacadeResult<MysqlInstallInfo> uninstall(Server server, Software software) throws JSchException, UnExpectedInputException {
 		try {
 			return unInstall(getSession(server), server, software);
 		} catch (MysqlAccessDeniedException | AppNotStartedException e) {
@@ -332,7 +333,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, uninstall(server, software)).withDescription(msgKey);
-			} catch (JSchException e) {
+			} catch (JSchException | UnExpectedInputException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});

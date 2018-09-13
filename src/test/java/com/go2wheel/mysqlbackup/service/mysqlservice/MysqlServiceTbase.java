@@ -14,6 +14,7 @@ import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -38,14 +39,14 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	
 
 	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException,
-			MysqlAccessDeniedException, AppNotStartedException {
+			MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		createSession();
 		createMysqlIntance();
 		installMysql(session, server, "123456");
 	}
 
 	protected void installMysql(Session session, Server server, String initPassword) throws JSchException,
-			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException {
+			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		deleteAllJobs();
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");
@@ -56,7 +57,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		mysqlService.enableLogbin(session, server);
 	}
 
-	protected void uninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException {
+	protected void uninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		createSession();
 		createMysqlIntance();
 		mySqlInstaller.syncToDb();
@@ -64,7 +65,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		assertFalse(info.getResult().isInstalled());
 	}
 
-	protected void uninstall(Session session, Server server) throws JSchException, MysqlAccessDeniedException, AppNotStartedException {
+	protected void uninstall(Session session, Server server) throws JSchException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		try {
 			createMysqlIntance(server, "");
 			mySqlInstaller.syncToDb();

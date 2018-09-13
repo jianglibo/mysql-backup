@@ -6,13 +6,14 @@ import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlLogin extends SpringBaseFort {
 
 	@Test
-	public void tLogin() throws IOException, JSchException, MysqlAccessDeniedException, AppNotStartedException {
+	public void tLogin() throws IOException, JSchException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

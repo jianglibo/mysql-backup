@@ -19,6 +19,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.ConfigValue;
@@ -41,7 +42,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testMysqlVariable()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server);
 		assertThat(lbs.getMap().size(), greaterThan(3));
 	}
@@ -88,14 +89,14 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testVariables()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
-		Map<String, String> map = mysqlUtil.getVariables(session, server.getMysqlInstance().getUsername("root"),
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+		Map<String, String> map = mysqlUtil.getVariables(session, server.getMysqlInstance(), server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword(), MysqlVariables.DATA_DIR);
 		assertTrue("contains datadir", map.containsKey(MysqlVariables.DATA_DIR));
 	}
 
 	@Test
-	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+	public void mysqlInof() throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		MysqlInstallInfo info = mysqlUtil.getInstallInfo(session, server);
 		System.out.println(info);
 	}

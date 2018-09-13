@@ -125,7 +125,7 @@ public class MysqlController extends ControllerBase {
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException, UnExpectedContentException, MysqlAccessDeniedException {
+			RedirectAttributes ras) throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, UnExpectedInputException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

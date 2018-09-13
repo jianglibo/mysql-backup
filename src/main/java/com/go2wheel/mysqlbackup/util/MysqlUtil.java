@@ -14,6 +14,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +25,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
@@ -31,6 +34,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.Lines;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
+import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -41,6 +45,8 @@ public class MysqlUtil {
 
 	public static final String MYSQL_PROMPT = "mysql> ";
 	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
 	private SettingsInDb settingsInDb;
@@ -65,9 +71,41 @@ public class MysqlUtil {
 
 	public String getEffectiveMyCnf(Session session, Server server)
 			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
+		return getEffectiveMyCnf(session, server.getOs(), server.getMysqlInstance());
+	}
+	
+	public String getEffectiveMyCnf(Session session, String ostype, MysqlInstance mysqlInstance)
+			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
+		if (OsTypeWrapper.of(ostype).isWin()) {
+			return getEffectiveMyCnfWin(session, mysqlInstance);
+		} else {
+			return getEffectiveMyCnfCentos(session, mysqlInstance);
+		}
+	}
+	
+	public String getEffectiveMyCnfWin(Session session, MysqlInstance mysqlInstance) throws RunRemoteCommandException, JSchException, IOException {
+		String cb = StringUtil.hasAnyNonBlankWord(mysqlInstance.getClientBin()) ? mysqlInstance.getClientBin() : "mysql";
+		
+		StringBuffer sb = new StringBuffer();
+		sb.append(cb).append(" --help --verbose | ")
+		.append("ForEach-Object {$_.trim()} | ")
+		.append("Where-Object {$_ -match '.*\\.(cnf|ini)$'} | ")
+		.append("Select-Object -First 1 | ")
+		.append("ForEach-Object {$_ -split '\\s+'} | ")
+		.append("Where-Object {Test-Path -Path $_ -PathType Leaf} | ")
+		.append("Select-Object -First 1");
+		
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, "GBK", sb.toString());
+		String fn = rcr.getAllTrimedNotEmptyLines().get(0);
+		return fn;
+	}
+	
+	
+	public String getEffectiveMyCnfCentos(Session session, MysqlInstance mysqlInstance)
+			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
 		String matcherline = ".*Default options are read from the following.*";
-		String cb = server.getMysqlInstance().getClientBin();
-		String cmd = String.format("%smysql --help --verbose", cb == null ? "" : cb);
+		String cb = StringUtil.hasAnyNonBlankWord(mysqlInstance.getClientBin()) ? mysqlInstance.getClientBin() : "mysql";
+		String cmd = String.format("%s --help --verbose", cb == null ? "" : cb);
 		RemoteCommandResult result = SSHcommonUtil.runRemoteCommand(session, cmd);
 		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
 				.findMatchAndReturnNextLine(matcherline);
@@ -82,9 +120,39 @@ public class MysqlUtil {
 		return SSHcommonUtil.runRemoteCommand(session, command).getAllTrimedNotEmptyLines().stream()
 				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
 	}
-
-	public MysqlVariables getLogbinState(Session session, String username, String password)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+	
+	public MysqlVariables getLogbinStateWin(Session session, MysqlInstance mysqlInstance)
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+		
+		
+//		return new MysqlInteractiveExpect<MysqlVariables>(session) {
+//			@Override
+//			protected MysqlVariables afterLogin() {
+//				Map<String, String> binmap = new HashMap<>();
+//				try {
+//					List<String> vnames = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+//							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+//							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR);
+//					
+//					for(String vname: vnames) {
+//						expect.sendLine("charset gbk;");
+//						List<String> result = expectMysqlPromptAndReturnList();
+//						expect.sendLine(String.format("show variables like '%s';", vname));
+//						result = expectMysqlPromptAndReturnList();
+//						int i = result.size();
+//					}
+////					binmap = vnames.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
+//					expect.sendLine("exit");
+//				} catch (IOException e) {
+//					logger.error("mysql logbin obtain failed: {}", e.getMessage());
+//				}
+//				return new MysqlVariables(binmap);
+//			}
+//		}.start(mysqlInstance);
+	}
+	
+	public MysqlVariables getLogbinStateCentos(Session session,MysqlInstance mysqlInstance)
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		return new MysqlInteractiveExpect<MysqlVariables>(session) {
 			@Override
 			protected MysqlVariables afterLogin() {
@@ -101,7 +169,28 @@ public class MysqlUtil {
 				}
 				return new MysqlVariables(binmap);
 			}
-		}.start(username, password);
+		}.start(mysqlInstance);
+	}
+
+	public MysqlVariables getLogbinState(Session session, MysqlInstance mysqlInstance, String username, String password)
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+		return new MysqlInteractiveExpect<MysqlVariables>(session) {
+			@Override
+			protected MysqlVariables afterLogin() {
+				Map<String, String> binmap = new HashMap<>();
+				try {
+					expect.sendLine("show variables;");
+					List<String> result = expectMysqlPromptAndReturnList();
+					binmap = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR)
+							.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
+					expect.sendLine("exit");
+				} catch (IOException e) {
+				}
+				return new MysqlVariables(binmap);
+			}
+		}.start(mysqlInstance, username, password);
 	}
 
 	// innodb_version | 5.6.40 |
@@ -137,14 +226,18 @@ public class MysqlUtil {
 	// }.start(username, password);
 	// }
 
+	
 	public MysqlVariables getLogbinState(Session session, Server server)
-			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException {
-		return getLogbinState(session, server.getMysqlInstance().getUsername("root"),
-				server.getMysqlInstance().getPassword());
+			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException {
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			return getLogbinStateWin(session, server.getMysqlInstance());
+		} else {
+			return getLogbinStateCentos(session, server.getMysqlInstance());
+		}
 	}
 
-	public Map<String, String> getVariables(Session session, String username, String password, String... vnames)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+	public Map<String, String> getVariables(Session session, MysqlInstance mysqlInstance, String username, String password, String... vnames)
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		return new MysqlInteractiveExpect<Map<String, String>>(session) {
 			@Override
 			protected Map<String, String> afterLogin() {
@@ -164,17 +257,17 @@ public class MysqlUtil {
 				}
 				return binmap;
 			}
-		}.start(username, password);
+		}.start(mysqlInstance, username, password);
 	}
 
 	public Map<String, String> getVariables(Session session, Server server, String... vnames)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		// if server had no mysqlInstance configuration, will cause null point
 		// exception.
 		if (server.getMysqlInstance() == null) {
 			return null;
 		}
-		return getVariables(session, server.getMysqlInstance().getUsername("root"),
+		return getVariables(session, server.getMysqlInstance(), server.getMysqlInstance().getUsername("root"),
 				server.getMysqlInstance().getPassword(), vnames);
 	}
 
@@ -194,7 +287,7 @@ public class MysqlUtil {
 	}
 
 	public MysqlInstallInfo getInstallInfo(Session session, Server server)
-			throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+			throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
 		String cmd = "rpm -qa | grep mysql";
 

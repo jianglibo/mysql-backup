@@ -18,6 +18,7 @@ import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -63,7 +64,7 @@ public class DemoController {
 	private MysqlService mysqlService;
 
 	@GetMapping("/mysql")
-	public String createMysql() throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException {
+	public String createMysql() throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT_GET);
 
 		if (server == null) {

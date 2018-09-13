@@ -31,11 +31,11 @@ public class TestResetMysql extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc;
 	
 	@After
-	public void a() throws UnExpectedContentException, JSchException, IOException, AppNotStartedException {
+	public void a() throws UnExpectedContentException, JSchException, IOException, AppNotStartedException, UnExpectedInputException {
 		confirmPassword(session, server);
 	}
 	
-	private void confirmPassword(Session session, Server server) throws UnExpectedContentException, JSchException, IOException {
+	private void confirmPassword(Session session, Server server) throws UnExpectedContentException, JSchException, IOException, UnExpectedInputException {
 		if (server == null || session == null)return;
 		try {
 			MysqlUtil.getDatabases(session, server, server.getMysqlInstance());
@@ -48,7 +48,7 @@ public class TestResetMysql extends MysqlServiceTbase {
 	}
 	
 	@Test
-	public void testRestMysql() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException {
+	public void testRestMysql() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);

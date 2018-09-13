@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.util;
 
+import static org.hamcrest.CoreMatchers.is;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,6 +28,7 @@ import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
@@ -55,6 +58,22 @@ public class SSHcommonUtil {
 		if (bfs.isOriginExists()) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
 		}
+	}
+	
+	
+	/**
+	 * my.cnf -> my.cnf.1 -> my.cnf.2 -> my.cnf.3, origin file was keep.
+	 * 
+	 * @param session
+	 * @param remoteFile
+	 * @throws RunRemoteCommandException
+	 * @throws IOException
+	 * @throws JSchException
+	 */
+	public static void backupFileWin(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		String bfs = getRemoteBackupedFilesWin(session, remoteFile);
+		logger.info(bfs);
 	}
 
 	public static boolean echo(SshSessionFactory sshSessionFactory, Server server)
@@ -177,6 +196,24 @@ public class SSHcommonUtil {
 			return true;
 		}
 		return false;
+	}
+	
+	/**
+	 * Test-Path -Type Container remoteFile
+	 * 
+	 * @param session
+	 * @param remoteFile
+	 * @return
+	 * @throws RunRemoteCommandException
+	 * @throws IOException 
+	 * @throws JSchException 
+	 */
+	public static boolean isDirectoryWin(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		String command = String.format("Test-Path -Type Container %s", remoteFile);
+		RemoteCommandResult rcr = runRemoteCommand(session, command);
+		List<String> lines = rcr.getAllTrimedNotEmptyLines();
+		return lines.size() == 1 && "TRUE".equalsIgnoreCase(lines.get(0)); 
 	}
 
 	// @formatter:off
@@ -454,6 +491,36 @@ public class SSHcommonUtil {
 			bfs.setBackups(fns);
 		}
 		return bfs;
+	}
+	
+	/**
+	 * returned backupfiles's backups list doesn't contain origin file.
+	 * 
+	 * @param session
+	 * @param remoteFile
+	 * @return
+	 * @throws RunRemoteCommandException
+	 * @throws IOException 
+	 * @throws JSchException 
+	 */
+	public static String getRemoteBackupedFilesWin(Session session, String remoteFile)
+			throws RunRemoteCommandException, JSchException, IOException {
+		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+		boolean isDirectory = isDirectoryWin(session, remoteFile);
+		
+		String command = "$origin=%s;$origin|Get-ChildItem -Path \"${origin}.*\" | \r\n" + 
+				"            Where-Object Name -Match \".*\\.\\d+$\" |\r\n" + 
+				"            # Where-Object {$_ -is [System.IO.DirectoryInfo]} |\r\n" + 
+				"            # We can not handle this situation, mixed files and directories.\r\n" + 
+				"            Select-Object -Last 1 -ExpandProperty Name |\r\n" + 
+				"            ForEach-Object {if ($_ -match \".*\\.(\\d+)$\") {$origin + \".\" + (1 + $Matches[1])}} |\r\n" + 
+				"            ForEach-Object {Copy-Item -Path $origin %s -Destination $_; $_}";
+		command = String.format(command, remoteFile, isDirectory ? "-Recurse" : "");
+		
+		SSHPowershellInvokeResult sshir = SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, command));
+		String v = sshir.getOutLines().get(0); 
+		return v;
+		
 	}
 
 	/**

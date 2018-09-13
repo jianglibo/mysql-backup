@@ -15,6 +15,7 @@ import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.jcraft.jsch.JSchException;
 
@@ -26,7 +27,7 @@ public class TestSaveSettings extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc; 
 	
 	@Test
-	public void testSaveMysqlSettings() throws IOException, UnExpectedContentException, JSchException, SchedulerException, MysqlAccessDeniedException, AppNotStartedException {
+	public void testSaveMysqlSettings() throws IOException, UnExpectedContentException, JSchException, SchedulerException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		clearDb();
 		installMysql();
 		MycnfFileHolder mfh = mysqlService.getMysqlSettingsFromDisk(server);

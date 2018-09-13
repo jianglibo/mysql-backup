@@ -10,6 +10,11 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.util.FileUtil;
 
+/**
+ * The configurated data directory of the server.  
+ * @author jianglibo@gmail.com
+ *
+ */
 @Component
 public class ServerDataCleanerRule extends ExternalResource {
 
