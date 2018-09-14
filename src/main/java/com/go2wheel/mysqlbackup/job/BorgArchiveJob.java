@@ -17,7 +17,7 @@ import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
@@ -77,7 +77,7 @@ public class BorgArchiveJob implements Job {
 			FacadeResult<RemoteCommandResult> fr = borgService.archive(session, sv, false);
 			
 			if (!fr.isExpected()) {
-				throw new UnExpectedContentException("10000", "borg.archived.failed", fr.getMessage());
+				throw new UnExpectedOutputException("10000", "borg.archived.failed", fr.getMessage());
 			}
 
 			long ts = fr.getEndTime() - fr.getStartTime();
@@ -92,7 +92,7 @@ public class BorgArchiveJob implements Job {
 			bd.setTimeCost(ts);
 			borgDownloadDbService.save(bd);
 
-		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedContentException | IOException e) {
+		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

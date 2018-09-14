@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -31,11 +31,11 @@ public class TestResetMysql extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc;
 	
 	@After
-	public void a() throws UnExpectedContentException, JSchException, IOException, AppNotStartedException, UnExpectedInputException {
+	public void a() throws UnExpectedOutputException, JSchException, IOException, AppNotStartedException, UnExpectedInputException {
 		confirmPassword(session, server);
 	}
 	
-	private void confirmPassword(Session session, Server server) throws UnExpectedContentException, JSchException, IOException, UnExpectedInputException {
+	private void confirmPassword(Session session, Server server) throws UnExpectedOutputException, JSchException, IOException, UnExpectedInputException {
 		if (server == null || session == null)return;
 		try {
 			MysqlUtil.getDatabases(session, server, server.getMysqlInstance());
@@ -43,12 +43,12 @@ public class TestResetMysql extends MysqlServiceTbase {
 			server.getMysqlInstance().setPassword("123456");
 		} catch (MysqlAccessDeniedException e) {
 		} catch (AppNotStartedException e) {
-			mysqlUtil.restartMysql(session);
+			mysqlUtil.restartMysql(session, server);
 		}
 	}
 	
 	@Test
-	public void testRestMysql() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testRestMysql() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -61,7 +61,7 @@ public class TestResetMysql extends MysqlServiceTbase {
 
 	@Test(expected=MysqlAccessDeniedException.class)
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);

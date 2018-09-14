@@ -22,7 +22,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -62,7 +62,7 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 		}
 	}
 	
-	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedContentException, MysqlAccessDeniedException {
+	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		MysqlUtil.runSql(sess, sev, mi, "drop database aaaaa");		
 		MysqlUtil.runSql(sess, sev, mi, "drop database bbbb");
 		List<String> dbs = MysqlUtil.getDatabases(sess, sev, mi);
@@ -73,7 +73,7 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqlRestore()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException, RunRemoteCommandException, ScpException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, RunRemoteCommandException, ScpException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		
@@ -93,11 +93,11 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 //		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
 //		uninstall(targetSession, targetServer);
 		installMysql(targetSession, targetServer, "654321");
-		mysqlUtil.restartMysql(targetSession);
+		mysqlUtil.restartMysql(targetSession, targetServer);
 		
 		BackupedFiles bfs = SSHcommonUtil.getRemoteBackupedFiles(targetSession, etcmycnf);
 		if (bfs.getBackups().size() < 1) {
-			SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
+			SSHcommonUtil.backupFile(targetSession,server, "/etc/my.cnf");
 		}
 //		SSHcommonUtil.revertFileToOrigin(targetSession, "/etc/my.cnf");
 //		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
@@ -116,21 +116,21 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 		
 		PlayBack pb = new PlayBack();
 		mysqlService.enableLogbin(session, server);
-		MycnfFileHolder mf = mysqlService.getMysqlSettingsFromDisk(server);
-		Map<String, String> vs = mf.getVariables();
+		MycnfFileHolder mfh = mysqlService.getMysqlSettingsFromDisk(server);
+		Map<String, String> vs = mfh.getVariables();
 		vs.put(MysqlVariables.DATA_DIR, tdatadir);
-		mf.setVariables(vs);
+		mfh.setVariables(vs);
 		
-		ConfigValue cv = mf.getConfigValue(MysqlVariables.DATA_DIR);
-		mf.setConfigValue(cv, tdatadir);
+		ConfigValue cv = mfh.getConfigValue(MysqlVariables.DATA_DIR);
+		mfh.setConfigValue(cv, tdatadir);
 		
-		cv = mf.getConfigValue(MysqlVariables.SOCKET);
-		mf.setConfigValue(cv, tdatadir + "/mysql.sock");
+		cv = mfh.getConfigValue(MysqlVariables.SOCKET);
+		mfh.setConfigValue(cv, tdatadir + "/mysql.sock");
 		
-		cv = mf.getConfigValue("mysql", MysqlVariables.SOCKET);
-		mf.setConfigValue(cv, tdatadir + "/mysql.sock");
+		cv = mfh.getConfigValue("mysql", MysqlVariables.SOCKET);
+		mfh.setConfigValue(cv, tdatadir + "/mysql.sock");
 		
-		mysqlService.writeMysqlSettingsToDisk(server, mf);
+		mysqlService.backupMysqlSettingsTolocalDisk(targetSession, targetServer);
 		
 		boolean b = mysqlService.restore(pb, server, targetServer, mdf.getFolder().getFileName().toString(), true);
 

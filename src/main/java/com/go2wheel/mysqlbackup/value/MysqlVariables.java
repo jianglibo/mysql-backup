@@ -49,17 +49,19 @@ public class MysqlVariables {
 		return StringUtil.toLines(this.map);
 	}
 	
-	public String getDataDirEndWithSlash() {
+	public String getDataDirEndWithPathSeparator() {
 		String s = map.get(DATA_DIR);
-		if (s != null && !s.endsWith("/")) {
-			s = s + "/";
+		char pathSeparator = s.indexOf('\\') == -1 ? '/' : '\\';
+		if (s != null && !s.endsWith(pathSeparator + "")) {
+			s = s + pathSeparator;
 		}
 		return s;
 	}
 	
-	public String getDataDirEndNoSlash() {
+	public String getDataDirEndNoPathSeparator() {
 		String s = map.get(DATA_DIR);
-		if (s != null && s.endsWith("/")) {
+		char pathSeparator = s.indexOf('\\') == -1 ? '/' : '\\';
+		if (s != null && s.endsWith(pathSeparator + "")) {
 			s = s.substring(0, s.length() - 1);
 		}
 		return s;

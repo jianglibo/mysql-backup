@@ -20,7 +20,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -40,7 +40,7 @@ public class TestRestore extends MysqlServiceTbase {
 	@Rule
 	public RemoteTfolder rfRule = new RemoteTfolder("undetermined");
 	
-	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedContentException, MysqlAccessDeniedException {
+	private void resetdb(Session sess, Server sev, MysqlInstance mi) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		MysqlUtil.runSql(sess, sev, mi, "drop database aaaaa");		
 		MysqlUtil.runSql(sess, sev, mi, "drop database bbbb");
 		List<String> dbs = MysqlUtil.getDatabases(sess, sev, mi);
@@ -51,7 +51,7 @@ public class TestRestore extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqlRestore()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, SchedulerException, RunRemoteCommandException, ScpException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, RunRemoteCommandException, ScpException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		

@@ -18,12 +18,10 @@ import org.springframework.beans.factory.annotation.Value;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
-import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
-import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.jcraft.jsch.JSchException;
 
 public class TestEnableLogbinWin extends MysqlServiceTbase {
@@ -38,12 +36,13 @@ public class TestEnableLogbinWin extends MysqlServiceTbase {
 	
 	
 	@Test
-	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testEnableBinLog() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		createSessionLocalHostWindowsAfterClear();
 		sdc.setHost(server.getHost());
 		createMysqlIntance(server, "123456");
 		
 		server.getMysqlInstance().setClientBin(clientBin);
+		server.getMysqlInstance().setRestartCmd("Restart-Service wampmysqld64");
 		
 		FacadeResult<?> fr = mysqlService.disableLogbin(session, server);
 		assertTrue(fr.isExpected());
@@ -58,12 +57,11 @@ public class TestEnableLogbinWin extends MysqlServiceTbase {
 		assertTrue(Files.exists(mycnf));
 		
 		MycnfFileHolder mf = mysqlService.getMysqlSettingsFromDisk(mycnf);
-		assertThat(mf.getMysqlVariables().getDataDirEndNoSlash(), equalTo("/var/lib/mysql"));
-		assertThat(mf.getMysqlVariables().getDataDirEndWithSlash(), equalTo("/var/lib/mysql/"));
+		assertThat(mf.getMysqlVariables().getDataDirEndNoPathSeparator(), equalTo("e:\\wamp64\\bin\\mysql\\mysql5.7.21\\data"));
+		assertThat(mf.getMysqlVariables().getDataDirEndWithPathSeparator(), equalTo("e:\\wamp64\\bin\\mysql\\mysql5.7.21\\data\\"));
 		
-		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
-		
-		assertThat(mi.getVariables().get(MysqlVariables.DATA_DIR), equalTo("/var/lib/mysql/"));
+//		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
+//		assertThat(mi.getVariables().get(MysqlVariables.DATA_DIR), equalTo("e:\\wamp64\\bin\\mysql\\mysql5.7.21\\data\\"));
 	}
 
 }

@@ -21,7 +21,7 @@ import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -63,7 +63,7 @@ public class MysqlRestoreController extends ControllerBase {
 	}
 
 	@PostMapping("/{playback}")
-	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, @RequestParam(name="origin") boolean origin, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedContentException, JSchException, AppNotStartedException, ScpException, UnExpectedInputException {
+	public String playback(@PathVariable PlayBack playback,@RequestParam(name="dump") String dumpFolder, @RequestParam(name="origin") boolean origin, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, RunRemoteCommandException, UnExpectedOutputException, JSchException, AppNotStartedException, ScpException, UnExpectedInputException {
 		Server sourceServer = serverDbService.findById(playback.getSourceServerId());
 		Server targetServer = serverDbService.findById(playback.getTargetServerId());
 		

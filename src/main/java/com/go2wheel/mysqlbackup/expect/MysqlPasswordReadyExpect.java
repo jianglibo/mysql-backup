@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -51,7 +51,7 @@ public abstract class MysqlPasswordReadyExpect<T> {
 	}
 	
 	
-	public T start() throws UnExpectedContentException, MysqlAccessDeniedException {
+	public T start() throws UnExpectedOutputException, MysqlAccessDeniedException {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {
@@ -62,7 +62,7 @@ public abstract class MysqlPasswordReadyExpect<T> {
 			expect.sendLine(server.getMysqlInstance().getPassword());
 			return afterLogin();
 		} catch (ExpectIOException e) {
-			throw new UnExpectedContentException(null, "mysql.expect.password", e.getInputBuffer());
+			throw new UnExpectedOutputException(null, "mysql.expect.password", e.getInputBuffer());
 		} catch (IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {

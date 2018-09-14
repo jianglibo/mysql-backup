@@ -30,6 +30,8 @@ public class MysqlInstance extends BaseModel {
 	private String dumpFileName;
 	private String clientBin;
 	
+	private String restartCmd;
+	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String flushLogCron;
 	
@@ -227,6 +229,14 @@ public class MysqlInstance extends BaseModel {
 
 	public void setClientBin(String clientBin) {
 		this.clientBin = clientBin;
+	}
+
+	public String getRestartCmd() {
+		return restartCmd;
+	}
+
+	public void setRestartCmd(String restartCmd) {
+		this.restartCmd = restartCmd;
 	}
 
 }

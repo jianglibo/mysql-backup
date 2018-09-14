@@ -14,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -43,20 +43,20 @@ public class ServerStateService {
 	private ServerStateDbService serverStateDbService;
 	
 //	23:44:09 up  3:02,  1 user,  load average: 0.00, 0.01, 0.05
-	private String getUpTime(Session session) throws UnExpectedContentException, JSchException, IOException {
+	private String getUpTime(Session session) throws UnExpectedOutputException, JSchException, IOException {
 		String command = "uptime";
 		try {
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 			Optional<String> lineOp = rcr.getAllTrimedNotEmptyLines().stream().filter(l -> l.contains("average")).findAny();
 			if (!lineOp.isPresent()) {
-				throw new UnExpectedContentException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+				throw new UnExpectedOutputException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 			}
 			
 			String line = lineOp.get();
 			Matcher m = uptimePtn.matcher(line);
 			
 			if (!m.matches()) {
-				throw new UnExpectedContentException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+				throw new UnExpectedOutputException(null, null, rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 			}
 			return m.group(1);
 		} catch (RunRemoteCommandException e) {
@@ -76,7 +76,7 @@ public class ServerStateService {
 		return SSHcommonUtil.coreNumber(server.getOs(), session);
 	}
 	
-	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException, RunRemoteCommandException, JSchException, IOException {
+	public ServerState createServerState(Server server, Session session, boolean saveToDb) throws UnExpectedOutputException, RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(server.getOs());
 		if (otw.isWin()) {
 			return createWinServerStateSsh(server, session, saveToDb);
@@ -86,11 +86,11 @@ public class ServerStateService {
 	}
 	
 	
-	public ServerState createServerState(Server server, Session session) throws UnExpectedContentException, RunRemoteCommandException, JSchException, IOException {
+	public ServerState createServerState(Server server, Session session) throws UnExpectedOutputException, RunRemoteCommandException, JSchException, IOException {
 		return createServerState(server, session, true);
 	}
 	
-	public ServerState createLinuxServerState(Server server, Session session, boolean saveToDb) throws UnExpectedContentException, JSchException, IOException {
+	public ServerState createLinuxServerState(Server server, Session session, boolean saveToDb) throws UnExpectedOutputException, JSchException, IOException {
 		ServerState ss = new ServerState();
 		String loadstr = getUpTime(session);
 		int load = (int) (Float.parseFloat(loadstr) * 100);

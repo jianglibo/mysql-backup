@@ -105,7 +105,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		
 		SSHcommonUtil.copy(session, rfn, "abc".getBytes());
 		
-		SSHcommonUtil.backupFile(session, rfn);
+		SSHcommonUtil.backupFile(session, server, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		
 		Collections.sort(fns);
@@ -126,7 +126,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	public void tbackupNotFileExist() throws IOException, JSchException, RunRemoteCommandException {
 		rtfoler.setSession(session);
 		String rfn = rtfoler.newFile("hello.txt");
-		SSHcommonUtil.backupFile(session, rfn);
+		SSHcommonUtil.backupFile(session,server, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(1)); // err output.

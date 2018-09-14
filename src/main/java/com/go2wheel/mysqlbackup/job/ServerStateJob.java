@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
@@ -47,7 +47,7 @@ public class ServerStateJob implements Job {
 				}
 			}
 			serverStateService.createServerState(server, session);
-		} catch (JSchException | UnExpectedContentException | IOException e) {
+		} catch (JSchException | UnExpectedOutputException | IOException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

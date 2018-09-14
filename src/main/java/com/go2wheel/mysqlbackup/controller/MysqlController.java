@@ -27,7 +27,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.GlobalStore;
@@ -83,7 +83,7 @@ public class MysqlController extends ControllerBase {
 	@PostMapping("/{server}/dumps")
 	public String postDumps(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
 			RedirectAttributes ras)
-			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException {
+			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -106,7 +106,7 @@ public class MysqlController extends ControllerBase {
 	@PostMapping("/{server}/flushes")
 	public String postFlushes(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request)
 			throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException,
-			UnExpectedContentException, MysqlAccessDeniedException {
+			UnExpectedOutputException, MysqlAccessDeniedException {
 		model.asMap().clear();
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
@@ -125,7 +125,7 @@ public class MysqlController extends ControllerBase {
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException, UnExpectedContentException, MysqlAccessDeniedException, UnExpectedInputException {
+			RedirectAttributes ras) throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

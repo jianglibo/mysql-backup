@@ -11,7 +11,7 @@ import org.junit.Test;
 import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
@@ -40,7 +40,7 @@ public class TestBorgDownloadDbService extends JobBaseFort {
 		borgInstaller.install(session, server, software, null);
 	}
 
-	@Test(expected=UnExpectedContentException.class)
+	@Test(expected=UnExpectedOutputException.class)
 	public void tNoBorgInstalled() throws JobExecutionException, JSchException, IOException {
 		borgInstaller.unInstall(session, server, software);
 		borgArchiveJob.execute(context);

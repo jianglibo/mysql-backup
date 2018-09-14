@@ -27,7 +27,7 @@ import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
@@ -100,7 +100,7 @@ public class RobocopyController extends ControllerBase {
 	}
 	
 	@PostMapping("/increamental/{description}")
-	public String increamental(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException, UnExpectedInputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
+	public String increamental(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException, UnExpectedInputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
 		Server server = serverDbService.findById(robocopyDescription.getServerId());
 		
 		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(robocopyDescription.getId());
@@ -126,7 +126,7 @@ public class RobocopyController extends ControllerBase {
 	}
 	
 	@PostMapping("/fullcopies/{description}")
-	public String creatArchive(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
+	public String creatArchive(@PathVariable(name="description") RobocopyDescription robocopyDescription, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException {
 		Server server = serverDbService.findById(robocopyDescription.getServerId());
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
 		

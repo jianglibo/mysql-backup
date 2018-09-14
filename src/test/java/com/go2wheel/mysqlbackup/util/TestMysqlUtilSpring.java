@@ -18,7 +18,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
@@ -42,13 +42,13 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 
 	@Test
 	public void testMysqlVariable()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server);
 		assertThat(lbs.getMap().size(), greaterThan(3));
 	}
 
 	@Test
-	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException, UnExpectedContentException {
+	public void testEnableLogBinOption() throws IOException, JSchException, ScpException, RunRemoteCommandException, UnExpectedOutputException {
 		MycnfFileHolder mfh = mysqlUtil.getMyCnfFile(session, server);
 		mfh.enableBinLog();
 		ConfigValue cv = mfh.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY);
@@ -61,7 +61,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 		BackupedFiles backupedFiles = SSHcommonUtil.getRemoteBackupedFiles(session, remoteFile);
 		int flsi = backupedFiles.getBackups().size();
 		
-		SSHcommonUtil.backupFile(session, server.getMysqlInstance().getMycnfFile());
+		SSHcommonUtil.backupFile(session, server, server.getMysqlInstance().getMycnfFile());
 		byte[] bytes = String.join("\n", mfh.getLines()).getBytes();
 		ScpUtil.to(session, server.getMysqlInstance().getMycnfFile(), bytes);
 
@@ -79,7 +79,7 @@ public class TestMysqlUtilSpring extends SpringBaseFort {
 	}
 
 	@Test
-	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
+	public void testMycnf() throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedOutputException {
 		String s = mysqlUtil.getEffectiveMyCnf(session, server);
 		assertThat(s, equalTo("/etc/my.cnf"));
 

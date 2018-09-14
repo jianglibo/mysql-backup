@@ -49,11 +49,15 @@ public class SSHcommonUtil {
 	 * @throws IOException
 	 * @throws JSchException
 	 */
-	public static void backupFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+	public static void backupFile(Session session, Server server, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
-		if (bfs.isOriginExists()) {
-			runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
+		if(OsTypeWrapper.of(server.getOs()).isWin()) {
+			backupFileWin(session, remoteFile);
+		} else {
+			BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
+			if (bfs.isOriginExists()) {
+				runRemoteCommand(session, String.format("cp %s %s", remoteFile, remoteFile + "." + bfs.getNextInt()));
+			}
 		}
 	}
 	
@@ -67,7 +71,7 @@ public class SSHcommonUtil {
 	 * @throws IOException
 	 * @throws JSchException
 	 */
-	public static void backupFileWin(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+	private static void backupFileWin(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		String bfs = getRemoteBackupedFilesWin(session, remoteFile);
 		logger.info(bfs);
@@ -503,19 +507,28 @@ public class SSHcommonUtil {
 	public static String getRemoteBackupedFilesWin(Session session, String remoteFile)
 			throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		boolean isDirectory = isDirectoryWin(session, remoteFile);
+//		boolean isDirectory = isDirectoryWin(session, remoteFile);
 		
 		StringBuffer sb = new StringBuffer();
-		sb.append("Get-ChildItem -Path '%s*' | ")
+		sb.append("$f='").append(remoteFile).append("';$f + '*' |")
+		.append("Get-ChildItem | ")
 		.append("Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\\d*)$' -AllMatches).matches.groups[1].Value}} | ")
 		.append("Sort-Object -Property @{Expression={$_.dg};Descending=$true} | ")
 		.append("Select-Object -First 1 | ")
-		.append("ForEach-Object {'%s.' + ($_.dg + 1)} |")
-		.append("ForEach-Object {Copy-Item -Path %s %s -Destination $_; $_}");
+		.append("ForEach-Object {$f + '.' + ($_.dg + 1)} |")
+		.append("ForEach-Object { if (Test-Path $f -Type Container) {Copy-Item -Path $f -Recurse -Destination $_} else {Copy-Item -Path $f -Destination $_}; $_}");
+
+//		.append("Get-ChildItem -Path '%s*' | ")
+//		.append("Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\\d*)$' -AllMatches).matches.groups[1].Value}} | ")
+//		.append("Sort-Object -Property @{Expression={$_.dg};Descending=$true} | ")
+//		.append("Select-Object -First 1 | ")
+//		.append("ForEach-Object {'%s.' + ($_.dg + 1)} |")
+//		.append("ForEach-Object {Copy-Item -Path %s %s -Destination $_; $_}");
 		
 		String command = sb.toString();
 		
-		command = String.format(command, remoteFile, remoteFile, remoteFile, isDirectory ? "-Recurse" : "");
+//		command = String.format(command, remoteFile, remoteFile, remoteFile, isDirectory ? "-Recurse" : "");
+//		command = String.format(command, isDirectory ? "-Recurse" : "");
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 		String v = rcr.getAllTrimedNotEmptyLines().get(0);

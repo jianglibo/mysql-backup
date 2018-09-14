@@ -12,7 +12,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.job.JobBaseFort;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerState;
@@ -25,7 +25,7 @@ public class TestServerStateService extends JobBaseFort {
 	private ServerStateService serverStateService;
 
 	@Test
-	public void tLinux() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
+	public void tLinux() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedOutputException {
 		clearDb();
 		createServer();
 		deleteAllJobs();
@@ -50,7 +50,7 @@ public class TestServerStateService extends JobBaseFort {
 	}
 	
 	@Test
-	public void tWin() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedContentException {
+	public void tWin() throws SchedulerException, RunRemoteCommandException, IOException, JSchException, UnExpectedOutputException {
 		clearDb();
 		Server sv = createServer("localhost");
 		sv.setOs("win");

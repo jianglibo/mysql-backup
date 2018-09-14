@@ -1,0 +1,1 @@
+ALTER TABLE mysql_instance ADD restart_cmd VARCHAR(255);

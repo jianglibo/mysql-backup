@@ -53,6 +53,7 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		entityFromDb.setDumpFileName(entityFromDb.getDumpFileName());
 		entityFromDb.setClientBin(entityFromForm.getClientBin());
 		entityFromDb.setFlushLogCron(entityFromForm.getFlushLogCron());
+		entityFromDb.setRestartCmd(entityFromForm.getRestartCmd());
 		return true;
 	}
 	

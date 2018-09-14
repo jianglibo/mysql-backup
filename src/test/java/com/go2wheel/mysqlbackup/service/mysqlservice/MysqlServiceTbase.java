@@ -13,7 +13,7 @@ import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
@@ -38,7 +38,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	protected Software software;
 	
 
-	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedContentException,
+	protected void installMysql() throws JSchException, SchedulerException, IOException, UnExpectedOutputException,
 			MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		createSession();
 		createMysqlIntance();
@@ -46,7 +46,7 @@ public class MysqlServiceTbase extends SpringBaseFort {
 	}
 
 	protected void installMysql(Session session, Server server, String initPassword) throws JSchException,
-			SchedulerException, IOException, UnExpectedContentException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+			SchedulerException, IOException, UnExpectedOutputException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		deleteAllJobs();
 		mySqlInstaller.syncToDb();
 		List<Software> sfs = softwareDbService.findByName("MYSQL");

@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.jcraft.jsch.JSchException;
 
 public class TestMysqlPasswordReadyExpect  extends SpringBaseFort {
@@ -23,7 +23,7 @@ public class TestMysqlPasswordReadyExpect  extends SpringBaseFort {
 	
 	
 	@Test
-	public void tGetMycnf() throws IOException, JSchException, SchedulerException, UnExpectedContentException, MysqlAccessDeniedException {
+	public void tGetMycnf() throws IOException, JSchException, SchedulerException, UnExpectedOutputException, MysqlAccessDeniedException {
 		createSessionLocalHostWindowsAfterClear();
 		createMysqlIntance(server, "123456");
 		server.getMysqlInstance().setClientBin(clientBin);

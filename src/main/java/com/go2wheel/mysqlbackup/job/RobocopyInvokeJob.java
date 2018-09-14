@@ -18,7 +18,7 @@ import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
@@ -88,7 +88,7 @@ public class RobocopyInvokeJob implements Job {
 		try {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			robocopyService.increamentalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedContentException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
+		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
 			JobLog jl = new JobLog(RobocopyInvokeJob.class, context, e.getMessage());
 			jobLogDbService.save(jl);
 			throw new ExceptionWrapper(e);

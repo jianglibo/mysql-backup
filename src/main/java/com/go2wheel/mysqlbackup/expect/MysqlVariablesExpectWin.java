@@ -63,7 +63,11 @@ public class MysqlVariablesExpectWin extends MysqlPasswordReadyExpect<Map<String
 						return lls;
 					}
 				})
-				.collect(Collectors.toMap(lls -> lls[0], lls -> lls[1]));
+				.collect(Collectors.toMap(lls -> lls[0], lls -> {
+					String v = lls[1];
+					v = v.replaceAll("\\\\\\\\", "\\\\");
+					return v;
+				}));
 	}
 
 }

@@ -24,7 +24,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
@@ -53,7 +53,7 @@ public class MysqlUtil {
 	private SettingsInDb settingsInDb;
 
 	public MycnfFileHolder getMyCnfFile(Session session, Server server)
-			throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedContentException {
+			throws RunRemoteCommandException, IOException, JSchException, ScpException, UnExpectedOutputException {
 		String cnfFile = getEffectiveMyCnf(session, server);
 		String content = ScpUtil.from(session, cnfFile).toString();
 		MycnfFileHolder mfh = new MycnfFileHolder(new ArrayList<>(StringUtil.splitLines(content)));
@@ -62,8 +62,19 @@ public class MysqlUtil {
 		return mfh;
 	}
 
-	public void restartMysql(Session session) throws RunRemoteCommandException, JSchException, IOException {
-		SSHcommonUtil.runRemoteCommand(session, "systemctl restart mysqld");
+//	public void restartMysql(Session session) throws RunRemoteCommandException, JSchException, IOException {
+//		SSHcommonUtil.runRemoteCommand(session, "systemctl restart mysqld");
+//	}
+	
+	public void restartMysql(Session session, Server server) throws RunRemoteCommandException, JSchException, IOException, UnExpectedOutputException {
+		String cmd = server.getMysqlInstance().getRestartCmd();
+		cmd = StringUtil.hasAnyNonBlankWord(cmd) ? cmd : "systemctl stop mysqld";
+		
+		RemoteCommandResult rcr =  SSHcommonUtil.runRemoteCommand(session, cmd);
+		if (rcr.isExitValueNotEqZero()) {
+			throw new UnExpectedOutputException("10000", "mysql.restart.failed.", "");
+		}
+
 	}
 
 	public void stopMysql(Session session) throws RunRemoteCommandException, JSchException, IOException {
@@ -71,12 +82,12 @@ public class MysqlUtil {
 	}
 
 	public String getEffectiveMyCnf(Session session, Server server)
-			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
+			throws RunRemoteCommandException, UnExpectedOutputException, JSchException, IOException {
 		return getEffectiveMyCnf(session, server.getOs(), server.getMysqlInstance());
 	}
 	
 	public String getEffectiveMyCnf(Session session, String ostype, MysqlInstance mysqlInstance)
-			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
+			throws RunRemoteCommandException, UnExpectedOutputException, JSchException, IOException {
 		if (OsTypeWrapper.of(ostype).isWin()) {
 			return getEffectiveMyCnfWin(session, mysqlInstance);
 		} else {
@@ -103,7 +114,7 @@ public class MysqlUtil {
 	
 	
 	public String getEffectiveMyCnfCentos(Session session, MysqlInstance mysqlInstance)
-			throws RunRemoteCommandException, UnExpectedContentException, JSchException, IOException {
+			throws RunRemoteCommandException, UnExpectedOutputException, JSchException, IOException {
 		String matcherline = ".*Default options are read from the following.*";
 		String cb = StringUtil.hasAnyNonBlankWord(mysqlInstance.getClientBin()) ? mysqlInstance.getClientBin() : "mysql";
 		String cmd = String.format("%s --help --verbose", cb == null ? "" : cb);
@@ -111,7 +122,7 @@ public class MysqlUtil {
 		Optional<String> possibleFiles = new Lines(result.getAllTrimedNotEmptyLines())
 				.findMatchAndReturnNextLine(matcherline);
 		if (!possibleFiles.isPresent()) {
-			throw new UnExpectedContentException(null, null,
+			throw new UnExpectedOutputException(null, null,
 					result.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 		}
 		List<String> filenames = Stream.of(possibleFiles.get().split("\\s+")).filter(l -> !l.trim().isEmpty())
@@ -123,7 +134,7 @@ public class MysqlUtil {
 	}
 	
 	public MysqlVariables getLogbinStateWin(Session session, Server server, MysqlInstance mysqlInstance)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		
 		return new MysqlVariables(new MysqlVariablesExpectWin(session, server, MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
 				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
@@ -207,7 +218,7 @@ public class MysqlUtil {
 
 	
 	public MysqlVariables getLogbinState(Session session, Server server)
-			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException, UnExpectedOutputException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
 			return getLogbinStateWin(session, server, server.getMysqlInstance());
 		} else {
@@ -264,8 +275,17 @@ public class MysqlUtil {
 	public boolean tryPassword(Session session, String user, String password) {
 		return false;
 	}
-
+	
 	public MysqlInstallInfo getInstallInfo(Session session, Server server)
+			throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			return null;
+		} else {
+			return getInstallInfoCentos(session, server);
+		}
+	}
+
+	public MysqlInstallInfo getInstallInfoCentos(Session session, Server server)
 			throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		MysqlInstallInfo mysqlInstallInfo = new MysqlInstallInfo();
 		String cmd = "rpm -qa | grep mysql";
@@ -341,7 +361,7 @@ public class MysqlUtil {
 	}
 	
 	
-	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedContentException, MysqlAccessDeniedException {
+	public static List<String> runSql(Session session, Server server, MysqlInstance mysqlInstance, String sql) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
 			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
@@ -359,7 +379,7 @@ public class MysqlUtil {
 	}
 	
 	
-	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedContentException, MysqlAccessDeniedException {
+	public static List<String> getDatabases(Session session, Server server, MysqlInstance mysqlInstance) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
 			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
@@ -376,7 +396,7 @@ public class MysqlUtil {
 		}).start();
 	}
 	
-	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedContentException, MysqlAccessDeniedException {
+	public static List<String> createDatabases(Session session, Server server, MysqlInstance mysqlInstance, String database) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		return (new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
 			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {

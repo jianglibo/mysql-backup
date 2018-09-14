@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.MysqlFlushDbService;
@@ -52,7 +52,7 @@ public class MysqlFlushLogJob implements Job {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
 			FacadeResult<Path> fr = mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 			mysqlFlushDbService.processFlushResult(server, fr);
-		} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedInputException | UnExpectedContentException | MysqlAccessDeniedException e) {
+		} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedInputException | UnExpectedOutputException | MysqlAccessDeniedException e) {
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

@@ -17,7 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -34,7 +34,7 @@ public class TestEnableLogbin extends MysqlServiceTbase {
 	
 	
 	@Test
-	public void testEnableBinLog() throws UnExpectedContentException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testEnableBinLog() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		clearDb();
 		installMysql();
 		sdc.setHost(server.getHost());
@@ -51,8 +51,8 @@ public class TestEnableLogbin extends MysqlServiceTbase {
 		assertTrue(Files.exists(mycnf));
 		
 		MycnfFileHolder mf = mysqlService.getMysqlSettingsFromDisk(mycnf);
-		assertThat(mf.getMysqlVariables().getDataDirEndNoSlash(), equalTo("/var/lib/mysql"));
-		assertThat(mf.getMysqlVariables().getDataDirEndWithSlash(), equalTo("/var/lib/mysql/"));
+		assertThat(mf.getMysqlVariables().getDataDirEndNoPathSeparator(), equalTo("/var/lib/mysql"));
+		assertThat(mf.getMysqlVariables().getDataDirEndWithPathSeparator(), equalTo("/var/lib/mysql/"));
 		
 		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
 		

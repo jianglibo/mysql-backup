@@ -63,7 +63,7 @@ import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
@@ -350,7 +350,7 @@ public class BackupCommand {
 	@ShellMethod(value = "显示服务器健康度")
 	public FacadeResult<?> serverHealthyState(
 			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server
-			) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException, UnExpectedContentException {
+			) throws JSchException, IOException, RunRemoteCommandException, UnExpectedInputException, UnExpectedOutputException {
 		
 		ServerAndSession sas = getServerAndSession(server);
 		ServerState ss = serverStateService.createServerState(sas.getServer(), sas.getSession());
@@ -526,27 +526,27 @@ public class BackupCommand {
 	 * @throws IOException
 	 * @throws JSchException
 	 * @throws UnExpectedInputException 
-	 * @throws UnExpectedContentException 
+	 * @throws UnExpectedOutputException 
 	 * @throws MysqlAccessDeniedException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public FacadeResult<?> mysqlEnableLogbin(
 			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
-			throws JSchException, IOException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
+			throws JSchException, IOException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
 		sureMysqlConfigurated();
 		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
 
 	@ShellMethod(value = "查看logbin状态")
 	public FacadeResult<?> mysqlGetLogbinState()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		sureMysqlConfigurated();
 		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
 	}
 
 	@ShellMethod(value = "查看myCnf")
 	public FacadeResult<?> mysqlGetMycnf()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, RunRemoteCommandException, ScpException, UnExpectedInputException, UnExpectedContentException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, RunRemoteCommandException, ScpException, UnExpectedInputException, UnExpectedOutputException {
 		sureMysqlConfigurated();
 		return mysqlService.getMyCnf(getSession(), appState.getCurrentServer());
 	}
@@ -780,7 +780,7 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
@@ -895,7 +895,7 @@ public class BackupCommand {
 	}
 
 	@ShellMethod(value = "手动flush Mysql的日志")
-	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedContentException, MysqlAccessDeniedException {
+	public FacadeResult<?> MysqlFlushLog() throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 

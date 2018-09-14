@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.JSchException;
 
@@ -26,7 +26,7 @@ public class TestGetMysqlCnfWin extends SpringBaseFort {
 	private String clientBin;
 	
 	@Test
-	public void tGetMycnf() throws IOException, JSchException, SchedulerException, UnExpectedContentException {
+	public void tGetMycnf() throws IOException, JSchException, SchedulerException, UnExpectedOutputException {
 		createSessionLocalHostWindowsAfterClear();
 		createMysqlIntance(server, "123456");
 		server.getMysqlInstance().setClientBin(clientBin);

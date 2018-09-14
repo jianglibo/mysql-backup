@@ -21,7 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
@@ -139,7 +139,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	}
 	
 	@PostMapping("/{borgdescription}/initrepo")
-	public String initRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedContentException, IOException {
+	public String initRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException {
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		server = serverDbService.loadFull(server);
 
@@ -154,7 +154,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 				} else {
 					RemoteCommandResult rcr = fr.getResult();
 					if (rcr != null) {
-						throw new UnExpectedContentException("10000", "borg.archive.unexpected", rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+						throw new UnExpectedOutputException("10000", "borg.archive.unexpected", rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
 					}
 				}
 				

@@ -31,7 +31,7 @@ public class TestBackupFile extends SpringBaseFort {
 		
 		Path f = createALocalFile(tfolder.getRoot().toPath().resolve("ff"), "abc");
 		assertTrue(Files.exists(f));
-		SSHcommonUtil.backupFileWin(session, f.toAbsolutePath().toString());
+		SSHcommonUtil.backupFile(session,server, f.toAbsolutePath().toString());
 		
 		Path f1 = f.getParent().resolve("ff.1");
 		
@@ -50,7 +50,7 @@ public class TestBackupFile extends SpringBaseFort {
 		rtfolder.setSession(session);
 		SSHcommonUtil.runRemoteCommand(session, "mkdir -p /tmp/abc");
 		createAfileOnServer("/tmp/abc/aa", "abc");
-		SSHcommonUtil.backupFile(session, "/tmp/abc/aa");
+		SSHcommonUtil.backupFile(session, server, "/tmp/abc/aa");
 		boolean b = SSHcommonUtil.allFileExists(session, "/tmp/abc/aa", "/tmp/abc/aa.1");
 		assertTrue(b);
 	}

@@ -24,6 +24,7 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -75,12 +76,12 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	private SshSessionFactory sshSessionFactory;
 	
 	public FacadeResult<MysqlInstallInfo> resetMysql(Session session, Server server,
-			String newPassword) throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+			String newPassword) throws RunRemoteCommandException, JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		MysqlInstallInfo mi = mysqlUtil.getInstallInfo(session, server);
 		mysqlUtil.stopMysql(session);
 		String datadir = mi.getVariables().get(MysqlVariables.DATA_DIR);
 		SSHcommonUtil.backupFileByMove(session, datadir);
-		mysqlUtil.restartMysql(session); // now password is empty.
+		mysqlUtil.restartMysql(session, server); // now password is empty.
 		boolean r = resetPassword(session, server, "", newPassword);
 		if (r) {
 			return FacadeResult.doneExpectedResultDone(mi);

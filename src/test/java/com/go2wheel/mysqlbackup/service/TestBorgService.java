@@ -23,7 +23,7 @@ import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
@@ -135,7 +135,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 
-	@Test(expected = UnExpectedContentException.class)
+	@Test(expected = UnExpectedOutputException.class)
 	public void testArchive() throws CommandNotFoundException, JSchException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		FacadeResult<?> fr = borgInstaller.unInstall(session, server, software);

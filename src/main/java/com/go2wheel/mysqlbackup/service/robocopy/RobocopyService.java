@@ -31,7 +31,7 @@ import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -102,13 +102,13 @@ public class RobocopyService {
 	 * @throws CommandNotFoundException
 	 * @throws JSchException
 	 * @throws IOException
-	 * @throws UnExpectedContentException
+	 * @throws UnExpectedOutputException
 	 * @throws RunRemoteCommandException
 	 * @throws NoSuchAlgorithmException
 	 * @throws ScpException
 	 * @throws UnExpectedInputException 
 	 */
-	public FacadeResult<Path> downloadIncreamentalArchive(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedContentException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException, UnExpectedInputException {
+	public FacadeResult<Path> downloadIncreamentalArchive(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException, UnExpectedInputException {
 		robocopyDescription.modifiItems(items);
 		
 		Path currentRepo = settingsInDb.getCurrentRepoDir(server);
@@ -126,7 +126,7 @@ public class RobocopyService {
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 		
 		if(rcr.getExitValue() != 0) {
-			throw new UnExpectedContentException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+			throw new UnExpectedOutputException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
 		}
 		
 		Map<String, String> md5Item = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
@@ -142,14 +142,14 @@ public class RobocopyService {
 	}
 
 	
-	public FacadeResult<Path> downloadCompressed(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, NoSuchAlgorithmException, UnExpectedContentException, RunRemoteCommandException, IOException, ScpException {
+	public FacadeResult<Path> downloadCompressed(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, IOException, ScpException {
 		String compressedArchive = robocopyDescription.getWorkingSpaceCompressedArchive();
 		String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 | Format-List", compressedArchive);
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 		
 		if(rcr.getExitValue() != 0) {
-			throw new UnExpectedContentException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+			throw new UnExpectedOutputException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
 		}
 		
 		Map<String, String> md5Item = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
@@ -333,7 +333,7 @@ public class RobocopyService {
 	}
 	
 	
-	public SSHPowershellInvokeResult increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedInputException, UnExpectedContentException {
+	public SSHPowershellInvokeResult increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedInputException, UnExpectedOutputException {
 		if (items == null || items.isEmpty()) {
 			throw new UnExpectedInputException("1000", "validator.emptyornull", "No Source directories assigned.");
 		}
@@ -345,12 +345,12 @@ public class RobocopyService {
 			sshir =  SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
 		}
 		if (sshir.exitCode() > 8) {
-			throw new UnExpectedContentException("1000", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")), sshir.getRcr().getCommand());
+			throw new UnExpectedOutputException("1000", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")), sshir.getRcr().getCommand());
 		}
 		return sshir;
 	}
 	
-	public Path increamentalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedContentException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
+	public Path increamentalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
 		SSHPowershellInvokeResult sshir =  increamentalBackup(session, server, robocopyDescription, items);
 		if (sshir.exitCode() != -1) {
 			FacadeResult<Path> fp = downloadIncreamentalArchive(session, server, robocopyDescription, items);
@@ -367,7 +367,7 @@ public class RobocopyService {
 		return s;
 	}
 	
-	public Path fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedContentException, RunRemoteCommandException, ScpException, UnExpectedInputException {
+	public Path fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException, UnExpectedInputException {
 		if (items == null || items.isEmpty()) {
 			throw new UnExpectedInputException("1000", "validator.emptyornull", "No Source directories assigned.");
 		}
@@ -376,12 +376,12 @@ public class RobocopyService {
 		
 		for(SSHPowershellInvokeResult sshir : fr.getResult()) {
 			if (sshir.hasError()) {
-				throw new UnExpectedContentException("", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+				throw new UnExpectedOutputException("", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
 			}
 		}
 		SSHPowershellInvokeResult rcr = compressArchive(session, server, robocopyDescription);
 		if (rcr.exitCode() != 0) {
-			throw new UnExpectedContentException("1000", "powershell.robocopy.compress", rcr.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+			throw new UnExpectedOutputException("1000", "powershell.robocopy.compress", rcr.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
 		}
 		return downloadCompressed(session, server, robocopyDescription).getResult();
 	}
@@ -400,7 +400,7 @@ public class RobocopyService {
 			try {
 				Path arPath = fullBackup(session, server, robocopyDescription, items);
 				return new AsyncTaskValue(id, arPath);
-			} catch (JSchException | NoSuchAlgorithmException | UnExpectedContentException | RunRemoteCommandException | IOException | ScpException | CommandNotFoundException | UnExpectedInputException e1) {
+			} catch (JSchException | NoSuchAlgorithmException | UnExpectedOutputException | RunRemoteCommandException | IOException | ScpException | CommandNotFoundException | UnExpectedInputException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {

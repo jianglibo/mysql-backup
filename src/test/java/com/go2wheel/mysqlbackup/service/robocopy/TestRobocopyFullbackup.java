@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
@@ -62,7 +62,7 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 	}
 	
 	@Test
-	public void tIncreamental() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedContentException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
+	public void tIncreamental() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedOutputException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
@@ -81,7 +81,7 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 		
 	}
 	@Test
-	public void tFullback() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedContentException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
+	public void tFullback() throws IOException, JSchException, SchedulerException, NoSuchAlgorithmException, UnExpectedOutputException, CommandNotFoundException, RunRemoteCommandException, ScpException, UnExpectedInputException {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
@@ -97,7 +97,7 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 
 	
 	@Test
-	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedContentException, RunRemoteCommandException, ScpException {
+	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException {
 		createSessionLocalHostWindowsAfterClear();
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
