@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.util;
 
-import static org.hamcrest.CoreMatchers.is;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,7 +26,6 @@ import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
 import com.go2wheel.mysqlbackup.value.BackupedFiles;
 import com.go2wheel.mysqlbackup.value.FileToCopyInfo;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
@@ -508,17 +505,20 @@ public class SSHcommonUtil {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		boolean isDirectory = isDirectoryWin(session, remoteFile);
 		
-		String command = "$origin=%s;$origin|Get-ChildItem -Path \"${origin}.*\" | \r\n" + 
-				"            Where-Object Name -Match \".*\\.\\d+$\" |\r\n" + 
-				"            # Where-Object {$_ -is [System.IO.DirectoryInfo]} |\r\n" + 
-				"            # We can not handle this situation, mixed files and directories.\r\n" + 
-				"            Select-Object -Last 1 -ExpandProperty Name |\r\n" + 
-				"            ForEach-Object {if ($_ -match \".*\\.(\\d+)$\") {$origin + \".\" + (1 + $Matches[1])}} |\r\n" + 
-				"            ForEach-Object {Copy-Item -Path $origin %s -Destination $_; $_}";
-		command = String.format(command, remoteFile, isDirectory ? "-Recurse" : "");
+		StringBuffer sb = new StringBuffer();
+		sb.append("Get-ChildItem -Path '%s*' | ")
+		.append("Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\\d*)$' -AllMatches).matches.groups[1].Value}} | ")
+		.append("Sort-Object -Property @{Expression={$_.dg};Descending=$true} | ")
+		.append("Select-Object -First 1 | ")
+		.append("ForEach-Object {'%s.' + ($_.dg + 1)} |")
+		.append("ForEach-Object {Copy-Item -Path %s %s -Destination $_; $_}");
 		
-		SSHPowershellInvokeResult sshir = SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, command));
-		String v = sshir.getOutLines().get(0); 
+		String command = sb.toString();
+		
+		command = String.format(command, remoteFile, remoteFile, remoteFile, isDirectory ? "-Recurse" : "");
+		
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
+		String v = rcr.getAllTrimedNotEmptyLines().get(0);
 		return v;
 		
 	}

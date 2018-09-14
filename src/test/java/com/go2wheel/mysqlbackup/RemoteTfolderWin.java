@@ -51,7 +51,6 @@ public class RemoteTfolderWin extends ExternalResource {
 			try {
 				SSHcommonUtil.deleteRemoteFolder("win", session, this.remoteFolder);
 			} catch (RunRemoteCommandException | JSchException | IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
