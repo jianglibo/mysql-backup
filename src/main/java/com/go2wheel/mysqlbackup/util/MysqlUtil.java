@@ -28,6 +28,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedContentException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
+import com.go2wheel.mysqlbackup.expect.MysqlVariablesExpectWin;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -121,36 +122,15 @@ public class MysqlUtil {
 				.filter(line -> line.indexOf("No such file or directory") == -1).findFirst().get();
 	}
 	
-	public MysqlVariables getLogbinStateWin(Session session, MysqlInstance mysqlInstance)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public MysqlVariables getLogbinStateWin(Session session, Server server, MysqlInstance mysqlInstance)
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedContentException {
 		
-		return new MysqlInteractiveExpect<MysqlVariables>(session) {
-			@Override
-			protected MysqlVariables afterLogin() {
-				Map<String, String> binmap = new HashMap<>();
-				try {
-					List<String> vnames = Arrays.asList(MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
-							MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
-							"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR);
-					
-					for(String vname: vnames) {
-						expect.sendLine("charset gbk;");
-						List<String> result = expectMysqlPromptAndReturnList();
-						expect.sendLine(String.format("show variables like '%s';", vname));
-						result = expectMysqlPromptAndReturnList();
-						int i = result.size();
-					}
-//					binmap = vnames.stream().collect(Collectors.toMap(k -> k, k -> getColumnValue(result, k, 0, 1)));
-					expect.sendLine("exit");
-				} catch (IOException e) {
-					logger.error("mysql logbin obtain failed: {}", e.getMessage());
-				}
-				return new MysqlVariables(binmap);
-			}
-		}.start(mysqlInstance);
+		return new MysqlVariables(new MysqlVariablesExpectWin(session, server, MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR).start());
 	}
 	
-	public MysqlVariables getLogbinStateCentos(Session session,MysqlInstance mysqlInstance)
+	public MysqlVariables getLogbinStateCentos(Session session, Server server, MysqlInstance mysqlInstance)
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
 		return new MysqlInteractiveExpect<MysqlVariables>(session) {
 			@Override
@@ -227,11 +207,11 @@ public class MysqlUtil {
 
 	
 	public MysqlVariables getLogbinState(Session session, Server server)
-			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException {
+			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException, UnExpectedContentException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
-			return getLogbinStateWin(session, server.getMysqlInstance());
+			return getLogbinStateWin(session, server, server.getMysqlInstance());
 		} else {
-			return getLogbinStateCentos(session, server.getMysqlInstance());
+			return getLogbinStateCentos(session, server, server.getMysqlInstance());
 		}
 	}
 

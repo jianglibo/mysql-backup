@@ -539,7 +539,7 @@ public class BackupCommand {
 
 	@ShellMethod(value = "查看logbin状态")
 	public FacadeResult<?> mysqlGetLogbinState()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedContentException {
 		sureMysqlConfigurated();
 		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
 	}

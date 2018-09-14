@@ -5,6 +5,9 @@ $sut = (Split-Path -Leaf $MyInvocation.MyCommand.Path) -replace '\.Tests\.', '.'
 Describe "backupfiles conitnuous directories" {
     $parent = "TestDrive:\folder"
 
+    $noversion = "TestDrive:\folder\noversions\nov"
+    New-Item -ItemType Directory -Path $noversion
+
     $origin = "TestDrive:\folder\src"
     New-Item -ItemType Directory -Path $origin
 
@@ -14,6 +17,12 @@ Describe "backupfiles conitnuous directories" {
     New-Item -ItemType Directory -Path $d
 
     $d = "TestDrive:\folder\src.2"
+    New-Item -ItemType Directory -Path $d
+
+    $d = "TestDrive:\folder\src.6"
+    New-Item -ItemType Directory -Path $d
+
+    $d = "TestDrive:\folder\src.10"
     New-Item -ItemType Directory -Path $d
 
     $d = "TestDrive:\folder\src.c"
@@ -36,23 +45,23 @@ Describe "backupfiles conitnuous directories" {
         # [array]$r = Get-ChildItem -Path "TestDrive:\folder\*" -Directory -Include "src.*" | Out-Host
 
         [array]$r = Get-ChildItem -Path "TestDrive:\folder\*"
-        $r.Count | Should -Be 6
+        $r.Count | Should -Be 9
 
         [array]$r = Get-ChildItem -Path "TestDrive:\folder"
-        $r.Count | Should -Be 6
+        $r.Count | Should -Be 9
 
 
         [array]$r = Get-ChildItem -Path "TestDrive:\folder\src.*"
-        $r.Count | Should -Be 4
+        $r.Count | Should -Be 6
 
         $r = $r | Where-Object Name -Match ".*\.\d+$"
-        $r.Count | Should -Be 3
+        $r.Count | Should -Be 5
 
         $r = $r | Where-Object Name -Match ".*\.\d+$" | Where-Object {$_ -is [System.IO.DirectoryInfo]}
-        $r.Count | Should -Be 2
+        $r.Count | Should -Be 4
 
         [array]$r = Get-ChildItem -Path "TestDrive:\folder\src*"
-        $r.Count | Should -Be 6
+        $r.Count | Should -Be 8
 
         # in effect. Because -Path is leading to directory contents.
         # -Include  only include leaf object.
@@ -65,32 +74,54 @@ Describe "backupfiles conitnuous directories" {
         [System.IO.DirectoryInfo[]]$r = Get-ChildItem -Path "${origin}.*" | 
             Where-Object Name -Match ".*\.\d+$" |
             Where-Object {$_ -is [System.IO.DirectoryInfo]}
-        $r.Count | Should -Be 2
+        $r.Count | Should -Be 4
 
         $r[0].Name | Should -Be "src.1"
-        $r[1].Name | Should -Be "src.2"
+        $r[1].Name | Should -Be "src.10"
+        $r[2].Name | Should -Be "src.2"
+        $r[3].Name | Should -Be "src.6"
+
         $r = $r | Sort-Object -Property Name -Descending
-        $r[0].Name | Should -Be "src.2"
-        $r[1].Name | Should -Be "src.1"
+        $r[0].Name | Should -Be "src.6"
+        $r[1].Name | Should -Be "src.2"
+        $r[2].Name | Should -Be "src.10"
+        $r[3].Name | Should -Be "src.1"
+
+        # "kkkk" | Out-Host
+        # $r | ForEach-Object { $_.Name | Select-String -Pattern '(\d+)$' | ForEach-Object {$_.matches.group[1].value}} | Out-Host
+        # $r | ForEach-Object { ($_.Name | Select-String -Pattern '(\d+)$' -AllMatches).matches.groups[1].Value} | Out-Host
+
+        $r = $r | Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\d+)$' -AllMatches).matches.groups[1].Value}} |
+            Sort-Object -Property @{Expression={$_.dg};Descending=$true} |
+            ForEach-Object {$_.base} #| Out-Host
+        $r[0].Name | Should -Be "src.10"
+        $r[1].Name | Should -Be "src.6"
+        $r[2].Name | Should -Be "src.2"
+        $r[3].Name | Should -Be "src.1"
+
+
         $maxNameIdx = $r | Select-Object -First 1 -ExpandProperty Name |
              ForEach-Object {if ($_ -match ".*\.(\d+)$") {$Matches[1]}}
         
-        $maxNameIdx | Should -BeExactly 2
+        $maxNameIdx | Should -BeExactly 10
         # string first.
         $nextIdx = $maxNameIdx + 1;
-        $nextIdx | Should -Be 21
+        $nextIdx | Should -Be 101
         # int fist
         $nextIdx = 1 + $maxNameIdx;
-        $nextIdx | Should -Be 3
+        $nextIdx | Should -Be 11
 
-        $tf = Get-ChildItem -Path "${origin}.*" | 
-            Where-Object Name -Match ".*\.\d+$" |
+        $tf = Get-ChildItem -Path "${origin}*" | 
+            # Where-Object Name -Match ".*\.\d+$" |
+            Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\d*)$' -AllMatches).matches.groups[1].Value}} |
+            Sort-Object -Property @{Expression={$_.dg};Descending=$true} |
             # Where-Object {$_ -is [System.IO.DirectoryInfo]} |
             # We can not handle this situation, mixed files and directories.
-            Select-Object -Last 1 -ExpandProperty Name |
-            ForEach-Object {if ($_ -match ".*\.(\d+)$") {$origin + "." + (1 + $Matches[1])}} |
+            Select-Object -First 1 |
+            ForEach-Object {$origin + "." + ($_.dg + 1)} |
             ForEach-Object {Copy-Item -Path $origin -Recurse -Destination $_; $_}
-        $created = "TestDrive:\folder\src.4"
+
+        $created = "TestDrive:\folder\src.11"
         $tf |Should -Be $created
         Test-Path -Path $tf | Should -Be $true
 
@@ -99,6 +130,20 @@ Describe "backupfiles conitnuous directories" {
         Test-Path $kkvpath | Should -Be $true
 
         Get-Content -Path $kkvpath | Should -Be "abc"
+
+        $tf = Get-ChildItem -Path "${noversion}*" | 
+        # Where-Object Name -Match ".*\.\d+$" |
+        Foreach-Object {@{base=$_;dg=[int](Select-String -InputObject $_.Name -Pattern '(\d*)$' -AllMatches).matches.groups[1].Value}} |
+        Sort-Object -Property @{Expression={$_.dg};Descending=$true} |
+        # Where-Object {$_ -is [System.IO.DirectoryInfo]} |
+        # We can not handle this situation, mixed files and directories.
+        Select-Object -First 1 |
+        ForEach-Object {$noversion + "." + ($_.dg + 1)} |
+        ForEach-Object {Copy-Item -Path $noversion -Recurse -Destination $_; $_}
+
+        $created = "TestDrive:\folder\noversions\nov.1"
+        $tf |Should -Be $created
+        Test-Path -Path $tf | Should -Be $true
 
     }
 
@@ -159,7 +204,6 @@ Describe "backupfiles conitnuous directories" {
         E:\wamp64\bin\mysql\mysql5.7.21\bin\mysql.exe -uroot -p123456 -e "show variables"  |
         Where-Object {$_} |
         Where-Object {$vnames -contains ($_ -split "\s+")[0] } |
-        ForEach-Object -Begin {'---start---'} -Process { '-+-' + $_ + '-+-'} -End {'---end---'} |
-        Out-Host
+        ForEach-Object -Begin {'---start---'} -Process { '-+-' + $_ + '-+-'} -End {'---end---'} # | Out-Host
     }
 }
