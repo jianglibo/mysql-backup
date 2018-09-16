@@ -1,0 +1,25 @@
+<!doctype html>
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>帮助文件</h1>
+				<h2></h2>
+			</div>
+			<div class="content">
+				<h2 class="content-subhead">关于MYSQL clientBin</h2>
+				<p>如果mysql配置在系统路径中，那么mysql是可以直接执行的。反之，必须填写绝对路径比如 c:\mysql\bin\mysql.exe，其它的mysql命令，像mysqldump会从该路径推导获取。</p>
+
+				<h2 class="content-subhead">关于dump文件名</h2>
+				<p>让dump文件的路径可配置是基于磁盘容量的考虑，在数据库比较大的情况下，固定路径可能导致磁盘容量紧张。</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

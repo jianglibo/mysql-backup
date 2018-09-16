@@ -84,6 +84,7 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		}
 		MysqlInstance mi = getDbService().findByServerId(serverId);
 		if (mi != null) {
+			model.asMap().clear();
 			return redirectEditUrl(mi.getId());
 		}
 		mi = newModel();

@@ -24,11 +24,10 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.expect.MysqlInteractiveExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
-import com.go2wheel.mysqlbackup.expect.MysqlVariablesExpectWin;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -149,6 +148,10 @@ public class MysqlUtil {
 				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR};
 		
 		String joined = Stream.of(variables).map(it -> "'" + it + "'").collect(Collectors.joining(",", "@(", ")"));
+		
+		if (!StringUtil.hasAnyNonBlankWord(mysqlInstance.getPassword())) {
+			throw new UnExpectedInputException("10000", "mysql.nopassword", "empty mysql password.");
+		}
 		
 		StringBuffer sb = new StringBuffer("& " + mysqlInstance.getClientBin())
 				.append(" -uroot -p").append(mysqlInstance.getPassword())

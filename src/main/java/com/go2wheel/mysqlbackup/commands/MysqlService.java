@@ -180,6 +180,11 @@ public class MysqlService {
 				}
 				
 				MysqlInstance mi = server.getMysqlInstance();
+				
+				if (!StringUtil.hasAnyNonBlankWord(mi.getPassword())) {
+					throw new UnExpectedInputException("10000", "mysql.nopassword", "empty mysql password.");
+				}
+				
 				String clientDumpBin = StringUtil.hasAnyNonBlankWord(mi.getClientBin()) ? PathUtil.replaceFileName(mi.getClientBin(), "mysqldump") : "mysqldump";
 				String cmd = "%s --max_allowed_packet=512M -u%s -p%s --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s;(Get-Item -Path %s | Select-Object -Property FullName,Length), (Get-FileHash -Path %s -Algorithm MD5) | Format-List";
 				cmd = String.format(cmd, clientDumpBin, mi.getUsername(),mi.getPassword(), mi.getDumpFileName(), mi.getDumpFileName(), mi.getDumpFileName());

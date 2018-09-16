@@ -42,6 +42,9 @@ public class HelpController extends ControllerBase {
 		if (m.matches()) {
 			path = m.group(1) + "/create";
 		}
+		if ("/".equals(path)) {
+			path = "/index.html";
+		}
 		String tpl = "help" + path;
 		
 		String tpllc = tpl + "_" + LocaleContextHolder.getLocale().getLanguage();
