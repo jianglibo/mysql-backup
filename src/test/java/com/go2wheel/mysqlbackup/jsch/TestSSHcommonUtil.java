@@ -59,7 +59,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	public void tWriteRemoteFile() throws IOException, ScpException, JSchException {
 		rtfoler.setSession(session);
 		String rfn = rtfoler.newFile("hello.txt");
-		SSHcommonUtil.copy(session, rfn, "abc".getBytes());
+		SSHcommonUtil.copy(server.getOs(), session, rfn, "abc".getBytes());
 		
 		String content = ScpUtil.from(session, rfn).toString();
 		assertThat(content, equalTo("abc"));
@@ -73,8 +73,8 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		createADirOnServer(rf, "abc", 3);
 		
 		SSHcommonUtil.backupFileByMove(session, rf);
-		assertFalse(SSHcommonUtil.fileExists(session, rf));
-		assertTrue(SSHcommonUtil.fileExists(session, rf + ".1"));
+		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rf));
+		assertTrue(SSHcommonUtil.fileExists(server.getOs(), session, rf + ".1"));
 	}
 	
 	@Test
@@ -88,7 +88,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		File f2 = new File(foo, "a1.txt");
 		Files.write(f1.toPath(), "abc".getBytes());
 		Files.write(f2.toPath(), "abc".getBytes());
-		List<FileToCopyInfo> copyInfos = SSHcommonUtil.copyFolder(session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
+		List<FileToCopyInfo> copyInfos = SSHcommonUtil.copyFolder(server.getOs(), session, tfolder.getRoot().toPath(), rtfoler.getRemoteFolder());
 		// include root item.
 		assertThat(copyInfos.size(), equalTo(5));
 		List<LinuxLsl> lsl = SSHcommonUtil.listRemoteFilesRecursive(session, rtfoler.getRemoteFolder());
@@ -103,7 +103,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		rtfoler.setSession(session);
 		String rfn = rtfoler.newFile("hello.txt");
 		
-		SSHcommonUtil.copy(session, rfn, "abc".getBytes());
+		SSHcommonUtil.copy(server.getOs(), session, rfn, "abc".getBytes());
 		
 		SSHcommonUtil.backupFile(session, server, rfn);
 		List<String> fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
@@ -114,7 +114,7 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 		assertThat(fns.get(1), equalTo(rfn + ".1"));
 		
 		
-		SSHcommonUtil.revertFile(session, rfn);
+		SSHcommonUtil.revertFile(server.getOs(), session, rfn);
 		fns = SSHcommonUtil.runRemoteCommand(session, String.format("ls %s", rfn + "*")).getAllTrimedNotEmptyLines();
 		Collections.sort(fns);
 		assertThat(fns.size(), equalTo(1));
@@ -134,9 +134,9 @@ public class TestSSHcommonUtil extends SpringBaseFort {
 	
 	@Test
 	public void testFileExists() throws RunRemoteCommandException, JSchException, IOException {
-		boolean b1 = SSHcommonUtil.fileExists(session, "/usr/bin");
+		boolean b1 = SSHcommonUtil.fileExists(server.getOs(), session, "/usr/bin");
 		assertTrue(b1);
-		boolean b2 = SSHcommonUtil.fileExists(session, "/usr/bin11");
+		boolean b2 = SSHcommonUtil.fileExists(server.getOs(), session, "/usr/bin11");
 		assertFalse(b2);
 	}
 	

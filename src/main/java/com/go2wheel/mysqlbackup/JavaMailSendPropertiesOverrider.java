@@ -19,7 +19,7 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueService;
@@ -112,7 +112,7 @@ public class JavaMailSendPropertiesOverrider implements EnvironmentAware {
 	}
 
 	@EventListener
-	public void whenKeyValueCreated(ModelCreatedEvent<KeyValue> keyvalueCreatedEvent) throws SchedulerException, ParseException {
+	public void whenKeyValueCreated(ModelAfterCreatedEvent<KeyValue> keyvalueCreatedEvent) throws SchedulerException, ParseException {
 		KeyValue kv = keyvalueCreatedEvent.getModel(); 
 		if (kv.getItemKey().startsWith("spring.mail.")) {
 			copyFromDbToMailSender();

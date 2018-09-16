@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
@@ -23,14 +24,14 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
-import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
+import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
 import com.jcraft.jsch.JSchException;
 
-public class TestDump extends MysqlServiceTbase {
+public class TestDumpWin extends MysqlServiceTbase {
 
 	
 	@Rule
@@ -38,17 +39,32 @@ public class TestDump extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc; 
 	
 	public RemoteTfolder rt = new RemoteTfolder("/tmp/mm");
+	
+	
+	@Value("${myapp.app.client-bin}")
+	private String clientBin;
+	
 
 	@Test
 	public void testMysqldump()
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException {
-		clearDb();
-		installMysql();
-		sdc.setHost(HOST_DEFAULT_GET);
-		String rdump = "/tmp/mysqldump.sql";
+		createSessionLocalHostWindowsAfterClear();
+		sdc.setHost(HOST_LOCAL_HOST);
+		
+		createMysqlIntance();
+		
+		server.getMysqlInstance().setClientBin(clientBin);
+		server.getMysqlInstance().setDumpFileName("e:\\tmp\\mysqldump.sql");
+		
+		MysqlVariables v = mysqlUtil.getLogbinState(session, server);
+		
+		server.getMysqlInstance().setLogBinSetting(v);
+		
+		String rdump = server.getMysqlInstance().getDumpFileName();
 		
 		// delete remote dump file.
 		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rdump);
+		
 		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
 		
 		assertThat(server.getMysqlInstance().getDumpFileName(), equalTo(rdump));
@@ -86,32 +102,32 @@ public class TestDump extends MysqlServiceTbase {
 		assertThat(fileCount, equalTo(lineInIndexFile));
 		
 	}
-	
-	@Test
-	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException {
-		clearDb();
-		installMysql();
-		sdc.setHost(HOST_DEFAULT_GET);
-		String rdump = "/tmp/mm/mysqldump.sql";
-		
-		// delete remote dump file.
-		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rdump);
-		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
-		
-		server.getMysqlInstance().setDumpFileName(rdump);
-		assertThat(server.getMysqlInstance().getDumpFileName(), equalTo(rdump));
-		
-		FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(session, server);
-		assertTrue(fr.isExpected());
-		
-		// remote dump file should created.
-		assertTrue(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
-		
-		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
-		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
-		
-		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
-		assertTrue(Files.exists(localDumpPath.resolve(PathUtil.getFileName(MysqlUtil.FIXED_DUMP_FILE_NAME))));
-	}
+//	
+//	@Test
+//	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException {
+//		clearDb();
+//		installMysql();
+//		sdc.setHost(HOST_DEFAULT_GET);
+//		String rdump = "/tmp/mm/mysqldump.sql";
+//		
+//		// delete remote dump file.
+//		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rdump);
+//		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
+//		
+//		server.getMysqlInstance().setDumpFileName(rdump);
+//		assertThat(server.getMysqlInstance().getDumpFileName(), equalTo(rdump));
+//		
+//		FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(session, server);
+//		assertTrue(fr.isExpected());
+//		
+//		// remote dump file should created.
+//		assertTrue(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
+//		
+//		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
+//		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
+//		
+//		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
+//		assertTrue(Files.exists(localDumpPath.resolve(PathUtil.getFileName(MysqlUtil.FIXED_DUMP_FILE_NAME))));
+//	}
 
 }

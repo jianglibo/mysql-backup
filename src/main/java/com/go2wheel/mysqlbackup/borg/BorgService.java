@@ -38,7 +38,7 @@ import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -159,7 +159,7 @@ public class BorgService {
 				boolean isFileNotFound = rcr.getAllTrimedNotEmptyLines().stream()
 						.anyMatch(line -> line.contains("FileNotFoundError"));
 				if (isFileNotFound) {
-					String parentPath = RemotePathUtil.getParentWithEndingSlash(repoPath);
+					String parentPath = PathUtil.getParentWithEndingSeparator(repoPath);
 					rcr = SSHcommonUtil.runRemoteCommand(session, String.format("mkdir -p %s", parentPath));
 					rcr = SSHcommonUtil.runRemoteCommand(session,
 							String.format("borg init --encryption=none %s", repoPath));
@@ -289,7 +289,8 @@ public class BorgService {
 						continue;
 					}
 				}
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, fi.getRfileAbs(), fi.getLfileAbs());
+				String rmd5 = SSHcommonUtil.getRemoteFileMd5(server.getOs(), session, fi.getRfileAbs());
+				SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(),session, fi.getRfileAbs(), rmd5, fi.getLfileAbs());
 				fi.setDone(true);
 				totalBytes += Files.size(fi.getLfileAbs());
 				downloadBytes += Files.size(fi.getLfileAbs());
@@ -381,9 +382,9 @@ public class BorgService {
 		}
 		BorgDescription bd = serverSource.getBorgDescription();
 		String serverRepo = bd.getRepo();
-		SSHcommonUtil.mkdirsp(sessiontarget, serverRepo);
+		SSHcommonUtil.mkdirsp(serverTarget.getOs(), sessiontarget, serverRepo);
 		Path local = settingsInDb.getRepoDir(serverSource).getParent().resolve(localRepo);
-		SSHcommonUtil.copyFolder(sessiontarget, local, serverRepo);
+		SSHcommonUtil.copyFolder(serverTarget.getOs(), sessiontarget, local, serverRepo);
 		return null;
 	}
 
@@ -507,7 +508,7 @@ public class BorgService {
 			archive = "::" + archive;
 		}
 		SSHcommonUtil.deleteRemoteFolder(sessionTarget, extractFolder);
-		SSHcommonUtil.mkdirsp(sessionTarget, extractFolder);
+		SSHcommonUtil.mkdirsp(serverTarget.getOs(), sessionTarget, extractFolder);
 		String cmd = String.format("cd %s;borg extract %s%s",extractFolder, sourceRepo, archive);
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(sessionTarget, cmd);
 		List<String> includes = serverSource.getBorgDescription().getIncludes();

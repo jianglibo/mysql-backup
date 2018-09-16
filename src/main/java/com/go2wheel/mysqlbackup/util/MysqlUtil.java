@@ -45,9 +45,17 @@ import com.jcraft.jsch.Session;
 public class MysqlUtil {
 
 	public static final String MYSQL_PROMPT = "mysql> ";
-	public static final String DUMP_FILE_NAME = "/tmp/mysqldump.sql";
+	public static final String FIXED_DUMP_FILE_NAME = "mysqldump.sql";
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
+	
+	public static String getDefaultDumpFileName(String os) {
+		if (OsTypeWrapper.of(os).isWin()) {
+			return "x:/tmp/mysqldump.sql";
+		} else {
+			return "/tmp/mysqldump.sql";
+		}
+	}
 
 	@Autowired
 	private SettingsInDb settingsInDb;
@@ -136,9 +144,44 @@ public class MysqlUtil {
 	public MysqlVariables getLogbinStateWin(Session session, Server server, MysqlInstance mysqlInstance)
 			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		
-		return new MysqlVariables(new MysqlVariablesExpectWin(session, server, MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+		String[] variables = new String[] {MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
 				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
-				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR).start());
+				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR};
+		
+		String joined = Stream.of(variables).map(it -> "'" + it + "'").collect(Collectors.joining(",", "@(", ")"));
+		
+		StringBuffer sb = new StringBuffer("& " + mysqlInstance.getClientBin())
+				.append(" -uroot -p").append(mysqlInstance.getPassword())
+				.append(" -e 'show variables' | ")
+				.append("Foreach-Object {$_.trim()} |")
+				.append("Where-Object {$_} |")
+				.append("Where-Object {")
+				.append(joined)
+				.append(" -contains ($_ -split '\\s+')[0] }");
+		
+		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
+		
+		Map<String, String> map = rcr.getStdOutList().stream().map(line -> {
+			String[] ss = line.split("\\s+", 2);
+			return ss;
+			})
+		.map(lls -> {
+			if (lls.length == 1) {
+				return new String[] {lls[0], ""};
+			} else {
+				return lls;
+			}
+		})
+		.collect(Collectors.toMap(lls -> lls[0], lls -> {
+			String v = lls[1];
+			v = v.replaceAll("\\\\\\\\", "\\\\");
+			return v;
+		}));
+		return new MysqlVariables(map);
+				
+//		return new MysqlVariables(new MysqlVariablesExpectWin(session, server, MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
+//				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
+//				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR).start());
 	}
 	
 	public MysqlVariables getLogbinStateCentos(Session session, Server server, MysqlInstance mysqlInstance)

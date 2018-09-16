@@ -102,7 +102,7 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 //		SSHcommonUtil.revertFileToOrigin(targetSession, "/etc/my.cnf");
 //		SSHcommonUtil.backupFile(targetSession, "/etc/my.cnf");
 		
-		assertFalse(SSHcommonUtil.fileExists(targetSession, tdatadir));
+		assertFalse(SSHcommonUtil.fileExists(server.getOs(), targetSession, tdatadir));
 		
 		resetdb(targetSession, targetServer, targetServer.getMysqlInstance());
 		
@@ -134,7 +134,7 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 		
 		boolean b = mysqlService.restore(pb, server, targetServer, mdf.getFolder().getFileName().toString(), true);
 
-		assertTrue(SSHcommonUtil.fileExists(targetSession, tdatadir));
+		assertTrue(SSHcommonUtil.fileExists(server.getOs(), targetSession, tdatadir));
 		
 		assertTrue(b);
 		

@@ -3,12 +3,10 @@ package com.go2wheel.mysqlbackup.expect;
 import static net.sf.expectit.matcher.Matchers.contains;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
@@ -17,7 +15,6 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.google.common.base.Charsets;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;

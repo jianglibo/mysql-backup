@@ -122,7 +122,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	    	formAttribute(model);
 	        return getFormTpl();
 		}
-	    ras.addFlashAttribute("formProcessSuccessed", true);
+	    ras.addFlashAttribute("formProcessSuccessed", "已创建");
 	    return afterCreate(entityFromForm, request);
 	}
 

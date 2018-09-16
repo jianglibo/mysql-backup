@@ -12,7 +12,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -31,7 +31,7 @@ public class BorgBackupSchedule extends SchedulerBase {
 	//@formatter:off
 	
 	@EventListener
-	public void whenBorgDescriptionCreated(ModelCreatedEvent<BorgDescription> borgDescriptionCreatedEvent) throws SchedulerException, ParseException {
+	public void whenBorgDescriptionCreated(ModelAfterCreatedEvent<BorgDescription> borgDescriptionCreatedEvent) throws SchedulerException, ParseException {
 		BorgDescription bd = borgDescriptionCreatedEvent.getModel();
 		Server server = serverDbService.findById(bd.getServerId());
 		createTrigger(server,

@@ -93,17 +93,13 @@ public class SSHcommonUtil {
 
 	}
 
-	public static void mkdirsp(Session session, String remoteDir) throws RunRemoteCommandException, JSchException, IOException {
+	public static RemoteCommandResult mkdirsp(String os, Session session, String remoteDir) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteDir);
-		runRemoteCommand(session, String.format("mkdir -p %s", remoteDir));
-	}
-
-	public static void mkdirsp(String os, Session session, String remoteDir) throws RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(os);
 		if (otw.isWin()) {
-			runRemoteCommand(session, String.format("New-Item -Path %s -ItemType Directory", remoteDir));
+			return runRemoteCommand(session, String.format("New-Item -Path %s -ItemType Directory", remoteDir));
 		} else {
-			mkdirsp(session, remoteDir);
+			return runRemoteCommand(session, String.format("mkdir -p %s", remoteDir));
 		}
 	}
 
@@ -118,7 +114,7 @@ public class SSHcommonUtil {
 	 */
 	public static boolean backupFileByMove(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
-		remoteFile = RemotePathUtil.getRidOfLastSlash(remoteFile);
+		remoteFile = PathUtil.getRidOfLastSlash(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists()) {
 			RemoteCommandResult rcr = runRemoteCommand(session,
@@ -168,7 +164,7 @@ public class SSHcommonUtil {
 	}
 
 	public static String targzFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
-		String tarFile = RemotePathUtil.getRidOfLastSlash(remoteFile) + ".tar.gz";
+		String tarFile = PathUtil.getRidOfLastSlash(remoteFile) + ".tar.gz";
 		String command = String.format("tar -czf %s %s", tarFile, remoteFile);
 		RemoteCommandResult rcr = runRemoteCommand(session, command);
 		if (rcr.getExitValue() == 0) {
@@ -218,14 +214,28 @@ public class SSHcommonUtil {
 	}
 
 	// @formatter:off
-
-	public static String getRemoteFileMd5(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
-		Optional<String[]> md5pair = runRemoteCommand(session, String.format("md5sum %s", remoteFile))
-				.getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+"))
-				.filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
-				.findAny();
-		return md5pair.get()[0];
+	
+	public static String getRemoteFileMd5(String os, Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+		if (OsTypeWrapper.of(os).isWin()) {
+			String cmd = String.format("Get-FileHash -Path %s |Format-List", remoteFile);
+			RemoteCommandResult rcr = runRemoteCommand(session, cmd);
+			return PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0).get("Hash");
+		} else {
+			Optional<String[]> md5pair = runRemoteCommand(session, String.format("md5sum %s", remoteFile))
+					.getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+"))
+					.filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
+					.findAny();
+			return md5pair.get()[0];
+		}
 	}
+
+//	public static String getRemoteFileMd5(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+//		Optional<String[]> md5pair = runRemoteCommand(session, String.format("md5sum %s", remoteFile))
+//				.getAllTrimedNotEmptyLines().stream().map(l -> l.trim()).map(l -> l.split("\\s+"))
+//				.filter(pair -> pair.length == 2).filter(pair -> pair[1].equals(remoteFile) && pair[0].length() == 32)
+//				.findAny();
+//		return md5pair.get()[0];
+//	}
 
 	public static int countFiles(Session session, String rfile) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteCommandResult rcr = runRemoteCommand(session, String.format("find %s -type f | wc -l", rfile));
@@ -260,28 +270,57 @@ public class SSHcommonUtil {
 //    }
 	
 	public static String getContent(Session session, String rfile) throws JSchException, IOException, ScpException {
-		
 		return ScpUtil.from(session, rfile).toString();
 	}
-    
-	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile, int postfix)
-			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
-		String remoteMd5 = getRemoteFileMd5(session, rfile);
-		return downloadWithTmpDownloadingFile(session, rfile, remoteMd5, lfile, postfix);
-	}
 	
-	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, String remoteMd5, Path lfile, int postfix)
+	/**
+	 * 
+	 * @param os
+	 * @param session
+	 * @param rfile
+	 * @param lfile
+	 * @param postfix
+	 * @return
+	 * @throws RunRemoteCommandException
+	 * @throws IOException
+	 * @throws ScpException
+	 * @throws JSchException
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static Path downloadWithTmpDownloadingFile(String os, Session session, String rfile, Path lfile, int postfix)
+			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
+		return downloadWithTmpDownloadingFileWithNewVersion(os, session, rfile, null, lfile, postfix);
+	}
+
+	
+	/**
+	 * Download file with known md5.
+	 * @param session
+	 * @param rfile
+	 * @param remoteMd5
+	 * @param lfile
+	 * @param postfix
+	 * @return
+	 * @throws RunRemoteCommandException
+	 * @throws IOException
+	 * @throws ScpException
+	 * @throws JSchException
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static Path downloadWithTmpDownloadingFileWithNewVersion(String os, Session session, String rfile, String remoteMd5, Path lfile, int postfix)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		Path localDir = lfile.getParent();
 		if (!Files.exists(localDir)) {
 			Files.createDirectories(localDir);
 		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
-		
 		ScpUtil.from(session, rfile, localTmpFile.toString());
-		String localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
+		String localMd5 = null;
+		if (remoteMd5 != null) {
+			localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());
+		}
 		
-		if (remoteMd5.equalsIgnoreCase(localMd5)) {
+		if (localMd5 == null || remoteMd5.equalsIgnoreCase(localMd5)) {
 			Path dst = lfile;
 			if (postfix > 0) {
 				dst = PathUtil.getNextAvailableByBaseName(lfile, postfix);
@@ -293,31 +332,41 @@ public class SSHcommonUtil {
 	}
 	
 
-	public static Path downloadWithTmpDownloadingFile(Session session, String rfile, Path lfile)
+	/**
+	 * Download file with already known md5.
+	 * @param session
+	 * @param rfile
+	 * @param remoteMd5
+	 * @param lfile
+	 * @return
+	 * @throws RunRemoteCommandException
+	 * @throws IOException
+	 * @throws ScpException
+	 * @throws JSchException
+	 * @throws NoSuchAlgorithmException
+	 */
+	public static Path downloadWithTmpDownloadingFile(String os, Session session, String rfile,String remoteMd5, Path lfile)
 			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
-		return downloadWithTmpDownloadingFile(session, rfile, lfile, -1);
+		return downloadWithTmpDownloadingFileWithNewVersion(os, session, rfile, remoteMd5, lfile, -1);
 	}
-	
-	public static Path downloadWithTmpDownloadingFile(Session session, String rfile,String remoteMd5, Path lfile)
-			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
-		return downloadWithTmpDownloadingFile(session, rfile, remoteMd5, lfile, -1);
-	}
-	
-	public static boolean copy(Session session, Path local, String remote) throws RunRemoteCommandException, JSchException, IOException {
-		try {
-			ScpUtil.to(session, local.toString(), remote);
-			return true;
-		} catch (ScpException | IOException e) {
-			String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
-			mkdirsp(session, rdir);
-			try {
-				ScpUtil.to(session, local.toString(), remote);
-			} catch (ScpException | IOException e1) {
-				return false;
-			}
-			return true;
-		}
-	}
+
+//	/**
+//	 * Download file skip md5 check.
+//	 * @param os
+//	 * @param session
+//	 * @param rfile
+//	 * @param lfile
+//	 * @return
+//	 * @throws RunRemoteCommandException
+//	 * @throws IOException
+//	 * @throws ScpException
+//	 * @throws JSchException
+//	 * @throws NoSuchAlgorithmException
+//	 */
+//	public static Path downloadWithTmpDownloadingFile(String os, Session session, String rfile, Path lfile)
+//			throws RunRemoteCommandException, IOException, ScpException, JSchException, NoSuchAlgorithmException {
+//		return downloadWithTmpDownloadingFile(os, session, rfile, lfile, -1);
+//	}
 	
 	public static boolean copy(String os, Session session, Path local, String remote) throws RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(os);
@@ -326,8 +375,8 @@ public class SSHcommonUtil {
 				ScpUtil.to(session, local.toString(), remote);
 				return true;
 			} catch (ScpException | IOException e) {
-				String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
-				mkdirsp(session, rdir);
+				String rdir = PathUtil.getParentWithoutEndingSeperator(remote);
+				mkdirsp(os, session, rdir);
 				try {
 					ScpUtil.to(session, local.toString(), remote);
 				} catch (ScpException | IOException e1) {
@@ -336,31 +385,26 @@ public class SSHcommonUtil {
 				return true;
 			}
 		} else {
-			return copy(session, local, remote);
-		}
-	}
-	
-	
-	public static boolean copy(Session session, String remote, byte[] bytes) throws RunRemoteCommandException, JSchException, IOException {
 			try {
-				ScpUtil.to(session, remote, bytes);
+				ScpUtil.to(session, local.toString(), remote);
 				return true;
-			} catch (ScpException e) {
-				String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
-				mkdirsp(session, rdir);
+			} catch (ScpException | IOException e) {
+				String rdir = PathUtil.getParentWithoutEndingSeperator(remote);
+				mkdirsp(os, session, rdir);
 				try {
-					ScpUtil.to(session, remote, bytes);
-				} catch (ScpException e1) {
+					ScpUtil.to(session, local.toString(), remote);
+				} catch (ScpException | IOException e1) {
 					return false;
 				}
 				return true;
 			}
+		}
 	}
 	
 	public static boolean copy(String os, Session session, String remote, byte[] bytes) throws RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(os);
 		if (otw.isWin()) {
-			String rdir = RemotePathUtil.getParentWithoutEndingSlash(remote);
+			String rdir = PathUtil.getParentWithoutEndingSeperator(remote);
 			if (!fileExists(os, session, rdir)) {
 				mkdirsp(os, session, rdir);
 			}
@@ -371,7 +415,19 @@ public class SSHcommonUtil {
 				return false;
 			}
 		} else {
-			return copy(session, remote, bytes);
+			try {
+				ScpUtil.to(session, remote, bytes);
+				return true;
+			} catch (ScpException e) {
+				String rdir = PathUtil.getParentWithoutEndingSeperator(remote);
+				mkdirsp(os, session, rdir);
+				try {
+					ScpUtil.to(session, remote, bytes);
+				} catch (ScpException e1) {
+					return false;
+				}
+				return true;
+			}
 		}
 }
 	
@@ -398,6 +454,37 @@ public class SSHcommonUtil {
 	}
 
 	
+//	/**
+//	 * The localFolder and remoteFolder are the same base directory.For example, /local/a -> /remote/b
+//	 * @param localFolder
+//	 * @param remoteFolder
+//	 * @return
+//	 * @throws IOException 
+//	 */
+//	public static List<FileToCopyInfo> copyFolder(Session session, Path localFolder, String remoteFolder) throws IOException {
+//		RemoteFileNotAbsoluteException.throwIfNeed(remoteFolder);
+//		Path localFolderAbs = localFolder.toAbsolutePath();
+//		String remoteFolderEndSlash = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
+//		return Files.walk(localFolderAbs).map(path -> {
+//			String rel = localFolderAbs.relativize(path).toString().replace('\\', '/');
+//			String rfile = remoteFolderEndSlash + rel;
+//			return new FileToCopyInfo(path, rfile, Files.isDirectory(path));
+//		}).map(fi -> {
+//			if (!fi.isDirectory()) {
+//				try {
+//					if (copy(session, fi.getLfileAbs(), fi.getRfileAbs())) {
+//						fi.setDone(true);
+//					} else {
+//						fi.setDone(false);
+//					}
+//				} catch (RunRemoteCommandException | JSchException | IOException e) {
+//					e.printStackTrace();
+//				}
+//			}
+//			return fi;
+//		}).collect(Collectors.toList());
+//	}
+
 	/**
 	 * The localFolder and remoteFolder are the same base directory.For example, /local/a -> /remote/b
 	 * @param localFolder
@@ -405,7 +492,7 @@ public class SSHcommonUtil {
 	 * @return
 	 * @throws IOException 
 	 */
-	public static List<FileToCopyInfo> copyFolder(Session session, Path localFolder, String remoteFolder) throws IOException {
+	public static List<FileToCopyInfo> copyFolder(String os, Session session, Path localFolder, String remoteFolder) throws IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFolder);
 		Path localFolderAbs = localFolder.toAbsolutePath();
 		String remoteFolderEndSlash = remoteFolder.endsWith("/") ? remoteFolder : remoteFolder + "/";
@@ -416,7 +503,7 @@ public class SSHcommonUtil {
 		}).map(fi -> {
 			if (!fi.isDirectory()) {
 				try {
-					if (copy(session, fi.getLfileAbs(), fi.getRfileAbs())) {
+					if (copy(os, session, fi.getLfileAbs(), fi.getRfileAbs())) {
 						fi.setDone(true);
 					} else {
 						fi.setDone(false);
@@ -428,7 +515,7 @@ public class SSHcommonUtil {
 			return fi;
 		}).collect(Collectors.toList());
 	}
-
+	
 	// @formatter:on
 
 	/**
@@ -448,7 +535,7 @@ public class SSHcommonUtil {
 		boolean isDirectory = isDirectory(session, remoteFile);
 		List<String> fns;
 		if (isDirectory) {
-			String remoteFilep = RemotePathUtil.getParentWithEndingSlash(remoteFile);
+			String remoteFilep = PathUtil.getParentWithEndingSeparator(remoteFile);
 			fns = runRemoteCommand(session, String.format("ls -p %s | grep /$", remoteFilep))
 					.getAllTrimedNotEmptyLines().stream().map(line -> line.substring(0, line.length() - 1))
 					.map(line -> {
@@ -545,12 +632,21 @@ public class SSHcommonUtil {
 	 * @throws IOException 
 	 * @throws JSchException 
 	 */
-	public static void revertFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+//	public static void revertFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+//		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
+//		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
+//		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
+//			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
+//			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
+//		}
+//	}
+	
+	public static void revertFile(String os, Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		RemoteFileNotAbsoluteException.throwIfNeed(remoteFile);
 		BackupedFiles bfs = getRemoteBackupedFiles(session, remoteFile);
 		if (bfs.isOriginExists() && bfs.getNextInt() > 1) {
 			runRemoteCommand(session, String.format("cp %s %s", remoteFile + "." + (bfs.getNextInt() - 1), remoteFile));
-			deleteRemoteFile(session, remoteFile + "." + (bfs.getNextInt() - 1));
+			deleteRemoteFile(os, session, remoteFile + "." + (bfs.getNextInt() - 1));
 		}
 	}
 
@@ -686,16 +782,16 @@ public class SSHcommonUtil {
 		return runRemoteCommand(session, null, command);
 	}
 
-	public static void deleteRemoteFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
-		runRemoteCommand(session, String.format("rm %s", remoteFile));
-	}
+//	public static void deleteRemoteFile(Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
+//		runRemoteCommand(session, String.format("rm %s", remoteFile));
+//	}
 	
 	public static void deleteRemoteFile(String os, Session session, String remoteFile) throws RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(os);
 		if (otw.isWin()) {
 			runRemoteCommand(session, String.format("Remove-Item -Path %s -Force", remoteFile));
 		} else {
-			deleteRemoteFile(session, remoteFile);
+			runRemoteCommand(session, String.format("rm %s", remoteFile));
 		}
 	}
 
@@ -742,21 +838,19 @@ public class SSHcommonUtil {
 		return v == 0;
 	}
 
-	public static boolean fileExists(Session session, String rfile) throws RunRemoteCommandException, JSchException, IOException {
-		List<String> lines = runRemoteCommand(session, String.format("ls %s", rfile)).getAllTrimedNotEmptyLines();
-		return !lines.stream().anyMatch(line -> line.indexOf("No such file or directory") != -1);
-	}
+//	public static boolean fileExists(Session session, String rfile) throws RunRemoteCommandException, JSchException, IOException {
+//		List<String> lines = runRemoteCommand(session, String.format("ls %s", rfile)).getAllTrimedNotEmptyLines();
+//		return !lines.stream().anyMatch(line -> line.indexOf("No such file or directory") != -1);
+//	}
 
 	public static boolean fileExists(String os, Session session, String rfile) throws RunRemoteCommandException, JSchException, IOException {
 		OsTypeWrapper otw = OsTypeWrapper.of(os);
 		if (otw.isWin()) {
 			RemoteCommandResult rcr = runRemoteCommand(session, String.format("Get-Item %s", rfile));
 			return rcr.getExitValue() == 0;
-			// List<String> lines = rcr.getAllTrimedNotEmptyLines();
-			// return !lines.stream().anyMatch(line -> line.indexOf("ObjectNotFound:") !=
-			// -1);
 		} else {
-			return fileExists(session, rfile);
+			List<String> lines = runRemoteCommand(session, String.format("ls %s", rfile)).getAllTrimedNotEmptyLines();
+			return !lines.stream().anyMatch(line -> line.indexOf("No such file or directory") != -1);
 		}
 	}
 

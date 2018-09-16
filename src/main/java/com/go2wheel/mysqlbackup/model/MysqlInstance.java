@@ -9,7 +9,6 @@ import java.util.Set;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
@@ -133,7 +132,7 @@ public class MysqlInstance extends BaseModel {
 		private final String password;
 		private String mycnfFile;
 		private String flushLogCron;
-		private String dumpFileName = MysqlUtil.DUMP_FILE_NAME;
+		private String dumpFileName;
 		
 		private Set<String> mysqlSettings = new HashSet<>();
 		
@@ -211,12 +210,7 @@ public class MysqlInstance extends BaseModel {
 	}
 
 	public String getDumpFileName() {
-		if (StringUtil.hasAnyNonBlankWord(dumpFileName)) {
-			return dumpFileName;
-		} else {
-			return MysqlUtil.DUMP_FILE_NAME;
-		}
-		
+		return dumpFileName;
 	}
 
 	public void setDumpFileName(String dumpFileName) {

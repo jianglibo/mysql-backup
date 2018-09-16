@@ -5,11 +5,11 @@ import org.springframework.core.ResolvableTypeProvider;
 
 import com.go2wheel.mysqlbackup.model.BaseModel;
 
-public class ModelCreatedEvent<T extends BaseModel> implements ResolvableTypeProvider {
+public class ModelAfterCreatedEvent<T extends BaseModel> implements ResolvableTypeProvider {
 	
 	private T model;
 	
-    public ModelCreatedEvent(T model) {
+    public ModelAfterCreatedEvent(T model) {
         this.model = model;
     }
 

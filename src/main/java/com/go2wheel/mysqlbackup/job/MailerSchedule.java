@@ -14,7 +14,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 
@@ -41,7 +41,7 @@ public class MailerSchedule extends SchedulerBase {
 	}
 
 	@EventListener
-	public void whenSubscribeCreated(ModelCreatedEvent<Subscribe> subscribeCreatedEvent) throws SchedulerException, ParseException {
+	public void whenSubscribeCreated(ModelAfterCreatedEvent<Subscribe> subscribeCreatedEvent) throws SchedulerException, ParseException {
 		Subscribe subscribe = subscribeCreatedEvent.getModel(); 
 		createTrigger(subscribe
 				,subscribe.getCronExpression()

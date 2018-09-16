@@ -38,7 +38,7 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect<List<String>> 
 
 	@Override
 	protected List<String> afterLogin() throws IOException {
-		String s = expectBashPromptAndReturnRaw(1);
+		String s = expectBashPromptAndReturnRaw(1).getBefore();
 		if (s.indexOf("Access denied") != -1) {
 			throw new MysqlWrongPasswordException(server.getHost());
 		}
@@ -52,9 +52,9 @@ public class MysqlFlushLogExpect extends MysqlPasswordReadyExpect<List<String>> 
 	private List<String> catIndex() throws IOException {
 		String bidx = server.getMysqlInstance().getLogBinSetting().getLogBinIndex();
 		expect.sendLine(String.format("cat %s", bidx));
-		String s = expectBashPromptAndReturnRaw(1);
+		String s = expectBashPromptAndReturnRaw(1).getBefore();
 		if (s.indexOf("Last login:") != -1) {
-			s = expectBashPromptAndReturnRaw(1);
+			s = expectBashPromptAndReturnRaw(1).getBefore();
 		}
 		return StringUtil.splitLines(s).stream().map(l -> l.trim()).filter(l -> l.startsWith("./")).collect(Collectors.toList());
 	}

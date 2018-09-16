@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class MysqlVariables {
@@ -69,7 +69,7 @@ public class MysqlVariables {
 	
 	public String getLogBinDirWithEndingSlash() {
 		String s = getLogBinBasename();
-		return RemotePathUtil.getParentWithEndingSlash(s);
+		return PathUtil.getParentWithEndingSeparator(s);
 	}
 	
 	

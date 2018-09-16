@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.WebDataBinder;
@@ -13,13 +14,18 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.go2wheel.mysqlbackup.event.ModelPreCreatedEvent;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
 import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
+import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.StringUtil;
 
 
 @Controller
@@ -50,13 +56,17 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		entityFromDb.setPort(entityFromForm.getPort());
 		entityFromDb.setUsername(entityFromForm.getUsername());
 		entityFromDb.setPassword(entityFromForm.getPassword());
-		entityFromDb.setDumpFileName(entityFromDb.getDumpFileName());
+		entityFromDb.setDumpFileName(entityFromForm.getDumpFileName());
 		entityFromDb.setClientBin(entityFromForm.getClientBin());
 		entityFromDb.setFlushLogCron(entityFromForm.getFlushLogCron());
 		entityFromDb.setRestartCmd(entityFromForm.getRestartCmd());
 		return true;
 	}
 	
+	@Override
+	protected String afterEdit(HttpServletRequest request, RedirectAttributes ras) {
+		return redirectEditUrl();
+	}
 	
 	@GetMapping("/{mysqlInstance}/viewdumps")
 	String viewDumps(@PathVariable MysqlInstance mysqlInstance, Model model, HttpServletRequest httpRequest) {
@@ -103,7 +113,22 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		model.addAttribute(ID_ENTITY_MAP, servers.stream().collect(Collectors.toMap(Server::getId, s -> s)));
 	}
 	
-	protected int getMenuOrder() {
-		return 600;
+	@Override
+	public MainMenuItemImpl getMenuItem() {
+		return null;
+	}
+	
+	
+	@EventListener
+	public void whenMysqlInstanceCreated(ModelPreCreatedEvent<MysqlInstance> mysqlInstanceCreatedEvent) {
+		MysqlInstance mi = mysqlInstanceCreatedEvent.getModel();
+		if (!StringUtil.hasAnyNonBlankWord(mi.getDumpFileName())) {
+			Server server = serverDbService.findById(mi.getServerId());
+			mi.setDumpFileName(MysqlUtil.getDefaultDumpFileName(server.getOs()));
+		}
+		
+		if (!StringUtil.hasAnyNonBlankWord(mi.getClientBin())) {
+			mi.setClientBin("mysql");
+		}
 	}
 }

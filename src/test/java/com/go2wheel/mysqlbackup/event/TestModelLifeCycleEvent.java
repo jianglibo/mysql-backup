@@ -68,12 +68,12 @@ public class TestModelLifeCycleEvent  extends SpringBaseFort {
 	
 	public static class Tenv {
 		@EventListener
-		public void lis(ModelCreatedEvent<ReusableCron> mce) {
+		public void lis(ModelAfterCreatedEvent<ReusableCron> mce) {
 			countReu++;
 		}
 		
 		@EventListener
-		public void lisu(ModelCreatedEvent<?> mce) {
+		public void lisu(ModelAfterCreatedEvent<?> mce) {
 			countTotal++;
 		}
 		

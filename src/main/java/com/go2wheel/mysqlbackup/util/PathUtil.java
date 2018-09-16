@@ -21,9 +21,12 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.go2wheel.mysqlbackup.model.Server;
 
 public class PathUtil {
 
@@ -117,25 +120,24 @@ public class PathUtil {
 	 *            abc.0000
 	 * @return
 	 */
-	public static String increamentFileName(String fn) {
-		Pattern ptn = Pattern.compile("^(.*\\.)(\\d*)$");
-		Matcher m = ptn.matcher(fn);
-		if (m.matches()) {
-			String s1 = m.group(1);
-			String s2 = m.group(2);
-			if (s2.length() == 0) {
-				return s1 + ".0";
-			} else {
-				String i2 = (Integer.valueOf(s2) + 1) + "";
-				int zero = s2.length() - i2.length();
-				String dt = getZeros(zero) + i2; 
-				return s1 + dt;
-			}
-		} else {
-			return fn + ".0";
-		}
-
-	}
+//	public static String increamentFileName(String fn) {
+//		Pattern ptn = Pattern.compile("^(.*\\.)(\\d*)$");
+//		Matcher m = ptn.matcher(fn);
+//		if (m.matches()) {
+//			String s1 = m.group(1);
+//			String s2 = m.group(2);
+//			if (s2.length() == 0) {
+//				return s1 + ".0";
+//			} else {
+//				String i2 = (Integer.valueOf(s2) + 1) + "";
+//				int zero = s2.length() - i2.length();
+//				String dt = getZeros(zero) + i2; 
+//				return s1 + dt;
+//			}
+//		} else {
+//			return fn + ".0";
+//		}
+//	}
 
 	/**
 	 * 
@@ -315,4 +317,82 @@ public class PathUtil {
 			return Optional.empty();
 		}
 	}
+	
+	public static String replaceFileName(String fullFileName, String newFileName) {
+		char sep = fullFileName.indexOf('/') == -1 ? '\\' : '/';
+		int lastIdx = fullFileName.lastIndexOf(sep);
+		return fullFileName.substring(0, lastIdx + 1) + newFileName;
+	}
+	
+//	public static String getParentEndWithPathSeparator(String s) {
+//		char pathSeparator = s.indexOf('\\') == -1 ? '/' : '\\';
+//		if (s != null && !s.endsWith(pathSeparator + "")) {
+//			s = s + pathSeparator;
+//		}
+//		return s;
+//	}
+//	
+//	public static String getParentEndNoPathSeparator(String s) {
+//		char pathSeparator = s.indexOf('\\') == -1 ? '/' : '\\';
+//		if (s != null && s.endsWith(pathSeparator + "")) {
+//			s = s.substring(0, s.length() - 1);
+//		}
+//		return s;
+//	}
+	
+	
+	public static String getParentWithEndingSeparator(String path) {
+		char pathSeparator = path.indexOf('\\') == -1 ? '/' : '\\';
+		return path.substring(0, path.lastIndexOf(pathSeparator) + 1);
+	}
+	
+	public static String getParentWithoutEndingSeperator(String path) {
+		char pathSeparator = path.indexOf('\\') == -1 ? '/' : '\\';
+		return path.substring(0, path.lastIndexOf(pathSeparator));
+	}
+	
+	public static String getRidOfLastSlash(String remotePath) {
+		if (remotePath.endsWith("/")) {
+			return remotePath.replaceAll("/+$", "");
+					
+		} else {
+			return remotePath;
+		}
+	}
+
+	public static String join(String first, String...others) {
+		if (others.length == 0) return first;
+		
+		if (first.endsWith("/")) {
+			first = first.substring(0, first.length() - 1);
+		}
+		String os = Stream.of(others).map(s -> {
+			if (s.startsWith("/")) {
+				return s;
+			} else {
+				return "/" + s;
+			}
+		}).collect(Collectors.joining(""));
+		return first + os;
+	}
+
+	
+	public static String getLogBinFile(Server server, String onlyFilename) {
+		String remoteDir = server.getMysqlInstance().getLogBinSetting().getLogBinDirWithEndingSlash();
+		return remoteDir + onlyFilename;
+	}
+
+	public static String getFileName(String filename) {
+		filename = filename.replace('\\', '/');
+		if (filename.endsWith("/")) {
+			filename = filename.substring(0, filename.length() - 1);
+		}
+		int i = filename.lastIndexOf('/');
+		if (i == -1) {
+			return filename;
+		} else {
+			return filename.substring(i + 1, filename.length());
+		}
+	}
+
 }

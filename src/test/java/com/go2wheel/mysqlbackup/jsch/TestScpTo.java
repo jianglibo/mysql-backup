@@ -47,7 +47,7 @@ public class TestScpTo extends SpringBaseFort {
 		
 		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfile)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
-		SSHcommonUtil.deleteRemoteFile(session, rfile);
+		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rfile);
 	}
 	
 	@Test
@@ -63,7 +63,7 @@ public class TestScpTo extends SpringBaseFort {
 		
 		List<String> er = SSHcommonUtil.runRemoteCommand(session, String.format("ls -lh %s", rfullpath)).getAllTrimedNotEmptyLines();
 		assertThat(er.size(), equalTo(1));
-		SSHcommonUtil.deleteRemoteFile(session, rfullpath);
+		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rfullpath);
 	}
 	
 	@Test
@@ -74,7 +74,7 @@ public class TestScpTo extends SpringBaseFort {
 		assertThat(er.size(), equalTo(1));
 		
 		assertThat(new String(ScpUtil.from(session, rfile).toByteArray()), equalTo("abc"));
-		SSHcommonUtil.deleteRemoteFile(session, rfile);
+		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rfile);
 	}
 	
 	@Test

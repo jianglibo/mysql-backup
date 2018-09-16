@@ -68,6 +68,7 @@ value = { "spring.shell.interactive.enabled=false",
 @RunWith(SpringRunner.class)
 public class SpringBaseFort {
 	public static final String HOST_DEFAULT_GET = "192.168.33.110";
+	public static final String HOST_LOCAL_HOST = "localhost";
 	public static final String HOST_DEFAULT_SET = "192.168.33.111";
 	public static final String A_VALID_CRON_EXPRESSION = "0 0 0 1/1 * ?";
 	

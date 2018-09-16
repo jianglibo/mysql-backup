@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
-public class LinuxLsl {
+public class LinuxLsl implements RemoteFileDescription {
 
 	public static final Pattern LINUX_LSL_PATTERN = Pattern.compile("^([^\\s]+)\\s+(\\d+)\\s+([^ ]+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(\\d+)\\s+([^ ]+)\\s+(.*)$");
 	
@@ -115,4 +115,5 @@ public class LinuxLsl {
 	public void setFilename(String filename) {
 		this.filename = filename;
 	}
+
 }

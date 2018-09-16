@@ -13,10 +13,12 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.jcraft.jsch.Session;
 
-public class MysqlDumpExpect extends MysqlPasswordReadyExpect<List<String>> {
+import net.sf.expectit.Result;
+
+public class MysqlDumpExpectWin extends MysqlPasswordReadyExpect<List<String>> {
 
 	
-	public MysqlDumpExpect(Session session, Server server) {
+	public MysqlDumpExpectWin(Session session, Server server) {
 		super(session, server);
 	}
 
@@ -24,8 +26,12 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect<List<String>> {
 	protected List<String> afterLogin() throws IOException {
 		expectBashPromptAndReturnRaw(1, 1, TimeUnit.DAYS);
 		MysqlInstance mi = server.getMysqlInstance();
-		expect.sendLine("ls -l " + mi.getDumpFileName());
-		String s = expectBashPromptAndReturnRaw(1).getBefore();
+		
+		String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 | Format-List; '---end---'", mi.getDumpFileName());
+		expect.sendLine(cmd);
+		Result rs = expectBashPromptAndReturnRaw(1);
+		String s = rs.getBefore();
+		
 		List<String> r = new ArrayList<>();
 		if (s.indexOf("cannot access") == -1) {
 			Optional<String> found = StringUtil.splitLines(s).stream().filter(line -> LinuxLsl.matchAndReturnLinuxLsl(line).isPresent()).findFirst();
@@ -49,10 +55,9 @@ public class MysqlDumpExpect extends MysqlPasswordReadyExpect<List<String>> {
 	
 	private String getCmd() {
 		MysqlInstance mi = server.getMysqlInstance();
-		String mysqldump = PathUtil.replaceFileName(mi.getClientBin(), "mysqldump");
-		
-		String cmd = "%s --max_allowed_packet=512M -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s";
-		cmd = String.format(cmd, mysqldump, mi.getUsername(), mi.getDumpFileName());
+		String clientDumpBin = StringUtil.hasAnyNonBlankWord(mi.getClientBin()) ? PathUtil.replaceFileName(mi.getClientBin(), "mysqldump") : "mysqldump";
+		String cmd = "%s --max_allowed_packet=512M -u%s -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s; '---end---'";
+		cmd = String.format(cmd, clientDumpBin, mi.getUsername(), mi.getDumpFileName());
 		return cmd;
 	}
 

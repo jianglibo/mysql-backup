@@ -1,7 +1,10 @@
 package com.go2wheel.mysqlbackup.job;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -20,10 +23,12 @@ import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.model.BorgDownload;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
@@ -54,6 +59,9 @@ public class RobocopyInvokeJob implements Job {
 	
 	@Autowired
 	private JobLogDbService jobLogDbService;
+	
+	@Autowired
+	private BorgDownloadDbService borgDownloadDbService;
 
 	@Override
 	@TrapException(RobocopyInvokeJob.class)
@@ -84,10 +92,20 @@ public class RobocopyInvokeJob implements Job {
 	}
 
 	private void doWrk(JobExecutionContext context, Server server, RobocopyDescription robocopyDescription) {
+		long start = System.currentTimeMillis();
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
-			robocopyService.increamentalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+			Path filePath = robocopyService.increamentalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+			if (filePath != null) {
+				long ts = System.currentTimeMillis() - start;
+				BorgDownload bd = new BorgDownload();
+				bd.setServerId(server.getId());
+				bd.setDownloadBytes(Files.size(filePath));
+				bd.setCreatedAt(new Date());
+				bd.setTimeCost(ts);
+				borgDownloadDbService.save(bd);
+			}
 		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
 			JobLog jl = new JobLog(RobocopyInvokeJob.class, context, e.getMessage());
 			jobLogDbService.save(jl);

@@ -32,8 +32,8 @@ import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.expect.MysqlDumpExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlFlushLogExpect;
 import com.go2wheel.mysqlbackup.expect.MysqlPasswordReadyExpect;
@@ -49,8 +49,8 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
+import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -65,6 +65,8 @@ import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
+import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
+import com.go2wheel.mysqlbackup.value.RemoteFileDescriptionImpl;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -104,9 +106,6 @@ public class MysqlService {
 		this.mysqlUtil = mysqlUtil;
 	}
 
-	private Path getDumpFile(Path dumpDir) {
-		return dumpDir.resolve(Paths.get(MysqlUtil.DUMP_FILE_NAME).getFileName());
-	}
 
 	public boolean isMysqlNotReadyForBackup(Server server) {
 		 return server == null || server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null || server.getMysqlInstance().getLogBinSetting().isEmpty();
@@ -124,7 +123,7 @@ public class MysqlService {
 			return frSession.getResult();
 		}).thenApplyAsync(session -> {
 			try {
-				FacadeResult<LinuxLsl> fr = this.mysqlDump(session, server);
+				FacadeResult<RemoteFileDescription> fr = this.mysqlDump(session, server);
 				return new AsyncTaskValue(id, fr).withDescription(taskDescription);
 			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedOutputException | MysqlAccessDeniedException | UnExpectedInputException e1) {
 				throw new ExceptionWrapper(e1);
@@ -156,36 +155,77 @@ public class MysqlService {
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<LinuxLsl> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException {
+	public FacadeResult<RemoteFileDescription> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException {
+		OsTypeWrapper owr = OsTypeWrapper.of(server.getOs());
 		
-		try {
-			Path dumpDir = settingsInDb.getNextDumpDir(server);
-			//localDump file name is fixed. But remote dump file name varies.
-			Path localDumpFile = getDumpFile(dumpDir);
-			
-			// remote dump file varies.
-			String rdump = server.getMysqlInstance().getDumpFileName();
-			String rdumpp = RemotePathUtil.getParentWithoutEndingSlash(rdump);
-			SSHcommonUtil.mkdirsp(session, rdumpp);
-			
-			List<String> r = new MysqlDumpExpect(session, server).start();
-			if (r.size() == 2) {
-				LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
-				llsl.setMd5(r.get(1));
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, llsl.getFilename(), localDumpFile); // cause new dump to create.
-				backupMysqlSettingsTolocalDisk(session, server);
-				return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
-			} else {
-				return FacadeResult.unexpectedResult(r.get(0));
+		if (owr.isWin()) {
+			try {
+				
+//				e:\wamp64\bin\mysql\mysql5.7.21\bin\mysqldump --max_allowed_packet=512M -uroot -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > e:\tmp\mysqldump.sql; '---end---'
+				
+				Path dumpDir = settingsInDb.getNextDumpDir(server);
+				//localDump file name is fixed. But remote dump file name varies.
+				
+				Path localDumpFile = dumpDir.resolve(Paths.get(MysqlUtil.FIXED_DUMP_FILE_NAME).getFileName());
+				
+				// remote dump file varies.
+				String rdump = server.getMysqlInstance().getDumpFileName();
+				String rdumpp = PathUtil.getParentWithoutEndingSeperator(rdump);
+				RemoteCommandResult rcr = SSHcommonUtil.mkdirsp(server.getOs(), session, rdumpp);
+				
+				if (rcr.isExitValueNotEqZero()) {
+					if (rcr.getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("ObjectNotFound"))) {
+						throw new UnExpectedInputException("1000", "mysql.dumpfilename", rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+					}
+				}
+				
+				MysqlInstance mi = server.getMysqlInstance();
+				String clientDumpBin = StringUtil.hasAnyNonBlankWord(mi.getClientBin()) ? PathUtil.replaceFileName(mi.getClientBin(), "mysqldump") : "mysqldump";
+				String cmd = "%s --max_allowed_packet=512M -u%s -p%s --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > %s;(Get-Item -Path %s | Select-Object -Property FullName,Length), (Get-FileHash -Path %s -Algorithm MD5) | Format-List";
+				cmd = String.format(cmd, clientDumpBin, mi.getUsername(),mi.getPassword(), mi.getDumpFileName(), mi.getDumpFileName(), mi.getDumpFileName());
+				rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+				Map<String, String> map = PSUtil.parseFormatList(rcr.getStdOutList()).get(0);
+				
+//				{Path=E:\tmp\mysqldump.sql, Hash=448168A11F434570FBFFF0A3B660AB2E, Algorithm=MD5}
+//				{Path=E:\tmp\mysqldump.sql, Length=1572718, FullName=E:\tmp\mysqldump.sql, Hash=014FC8B59E500A4D97C35684309D6D4F, Algorithm=MD5}
+				
+				SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, map.get("Path"), map.get("Hash"), localDumpFile); // cause new dump to create.
+				return FacadeResult.doneExpectedResult(RemoteFileDescriptionImpl.of(map.get("Path"), map.get(("Length"))), CommonActionResult.DONE);
+			} catch (RunRemoteCommandException | ScpException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
+			}			
+		} else {
+			try {
+				Path dumpDir = settingsInDb.getNextDumpDir(server);
+				//localDump file name is fixed. But remote dump file name varies.
+				
+				Path localDumpFile = dumpDir.resolve(Paths.get(MysqlUtil.FIXED_DUMP_FILE_NAME).getFileName());
+				
+				// remote dump file varies.
+				String rdump = server.getMysqlInstance().getDumpFileName();
+				String rdumpp = PathUtil.getParentWithoutEndingSeperator(rdump);
+				SSHcommonUtil.mkdirsp(server.getOs(), session, rdumpp);
+				
+				List<String> r = new MysqlDumpExpect(session, server).start();
+				if (r.size() == 2) {
+					LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(r.get(0)).get();
+					llsl.setMd5(r.get(1));
+					SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, llsl.getFilename(),llsl.getMd5(), localDumpFile); // cause new dump to create.
+					backupMysqlSettingsTolocalDisk(session, server);
+					return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
+				} else {
+					return FacadeResult.unexpectedResult(r.get(0));
+				}
+			} catch (RunRemoteCommandException | ScpException | AppNotStartedException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
 			}
-		} catch (RunRemoteCommandException | ScpException | AppNotStartedException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
 		}
-		
 	}
+
 	
-	public FacadeResult<LinuxLsl> saveDumpResult(Server server, FacadeResult<LinuxLsl> fr) {
+	public FacadeResult<RemoteFileDescription> saveDumpResult(Server server, FacadeResult<RemoteFileDescription> fr) {
 		MysqlDump md = new MysqlDump();
 		md.setCreatedAt(new Date());
 		long tc = fr.getEndTime() - fr.getStartTime();
@@ -206,16 +246,27 @@ public class MysqlService {
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
 	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
-		if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
-			throw new UnExpectedInputException(null, "mysql.unready", "");
-		}
-		MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, server);
-		List<String> r = mfle.start();
-		
-		if (r.size() == 2) {
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			MysqlInstance mi = server.getMysqlInstance();
+			
+			String mysqladmin = PathUtil.replaceFileName(mi.getClientBin(), "mysqladmin");
+			
+			String cmd = "%s -u%s -p%s flush-logs";
+			cmd = String.format(cmd, mysqladmin, mi.getUsername(), mi.getPassword());
+			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
 			return downloadBinLog(session, server);
 		} else {
-			return FacadeResult.unexpectedResult(r.get(0));
+			if (server.getMysqlInstance() == null || !server.getMysqlInstance().isReadyForBackup()) {
+				throw new UnExpectedInputException(null, "mysql.unready", "");
+			}
+			MysqlFlushLogExpect mfle = new MysqlFlushLogExpect(session, server);
+			List<String> r = mfle.start();
+			
+			if (r.size() == 2) {
+				return downloadBinLog(session, server);
+			} else {
+				return FacadeResult.unexpectedResult(r.get(0));
+			}
 		}
 	}
 	
@@ -230,41 +281,89 @@ public class MysqlService {
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
-		try {
-			MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
-			String remoteIndexFile = lbs.getLogBinIndex();
-			String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
+		if (OsTypeWrapper.of(server.getOs()).isWin()) {
+			try {
+				MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
+				String remoteIndexFile = lbs.getLogBinIndex();
+				String basenameOnlyName = PathUtil.getFileName(lbs.getLogBinBasenameOnlyName());
 
-			String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
+				String binLogIndexOnlyName = PathUtil.getFileName(lbs.getLogBinIndexNameOnly());
 
-			Path localDir = settingsInDb.getCurrentDumpDir(server);
-			Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
-			
-			localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFile(session, remoteIndexFile, localIndexFile, 7);
+				Path localDir = settingsInDb.getCurrentDumpDir(server);
+				Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
+				
+				localIndexFile = PathUtil.getNextAvailableByBaseName(localIndexFile, 7);
+				
+				String command = String.format("Get-Content -Path %s", remoteIndexFile);
+				
+				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
+				
+				Files.write(localIndexFile, rcr.getAllTrimedNotEmptyLines());
+				
 
-			List<String> localBinLogFiles = Files.list(localDir)
-					.map(p -> p.getFileName().toString())
-					.collect(Collectors.toList());
-			
-			// index file contains all logbin file names.
-			
-			List<String> unLocalExists = Files.lines(localIndexFile)
-					.filter(l -> l.indexOf(basenameOnlyName) != -1)
-					.map(l -> l.trim())
-					.map(l -> Paths.get(l).getFileName().toString())
-					.filter(l -> !localBinLogFiles.contains(l))
-					.collect(Collectors.toList());
-			
-			for(String fn : unLocalExists) {
-				String rfile = RemotePathUtil.getLogBinFile(server, fn);
-				Path lfile =  localDir.resolve(fn);
-				SSHcommonUtil.downloadWithTmpDownloadingFile(session, rfile, lfile);
+				List<String> localBinLogFiles = Files.list(localDir)
+						.map(p -> p.getFileName().toString())
+						.collect(Collectors.toList());
+				
+				// index file contains all logbin file names.
+				List<String> unLocalExists = Files.lines(localIndexFile)
+						.filter(l -> l.indexOf(basenameOnlyName) != -1)
+						.map(l -> l.trim())
+						.map(l -> Paths.get(l).getFileName().toString())
+						.filter(l -> !localBinLogFiles.contains(l))
+						.collect(Collectors.toList());
+				
+				for(String fn : unLocalExists) {
+					String rfile = PathUtil.getLogBinFile(server, fn);
+					Path lfile =  localDir.resolve(fn);
+					SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rfile,null, lfile);
 
+				}
+				return FacadeResult.doneExpectedResult(localIndexFile, CommonActionResult.DONE);
+			} catch (RunRemoteCommandException | ScpException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
 			}
-			return FacadeResult.doneExpectedResult(localIndexFile, CommonActionResult.DONE);
-		} catch (RunRemoteCommandException | ScpException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e);
+			
+		} else {
+			try {
+				MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
+				String remoteIndexFile = lbs.getLogBinIndex();
+				String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
+
+				String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
+
+				Path localDir = settingsInDb.getCurrentDumpDir(server);
+				Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
+				
+				String rmd5 = SSHcommonUtil.getRemoteFileMd5(server.getOs(), session, remoteIndexFile);
+				
+				localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFileWithNewVersion(server.getOs(), session, remoteIndexFile, rmd5, localIndexFile, 7);
+
+				List<String> localBinLogFiles = Files.list(localDir)
+						.map(p -> p.getFileName().toString())
+						.collect(Collectors.toList());
+				
+				// index file contains all logbin file names.
+				
+				List<String> unLocalExists = Files.lines(localIndexFile)
+						.filter(l -> l.indexOf(basenameOnlyName) != -1)
+						.map(l -> l.trim())
+						.map(l -> Paths.get(l).getFileName().toString())
+						.filter(l -> !localBinLogFiles.contains(l))
+						.collect(Collectors.toList());
+				
+				for(String fn : unLocalExists) {
+					String rfile = PathUtil.getLogBinFile(server, fn);
+					Path lfile =  localDir.resolve(fn);
+					SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rfile,null, lfile);
+
+				}
+				return FacadeResult.doneExpectedResult(localIndexFile, CommonActionResult.DONE);
+			} catch (RunRemoteCommandException | ScpException e) {
+				ExceptionUtil.logErrorException(logger, e);
+				return FacadeResult.unexpectedResult(e);
+			}			
 		}
 	}
 	
@@ -490,9 +589,9 @@ public class MysqlService {
 		String datadir = mf.getMysqlVariables().getDataDirEndNoPathSeparator();
 		
 		// if datadir exists in target server?
-		boolean b = SSHcommonUtil.fileExists(targetSession, datadir);
+		boolean b = SSHcommonUtil.fileExists(targetServer.getOs(), targetSession, datadir);
 		if (!b) {
-			SSHcommonUtil.mkdirsp(targetSession, datadir);
+			SSHcommonUtil.mkdirsp(targetServer.getOs(), targetSession, datadir);
 		} else {
 			SSHcommonUtil.backupFileByMove(targetSession, datadir);
 		}
@@ -538,8 +637,8 @@ public class MysqlService {
 	private Boolean restoreInternal(PlayBack playback, Server sourceServer, Server targetServer, Session targetSession, String dumpFolder) throws IOException, JSchException, RunRemoteCommandException, UnExpectedOutputException, AppNotStartedException, ScpException, UnExpectedInputException, MysqlAccessDeniedException {
 			// remoteFolder contains all logbin files and name fixed dump file.
 			String remoteFolder = uploadDumpFolder(sourceServer, targetServer, targetSession, dumpFolder);
-//			String dumpfn = RemotePathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
-//			dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
+//			String dumpfn = PathUtil.getFileName(sourceServer.getMysqlInstance().getDumpFileName());
+//			dumpfn = PathUtil.join(remoteFolder, dumpfn);
 			boolean importResult = importDumped(targetSession, targetServer, sourceServer.getMysqlInstance(), targetServer.getMysqlInstance(), remoteFolder);
 			if (!importResult) {
 				return false;
@@ -547,9 +646,9 @@ public class MysqlService {
 			
 			List<Path> binlogs = getLogBinFiles(sourceServer, dumpFolder);
 			
-			String remoteTmpSqlFile = RemotePathUtil.join(remoteFolder, "tmp.sql");
+			String remoteTmpSqlFile = PathUtil.join(remoteFolder, "tmp.sql");
 //			mysqlbinlog binlog.000001 binlog.000002 > remoteTmpSqlFile
-			String binlogJoined = binlogs.stream().map(bl -> RemotePathUtil.join(remoteFolder, bl.getFileName().toString())).collect(Collectors.joining(" "));
+			String binlogJoined = binlogs.stream().map(bl -> PathUtil.join(remoteFolder, bl.getFileName().toString())).collect(Collectors.joining(" "));
 			String rcmd = String.format("mysqlbinlog %s > %s", binlogJoined, remoteTmpSqlFile);
 			
 			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(targetSession, rcmd);
@@ -578,9 +677,9 @@ public class MysqlService {
 		Collections.sort(ss, StorageState.AVAILABLE_DESC);
 		
 		String remoteMaxRoot = ss.get(0).getRoot();
-		String remoteDumpFolder = RemotePathUtil.join(remoteMaxRoot, dumpFolder.getFileName().toString());
+		String remoteDumpFolder = PathUtil.join(remoteMaxRoot, dumpFolder.getFileName().toString());
 		SSHcommonUtil.deleteRemoteFolder(targetSession, remoteDumpFolder);
-		SSHcommonUtil.copyFolder(targetSession, dumpFolder, remoteDumpFolder);
+		SSHcommonUtil.copyFolder(targetServer.getOs(), targetSession, dumpFolder, remoteDumpFolder);
 		return remoteDumpFolder;
 	}
 	
@@ -694,8 +793,8 @@ public class MysqlService {
 	public boolean importDumped(Session targetSession, Server targetServer, MysqlInstance sourceMysqlInstance,
 			MysqlInstance targetMysqlInstance, String remoteFolder) throws UnExpectedOutputException, MysqlAccessDeniedException {
 		//local dump file is fixed.
-		String dumpfn = RemotePathUtil.getFileName(MysqlUtil.DUMP_FILE_NAME);
-		dumpfn = RemotePathUtil.join(remoteFolder, dumpfn);
+		String dumpfn = PathUtil.getFileName(MysqlUtil.FIXED_DUMP_FILE_NAME);
+		dumpfn = PathUtil.join(remoteFolder, dumpfn);
 		String cmd = String.format("mysql -uroot -p < %s", dumpfn);
 
 		MysqlPasswordReadyExpect<List<String>> mpre = new MysqlPasswordReadyExpect<List<String>>(targetSession, targetServer) {

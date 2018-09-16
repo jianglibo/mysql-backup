@@ -44,6 +44,12 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
     @Rule
     public TemporaryFolder srcfolder= new TemporaryFolder();
     
+    /**
+     * RobocopyDescription has no RobocopyItem.
+     * @throws SchedulerException
+     * @throws JSchException
+     * @throws IOException
+     */
 	@Test
 	public void tEmptyItems() throws SchedulerException, JSchException, IOException {
 		createSessionLocalHostWindowsAfterClear();
@@ -103,7 +109,7 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
 		
 		List<Path> files = Files.list(settingsIndb.getCurrentRepoDir(server)).collect(Collectors.toList());
 		
-		assertThat(files.size(), equalTo(0)); //no increamental archive download.
+		assertThat(files.size(), equalTo(1)); //will auto download fullbackup.
 		
 	}
 	
@@ -147,18 +153,18 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
 		
 		List<Path> files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
 		
-		assertThat(files.size(), equalTo(2));
+		assertThat(files.size(), equalTo(3)); // include full bakcup.
 		
 		// execute again. no file changed.
 		robocopyLocalbackupJob.execute(context);
 		files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
-		assertThat(files.size(), equalTo(3));
+		assertThat(files.size(), equalTo(4));
 		
 		// add a new file.
 		createALocalFile(srcfolder.getRoot().toPath().resolve("xx/axk.txt"), "abc");
 		robocopyLocalbackupJob.execute(context);
 		files = Files.list(settingsIndb.getReposDir(server)).collect(Collectors.toList());
-		assertThat(files.size(), equalTo(4));
+		assertThat(files.size(), equalTo(5));
 
 	}
 	

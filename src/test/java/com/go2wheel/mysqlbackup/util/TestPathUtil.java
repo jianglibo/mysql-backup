@@ -53,16 +53,34 @@ public class TestPathUtil {
 		assertThat(s, equalTo("//"));
 	}
 	
+//	@Test
+//	public void testIncreamentFileName() {
+//		String f = PathUtil.increamentFileName("000");
+//		assertThat(f, equalTo("000.0"));
+//
+//		f = PathUtil.increamentFileName("x.000");
+//		assertThat(f, equalTo("x.001"));
+//		
+//		f = PathUtil.increamentFileName("x.009");
+//		assertThat(f, equalTo("x.010"));
+//	}
+	
+	
 	@Test
-	public void testIncreamentFileName() {
-		String f = PathUtil.increamentFileName("000");
-		assertThat(f, equalTo("000.0"));
-
-		f = PathUtil.increamentFileName("x.000");
-		assertThat(f, equalTo("x.001"));
+	public void testReplaceFileName() {
+		String origin = "c:\\a\\b.txt";
+		String replaced = PathUtil.replaceFileName(origin, "1.txt");
+		assertThat(replaced, equalTo("c:\\a\\1.txt"));
 		
-		f = PathUtil.increamentFileName("x.009");
-		assertThat(f, equalTo("x.010"));
+		origin = "/a/b.txt";
+		replaced = PathUtil.replaceFileName(origin, "1.txt");
+		assertThat(replaced, equalTo("/a/1.txt"));
+		
+		origin = "/a/b.txt/";
+		replaced = PathUtil.replaceFileName(origin, "1.txt");
+		assertThat(replaced, equalTo("/a/b.txt/1.txt"));
+
+
 	}
 	
 	
@@ -202,6 +220,58 @@ public class TestPathUtil {
 	private Path getRoot() {
 		return tfolder.getRoot().toPath();
 	}
+	
+	@Test
+	public void testgetRidOfLastSlash() {
+		String l = PathUtil.getRidOfLastSlash("abc///");
+		assertThat(l, equalTo("abc"));
+		
+		l = PathUtil.getRidOfLastSlash("/");
+		assertThat(l, equalTo(""));
+	}
+	
+	
+	@Test
+	public void testJoin() {
+		String s = PathUtil.join("a", "b", "c");
+		assertThat(s, equalTo("a/b/c"));
+		s = PathUtil.join("a", "b", "c/");
+		assertThat(s, equalTo("a/b/c/"));
+		
+		s = PathUtil.join("a/");
+		assertThat(s, equalTo("a/"));
+	}
 
+	@Test
+	public void testGetFilename() {
+		String s = PathUtil.getFileName("a/");
+		assertThat(s, equalTo("a"));
+		
+		s = PathUtil.getFileName("/a");
+		assertThat(s, equalTo("a"));
+		
+		s = PathUtil.getFileName("/");
+		assertThat(s, equalTo(""));
+		
+		s = PathUtil.getFileName("c:\\a\\");
+		assertThat(s, equalTo("a"));
+
+	}
+	
+	@Test
+	public void t() {
+		String s = PathUtil.getParentWithEndingSeparator("/var/lig/abc");
+		assertThat(s, equalTo("/var/lig/"));
+		
+		s = PathUtil.getParentWithEndingSeparator("/var");
+		assertThat(s, equalTo("/"));
+		
+		s = PathUtil.getParentWithEndingSeparator("var");
+		assertThat(s, equalTo(""));
+
+		s = PathUtil.getParentWithEndingSeparator("c:\\var\\uv");
+		assertThat(s, equalTo("c:\\var\\"));
+		
+	}
 
 }

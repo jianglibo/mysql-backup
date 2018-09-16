@@ -28,14 +28,14 @@ public class MysqlVariablesExpectWin extends MysqlPasswordReadyExpect<Map<String
 		String clientBin = StringUtil.hasAnyNonBlankWord(server.getMysqlInstance().getClientBin()) ? server.getMysqlInstance().getClientBin() : "mysql"; 
 		String joined = Stream.of(variables).map(it -> "'" + it + "'").collect(Collectors.joining(",", "@(", ")"));
 		
-		StringBuffer sb = new StringBuffer(clientBin)
+		StringBuffer sb = new StringBuffer("& " + clientBin)
 				.append(" -uroot -p")
 				.append(" -e 'show variables' | ")
 				.append("Foreach-Object {$_.trim()} |")
 				.append("Where-Object {$_} |")
 				.append("Where-Object {")
 				.append(joined)
-				.append(" -contains ($_ -split \"\\s+\")[0] } | ForEach-Object -Begin {'---start---'} -Process {'").append(lineDecoration).append("' + $_ + '")
+				.append(" -contains ($_ -split '\\s+')[0] } | ForEach-Object -Begin {'---start---'} -Process {'").append(lineDecoration).append("' + $_ + '")
 				.append(lineDecoration).append("'} -End {'---end---'}");
 		
 		expect.sendLine(sb.toString());
@@ -43,7 +43,10 @@ public class MysqlVariablesExpectWin extends MysqlPasswordReadyExpect<Map<String
 
 	@Override
 	protected Map<String, String> afterLogin() throws IOException, MysqlAccessDeniedException {
-		String s = expectBashPromptAndReturnRaw(1);
+		String s = expectBashPromptAndReturnRaw(1).getBefore();
+//		Result r = expect.expect(matches(Pattern.compile(".*---start---(.*)---end---.*", Pattern.DOTALL)));
+		
+//		String s = r.group(1);
 		if (s.indexOf("Access denied") != -1) {
 			throw new MysqlWrongPasswordException(server.getHost());
 		}

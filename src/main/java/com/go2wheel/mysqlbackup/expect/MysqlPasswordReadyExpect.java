@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.expect;
 
 import static net.sf.expectit.filter.Filters.removeColors;
-import static net.sf.expectit.filter.Filters.removeNonPrintable;
 import static net.sf.expectit.matcher.Matchers.contains;
 import static net.sf.expectit.matcher.Matchers.times;
 
@@ -10,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
@@ -18,11 +18,13 @@ import com.go2wheel.mysqlbackup.util.ExpectitUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.jcraft.jsch.Channel;
+import com.jcraft.jsch.ChannelShell;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 import net.sf.expectit.Expect;
 import net.sf.expectit.ExpectIOException;
+import net.sf.expectit.Result;
 
 public abstract class MysqlPasswordReadyExpect<T> {
 	
@@ -43,6 +45,8 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		Channel channel;
 		try {
 			channel = session.openChannel("shell");
+//			((ChannelShell)channel).setPtyType("xterm");
+//			((ChannelShell)channel).setPty(false);
 			channel.connect();
 		} catch (JSchException e) {
 			throw new ExceptionWrapper(e);
@@ -55,11 +59,24 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		Channel channel = getConnectedChannel();
 		// @formatter:off
 		try {
-			expect = ExpectitUtil.getExpectBuilder(channel, false).withInputFilters(removeColors()).build();
-			
+			expect = ExpectitUtil.getExpectBuilder(channel, !ApplicationState.IS_PROD_MODE).withInputFilters(removeColors()).build();
 			invokeCommandWhichCausePasswordPrompt();
-			expect.expect(contains("password: "));
-			expect.sendLine(server.getMysqlInstance().getPassword());
+			// if wrong command invoked, password prompt will never show up.
+			
+			boolean goon = true;
+			
+			try {
+				Result rs = expect.withTimeout(3, TimeUnit.SECONDS).expect(contains("FullyQualifiedErrorId"));
+				goon = false;
+			} catch (Exception e) {
+				e.printStackTrace();
+//				throw new UnExpectedOutputException(null, "mysql.expect.password", e.getInputBuffer());
+			}
+			
+			if (goon) {
+				expect.expect(contains("password: "));
+				expect.sendLine(server.getMysqlInstance().getPassword());
+			}
 			return afterLogin();
 		} catch (ExpectIOException e) {
 			throw new UnExpectedOutputException(null, "mysql.expect.password", e.getInputBuffer());
@@ -78,11 +95,11 @@ public abstract class MysqlPasswordReadyExpect<T> {
 	
 	protected abstract void invokeCommandWhichCausePasswordPrompt() throws IOException;
 	
-	protected String expectBashPromptAndReturnRaw(int num) throws IOException {
+	protected Result expectBashPromptAndReturnRaw(int num) throws IOException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
-			return expect.expect(times(num, contains(POWERSHELL_END))).getBefore();
+			return expect.expect(times(num, contains(POWERSHELL_END)));//.getBefore();
 		} else {
-			return expect.expect(times(num, contains(BASH_PROMPT))).getBefore();
+			return expect.expect(times(num, contains(BASH_PROMPT)));//.getBefore();
 		}
 		
 	}
@@ -93,7 +110,6 @@ public abstract class MysqlPasswordReadyExpect<T> {
 		} else {
 			return expect.withTimeout(duration, tu).expect(times(num, contains(BASH_PROMPT))).getBefore();
 		}
-		
 	}
 
 	protected void checkAccessDenied(List<String> s) throws MysqlAccessDeniedException {

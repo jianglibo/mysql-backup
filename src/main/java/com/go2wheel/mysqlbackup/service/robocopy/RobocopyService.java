@@ -44,7 +44,6 @@ import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -112,7 +111,7 @@ public class RobocopyService {
 		robocopyDescription.modifiItems(items);
 		
 		Path currentRepo = settingsInDb.getCurrentRepoDir(server);
-		Path comppressedArchive = currentRepo.resolve(RemotePathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()));
+		Path comppressedArchive = currentRepo.resolve(PathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()));
 		
 		if (!Files.exists(comppressedArchive)) {
 			fullBackup(session, server, robocopyDescription, items);
@@ -133,11 +132,11 @@ public class RobocopyService {
 
 		final String rFile = md5Item.get("Path");
 		
-		Path localPaht = currentRepo.resolve(RemotePathUtil.getFileName(rFile));
+		Path localPaht = currentRepo.resolve(PathUtil.getFileName(rFile));
 		
 		localPaht = PathUtil.getNextAvailable(localPaht, 7);
 		
-		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(session, rFile, md5Item.get("Hash"), localPaht);
+		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rFile, md5Item.get("Hash"), localPaht);
 		return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
 	}
 
@@ -156,8 +155,8 @@ public class RobocopyService {
 		
 
 		final String rRepo = md5Item.get("Path");
-		final Path localRepo = settingsInDb.getCurrentRepoDir(server).resolve(RemotePathUtil.getFileName(rRepo));
-		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(session, rRepo, md5Item.get("Hash"), localRepo);
+		final Path localRepo = settingsInDb.getCurrentRepoDir(server).resolve(PathUtil.getFileName(rRepo));
+		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rRepo, md5Item.get("Hash"), localRepo);
 		return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
 	}
 	
@@ -223,9 +222,9 @@ public class RobocopyService {
 		}
 		BorgDescription bd = serverSource.getBorgDescription();
 		String serverRepo = bd.getRepo();
-		SSHcommonUtil.mkdirsp(sessiontarget, serverRepo);
+		SSHcommonUtil.mkdirsp(serverTarget.getOs(), sessiontarget, serverRepo);
 		Path local = settingsInDb.getCurrentRepoDir(serverSource).getParent().resolve(localRepo);
-		SSHcommonUtil.copyFolder(sessiontarget, local, serverRepo);
+		SSHcommonUtil.copyFolder(serverTarget.getOs(), sessiontarget, local, serverRepo);
 		return null;
 	}
 	

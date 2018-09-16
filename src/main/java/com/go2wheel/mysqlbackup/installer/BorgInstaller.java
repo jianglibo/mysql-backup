@@ -45,7 +45,7 @@ public class BorgInstaller extends InstallerBase<InstallInfo> {
 			String rbb = software.getSettingsMap().get(REMOTE_BORG_BINARY_KEY);
 
 			if (ii.isInstalled()) {
-				SSHcommonUtil.deleteRemoteFile(session, rbb);
+				SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rbb);
 				removeInstallationInDb(server, software);
 				return FacadeResult.doneExpectedResult(getBorgInstallInfo(session), CommonActionResult.DONE);
 			} else {

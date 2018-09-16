@@ -11,8 +11,9 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.ApplicationEventPublisherAware;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
+import com.go2wheel.mysqlbackup.event.ModelPreCreatedEvent;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
@@ -31,8 +32,9 @@ public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends Base
 		Integer id = pojo.getId();
 		P saved;
 		if (id == null || id == 0) {
+			applicationEventPublisher.publishEvent(new ModelPreCreatedEvent<P>(pojo));
 			saved = repo.insertAndReturn(pojo);
-			applicationEventPublisher.publishEvent(new ModelCreatedEvent<P>(saved));
+			applicationEventPublisher.publishEvent(new ModelAfterCreatedEvent<P>(saved));
 		} else {
 			P beforeSave = repo.findById(id);
 			saved = repo.insertAndReturn(pojo);

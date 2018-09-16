@@ -125,6 +125,7 @@ import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
+import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
 import com.go2wheel.mysqlbackup.value.UserServerGrpVo;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.jcraft.jsch.JSchException;
@@ -794,7 +795,7 @@ public class BackupCommand {
 			globalStore.saveFuture(BackupCommand.class.getName(), sf);
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
-			FacadeResult<LinuxLsl> fr = mysqlService.mysqlDump(getSession(), server);
+			FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(getSession(), server);
 			return mysqlService.saveDumpResult(server, fr);
 		}
 	}

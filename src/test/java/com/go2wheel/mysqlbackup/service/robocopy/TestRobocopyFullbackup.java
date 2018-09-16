@@ -27,7 +27,7 @@ import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService.SSHPowershellInvokeResult;
-import com.go2wheel.mysqlbackup.util.RemotePathUtil;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -86,7 +86,7 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 		createDemoSrc(srcfolder);
 		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
 		robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		assertTrue(Files.exists(settingsIndb.getCurrentRepoDir(server).resolve(RemotePathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()))));
+		assertTrue(Files.exists(settingsIndb.getCurrentRepoDir(server).resolve(PathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()))));
 		assertTrue(Files.exists(Paths.get(robocopyDescription.getWorkingSpaceScriptFile())));
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, robocopyDescription.getWorkingSpaceScriptFile() + " -action echo");

@@ -12,7 +12,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -31,7 +31,7 @@ public class RobocopySchedule extends SchedulerBase {
 	//@formatter:off
 	
 	@EventListener
-	public void whenRobocopyDescriptionCreated(ModelCreatedEvent<RobocopyDescription> RobocopyDescriptionCreatedEvent) throws SchedulerException, ParseException {
+	public void whenRobocopyDescriptionCreated(ModelAfterCreatedEvent<RobocopyDescription> RobocopyDescriptionCreatedEvent) throws SchedulerException, ParseException {
 		RobocopyDescription bd = RobocopyDescriptionCreatedEvent.getModel();
 		Server server = serverDbService.findById(bd.getServerId());
 		createTrigger(bd,

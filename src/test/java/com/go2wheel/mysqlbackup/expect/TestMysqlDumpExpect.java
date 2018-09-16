@@ -32,7 +32,7 @@ public class TestMysqlDumpExpect extends SpringBaseFort {
 		MysqlDumpExpect mde = new MysqlDumpExpect(session, server);
 		List<String> result = mde.start();
 		assertTrue(result.size() == 2);
-		ScpUtil.from(session, MysqlUtil.DUMP_FILE_NAME, tmpFile.toAbsolutePath().toString());
+		ScpUtil.from(session, MysqlUtil.getDefaultDumpFileName(server.getOs()), tmpFile.toAbsolutePath().toString());
 		
 		LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(result).get();
 		

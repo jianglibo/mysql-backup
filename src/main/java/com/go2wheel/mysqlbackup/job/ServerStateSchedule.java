@@ -12,7 +12,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.Server;
 
@@ -26,7 +26,7 @@ public class ServerStateSchedule extends SchedulerBase {
 	//@formatter:off
 	
 	@EventListener
-	public void whenServerCreated(ModelCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
+	public void whenServerCreated(ModelAfterCreatedEvent<Server> serverCreatedEvent) throws SchedulerException, ParseException {
 		Server server = serverCreatedEvent.getModel();
 		createTrigger(server,
 				server.getServerStateCron(),

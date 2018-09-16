@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
-import com.go2wheel.mysqlbackup.event.ModelCreatedEvent;
+import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.service.KeyValueService;
@@ -112,7 +112,7 @@ public class DefaultValues {
 
 
 	@EventListener
-	public void whenKeyValueCreated(ModelCreatedEvent<KeyValue> keyValueCreatedEvent) {
+	public void whenKeyValueCreated(ModelAfterCreatedEvent<KeyValue> keyValueCreatedEvent) {
 		KeyValue kv = keyValueCreatedEvent.getModel();
 		if (kv.getItemKey().startsWith(DEFAULT_COUNT_PREFIX)) {
 			reLoadDefaultCount();
