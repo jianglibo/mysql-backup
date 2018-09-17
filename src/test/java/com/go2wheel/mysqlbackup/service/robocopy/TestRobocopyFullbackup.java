@@ -96,6 +96,24 @@ public class TestRobocopyFullbackup extends RobocopyBaseT {
 	}
 
 	
+//	zipPath ： C:\Users\ADMINI~1\AppData\Local\Temp\junit9190450242082458614\workingspace\hello.rar
+//	expanded： C:\Users\ADMINI~1\AppData\Local\Temp\junit9190450242082458614\workingspace\expanded
+//	noroot： Users/ADMINI~1/AppData/Local/Temp/junit9190450242082458614/robocopydst
+	
+	/**
+	 * it means the expanded folder start with "Users/ADMINI~1/AppData/Local/Temp/junit9190450242082458614/robocopydst", we must enter this folder, then we can find "abc" folder which maps to some other defined folder 'c:\akk',
+	 * we create c:\akk then copy all files in 'abc' into it.
+	 * 
+	 * @throws JSchException
+	 * @throws IOException
+	 * @throws SchedulerException
+	 * @throws CommandNotFoundException
+	 * @throws NoSuchAlgorithmException
+	 * @throws UnExpectedOutputException
+	 * @throws RunRemoteCommandException
+	 * @throws ScpException
+	 */
+	
 	@Test
 	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException {
 		createSessionLocalHostWindowsAfterClear();

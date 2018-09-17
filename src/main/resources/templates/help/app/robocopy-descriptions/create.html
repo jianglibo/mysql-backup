@@ -1,0 +1,28 @@
+<!doctype html>
+<html
+	th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{})}"
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Index Page</title>
+</head>
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>帮助文件</h1>
+				<h2></h2>
+			</div>
+			<div class="content">
+				<h2 class="content-subhead">卷计划</h2>
+				<p>每次执行robocopy只会复制变化的文件，因此计划周期可以设置的短一些，比如1小时一次.</p>
+				<h2 class="content-subhead">本地卷备份计划</h2>
+				<p>本地卷计划执行时会产生一个新的本地备份，而原来的备份将作为历史存留，不再对它进行写入操作。比如，在中了勒索病毒的情况下，如果备份下来的文件也已经被加密，那么备份实际上是不可恢复的。如果有历史备份，则不受影响。</p>
+				<h2 class="content-subhead">本地卷修剪策略</h2>
+				<p>该字段有7个空格分隔的数字项组成，按顺序分别代表保留几个秒备份，分备份，时备份，日备份，周备份，月备份，年备份。</p>
+					<p>比如：0 0 0 7 4 1 1，表示保留7天的日备份，4个星期的周备份，以及一个月备份和一个年备份。这样1年内保留的备份数是 7 + 3 + 11 = 21（大致）个备份副本。
+				</p>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
