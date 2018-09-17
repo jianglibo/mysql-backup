@@ -101,7 +101,7 @@ public class RobocopyLocalRepoBackupJob implements Job {
 			robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
 			String pruneStrategy = robocopyDescription.getPruneStrategy();
 			if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
-				new PruneBackupedFiles(settingsInDb.getRepoDir(server)).prune(pruneStrategy);
+				new PruneBackupedFiles(settingsInDb.getRepoDirBase(server)).prune(pruneStrategy);
 			}
 		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
 			JobLog jl = new JobLog(RobocopyInvokeJob.class, context, e.getMessage());

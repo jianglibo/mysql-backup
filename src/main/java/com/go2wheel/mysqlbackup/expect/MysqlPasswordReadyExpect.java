@@ -69,7 +69,7 @@ public abstract class MysqlPasswordReadyExpect<T> {
 				Result rs = expect.withTimeout(3, TimeUnit.SECONDS).expect(contains("FullyQualifiedErrorId"));
 				goon = false;
 			} catch (Exception e) {
-				e.printStackTrace();
+//				e.printStackTrace();
 //				throw new UnExpectedOutputException(null, "mysql.expect.password", e.getInputBuffer());
 			}
 			

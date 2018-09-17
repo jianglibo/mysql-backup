@@ -23,13 +23,13 @@ import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstallInfo;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
@@ -125,7 +125,7 @@ public class TestBorgService extends SpringBaseFort {
 		pb.setTargetServerId(serverTarget.getId());
 		pb = playBackDbService.save(pb);
 		
-		borgService.playbackSync(pb, "repo");
+		borgService.playbackSync(pb, PathUtil.getFileName(settingsIndb.getCurrentRepoDir(server).toAbsolutePath().toString()));
 		// target repo is same with source.
 		List<String> sourcetList = borgService.listArchives(session, sourceRepo).getResult().getArchiveNames();
 		List<String> targetList = borgService.listArchives(sessionTarget, sourceRepo).getResult().getArchiveNames();
@@ -135,7 +135,7 @@ public class TestBorgService extends SpringBaseFort {
 	}
 
 
-	@Test(expected = UnExpectedOutputException.class)
+	@Test(expected = CommandNotFoundException.class)
 	public void testArchive() throws CommandNotFoundException, JSchException, IOException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		FacadeResult<?> fr = borgInstaller.unInstall(session, server, software);

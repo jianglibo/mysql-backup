@@ -174,8 +174,8 @@ public class SettingsInDb {
 	 * @return The base repo name. For example returning /repo , but not /repo.0 /repo.1 etc.
 	 * @throws IOException 
 	 */
-	public Path getRepoDir(Server server) throws IOException {
-		return createIfNotExists(getDirInHost(server, "repos/repo"));
+	public Path getRepoDirBase(Server server) throws IOException {
+		return getDirInHost(server, "repos/repo");
 	}
 	
 	public Path getReposDir(Server server) throws IOException {

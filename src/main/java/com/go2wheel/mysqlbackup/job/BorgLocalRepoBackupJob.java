@@ -66,7 +66,7 @@ public class BorgLocalRepoBackupJob implements Job {
 		BorgDescription bd = sv.getBorgDescription();
 		String pruneStrategy = bd.getPruneStrategy();
 		if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
-			new PruneBackupedFiles(settingsInDb.getRepoDir(sv)).prune(pruneStrategy);
+			new PruneBackupedFiles(settingsInDb.getRepoDirBase(sv)).prune(pruneStrategy);
 		}
 	}
 

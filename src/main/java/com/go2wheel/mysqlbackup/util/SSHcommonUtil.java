@@ -757,6 +757,10 @@ public class SSHcommonUtil {
 
 	public static RemoteCommandResult runRemoteCommand(Session session, String charset, String command)
 			throws JSchException, IOException {
+		
+		if (session == null) {
+			logger.error("session is null when invoke remote command {}", command);
+		}
 
 		final Channel channel = session.openChannel("exec");
 		try {

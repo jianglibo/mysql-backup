@@ -47,7 +47,6 @@ public class MyAppSettings {
 	
 	private KeyValueProperties kvp;
 
-	// myapp.dataDir=boxes
 	// myapp.downloadFolder=notingit
 	// myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
 	// myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
@@ -82,32 +81,6 @@ public class MyAppSettings {
 	private void setupProperties() {
 		kvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX);
 	}
-
-//	private void setupDirectories() {
-//		try {
-//			if (!StringUtil.hasAnyNonBlankWord(dataDir)) {
-//				this.dataDir = "boxes";
-//			}
-//			Path tmp = Paths.get(this.dataDir);
-
-//			if (!Files.exists(tmp)) {
-//				Files.createDirectories(tmp);
-//			}
-//			this.dataRoot = tmp;
-//
-//			logger.error("downloadFolder cofiguration value is: {}", this.downloadFolder);
-//
-//			tmp = Paths.get(this.downloadFolder);
-//
-//			if (!Files.exists(tmp)) {
-//				Files.createDirectories(tmp);
-//			}
-//			this.downloadRoot = tmp;
-//		} catch (Exception e) {
-//			ExceptionUtil.logErrorException(logger, e);
-//		}
-//
-//	}
 
 	private void setupSsh() {
 		KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");

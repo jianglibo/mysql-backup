@@ -1,9 +1,7 @@
 package com.go2wheel.mysqlbackup.job;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,6 +36,12 @@ public class TestBorgArchiveJob extends JobBaseFort {
 	
 	private Software software;
 	
+	/**
+	 * Archive doesn't create a new directory.
+	 * @throws SchedulerException
+	 * @throws IOException
+	 * @throws JSchException
+	 */
 	@Test
 	public void testJobFunction() throws SchedulerException, IOException, JSchException {
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -60,16 +64,9 @@ public class TestBorgArchiveJob extends JobBaseFort {
 		borgDownloadDbService.count();
 		assertThat(borgDownloadDbService.count(), equalTo(3L));
 		
-		Path repop = settingsIndb.getRepoDir(server);
-		assertThat(repop.getFileName().toString(), equalTo("repo"));
-		
+		Path repop = settingsIndb.getCurrentRepoDir(server);
 		long c = Files.list(repop.getParent()).count();
-		assertThat(c, equalTo(3L));
-		
-		assertTrue(Files.exists(repop.getParent().resolve("repo.0")));
-		assertTrue(Files.exists(repop.getParent().resolve("repo.1")));
-		assertFalse(Files.exists(repop.getParent().resolve("repo.2")));
-		
+		assertThat(c, equalTo(1L));
 	}
 	
 	@Test

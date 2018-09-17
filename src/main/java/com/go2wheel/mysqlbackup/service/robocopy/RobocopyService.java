@@ -11,6 +11,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -447,6 +448,8 @@ public class RobocopyService {
 	
 	public static class SSHPowershellInvokeResult {
 		
+		private Logger logger = LoggerFactory.getLogger(getClass());
+		
 		private final RemoteCommandResult rcr;
 		private final List<String> outLines;
 		
@@ -469,7 +472,12 @@ public class RobocopyService {
 		 * @return
 		 */
 		public int exitCode() {
-			return Integer.valueOf(lastLine);
+			try {
+				return Integer.valueOf(lastLine);
+			} catch (NumberFormatException e) {
+				logger.error(rcr.getAllTrimedNotEmptyLinesErrorFirst().stream().collect(Collectors.joining("\n")));
+				throw e;
+			}
 		}
 		
 		public boolean isCommandNotFound() {

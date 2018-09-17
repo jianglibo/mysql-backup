@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -83,10 +82,8 @@ public class UtilForTe {
 		
 		try (InputStream is = ClassLoader.class.getResourceAsStream("/application-dev.properties")) {
 			MyAppSettings mas = new MyAppSettings();
-//			mas.setDataRoot(Paths.get("boxes"));
-//			mas.setDownloadRoot(Paths.get("notingit"));
 			Files.createDirectories(Paths.get("notingit"));
-			Files.createDirectories(Paths.get("boxes"));
+			Files.createDirectories(Paths.get("servers"));
 			SshConfig sc = new SshConfig();
 			mas.setSsh(sc);
 			if (is != null) {
@@ -117,10 +114,6 @@ public class UtilForTe {
 		return YamlInstance.INSTANCE.yaml.loadAs(is, Server.class);
 	}
 	
-	public static Path getMysqlInstanceDescription(String hostname) {
-		return Paths.get("fixtures", "boxes", hostname, "description.yml");
-	}
-
 	public static Path getPathInThisProjectRelative(String fn) {
 		Path currentRelativePath = Paths.get("").toAbsolutePath();
 		return currentRelativePath.relativize(currentRelativePath.resolve(fn));
