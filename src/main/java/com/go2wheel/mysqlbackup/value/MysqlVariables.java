@@ -17,6 +17,7 @@ public class MysqlVariables {
 	public static final String LOG_BIN_INDEX = "log_bin_index";
 	public static final String DATA_DIR = "datadir";
 	public static final String SOCKET = "socket";
+	public static final String VERSION = "version";
 
 	
 	private Map<String, String> map = new HashMap<>();
@@ -75,18 +76,23 @@ public class MysqlVariables {
 	
 	public String getLogBinBasenameOnlyName() {
 		String s = map.getOrDefault(LOG_BIN_BASENAME, "");
-		return s.substring(s.lastIndexOf('/') + 1);
+		return PathUtil.getFileName(s);
 	}
 	
 	public String getLogBinIndexNameOnly() {
 		String s = map.getOrDefault(LOG_BIN_INDEX, "");
-		return s.substring(s.lastIndexOf('/') + 1);
+		return PathUtil.getFileName(s);
 	}
 
 	
 	public String getLogBinBasename() {
 		return map.getOrDefault(LOG_BIN_BASENAME, "");
 	}
+	
+	public String getVersion() {
+		return map.getOrDefault(VERSION, "");
+	}
+
 	
 	public String getLogBinIndex() {
 		return map.getOrDefault(LOG_BIN_INDEX, "");
@@ -102,6 +108,34 @@ public class MysqlVariables {
 
 	public boolean isEnabled() {
 		return map.containsKey(LOG_BIN_VARIABLE) && "ON".equals(map.get(LOG_BIN_VARIABLE));
+	}
+	
+	public static class MysqlVersionWrapper {
+		
+		private String version;
+		
+		public static MysqlVersionWrapper of(String version) {
+			return new MysqlVersionWrapper(version);
+		}
+		
+		// 5.5.24-log
+		public boolean isAfter55() {
+			int s = Integer.valueOf(getVersion().substring(0, 3).replace(".", ""));
+			return s > 55;
+		}
+		
+		private MysqlVersionWrapper(String version) {
+			this.setVersion(version);
+		}
+
+		public String getVersion() {
+			return version;
+		}
+
+		public void setVersion(String version) {
+			this.version = version;
+		}
+
 	}
 	
 }

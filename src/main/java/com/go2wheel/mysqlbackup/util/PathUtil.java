@@ -383,6 +383,7 @@ public class PathUtil {
 	}
 
 	public static String getFileName(String filename) {
+		if (filename == null)return null;
 		filename = filename.replace('\\', '/');
 		if (filename.endsWith("/")) {
 			filename = filename.substring(0, filename.length() - 1);

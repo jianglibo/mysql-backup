@@ -126,7 +126,7 @@ public abstract class CRUDController<T extends BaseModel, D extends DbServiceBas
 	    return afterCreate(entityFromForm, request);
 	}
 
-	protected String afterCreate(T entityFromForm, HttpServletRequest request) {
+	protected String afterCreate(T savedEntity, HttpServletRequest request) {
 	    return redirectListingUrl(request);
 	}
 

@@ -276,6 +276,7 @@ public class MysqlService {
 	}
 	
 	// @formatter:off
+	// TODO change behaiver by lbs.getVersion();
 	/**
 	 * 执行flush之后，将/var/lib/mysql/hm-log-bin.index下载下来，index文件里面没有的文件下载下来。
 	 * @param session
@@ -284,15 +285,32 @@ public class MysqlService {
 	 * @throws JSchException 
 	 * @throws IOException 
 	 * @throws NoSuchAlgorithmException 
+	 * @throws UnExpectedInputException 
 	 */
-	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException {
+	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
 			try {
 				MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
 				String remoteIndexFile = lbs.getLogBinIndex();
+				
+				if (!StringUtil.hasAnyNonBlankWord(remoteIndexFile)) {
+					logger.error("mysql log_bin_index variable didn't be set. try to guess it.");
+//					MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME
+					if (lbs.getDataDirEndWithPathSeparator() != null) {
+						remoteIndexFile = lbs.getDataDirEndWithPathSeparator() + MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME + ".index";
+					} else {
+						throw new UnExpectedInputException("1000", "mysql.unknownlogbinindex", "");
+					}
+				}
 				String basenameOnlyName = PathUtil.getFileName(lbs.getLogBinBasenameOnlyName());
-
+				
+				if (!StringUtil.hasAnyNonBlankWord(basenameOnlyName)) {
+					basenameOnlyName = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME;
+				}
 				String binLogIndexOnlyName = PathUtil.getFileName(lbs.getLogBinIndexNameOnly());
+				if (!StringUtil.hasAnyNonBlankWord(binLogIndexOnlyName)) {
+					binLogIndexOnlyName = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME + ".index"; 
+				}
 
 				Path localDir = settingsInDb.getCurrentDumpDir(server);
 				Path localIndexFile = localDir.resolve(binLogIndexOnlyName);
@@ -309,10 +327,11 @@ public class MysqlService {
 				List<String> localBinLogFiles = Files.list(localDir)
 						.map(p -> p.getFileName().toString())
 						.collect(Collectors.toList());
+				String basenameOnlyNameFinal = basenameOnlyName;
 				
 				// index file contains all logbin file names.
 				List<String> unLocalExists = Files.lines(localIndexFile)
-						.filter(l -> l.indexOf(basenameOnlyName) != -1)
+						.filter(l -> l.indexOf(basenameOnlyNameFinal) != -1)
 						.map(l -> l.trim())
 						.map(l -> Paths.get(l).getFileName().toString())
 						.filter(l -> !localBinLogFiles.contains(l))
@@ -547,6 +566,14 @@ public class MysqlService {
 			ExceptionUtil.logErrorException(logger, e);
 			return FacadeResult.unexpectedResult(e);
 		}
+	}
+	
+	public void refreshVariables(Session session, Server server) throws UnExpectedInputException, UnExpectedOutputException, JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException {
+		MysqlVariables lbs = mysqlUtil.getLogbinState(session, server); // 获取最新的logbin状态。
+		MysqlInstance mi = server.getMysqlInstance();
+		mi.setLogBinSetting(lbs);
+		mi = mysqlInstanceDbService.save(mi);
+		server.setMysqlInstance(mi);
 	}
 
 	public FacadeResult<String> getMyCnfFile(Session session, Server server) throws UnExpectedOutputException, JSchException, IOException {

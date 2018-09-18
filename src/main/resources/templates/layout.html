@@ -354,6 +354,12 @@
 			var url =  jQuery(this).attr('href');
 			window.freact.formUtil.createFormSubmit({action: url, method: 'POST'}, {});
 		});
+
+		jQuery('.put-link').on('click', function(event){
+			event.preventDefault();
+			var url =  jQuery(this).attr('href');
+			window.freact.formUtil.createFormSubmit({action: url, method: 'PUT'}, {});
+		});
 	</script>
 	<th:block th:replace="${script}" />
 	<script>

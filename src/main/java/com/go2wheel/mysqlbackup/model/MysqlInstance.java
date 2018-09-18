@@ -26,9 +26,13 @@ public class MysqlInstance extends BaseModel {
 	private String password;
 	private String mycnfFile;
 	
+	@NotEmpty
 	private String dumpFileName;
+	
+	@NotEmpty
 	private String clientBin;
 	
+	@NotEmpty
 	private String restartCmd;
 	
 	@CronExpressionConstraint(allowEmpty=true)

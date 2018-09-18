@@ -97,6 +97,10 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	}
 
 	@Override
+	protected String afterCreate(MysqlInstance savedEntity, HttpServletRequest request) {
+	    return redirectEditUrl(savedEntity.getId());
+	}
+	@Override
 	public MysqlInstance newModel() {
 		return new MysqlInstance.MysqlInstanceBuilder(0, "").build();
 	}

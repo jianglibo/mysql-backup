@@ -75,7 +75,7 @@ public class MysqlUtil {
 	
 	public void restartMysql(Session session, Server server) throws RunRemoteCommandException, JSchException, IOException, UnExpectedOutputException {
 		String cmd = server.getMysqlInstance().getRestartCmd();
-		cmd = StringUtil.hasAnyNonBlankWord(cmd) ? cmd : "systemctl stop mysqld";
+		cmd = StringUtil.hasAnyNonBlankWord(cmd) ? cmd : "systemctl restart mysqld";
 		
 		RemoteCommandResult rcr =  SSHcommonUtil.runRemoteCommand(session, cmd);
 		if (rcr.isExitValueNotEqZero()) {
