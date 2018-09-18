@@ -178,6 +178,10 @@ public class SettingsInDb {
 		return getDirInHost(server, "repos/repo");
 	}
 	
+	public Path getRepoTmp(Server server) throws IOException {
+		return createIfNotExists(getDirInHost(server, "tmp"));
+	}
+	
 	public Path getReposDir(Server server) throws IOException {
 		Path p = getDirInHost(server, "repos");
 		if (!Files.exists(p)) {

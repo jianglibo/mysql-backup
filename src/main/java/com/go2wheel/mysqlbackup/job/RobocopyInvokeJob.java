@@ -96,7 +96,7 @@ public class RobocopyInvokeJob implements Job {
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(server).getResult();
-			Path filePath = robocopyService.increamentalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+			Path filePath = robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
 			if (filePath != null) {
 				long ts = System.currentTimeMillis() - start;
 				BorgDownload bd = new BorgDownload();

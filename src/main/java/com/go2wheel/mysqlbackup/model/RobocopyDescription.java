@@ -15,6 +15,8 @@ import com.go2wheel.mysqlbackup.yml.YamlInstance;
 public class RobocopyDescription extends BaseModel {
 
 	public static final String ROBO_LOCAL_BACKUP_PRUNE_STRATEGY = "0 0 2 7 4 1 1";
+	public static String DEFAULT_COMMPRESS_COMMAND = "& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
+	public static String DEFAULT_EXPAND_COMMAND = "& 'C:/Program Files/WinRAR/Rar.exe'x -o+ %s %s";
 	
 	@NotEmpty
 	@AbsolutePathConstraint
@@ -32,9 +34,9 @@ public class RobocopyDescription extends BaseModel {
 	@NotNull
 	private Integer serverId;
 	
-	private String compressCommand = "& 'C:/Program Files/WinRAR/Rar.exe' a -ms %s %s";
+	private String compressCommand = DEFAULT_COMMPRESS_COMMAND;
 	
-	private String expandCommand = "& 'C:/Program Files/WinRAR/Rar.exe'x -o+ %s %s";
+	private String expandCommand = DEFAULT_EXPAND_COMMAND;
 	
 	private boolean alwaysFullBackup;
 

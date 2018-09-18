@@ -52,6 +52,7 @@ import com.go2wheel.mysqlbackup.util.TaskLocks;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.google.common.collect.Lists;
 import com.jcraft.jsch.JSchException;
@@ -267,6 +268,33 @@ public class RobocopyService {
 //		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
 	}
 	
+	public void expandLocalArchive(Server server, RobocopyDescription robocopyDescription, Path whichRepo) throws JSchException, IOException {
+		String archive = whichRepo.resolve(robocopyDescription.getArchiveName()).toAbsolutePath().toString();
+		archive = archive.replace('\\', '/');
+		String expandDst = settingsInDb.getRepoTmp(server).toAbsolutePath().toString();
+		expandDst = expandDst.replace('\\', '/');
+		if (!expandDst.endsWith("/")) {
+			expandDst += "/";
+		}
+		// expandDst must have directory trail. / or \.
+		String cmd = String.format(settingsInDb.getString("applicaion.expand-command", RobocopyDescription.DEFAULT_EXPAND_COMMAND), archive, expandDst);
+		if (!cmd.startsWith("&")) {
+			cmd = "& " + cmd;
+		}
+		cmd = cmd + ";$LASTEXITCODE";
+		ProcessExecResult per = PSUtil.runPsCommand(cmd);
+		System.out.println(per.getStdOut());
+//		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
+	}
+	
+	/**
+	 * The line number of script equals to items number.
+	 * @param session
+	 * @param server
+	 * @param robocopyDescription
+	 * @param items
+	 * @return
+	 */
 	public List<String> getBackupScripts(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) {
 		robocopyDescription.modifiItems(items);
 		List<String> results = Lists.newArrayList();
@@ -350,7 +378,7 @@ public class RobocopyService {
 		return sshir;
 	}
 	
-	public Path increamentalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
+	public Path incrementalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
 		SSHPowershellInvokeResult sshir =  increamentalBackup(session, server, robocopyDescription, items);
 		if (sshir.exitCode() != -1) {
 			FacadeResult<Path> fp = downloadIncreamentalArchive(session, server, robocopyDescription, items);

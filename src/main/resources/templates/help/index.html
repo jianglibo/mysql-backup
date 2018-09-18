@@ -13,8 +13,10 @@
 				<h2></h2>
 			</div>
 			<div class="content">
-				<h2 class="content-subhead" th:text="|没有关于URL:${uri}的帮助。|">订阅内容</h2>
-				<p></p>
+				<h2 class="content-subhead">如何创建一个以Powershell作为默认shell的Linux账号</h2>
+				<p>useradd -m username</p>
+				<p>passwd username</p>
+				<p>如果要使用ssh-copy-id，先不要修改shell，copy之后再修改/etc/passwd，将默认的/bin/bash（或其他）改成/usr/bin/pwsh即可。</p>
 			</div>
 		</div>
 	</div>
