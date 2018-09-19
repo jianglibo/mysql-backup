@@ -59,7 +59,7 @@ public class TestRestore extends MysqlServiceTbase {
 		installMysql(); // install mysql if not installed.
 		resetdb(session, server, server.getMysqlInstance()); // resetdb
 		MysqlUtil.createDatabases(session, server, server.getMysqlInstance(), "aaaaa");
-		mysqlService.mysqlDump(session, server); // create a database. included in dumpfile.
+		mysqlService.dump(session, server); // create a database. included in dumpfile.
 		
 		MysqlUtil.createDatabases(session, server, server.getMysqlInstance(), "bbbb");
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server); // include in logbin file.

@@ -125,7 +125,7 @@ public class MysqlService {
 			return frSession.getResult();
 		}).thenApplyAsync(session -> {
 			try {
-				FacadeResult<RemoteFileDescription> fr = this.mysqlDump(session, server);
+				FacadeResult<RemoteFileDescription> fr = this.dump(session, server);
 				return new AsyncTaskValue(id, fr).withDescription(taskDescription);
 			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedOutputException | MysqlAccessDeniedException | UnExpectedInputException | CommandNotFoundException e1) {
 				throw new ExceptionWrapper(e1);
@@ -158,7 +158,7 @@ public class MysqlService {
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<RemoteFileDescription> mysqlDump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
+	public FacadeResult<RemoteFileDescription> dump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
 		OsTypeWrapper owr = OsTypeWrapper.of(server.getOs());
 		
 		if (owr.isWin()) {
@@ -254,6 +254,10 @@ public class MysqlService {
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
 	public FacadeResult<Path> mysqlFlushLogsAndReturnIndexFile(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
+		Path dump = settingsInDb.getCurrentDumpDir(server);
+		if (!Files.exists(dump) || !Files.list(dump).anyMatch(it -> it.getFileName().toString().endsWith(".sql"))) {
+			throw new UnExpectedInputException("1000", "mysql.notdumpyet", "");
+		}
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
 			MysqlInstance mi = server.getMysqlInstance();
 			
@@ -292,14 +296,16 @@ public class MysqlService {
 			String remoteIndexFile = lbs.getLogBinIndex();
 			String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
 			String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
-			return new String[] {remoteIndexFile, basenameOnlyName, binLogIndexOnlyName};
+			String logBinDirWithEndingPathSeparator = lbs.getLogBinDirWithEndingPathSeparator();
+			return new String[] {remoteIndexFile, basenameOnlyName, binLogIndexOnlyName, logBinDirWithEndingPathSeparator};
 		} else {
 			String dataDir = lbs.getDataDirEndWithPathSeparator();
 			MycnfFileHolder mfh = getMysqlSettingsFromDisk(server);
-			String basenameOnlyName = mfh.getConfigValue(MycnfFileHolder.MYSQLD_LOG_BIN_KEY).getValue();
+			String basenameOnlyName = mfh.getConfigValue("mysqld", MycnfFileHolder.MYSQLD_LOG_BIN_KEY).getValue();
+			
 			String remoteIndexFile = dataDir + basenameOnlyName + ".index";
 			String binLogIndexOnlyName = basenameOnlyName + ".index";
-			return new String[] {remoteIndexFile, basenameOnlyName, binLogIndexOnlyName};
+			return new String[] {remoteIndexFile, basenameOnlyName, binLogIndexOnlyName, dataDir};
 		}
 	}
 	
@@ -318,27 +324,6 @@ public class MysqlService {
 	public FacadeResult<Path> downloadBinLog(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
 			try {
-//				MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
-//				String remoteIndexFile = lbs.getLogBinIndex();
-//				
-//				if (!StringUtil.hasAnyNonBlankWord(remoteIndexFile)) {
-//					logger.error("mysql log_bin_index variable didn't be set. try to guess it.");
-//					if (lbs.getDataDirEndWithPathSeparator() != null) {
-//						remoteIndexFile = lbs.getDataDirEndWithPathSeparator() + MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME + ".index";
-//					} else {
-//						throw new UnExpectedInputException("1000", "mysql.unknownlogbinindex", "");
-//					}
-//				}
-//				String basenameOnlyName = PathUtil.getFileName(lbs.getLogBinBasenameOnlyName());
-//				
-//				if (!StringUtil.hasAnyNonBlankWord(basenameOnlyName)) {
-//					basenameOnlyName = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME;
-//				}
-//				String binLogIndexOnlyName = PathUtil.getFileName(lbs.getLogBinIndexNameOnly());
-//				if (!StringUtil.hasAnyNonBlankWord(binLogIndexOnlyName)) {
-//					binLogIndexOnlyName = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME + ".index"; 
-//				}
-				
 				String[] varias = getThreeVariables(server);
 
 				Path localDir = settingsInDb.getCurrentDumpDir(server);
@@ -347,18 +332,13 @@ public class MysqlService {
 				String command = String.format("Get-Content -Path %s", varias[0]);
 				RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, command);
 				Files.write(localIndexFile, rcr.getAllTrimedNotEmptyLines());
-				return downloadUnlocalExistsFiles(session, server, varias[1], localDir, localIndexFile);
+				return downloadUnlocalExistsFiles(session, server, varias[3], varias[1], localDir, localIndexFile);
 			} catch (RunRemoteCommandException | ScpException e) {
 				ExceptionUtil.logErrorException(logger, e);
 				return FacadeResult.unexpectedResult(e);
 			}
 		} else {
 			try {
-//				MysqlVariables lbs = server.getMysqlInstance().getLogBinSetting();
-//				String remoteIndexFile = lbs.getLogBinIndex();
-//				String basenameOnlyName = lbs.getLogBinBasenameOnlyName();
-//				String binLogIndexOnlyName = lbs.getLogBinIndexNameOnly();
-				
 				String[] varias = getThreeVariables(server);
 
 				Path localDir = settingsInDb.getCurrentDumpDir(server);
@@ -367,28 +347,7 @@ public class MysqlService {
 				String rmd5 = SSHcommonUtil.getRemoteFileMd5(server.getOs(), session, varias[0]);
 				localIndexFile = SSHcommonUtil.downloadWithTmpDownloadingFileWithNewVersion(server.getOs(), session, varias[0], rmd5, localIndexFile, 7);
 				
-				return downloadUnlocalExistsFiles(session, server, varias[1], localDir, localIndexFile);
-
-//				List<String> localBinLogFiles = Files.list(localDir)
-//						.map(p -> p.getFileName().toString())
-//						.collect(Collectors.toList());
-//				
-//				// index file contains all logbin file names.
-//				
-//				List<String> unLocalExists = Files.lines(localIndexFile)
-//						.filter(l -> l.indexOf(basenameOnlyName) != -1)
-//						.map(l -> l.trim())
-//						.map(l -> Paths.get(l).getFileName().toString())
-//						.filter(l -> !localBinLogFiles.contains(l))
-//						.collect(Collectors.toList());
-//				
-//				for(String fn : unLocalExists) {
-//					String rfile = PathUtil.getLogBinFile(server, fn);
-//					Path lfile =  localDir.resolve(fn);
-//					SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rfile,null, lfile);
-//
-//				}
-//				return FacadeResult.doneExpectedResult(localIndexFile, CommonActionResult.DONE);
+				return downloadUnlocalExistsFiles(session, server, varias[3], varias[1],  localDir, localIndexFile);
 			} catch (RunRemoteCommandException | ScpException e) {
 				ExceptionUtil.logErrorException(logger, e);
 				return FacadeResult.unexpectedResult(e);
@@ -396,8 +355,7 @@ public class MysqlService {
 		}
 	}
 
-
-	private FacadeResult<Path> downloadUnlocalExistsFiles(Session session, Server server, String basenameOnlyName,
+	private FacadeResult<Path> downloadUnlocalExistsFiles(Session session, Server server,String logBinDirWithEndingPathSeparator, String basenameOnlyName,
 			Path localDir, Path localIndexFile)
 			throws IOException, ScpException, JSchException, NoSuchAlgorithmException {
 		List<String> localBinLogFiles = Files.list(localDir)
@@ -414,7 +372,7 @@ public class MysqlService {
 				.collect(Collectors.toList());
 		
 		for(String fn : unLocalExists) {
-			String rfile = PathUtil.getLogBinFile(server, fn);
+			String rfile = logBinDirWithEndingPathSeparator + fn;
 			Path lfile =  localDir.resolve(fn);
 			SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rfile,null, lfile);
 

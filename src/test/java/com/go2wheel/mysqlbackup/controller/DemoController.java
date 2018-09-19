@@ -107,6 +107,8 @@ public class DemoController {
 		
 		if (server1.getMysqlInstance() == null) {
 			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server1, "q1w2e3r4", "mysql").build();
+			mi.setClientBin("E:\\wamp\\bin\\mysql\\mysql5.5.24\\bin\\mysql.exe");
+			mi.setRestartCmd("Restart-Service wampmysqld");
 			server1.setMysqlInstance(mysqlInstanceDbService.save(mi));
 		}
 

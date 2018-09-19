@@ -14,6 +14,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
@@ -22,23 +23,34 @@ import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.MysqlDumpFolder;
 import com.jcraft.jsch.JSchException;
 
-public class TestFlush extends MysqlServiceTbase {
+public class TestFlushWin extends MysqlServiceTbase {
 
 	
 	@Rule
 	@Autowired
 	public ServerDataCleanerRule sdc; 
 	
+	@Value("${myapp.app.client-bin}")
+	private String clientBin;
+	
 	
 	@Test
 	public void testMysqlFlush()
 			throws JSchException, IOException, MysqlAccessDeniedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, AppNotStartedException, CommandNotFoundException {
-		clearDb();
-		installMysql();
-		sdc.setHost(HOST_DEFAULT_GET);
+		createSessionLocalHostWindowsAfterClear();
+		sdc.setHost(HOST_LOCAL_HOST);
 		clearDumpsFolder();
+		
+		createMysqlIntance();
+		
+		server.getMysqlInstance().setClientBin(clientBin);
+		server.getMysqlInstance().setDumpFileName("e:\\tmp\\mysqldump.sql");
+		
+		mysqlService.refreshVariables(session, server);
+		
 		mysqlService.dump(session, server);
 		FacadeResult<Path> fr = mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		assertTrue(fr.isExpected());
@@ -61,6 +73,12 @@ public class TestFlush extends MysqlServiceTbase {
 		});
 		
 		assertThat(fileCount, equalTo(lineInIndexFile));
+		
+		MysqlDumpFolder mdf = new MysqlDumpFolder(settingsIndb.getCurrentDumpDir(server));
+		assertThat(mdf.getLogFileSize(), greaterThan(0L));
+		assertThat(mdf.getLogFiles(), greaterThan(0));
+		
+		clearDumpsFolder();
 	}
 
 }

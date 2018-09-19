@@ -4,6 +4,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 import org.quartz.SchedulerException;
@@ -20,6 +22,7 @@ import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.Software;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.jcraft.jsch.JSchException;
@@ -74,6 +77,17 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		}
 		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
 		assertFalse(info.getResult().isInstalled());
+	}
+	
+	protected void clearDumpsFolder() throws IOException {
+		Path p = settingsIndb.getDumpsDir(server);
+		Files.list(p).forEach(f -> {
+			try {
+				FileUtil.deleteFolder(f, false);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 }

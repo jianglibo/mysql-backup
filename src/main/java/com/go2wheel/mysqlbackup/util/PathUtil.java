@@ -377,10 +377,7 @@ public class PathUtil {
 	}
 
 	
-	public static String getLogBinFile(Server server, String onlyFilename) {
-		String remoteDir = server.getMysqlInstance().getLogBinSetting().getLogBinDirWithEndingPathSeparator();
-		return remoteDir + onlyFilename;
-	}
+
 
 	public static String getFileName(String filename) {
 		if (filename == null)return null;

@@ -16,7 +16,7 @@
 
 				<a id="form-button-logbin" class="pure-button" href="#" th:href="@{/app/mysql/logbin/{serverId}(serverId=${singleItem.serverId})}" th:text="${singleItem.isReadyForBackup()} ? '关闭LOGBIN' : '开启LOGBIN'">启用LOGBIN</a>
 				<a class="pure-button" href="#" th:href="@{/app/mysql/{serverId}/dumps(serverId=${singleItem.serverId})}">DUMP列表</a>
-				<a class="pure-button put-link" href="#" th:href="@{/app/mysql/{serverId}/updatevariables(serverId=${singleItem.serverId})}">更新mysql变量</a>
+				<a class="pure-button put-link" href="#" th:href="@{/app/mysql/{serverId}/updatevariables(serverId=${singleItem.serverId})}">获取mysql变量</a>
 
 				</div>
 

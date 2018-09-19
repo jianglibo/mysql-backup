@@ -314,7 +314,9 @@ public class SSHcommonUtil {
 			Files.createDirectories(localDir);
 		}
 		Path localTmpFile = localDir.resolve(lfile.getFileName().toString() + ".downloading");
+		
 		ScpUtil.from(session, rfile, localTmpFile.toString());
+		
 		String localMd5 = null;
 		if (remoteMd5 != null) {
 			localMd5 = Md5Checksum.getMD5Checksum(localTmpFile.toString());

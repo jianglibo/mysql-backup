@@ -795,7 +795,7 @@ public class BackupCommand {
 			globalStore.saveFuture(BackupCommand.class.getName(), sf);
 			return FacadeResult.showMessageExpected(CommonMessageKeys.TASK_SUBMITTED);
 		} else {
-			FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(getSession(), server);
+			FacadeResult<RemoteFileDescription> fr = mysqlService.dump(getSession(), server);
 			return mysqlService.saveDumpResult(server, fr);
 		}
 	}

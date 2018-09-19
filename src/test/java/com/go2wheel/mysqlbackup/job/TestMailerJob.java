@@ -106,7 +106,7 @@ public class TestMailerJob extends JobBaseFort {
 		given(context.getMergedJobDataMap()).willReturn(jdm);
 		
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
-		mysqlService.mysqlDump(session, server);
+		mysqlService.dump(session, server);
 		
 		for(int i = 0; i< 3;i ++) {
 			mysqlFlushLogJob.execute(context);

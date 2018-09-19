@@ -69,7 +69,7 @@ public class TestDumpWin extends MysqlServiceTbase {
 		
 		Path localDumpPathBefore = settingsIndb.getCurrentDumpDir(server);
 		
-		FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(session, server);
+		FacadeResult<RemoteFileDescription> fr = mysqlService.dump(session, server);
 		assertTrue(fr.isExpected());
 		
 		// remote dump file should created.
@@ -85,7 +85,7 @@ public class TestDumpWin extends MysqlServiceTbase {
 //		assertThat(localDumpPathString, equalTo(PathUtil.increamentFileName(localDumpPathBefore.getFileName().toString())));
 		assertTrue(Files.exists(localDumpPath.resolve("mysqldump.sql")));
 		
-		fr = mysqlService.mysqlDump(session, server);
+		fr = mysqlService.dump(session, server);
 		assertTrue(fr.isExpected());
 		
 		// after dump, the current dump folder will changed.

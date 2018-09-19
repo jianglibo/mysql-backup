@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.go2wheel.mysqlbackup.exception.RemoteFileNotAbsoluteException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.jcraft.jsch.Channel;
 import com.jcraft.jsch.ChannelExec;
@@ -82,6 +83,7 @@ public class ScpUtil {
 	public static void from(Session session, String rfile, OutputStream os)
 			throws JSchException, IOException, ScpException {
 		// exec 'scp -f rfile' remotely
+		RemoteFileNotAbsoluteException.throwIfNeed(rfile);
 		String command = "scp -f " + rfile;
 		Channel channel = session.openChannel("exec");
 		((ChannelExec) channel).setCommand(command);

@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.model.MysqlDump;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -30,6 +29,8 @@ import com.google.common.collect.Lists;
 
 @Service
 public class SettingsInDb {
+	
+	public static final int POST_FIX_LENGTH_7 = 7;
 	
 	public static final String OSTYPE_PREFIX = "commons.ostype[";
 	
@@ -192,7 +193,7 @@ public class SettingsInDb {
 	
 	public Path getCurrentRepoDir(Server server) throws IOException {
 		Path path = getReposDir(server).resolve("repo"); 
-		path = PathUtil.getMaxVersionByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+		path = PathUtil.getMaxVersionByBaseName(path, POST_FIX_LENGTH_7);
 		if (!Files.exists(path)) {
 			Files.createDirectories(path);
 		}
@@ -210,7 +211,7 @@ public class SettingsInDb {
 				e.printStackTrace();
 			}
 		});
-		return PathUtil.getNextAvailableByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+		return PathUtil.getNextAvailableByBaseName(path, POST_FIX_LENGTH_7);
 	}
 	
 	private Path createIfNotExists(Path path) throws IOException {
@@ -234,7 +235,11 @@ public class SettingsInDb {
 	 */
 	public Path getCurrentDumpDir(Server server) throws IOException {
 		Path path = getDumpsDir(server).resolve("dump"); 
-		return PathUtil.getMaxVersionByBaseName(path);
+		path =  PathUtil.getMaxVersionByBaseName(path, POST_FIX_LENGTH_7);
+		if (!Files.exists(path)) {
+			Files.createDirectories(path);
+		}
+		return path;
 	}
 	
 	public Path getDumpsDir(Server server) throws IOException {
@@ -261,7 +266,7 @@ public class SettingsInDb {
 				e.printStackTrace();
 			}
 		});
-		return PathUtil.getNextAvailableByBaseName(path, MysqlDump.DUMP_FOLDER_POSTFIX_LENGTH);
+		return PathUtil.getNextAvailableByBaseName(path, POST_FIX_LENGTH_7);
 	}
 	
 	public Path getLocalMysqlDir(Server server) throws IOException {
