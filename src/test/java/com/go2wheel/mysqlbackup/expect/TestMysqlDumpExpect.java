@@ -13,8 +13,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.util.Md5Checksum;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.ScpUtil;
 import com.go2wheel.mysqlbackup.value.LinuxLsl;
 
@@ -32,7 +32,7 @@ public class TestMysqlDumpExpect extends SpringBaseFort {
 		MysqlDumpExpect mde = new MysqlDumpExpect(session, server);
 		List<String> result = mde.start();
 		assertTrue(result.size() == 2);
-		ScpUtil.from(session, MysqlUtil.getDefaultDumpFileName(server.getOs()), tmpFile.toAbsolutePath().toString());
+		ScpUtil.from(session, MysqlInstance.getDefaultDumpFileName(server.getOs()), tmpFile.toAbsolutePath().toString());
 		
 		LinuxLsl llsl = LinuxLsl.matchAndReturnLinuxLsl(result).get();
 		

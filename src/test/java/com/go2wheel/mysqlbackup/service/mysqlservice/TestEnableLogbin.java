@@ -16,11 +16,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
-import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.jcraft.jsch.JSchException;
@@ -34,16 +36,16 @@ public class TestEnableLogbin extends MysqlServiceTbase {
 	
 	
 	@Test
-	public void testEnableBinLog() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testEnableBinLog() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, RunRemoteCommandException, ScpException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		sdc.setHost(server.getHost());
-		FacadeResult<?> fr = mysqlService.disableLogbin(session, server);
-		assertTrue(fr.isExpected());
+		mysqlService.disableLogbin(session, server);
+//		assertTrue(fr.isExpected());
 		assertFalse(server.getMysqlInstance().getLogBinSetting().isEnabled());
 		
-		fr = mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
-		assertTrue(fr.isExpected());
+		 mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
+//		assertTrue(fr.isExpected());
 		assertTrue(server.getMysqlInstance().getLogBinSetting().isEnabled());
 		
 		Path mycnf = settingsIndb.getLocalMysqlDir(server).resolve(settingsIndb.getString("mysql.filenames.mycnf", "mycnf.yml"));

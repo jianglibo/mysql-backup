@@ -68,7 +68,7 @@ public class MysqlVariables {
 		return s;
 	}
 	
-	public String getLogBinDirWithEndingSlash() {
+	public String getLogBinDirWithEndingPathSeparator() {
 		String s = getLogBinBasename();
 		return PathUtil.getParentWithEndingSeparator(s);
 	}

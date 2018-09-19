@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
@@ -27,7 +28,7 @@ public class TestSaveSettings extends MysqlServiceTbase {
 	public ServerDataCleanerRule sdc; 
 	
 	@Test
-	public void testSaveMysqlSettings() throws IOException, UnExpectedOutputException, JSchException, SchedulerException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testSaveMysqlSettings() throws IOException, UnExpectedOutputException, JSchException, SchedulerException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		MycnfFileHolder mfh = mysqlService.getMysqlSettingsFromDisk(server);

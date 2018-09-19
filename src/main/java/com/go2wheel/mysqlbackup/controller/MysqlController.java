@@ -27,7 +27,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -126,22 +129,20 @@ public class MysqlController extends ControllerBase {
 
 	@PutMapping("/logbin/{server}")
 	public String updateLogBin(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException {
+			RedirectAttributes ras) throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, RunRemoteCommandException, IOException, ScpException, AppNotStartedException, CommandNotFoundException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
 		Session session = frSession.getResult();
 		try {
-			FacadeResult<?> fr;
 			if (server.getMysqlInstance().getLogBinSetting().isEnabled()) {
-				fr = mysqlService.disableLogbin(session, server);
+				mysqlService.disableLogbin(session, server);
 			} else {
-				fr = mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
+				mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
 			}
-
-			if (!fr.isExpected()) {
-				ras.addFlashAttribute(CRUDController.ERROR_MESSAGE_KEY, fr.getMessage());
-			}
+//			if (!fr.isExpected()) {
+//				ras.addFlashAttribute(CRUDController.ERROR_MESSAGE_KEY, fr.getMessage());
+//			}
 		} finally {
 			if (session != null && session.isConnected()) {
 				session.disconnect();
@@ -154,7 +155,7 @@ public class MysqlController extends ControllerBase {
 	
 	@PutMapping("/{server}/updatevariables")
 	public String updateVariables(@PathVariable(name = "server") Server server, Model model, HttpServletRequest request,
-			RedirectAttributes ras) throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, IOException, AppNotStartedException {
+			RedirectAttributes ras) throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, IOException, AppNotStartedException, CommandNotFoundException {
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		server = serverDbService.loadFull(server);
 		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);

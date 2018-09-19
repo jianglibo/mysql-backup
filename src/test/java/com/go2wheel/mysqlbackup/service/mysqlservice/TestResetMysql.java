@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
@@ -48,7 +49,7 @@ public class TestResetMysql extends MysqlServiceTbase {
 	}
 	
 	@Test
-	public void testRestMysql() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testRestMysql() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -61,14 +62,14 @@ public class TestResetMysql extends MysqlServiceTbase {
 
 	@Test(expected=MysqlAccessDeniedException.class)
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
 		confirmPassword(session, server);
 		boolean b = mySqlInstaller.resetPassword(session, server, "123456", "1234567");
 		assertTrue("password should be changed.", b);
-		MysqlPasswordReadyExpect mr = new MysqlPasswordReadyExpect(session, server) {
+		MysqlPasswordReadyExpect<List<String>> mr = new MysqlPasswordReadyExpect<List<String>>(session, server) {
 			@Override
 			protected void invokeCommandWhichCausePasswordPrompt() throws IOException {
 				String cmd = "mysql -uroot -p -e \"show variables\"";

@@ -63,8 +63,8 @@ import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
@@ -123,7 +123,6 @@ import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MycnfFileHolder;
 import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
 import com.go2wheel.mysqlbackup.value.UserServerGrpVo;
@@ -529,18 +528,19 @@ public class BackupCommand {
 	 * @throws UnExpectedInputException 
 	 * @throws UnExpectedOutputException 
 	 * @throws MysqlAccessDeniedException 
+	 * @throws CommandNotFoundException 
 	 */
 	@ShellMethod(value = "为备份MYSQL作准备。")
 	public FacadeResult<?> mysqlEnableLogbin(
 			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
-			throws JSchException, IOException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
+			throws JSchException, IOException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException, CommandNotFoundException {
 		sureMysqlConfigurated();
 		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
 	}
 
 	@ShellMethod(value = "查看logbin状态")
 	public FacadeResult<?> mysqlGetLogbinState()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException, CommandNotFoundException {
 		sureMysqlConfigurated();
 		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
 	}
@@ -781,7 +781,7 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException, CommandNotFoundException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
@@ -888,7 +888,7 @@ public class BackupCommand {
 			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
 		}
 
-		mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), password)
+		mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), password, "mysql", MysqlInstance.getDefaultDumpFileName(server.getOs()), MysqlInstance.getDefaultRestartCmd(server.getOs()))
 				.withFlushLogCron(dvs.getCron().getMysqlFlush()).withUsername(username).build();
 		mi = mysqlInstanceDbService.save(mi);
 		server.setMysqlInstance(mi);

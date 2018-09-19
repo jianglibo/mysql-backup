@@ -23,7 +23,7 @@ public class TestServerDbService extends ServiceTbase {
 		Server server = new Server("abc", "bbc");
 		server = serverDbService.save(server);
 		
-		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").build();
+		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456", "", "","").build();
 		mi = mysqlInstanceDbService.save(mi);
 		
 		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId()).build();

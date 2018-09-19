@@ -48,7 +48,7 @@ public class RemoteCommandResult {
 	}
 	
 	public void isCommandNotFound() throws CommandNotFoundException {
-		boolean b =  getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found"));
+		boolean b =  getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("command not found")) || getAllTrimedNotEmptyLines().stream().anyMatch(line -> line.contains("CommandNotFoundException"));
 		if (b) {
 			throw new CommandNotFoundException(command);
 		}

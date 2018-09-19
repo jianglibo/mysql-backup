@@ -280,7 +280,10 @@ public class SpringBaseFort {
 	}
 	
 	protected void createMysqlIntance(Server server, String initPassword) {
-		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), initPassword)
+		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), initPassword,
+					"mysql",
+					MysqlInstance.getDefaultDumpFileName(server.getOs()),
+					MysqlInstance.getDefaultRestartCmd(server.getOs()))
 				.addSetting("log_bin", "ON")
 				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
 				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")

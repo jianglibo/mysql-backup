@@ -19,14 +19,12 @@ import org.springframework.beans.factory.annotation.Value;
 import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
-import com.go2wheel.mysqlbackup.util.PathUtil;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
 import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
 import com.jcraft.jsch.JSchException;
@@ -47,7 +45,7 @@ public class TestDumpWin extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, CommandNotFoundException {
 		createSessionLocalHostWindowsAfterClear();
 		sdc.setHost(HOST_LOCAL_HOST);
 		

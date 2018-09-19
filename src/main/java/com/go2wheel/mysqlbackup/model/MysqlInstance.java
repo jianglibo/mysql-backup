@@ -14,10 +14,30 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
+import com.go2wheel.mysqlbackup.value.OsTypeWrapper;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 import com.google.common.collect.Lists;
 
 public class MysqlInstance extends BaseModel {
+	
+	public static final String FIXED_DUMP_FILE_NAME = "mysqldump.sql";
+	public static final String DEFAULT_CLIENT_BIN = "mysql";
+
+	public static String getDefaultDumpFileName(String os) {
+		if (OsTypeWrapper.of(os).isWin()) {
+			return "x:/tmp/mysqldump.sql";
+		} else {
+			return "/tmp/mysqldump.sql";
+		}
+	}
+	
+	public static String getDefaultRestartCmd(String os) {
+		if (OsTypeWrapper.of(os).isWin()) {
+			return "Restart-Service wampmysqld64"; 
+		} else {
+			return "systemctl restart mysqld";
+		}
+	}
 	
 	private String host = "localhost";
 	private int port = 3306;
@@ -136,16 +156,32 @@ public class MysqlInstance extends BaseModel {
 		private final String password;
 		private String mycnfFile;
 		private String flushLogCron;
-		private String dumpFileName;
+		private final String dumpFileName;
+		private final String restartCmd;
+		
+		private final String clientBin;
+		
 		
 		private Set<String> mysqlSettings = new HashSet<>();
 		
 		private final int serverId;
+		
+		public MysqlInstanceBuilder(Server server, String password, String clientBin) {
+			super();
+			this.serverId = server.getId();
+			this.password = password;
+			this.clientBin = clientBin;
+			this.dumpFileName = getDefaultDumpFileName(server.getOs());
+			this.restartCmd = getDefaultRestartCmd(server.getOs());
+		}
 
-		public MysqlInstanceBuilder(int serverId, String password) {
+		public MysqlInstanceBuilder(int serverId, String password,String clientBin, String dumpFilename, String restartCmd) {
 			super();
 			this.serverId = serverId;
 			this.password = password;
+			this.clientBin = clientBin;
+			this.dumpFileName = dumpFilename;
+			this.restartCmd = restartCmd;
 		}
 		
 		public MysqlInstanceBuilder withUsername(String username) {
@@ -174,10 +210,10 @@ public class MysqlInstance extends BaseModel {
 			return this;
 		}
 		
-		public MysqlInstanceBuilder withDumpFileName(String dumpFileName) {
-			this.dumpFileName = dumpFileName;
-			return this;
-		}
+//		public MysqlInstanceBuilder withDumpFileName(String dumpFileName) {
+//			this.dumpFileName = dumpFileName;
+//			return this;
+//		}
 
 		
 		public MysqlInstanceBuilder withFlushLogCron(String flushLogCron) {
@@ -197,6 +233,8 @@ public class MysqlInstance extends BaseModel {
 			mi.setDumpFileName(dumpFileName);
 			mi.setMysqlSettings(new ArrayList<>(mysqlSettings));
 			mi.setHost(host);
+			mi.setRestartCmd(restartCmd);
+			mi.setClientBin(clientBin);
 			return mi;
 		}
 	}

@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
@@ -73,7 +74,7 @@ public class TestRestoreOrigin extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqlRestore()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, RunRemoteCommandException, ScpException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, RunRemoteCommandException, ScpException, CommandNotFoundException {
 		sdc.setHost(HOST_DEFAULT_GET);
 		clearDb();
 		

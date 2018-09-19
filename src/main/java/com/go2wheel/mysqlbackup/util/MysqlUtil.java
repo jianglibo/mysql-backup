@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.ScpException;
@@ -44,17 +45,10 @@ import com.jcraft.jsch.Session;
 public class MysqlUtil {
 
 	public static final String MYSQL_PROMPT = "mysql> ";
-	public static final String FIXED_DUMP_FILE_NAME = "mysqldump.sql";
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
-	public static String getDefaultDumpFileName(String os) {
-		if (OsTypeWrapper.of(os).isWin()) {
-			return "x:/tmp/mysqldump.sql";
-		} else {
-			return "/tmp/mysqldump.sql";
-		}
-	}
+
 
 	@Autowired
 	private SettingsInDb settingsInDb;
@@ -141,7 +135,7 @@ public class MysqlUtil {
 	}
 	
 	public MysqlVariables getLogbinStateWin(Session session, Server server, MysqlInstance mysqlInstance)
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException, CommandNotFoundException {
 		
 		String[] variables = new String[] {MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
 				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
@@ -164,6 +158,8 @@ public class MysqlUtil {
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
 		
+		rcr.isCommandNotFound();
+		
 		Map<String, String> map = rcr.getStdOutList().stream().map(line -> {
 			String[] ss = line.split("\\s+", 2);
 			return ss;
@@ -181,10 +177,6 @@ public class MysqlUtil {
 			return v;
 		}));
 		return new MysqlVariables(map);
-				
-//		return new MysqlVariables(new MysqlVariablesExpectWin(session, server, MysqlVariables.LOG_BIN_VARIABLE, MysqlVariables.LOG_BIN_BASENAME,
-//				MysqlVariables.LOG_BIN_INDEX, "innodb_version", "protocol_version", "version",
-//				"version_comment", "version_compile_machine", "version_compile_os", MysqlVariables.DATA_DIR).start());
 	}
 	
 	public MysqlVariables getLogbinStateCentos(Session session, Server server, MysqlInstance mysqlInstance)
@@ -264,7 +256,7 @@ public class MysqlUtil {
 
 	
 	public MysqlVariables getLogbinState(Session session, Server server)
-			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException, UnExpectedOutputException {
+			throws JSchException, IOException, AppNotStartedException, MysqlAccessDeniedException, UnExpectedInputException, UnExpectedOutputException, CommandNotFoundException {
 		if (OsTypeWrapper.of(server.getOs()).isWin()) {
 			return getLogbinStateWin(session, server, server.getMysqlInstance());
 		} else {

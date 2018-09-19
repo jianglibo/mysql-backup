@@ -24,7 +24,6 @@ import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
-import com.go2wheel.mysqlbackup.util.MysqlUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 
@@ -82,12 +81,16 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 		if (serverId == null) {
 			return redirectListingUrl(httpRequest);
 		}
+		
+		Server server = serverDbService.findById(serverId);
 		MysqlInstance mi = getDbService().findByServerId(serverId);
 		if (mi != null) {
 			model.asMap().clear();
 			return redirectEditUrl(mi.getId());
 		}
 		mi = newModel();
+		mi.setDumpFileName(MysqlInstance.getDefaultDumpFileName(server.getOs()));
+		mi.setRestartCmd(MysqlInstance.getDefaultRestartCmd(server.getOs()));
 		mi.setServerId(Integer.parseInt(serverId));
 		model.addAttribute(OB_NAME, mi);
 		model.addAttribute("editting", false);
@@ -100,9 +103,10 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	protected String afterCreate(MysqlInstance savedEntity, HttpServletRequest request) {
 	    return redirectEditUrl(savedEntity.getId());
 	}
+	
 	@Override
 	public MysqlInstance newModel() {
-		return new MysqlInstance.MysqlInstanceBuilder(0, "").build();
+		return new MysqlInstance.MysqlInstanceBuilder(0, "", MysqlInstance.DEFAULT_CLIENT_BIN, "", "").build();
 	}
 
 	@Override
@@ -125,11 +129,11 @@ public class MysqlInstancesController  extends CRUDController<MysqlInstance, Mys
 	
 	
 	@EventListener
-	public void whenMysqlInstanceCreated(ModelPreCreatedEvent<MysqlInstance> mysqlInstanceCreatedEvent) {
+	public void whenMysqlInstanceBeforeCreated(ModelPreCreatedEvent<MysqlInstance> mysqlInstanceCreatedEvent) {
 		MysqlInstance mi = mysqlInstanceCreatedEvent.getModel();
 		if (!StringUtil.hasAnyNonBlankWord(mi.getDumpFileName())) {
 			Server server = serverDbService.findById(mi.getServerId());
-			mi.setDumpFileName(MysqlUtil.getDefaultDumpFileName(server.getOs()));
+			mi.setDumpFileName(MysqlInstance.getDefaultDumpFileName(server.getOs()));
 		}
 		
 		if (!StringUtil.hasAnyNonBlankWord(mi.getClientBin())) {

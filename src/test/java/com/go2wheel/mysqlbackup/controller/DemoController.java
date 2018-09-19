@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
@@ -64,7 +65,7 @@ public class DemoController {
 	private MysqlService mysqlService;
 
 	@GetMapping("/mysql")
-	public String createMysql() throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public String createMysql() throws JSchException, UnExpectedOutputException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, CommandNotFoundException {
 		Server server = serverDbService.findByHost(SpringBaseFort.HOST_DEFAULT_GET);
 
 		if (server == null) {
@@ -76,7 +77,7 @@ public class DemoController {
 		server = serverDbService.loadFull(server);
 		
 		if (server.getMysqlInstance() == null) {
-			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), "123456").addSetting("log_bin", "ON")
+			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server, "123456", "mysql").addSetting("log_bin", "ON")
 					.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
 					.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
 					.withFlushLogCron(SpringBaseFort.A_VALID_CRON_EXPRESSION).build();
@@ -97,13 +98,15 @@ public class DemoController {
 		if (server1 == null) {
 			server1 = new Server(serverHost1, "c server.");
 			server1.setServerRole(Server.ROLE_GET);
+			server1.setOs("win_2008");
+			server1.setUsername("Administrator");
 			server1 = serverDbService.save(server1);
 		}
 		
 		server1 = serverDbService.loadFull(server1);
 		
 		if (server1.getMysqlInstance() == null) {
-			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server1.getId(), "q1w2e3r4").build();
+			MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server1, "q1w2e3r4", "mysql").build();
 			server1.setMysqlInstance(mysqlInstanceDbService.save(mi));
 		}
 

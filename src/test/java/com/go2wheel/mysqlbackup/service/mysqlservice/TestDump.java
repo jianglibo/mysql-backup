@@ -18,15 +18,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.go2wheel.mysqlbackup.RemoteTfolder;
 import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
+import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
+import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.util.MysqlUtil;
-import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.PathUtil;
 import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.LinuxLsl;
 import com.go2wheel.mysqlbackup.value.RemoteFileDescription;
 import com.jcraft.jsch.JSchException;
 
@@ -41,7 +41,7 @@ public class TestDump extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -88,7 +88,7 @@ public class TestDump extends MysqlServiceTbase {
 	}
 	
 	@Test
-	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException {
+	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, CommandNotFoundException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -111,7 +111,7 @@ public class TestDump extends MysqlServiceTbase {
 		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
 		
 		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
-		assertTrue(Files.exists(localDumpPath.resolve(PathUtil.getFileName(MysqlUtil.FIXED_DUMP_FILE_NAME))));
+		assertTrue(Files.exists(localDumpPath.resolve(PathUtil.getFileName(MysqlInstance.FIXED_DUMP_FILE_NAME))));
 	}
 
 }
