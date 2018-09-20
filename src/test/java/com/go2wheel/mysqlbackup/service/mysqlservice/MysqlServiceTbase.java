@@ -1,6 +1,8 @@
 package com.go2wheel.mysqlbackup.service.mysqlservice;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -77,6 +79,11 @@ public class MysqlServiceTbase extends SpringBaseFort {
 		}
 		FacadeResult<MysqlInstallInfo> info = mySqlInstaller.unInstall(session, server, software);
 		assertFalse(info.getResult().isInstalled());
+	}
+	
+	protected void assertDumpFolderNumber(long num) throws IOException {
+		Path p = settingsIndb.getDumpsDir(server);
+		assertThat("dumps count shoule be it is.", Files.list(p).count(), equalTo(num));
 	}
 	
 	protected void clearDumpsFolder() throws IOException {

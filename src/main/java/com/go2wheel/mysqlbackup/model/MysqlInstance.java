@@ -11,6 +11,7 @@ import javax.validation.constraints.NotNull;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.validator.BackupPruneStrategyConstraint;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.MysqlVariables;
@@ -57,6 +58,12 @@ public class MysqlInstance extends BaseModel {
 	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String flushLogCron;
+	
+	@CronExpressionConstraint(allowEmpty=true)
+	private String localBackupCron;
+	
+	@BackupPruneStrategyConstraint(allowEmpty=true)
+	private String pruneStrategy = "0 0 2 7 4 1 1";
 	
 	@NotNull(message=CommonMessageKeys.VALIDATOR_NOTNULL)
 	private Integer serverId;
@@ -273,6 +280,22 @@ public class MysqlInstance extends BaseModel {
 
 	public void setRestartCmd(String restartCmd) {
 		this.restartCmd = restartCmd;
+	}
+
+	public String getLocalBackupCron() {
+		return localBackupCron;
+	}
+
+	public void setLocalBackupCron(String localBackupCron) {
+		this.localBackupCron = localBackupCron;
+	}
+
+	public String getPruneStrategy() {
+		return pruneStrategy;
+	}
+
+	public void setPruneStrategy(String pruneStrategy) {
+		this.pruneStrategy = pruneStrategy;
 	}
 
 }

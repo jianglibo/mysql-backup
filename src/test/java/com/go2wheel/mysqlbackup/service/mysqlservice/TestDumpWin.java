@@ -100,32 +100,5 @@ public class TestDumpWin extends MysqlServiceTbase {
 		assertThat(fileCount, equalTo(lineInIndexFile));
 		
 	}
-//	
-//	@Test
-//	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException {
-//		clearDb();
-//		installMysql();
-//		sdc.setHost(HOST_DEFAULT_GET);
-//		String rdump = "/tmp/mm/mysqldump.sql";
-//		
-//		// delete remote dump file.
-//		SSHcommonUtil.deleteRemoteFile(server.getOs(), session, rdump);
-//		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
-//		
-//		server.getMysqlInstance().setDumpFileName(rdump);
-//		assertThat(server.getMysqlInstance().getDumpFileName(), equalTo(rdump));
-//		
-//		FacadeResult<RemoteFileDescription> fr = mysqlService.mysqlDump(session, server);
-//		assertTrue(fr.isExpected());
-//		
-//		// remote dump file should created.
-//		assertTrue(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
-//		
-//		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
-//		mysqlService.mysqlFlushLogsAndReturnIndexFile(session, server);
-//		
-//		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
-//		assertTrue(Files.exists(localDumpPath.resolve(PathUtil.getFileName(MysqlUtil.FIXED_DUMP_FILE_NAME))));
-//	}
 
 }

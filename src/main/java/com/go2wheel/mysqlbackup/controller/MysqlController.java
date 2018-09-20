@@ -140,9 +140,6 @@ public class MysqlController extends ControllerBase {
 			} else {
 				mysqlService.enableLogbin(session, server, MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME);
 			}
-//			if (!fr.isExpected()) {
-//				ras.addFlashAttribute(CRUDController.ERROR_MESSAGE_KEY, fr.getMessage());
-//			}
 		} finally {
 			if (session != null && session.isConnected()) {
 				session.disconnect();

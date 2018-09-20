@@ -23,6 +23,7 @@ public class MysqlBackupSchedule extends SchedulerBase {
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String MYSQL_FLUSH_LOG_GROUP = "MYSQL_FLUSH_LOG";
+	public static final String MYSQL_LOCAL_BACKUP = "MYSQL_LOCAL_BACKUP";
 
 	// @formatter:off
 	@EventListener
@@ -40,6 +41,13 @@ public class MysqlBackupSchedule extends SchedulerBase {
 				MysqlFlushLogJob.class,
 				jobKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP),
 				triggerKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
+		
+		createTrigger(server,
+				mi.getLocalBackupCron(),
+				MysqlLocalDumpBackupJob.class,
+				jobKey(server.getHost(), MYSQL_LOCAL_BACKUP),
+				triggerKey(server.getHost(), MYSQL_LOCAL_BACKUP));
+
 	}
 
 	@EventListener
@@ -59,6 +67,13 @@ public class MysqlBackupSchedule extends SchedulerBase {
 				MysqlFlushLogJob.class,
 				jobKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP),
 				triggerKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
+		
+		reschedule(server,
+				before.getLocalBackupCron(),
+				after.getLocalBackupCron(),
+				MysqlLocalDumpBackupJob.class,
+				jobKey(server.getHost(), MYSQL_LOCAL_BACKUP),
+				triggerKey(server.getHost(), MYSQL_LOCAL_BACKUP));
 				
 	}
 	
@@ -68,5 +83,9 @@ public class MysqlBackupSchedule extends SchedulerBase {
 		Server server = serverDbService.findById(mi.getServerId());
 		scheduler.unscheduleJob(triggerKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
 		scheduler.deleteJob(jobKey(server.getHost(), MYSQL_FLUSH_LOG_GROUP));
+		
+		scheduler.unscheduleJob(triggerKey(server.getHost(), MYSQL_LOCAL_BACKUP));
+		scheduler.deleteJob(jobKey(server.getHost(), MYSQL_LOCAL_BACKUP));
+
 	}
 }

@@ -158,6 +158,10 @@ public class MysqlUtil {
 		
 		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
 		
+		if (rcr.getExitValue()  != 0) {
+			throw new UnExpectedInputException("1000", "mysql.showvaribels.failed", rcr.getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
+		}
+		
 		rcr.isCommandNotFound();
 		
 		Map<String, String> map = rcr.getStdOutList().stream().map(line -> {

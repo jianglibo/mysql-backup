@@ -242,6 +242,10 @@ public class SettingsInDb {
 		return path;
 	}
 	
+	public Path getDumpDirBase(Server server) {
+		return getDirInHost(server, "dumps/dump");
+	}
+	
 	public Path getDumpsDir(Server server) throws IOException {
 		Path p = getDirInHost(server, "dumps");
 		if (!Files.exists(p)) {

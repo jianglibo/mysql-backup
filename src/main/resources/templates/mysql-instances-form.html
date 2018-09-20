@@ -77,6 +77,23 @@
 					<span class="pure-form-message-inline"></span>
 				</div>
 
+				<div class="pure-control-group pure-combo">
+					<label for="localBackupCron">本地备份计划</label>
+					<input th:field="*{localBackupCron}" type="text" placeholder="">
+					<select th:remove="all-but-first">
+						<option th:each="one : ${crons}" th:value="${one.expression}" th:text="${one.description}" th:selected="${one.expression} == ${singleItem.flushLogCron}">AL</option>
+						<option>CA</option>
+						<option>IL</option>
+					</select>
+					<span class="pure-form-message-inline"></span>
+				</div>
+
+
+				<div class="pure-control-group">
+					<label for="pruneStrategy">本地卷修剪策略</label>
+					<input th:field="*{pruneStrategy}" type="text" placeholder="">
+					<span class="pure-form-message-inline">7 digital columns separated by space. </span>
+				</div>
 				<div class="pure-control-group">
 					<label for="mysqlSettings">Mysql配置</label>
 					<textarea th:field="*{mysqlSettings}" placeholder=""></textarea>
