@@ -15,10 +15,12 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.JobLog;
@@ -64,14 +66,14 @@ public class MysqlLocalDumpBackupJob implements Job {
 		Server server = serverDbService.findById(mi.getServerId());
 		try {
 			lockerRounded(server, mi);
-		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException |  UnExpectedInputException | RunRemoteCommandException |  MysqlAccessDeniedException e) {
+		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException |  UnExpectedInputException | RunRemoteCommandException |  MysqlAccessDeniedException | ScpException | AppNotStartedException e) {
 			JobLog jl = new JobLog(MysqlLocalDumpBackupJob.class, context, e.getMessage());
 			jobLogDbService.save(jl);
 			throw new ExceptionWrapper(e);
 		}
 	}
 
-	public void lockerRounded(Server server, MysqlInstance mi) throws JobExecutionException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, JSchException, MysqlAccessDeniedException, CommandNotFoundException {
+	public void lockerRounded(Server server, MysqlInstance mi) throws JobExecutionException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, JSchException, MysqlAccessDeniedException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		Server sv = serverDbService.findById(mi.getServerId());
 		sv.setMysqlInstance(mi);
 
@@ -93,7 +95,7 @@ public class MysqlLocalDumpBackupJob implements Job {
 		}
 	}
 
-	private void doWrk(Server server, MysqlInstance mi) throws IOException, JSchException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, MysqlAccessDeniedException, CommandNotFoundException {
+	private void doWrk(Server server, MysqlInstance mi) throws IOException, JSchException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, MysqlAccessDeniedException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(server).getResult();

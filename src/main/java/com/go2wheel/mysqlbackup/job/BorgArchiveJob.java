@@ -49,10 +49,12 @@ public class BorgArchiveJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
-
 		Server sv = serverDbService.findById(sid);
 		sv = serverDbService.loadFull(sv);
-
+		lockRounded(sv);
+	}
+	
+	public void lockRounded(Server sv) throws JobExecutionException {
 		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {

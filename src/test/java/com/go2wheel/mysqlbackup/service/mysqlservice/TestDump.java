@@ -20,6 +20,8 @@ import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
@@ -40,7 +42,7 @@ public class TestDump extends MysqlServiceTbase {
 
 	@Test
 	public void testMysqldump()
-			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, CommandNotFoundException {
+			throws JSchException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, CommandNotFoundException, RunRemoteCommandException, ScpException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);
@@ -51,8 +53,6 @@ public class TestDump extends MysqlServiceTbase {
 		assertFalse(SSHcommonUtil.fileExists(server.getOs(), session, rdump));
 		
 		assertThat(server.getMysqlInstance().getDumpFileName(), equalTo(rdump));
-		
-		Path localDumpPathBefore = settingsIndb.getCurrentDumpDir(server);
 		
 		FacadeResult<RemoteFileDescription> fr = mysqlService.dump(session, server);
 		assertTrue(fr.isExpected());
@@ -65,9 +65,6 @@ public class TestDump extends MysqlServiceTbase {
 		
 		Path localDumpPath = settingsIndb.getCurrentDumpDir(server);
 		
-		String localDumpPathString = localDumpPath.getFileName().toString();
-		
-//		assertThat(localDumpPathString, equalTo(PathUtil.increamentFileName(localDumpPathBefore.getFileName().toString())));
 		assertTrue(Files.exists(localDumpPath.resolve("mysqldump.sql")));
 		
 		fr = mysqlService.dump(session, server);
@@ -84,10 +81,13 @@ public class TestDump extends MysqlServiceTbase {
 		long lineInIndexFile = Files.readAllLines(fr1.getResult()).size() + 1; // only flush once after dump.
 		assertThat(fileCount, equalTo(lineInIndexFile));
 		
+		
+		assertThat(mysqlDumpDbService.count(), equalTo(2L));
+		
 	}
 	
 	@Test
-	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, CommandNotFoundException {
+	public void testAlterNativeDumpFile() throws UnExpectedOutputException, JSchException, SchedulerException, IOException, MysqlAccessDeniedException, AppNotStartedException, NoSuchAlgorithmException, UnExpectedInputException, CommandNotFoundException, RunRemoteCommandException, ScpException {
 		clearDb();
 		installMysql();
 		sdc.setHost(HOST_DEFAULT_GET);

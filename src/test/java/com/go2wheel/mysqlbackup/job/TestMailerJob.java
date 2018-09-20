@@ -22,8 +22,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.commands.MysqlService;
+import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.installer.BorgInstaller;
@@ -68,7 +71,7 @@ public class TestMailerJob extends JobBaseFort {
 	private Software software;
 	
 	
-	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
+	private Subscribe simulation() throws SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		clearDb();
 		UserAccount ua = createUser();
 		createServer();
@@ -100,7 +103,7 @@ public class TestMailerJob extends JobBaseFort {
 		return usg;
 	}
 	
-	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
+	private void createServerData() throws JobExecutionException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		JobDataMap jdm = new JobDataMap();
 		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
@@ -146,7 +149,7 @@ public class TestMailerJob extends JobBaseFort {
 	}
 
 	@Test
-	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
+	public void tCreateMailerContext() throws MessagingException, SchedulerException, InterruptedException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		
 		Subscribe subscribe = simulation();
 		

@@ -15,6 +15,8 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.jcraft.jsch.JSchException;
@@ -42,7 +44,7 @@ public class TestMysqlFlushLogJob extends JobBaseFort {
 	}
 	
 	@Test
-	public void tReady() throws SchedulerException, JSchException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, MysqlAccessDeniedException, CommandNotFoundException, IOException, AppNotStartedException {
+	public void tReady() throws SchedulerException, JSchException, NoSuchAlgorithmException, UnExpectedOutputException, UnExpectedInputException, MysqlAccessDeniedException, CommandNotFoundException, IOException, AppNotStartedException, RunRemoteCommandException, ScpException {
 		clearDb();
 		createSession();
 		createContext();

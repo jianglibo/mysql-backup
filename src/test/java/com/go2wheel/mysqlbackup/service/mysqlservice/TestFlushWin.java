@@ -20,6 +20,8 @@ import com.go2wheel.mysqlbackup.ServerDataCleanerRule;
 import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
+import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
+import com.go2wheel.mysqlbackup.exception.ScpException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -39,7 +41,7 @@ public class TestFlushWin extends MysqlServiceTbase {
 	
 	@Test
 	public void testMysqlFlush()
-			throws JSchException, IOException, MysqlAccessDeniedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, AppNotStartedException, CommandNotFoundException {
+			throws JSchException, IOException, MysqlAccessDeniedException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, SchedulerException, AppNotStartedException, CommandNotFoundException, RunRemoteCommandException, ScpException {
 		createSessionLocalHostWindowsAfterClear();
 		sdc.setHost(HOST_LOCAL_HOST);
 		clearDumpsFolder();

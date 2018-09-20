@@ -127,7 +127,7 @@ public class MysqlService {
 			try {
 				FacadeResult<RemoteFileDescription> fr = this.dump(session, server);
 				return new AsyncTaskValue(id, fr).withDescription(taskDescription);
-			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedOutputException | MysqlAccessDeniedException | UnExpectedInputException | CommandNotFoundException e1) {
+			} catch (JSchException | IOException | NoSuchAlgorithmException | UnExpectedOutputException | MysqlAccessDeniedException | UnExpectedInputException | CommandNotFoundException | RunRemoteCommandException | ScpException | AppNotStartedException e1) {
 				throw new ExceptionWrapper(e1);
 			} finally {
 				if (session != null && session.isConnected()) {
@@ -154,15 +154,17 @@ public class MysqlService {
 	 * @throws MysqlAccessDeniedException 
 	 * @throws UnExpectedInputException 
 	 * @throws CommandNotFoundException 
+	 * @throws ScpException 
+	 * @throws RunRemoteCommandException 
 	 * @throws AppNotStartedException 
 	 */
 	@Exclusive(TaskLocks.TASK_MYSQL)
 	@MeasureTimeCost
-	public FacadeResult<RemoteFileDescription> dump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException {
+	public FacadeResult<RemoteFileDescription> dump(Session session, Server server) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, MysqlAccessDeniedException, UnExpectedInputException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		OsTypeWrapper owr = OsTypeWrapper.of(server.getOs());
 		
 		if (owr.isWin()) {
-			try {
+//			try {
 				
 //				e:\wamp64\bin\mysql\mysql5.7.21\bin\mysqldump --max_allowed_packet=512M -uroot -p --quick --events --all-databases --flush-logs --delete-master-logs --single-transaction > e:\tmp\mysqldump.sql; '---end---'
 				
@@ -198,13 +200,13 @@ public class MysqlService {
 //				{Path=E:\tmp\mysqldump.sql, Length=1572718, FullName=E:\tmp\mysqldump.sql, Hash=014FC8B59E500A4D97C35684309D6D4F, Algorithm=MD5}
 				
 				SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, map.get("Path"), map.get("Hash"), localDumpFile); // cause new dump to create.
-				return FacadeResult.doneExpectedResult(RemoteFileDescriptionImpl.of(map.get("Path"), map.get(("Length"))), CommonActionResult.DONE);
-			} catch (RunRemoteCommandException | ScpException e) {
-				ExceptionUtil.logErrorException(logger, e);
-				return FacadeResult.unexpectedResult(e);
-			}			
+				return saveDumpResult(server, FacadeResult.doneExpectedResult(RemoteFileDescriptionImpl.of(map.get("Path"), map.get(("Length"))), CommonActionResult.DONE));
+//			} catch (RunRemoteCommandException | ScpException e) {
+//				ExceptionUtil.logErrorException(logger, e);
+//				return FacadeResult.unexpectedResult(e);
+//			}			
 		} else {
-			try {
+//			try {
 				Path dumpDir = settingsInDb.getNextDumpDir(server);
 				//localDump file name is fixed. But remote dump file name varies.
 				
@@ -221,14 +223,14 @@ public class MysqlService {
 					llsl.setMd5(r.get(1));
 					SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, llsl.getFilename(),llsl.getMd5(), localDumpFile); // cause new dump to create.
 					backupMysqlSettingsTolocalDisk(session, server);
-					return FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE);
+					return saveDumpResult(server, FacadeResult.doneExpectedResult(llsl, CommonActionResult.DONE));
 				} else {
-					return FacadeResult.unexpectedResult(r.get(0));
+					throw new UnExpectedOutputException("1000", "mysql.dumpexpect", r.stream().collect(Collectors.joining("\n")));
 				}
-			} catch (RunRemoteCommandException | ScpException | AppNotStartedException e) {
-				ExceptionUtil.logErrorException(logger, e);
-				return FacadeResult.unexpectedResult(e);
-			}
+//			} catch (RunRemoteCommandException | ScpException | AppNotStartedException e) {
+//				ExceptionUtil.logErrorException(logger, e);
+//				return FacadeResult.unexpectedResult(e);
+//			}
 		}
 	}
 

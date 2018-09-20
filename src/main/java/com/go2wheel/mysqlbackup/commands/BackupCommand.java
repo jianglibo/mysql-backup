@@ -781,7 +781,7 @@ public class BackupCommand {
 	}
 	
 	@ShellMethod(value = "执行Mysqldump命令")
-	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException, CommandNotFoundException {
+	public FacadeResult<?> mysqlDump(@ShellOption(help="异步执行") boolean async) throws JSchException, IOException, NoSuchAlgorithmException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException, CommandNotFoundException, RunRemoteCommandException, ScpException, AppNotStartedException {
 		sureMysqlReadyForBackup();
 		Server server = appState.getCurrentServer();
 		Long aid = GlobalStore.atomicLong.getAndIncrement();
