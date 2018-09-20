@@ -33,8 +33,8 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
   </head>
 
   <body>
-    <h1 th:style="${allHealthy} ? 'text-align: center;color: blue;' : 'text-align: center;color: red;'" style="text-align: center;color: blue;">浙江政务服务网奉化区服务器以及备份状况报表</h1>
-    <p th:text="${serverGroup.ename}"></p>
+    <h1 th:style="${allHealthy} ? 'text-align: center;color: blue;' : 'text-align: center;color: red;'" style="text-align: center;color: blue;" th:text="|${serverGroup.ename}服务器以及备份状况报表|">浙江政务服务网奉化区服务器以及备份状况报表</h1>
+    <p>概要：</p>
     <table class="pure-table pure-table-bordered">
       <thead>
       <tr>
