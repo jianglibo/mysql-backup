@@ -35,7 +35,7 @@
 	 <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
 	 
 	 
-	<root level="ERROR">
+	<root level="INFO">
 		<appender-ref ref="FILE" />
 	</root>
 	
