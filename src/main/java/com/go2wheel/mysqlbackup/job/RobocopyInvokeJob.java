@@ -79,7 +79,7 @@ public class RobocopyInvokeJob implements Job {
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
-					doWrk(context, sv, rd);
+					doWrk(context.toString(), sv, rd);
 				} finally {
 					lock.unlock();
 				}
@@ -91,7 +91,7 @@ public class RobocopyInvokeJob implements Job {
 		}
 	}
 
-	private void doWrk(JobExecutionContext context, Server server, RobocopyDescription robocopyDescription) {
+	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) {
 		long start = System.currentTimeMillis();
 		Session session = null;
 		try {

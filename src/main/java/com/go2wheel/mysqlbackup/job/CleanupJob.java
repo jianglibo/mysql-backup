@@ -14,7 +14,6 @@ public class CleanupJob implements Job {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
-
 	@Override
 	@TrapException(CleanupJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {

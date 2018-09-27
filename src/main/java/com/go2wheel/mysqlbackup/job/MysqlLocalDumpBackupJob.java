@@ -67,7 +67,7 @@ public class MysqlLocalDumpBackupJob implements Job {
 		try {
 			lockerRounded(server, mi);
 		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException |  UnExpectedInputException | RunRemoteCommandException |  MysqlAccessDeniedException | ScpException | AppNotStartedException e) {
-			JobLog jl = new JobLog(MysqlLocalDumpBackupJob.class, context, e.getMessage());
+			JobLog jl = new JobLog(MysqlLocalDumpBackupJob.class, context.toString(), e.getMessage());
 			jobLogDbService.save(jl);
 			throw new ExceptionWrapper(e);
 		}

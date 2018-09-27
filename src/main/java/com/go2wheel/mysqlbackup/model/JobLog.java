@@ -1,7 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
 import org.quartz.Job;
-import org.quartz.JobExecutionContext;
 
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
@@ -12,9 +11,9 @@ public class JobLog extends BaseModel {
 	private String exp;
 	
 	public JobLog() {}
-	public JobLog(Class<? extends Job> jobClass, JobExecutionContext context, String throwable) {
+	public JobLog(Class<? extends Job> jobClass, String context, String throwable) {
 		this.jobClass = jobClass.getName();
-		this.ctx = context.toString();
+		this.ctx = context;
 		this.exp = throwable;
 	}
 	

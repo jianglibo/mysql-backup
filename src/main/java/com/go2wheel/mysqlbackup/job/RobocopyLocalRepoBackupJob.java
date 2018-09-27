@@ -84,7 +84,7 @@ public class RobocopyLocalRepoBackupJob implements Job {
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
-					doWrk(context, sv, robocopyDescription);
+					doWrk(context.toString(), sv, robocopyDescription);
 				} catch (IOException e) {
 					throw new ExceptionWrapper(e);
 				} finally {
@@ -98,7 +98,7 @@ public class RobocopyLocalRepoBackupJob implements Job {
 		}
 	}
 
-	private void doWrk(JobExecutionContext context, Server server, RobocopyDescription robocopyDescription) throws IOException {
+	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) throws IOException {
 		Session session = null;
 		long start = System.currentTimeMillis();
 		try {
