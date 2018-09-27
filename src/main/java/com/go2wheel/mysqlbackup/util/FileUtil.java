@@ -7,6 +7,7 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -14,11 +15,14 @@ import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 
 public class FileUtil {
 
@@ -163,6 +167,10 @@ public class FileUtil {
 			return;
 		}
 		Path target = PathUtil.getNextAvailable(fileOrDirectoryToBackup, postfixNumber, roundNumber);
+		docopy(fileOrDirectoryToBackup, keepOrigin, target);
+	}
+
+	private static void docopy(Path fileOrDirectoryToBackup, boolean keepOrigin, Path target) throws IOException {
 		if (Files.isDirectory(fileOrDirectoryToBackup)) {
 			copyDirectory(fileOrDirectoryToBackup, target, true);
 			if (!keepOrigin) {
@@ -175,6 +183,31 @@ public class FileUtil {
 				Files.delete(fileOrDirectoryToBackup);
 			}
 		}
+	}
+	
+	public static void backupAlreadyVersioned(Path versionedfileOrDirectoryToBackup, boolean keepOrigin)
+			throws IOException, UnExpectedInputException {
+		if (!Files.exists(versionedfileOrDirectoryToBackup)) {
+			logger.error("Source file: '{}' does't exists.", versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
+			return;
+		}
+		
+		Pattern ptn = Pattern.compile("^(.*)\\.(\\d+)$");
+		Matcher m = ptn.matcher(versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
+		
+		if (!m.matches()) {
+			throw new UnExpectedInputException("1000", "common.filebackup.unverioned", versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
+		}
+		
+		String bn = m.group(1);
+		String dg = m.group(2);
+		int len = dg.length();
+		int pw = 1;
+		for(int i =0;i < len; i++) {
+			pw *= 10;
+		}
+		Path target = PathUtil.getNextAvailable(Paths.get(bn), dg.length(), pw -1);
+		docopy(versionedfileOrDirectoryToBackup, keepOrigin, target);
 	}
 
 	public static void atomicWriteFile(Path dstFile, byte[] content) throws IOException {

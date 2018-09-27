@@ -13,10 +13,9 @@
 			</div>
 			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
 				<div class="pure-button-group form-buttons"  style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
-					<form action="#" method="POST" th:action="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">
-						<button class="pure-button" type="submit">创建一个卷</button>
+						<a class="pure-button post-link" href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">创建一个卷</a>
 						<a class="pure-button" href="#" th:href="@{/app/borg/archives/{serverId}(serverId=${singleItem.serverId})}">卷列表</a>
-					</form>
+						<a class="pure-button post-link" href="#" th:href="@{/app/borg/backuplocal/{id}(id=${singleItem.serverId})}">新建本地备份</a>
 				</div>
 				<div class="pure-control-group">
 					<label for="repo">仓库路径</label>

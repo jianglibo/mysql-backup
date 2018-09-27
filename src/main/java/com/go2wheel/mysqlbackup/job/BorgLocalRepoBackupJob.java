@@ -17,6 +17,7 @@ import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -66,7 +67,7 @@ public class BorgLocalRepoBackupJob implements Job {
 					if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
 						new PruneBackupedFiles(settingsInDb.getRepoDirBase(sv)).prune(pruneStrategy);
 					}
-				} catch (IOException e) {
+				} catch (IOException | UnExpectedInputException e) {
 					JobLog jl = new JobLog(BorgLocalRepoBackupJob.class, context , e.getMessage());
 					jobLogDbService.save(jl);
 					throw new ExceptionWrapper(e);

@@ -21,6 +21,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -169,7 +170,7 @@ public class BorgDescriptionsController  extends CRUDController<BorgDescription,
 	}
 
 	@PostMapping("/{borgdescription}/bk-local-repo")
-	public String postBackupLocalRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException {
+	public String postBackupLocalRepo(@PathVariable(name = "borgdescription") BorgDescription borgDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, UnExpectedInputException {
 		Server server = serverDbService.findById(borgDescription.getServerId());
 		borgService.backupLocalRepos(server);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会通知您。");

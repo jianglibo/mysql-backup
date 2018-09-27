@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.quartz.JobExecutionException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -21,6 +22,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
+import com.go2wheel.mysqlbackup.job.BorgArchiveJob;
+import com.go2wheel.mysqlbackup.job.BorgLocalRepoBackupJob;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
@@ -28,7 +31,6 @@ import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.BorgListResult;
 import com.go2wheel.mysqlbackup.value.BorgPruneResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
@@ -45,7 +47,13 @@ public class BorgController extends ControllerBase {
 	private BorgService borgService;
 	
 	@Autowired
+	private BorgArchiveJob borgArchiveJob;
+	
+	@Autowired
 	private ServerDbService serverDbService;
+	
+	@Autowired
+	private BorgLocalRepoBackupJob borgLocalRepoBackupJob;
 	
 	public BorgController() {
 		super(MAPPING_PATH);
@@ -79,6 +87,7 @@ public class BorgController extends ControllerBase {
 		}
 		Session session = frSession.getResult();
 		try {
+			model.asMap().clear();
 			FacadeResult<BorgListResult> fr = borgService.listArchives(session, server);
 			List<String> archives = fr.getResult().getArchives().stream().map(it -> it.split("\\s+")[0]).collect(Collectors.toList());
 			Collections.sort(archives, Collections.reverseOrder());
@@ -113,23 +122,26 @@ public class BorgController extends ControllerBase {
 	}
 	
 	@PostMapping("/archives/{server}")
-	public String creatArchive(@PathVariable(name="server") Server server, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException {
+	public String creatArchive(@PathVariable(name="server") Server server,Model model, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException, JobExecutionException {
 		server = serverDbService.loadFull(server);
-		FacadeResult<Session> frSession = sshSessionFactory.getConnectedSession(server);
-		Session session = frSession.getResult();
-		try {
-			FacadeResult<RemoteCommandResult> fr = borgService.archive(frSession.getResult(), server, true);
-			if (!fr.isExpected()) {
-				throw new UnExpectedOutputException("10000", "borg.archive.unexpected", fr.getResult().getAllTrimedNotEmptyLines().stream().collect(Collectors.joining("\n")));
-			}
-		} finally {
-			if (session != null && session.isConnected()) {
-				session.disconnect();
-			}
-		}
+		model.asMap().clear();
+		borgArchiveJob.lockRounded(server, "fromcontroller");
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		String uri = ucb.build().toUriString();
 		return "redirect:" + uri;
+	}
+	
+	
+	@PostMapping("/backuplocal/{server}")
+	public String backupLocal(@PathVariable(name="server") Server server,Model model, HttpServletRequest request) throws JSchException, CommandNotFoundException, UnExpectedOutputException, IOException, JobExecutionException {
+		server = serverDbService.loadFull(server);
+		model.asMap().clear();
+		borgLocalRepoBackupJob.lockerWrapped(server, "fromcontroller");
+		String referer = request.getHeader("referer");
+		
+//		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
+//		String uri = ucb.build().toUriString();
+		return "redirect:" + referer;
 	}
 
 	@Override

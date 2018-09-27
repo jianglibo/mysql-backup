@@ -19,8 +19,10 @@ import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.model.BorgDownload;
+import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.BorgDownloadDbService;
+import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
@@ -43,6 +45,9 @@ public class BorgArchiveJob implements Job {
 
 	@Autowired
 	private ServerDbService serverDbService;
+	
+	@Autowired
+	private JobLogDbService jobLogDbService;
 
 	@Override
 	@TrapException(BorgArchiveJob.class)
@@ -51,15 +56,15 @@ public class BorgArchiveJob implements Job {
 		int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 		Server sv = serverDbService.findById(sid);
 		sv = serverDbService.loadFull(sv);
-		lockRounded(sv);
+		lockRounded(sv, context.toString());
 	}
 	
-	public void lockRounded(Server sv) throws JobExecutionException {
+	public void lockRounded(Server sv, String context) throws JobExecutionException {
 		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
-					doWrk(sv);
+					doWrk(sv, context);
 				} finally {
 					lock.unlock();
 				}
@@ -71,7 +76,7 @@ public class BorgArchiveJob implements Job {
 		}
 	}
 
-	private void doWrk(Server sv) {
+	private void doWrk(Server sv, String context) {
 		Session session = null;
 		try {
 			session = sshSessionFactory.getConnectedSession(sv).getResult();
@@ -95,6 +100,8 @@ public class BorgArchiveJob implements Job {
 			borgDownloadDbService.save(bd);
 
 		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException e) {
+			JobLog jl = new JobLog(BorgLocalRepoBackupJob.class, context , e.getMessage());
+			jobLogDbService.save(jl);
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

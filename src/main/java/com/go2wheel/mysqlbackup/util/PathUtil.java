@@ -26,8 +26,6 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.go2wheel.mysqlbackup.model.Server;
-
 public class PathUtil {
 
 	private static Logger logger = LoggerFactory.getLogger(PathUtil.class);

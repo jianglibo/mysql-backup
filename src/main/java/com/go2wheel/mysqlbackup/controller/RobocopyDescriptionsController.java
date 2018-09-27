@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.go2wheel.mysqlbackup.borg.BorgService;
+import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.propertyeditor.ListStringToLinesEditor;
@@ -134,7 +135,7 @@ public class RobocopyDescriptionsController  extends CRUDController<RobocopyDesc
 	}
 
 	@PostMapping("/{RobocopyDescription}/bk-local-repo")
-	public String postBackupLocalRepo(@PathVariable(name = "RobocopyDescription") RobocopyDescription RobocopyDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException {
+	public String postBackupLocalRepo(@PathVariable(name = "RobocopyDescription") RobocopyDescription RobocopyDescription, Model model, HttpServletRequest request, RedirectAttributes ras) throws IOException, UnExpectedInputException {
 		Server server = serverDbService.findById(RobocopyDescription.getServerId());
 		borgService.backupLocalRepos(server);
 		ras.addFlashAttribute("formProcessSuccessed", "任务已异步发送，稍后会�?�知您�??");
