@@ -31,6 +31,15 @@ public class StorageStateDbService extends DbServiceBase<StorageStateRecord, Sto
 		return  ((StorageStateRepository)repo).removeBeforeDay(server, keepDays);
 	}
 
+	public List<StorageState> findByServerId(Integer id) {
+		return  ((StorageStateRepository)repo).findByServerId(id);
+	}
+
+	public int deleteBefore(int days) {
+		return  ((StorageStateRepository)repo).deleteBefore(days);
+		
+	}
+
 	
 	
 }

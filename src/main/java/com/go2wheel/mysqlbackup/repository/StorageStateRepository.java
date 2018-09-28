@@ -12,4 +12,8 @@ public interface StorageStateRepository extends RepositoryBase<StorageStateRecor
 
 	int removeBeforeDay(Server server, int keeyDays);
 
+	List<StorageState> findByServerId(Integer id);
+
+	int deleteBefore(int days);
+
 }

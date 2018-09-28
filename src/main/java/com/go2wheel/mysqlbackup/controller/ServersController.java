@@ -1,25 +1,32 @@
 package com.go2wheel.mysqlbackup.controller;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
+import com.go2wheel.mysqlbackup.job.ServerStateJob;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerGrpDbService;
+import com.go2wheel.mysqlbackup.value.AjaxDataResult;
+import com.go2wheel.mysqlbackup.value.AjaxResult;
+import com.jcraft.jsch.JSchException;
 
 
 @Controller
@@ -40,6 +47,9 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 	
 	@Autowired
 	private SettingsInDb settingsInDb;
+	
+	@Autowired
+	private ServerStateJob serverStateJob;
 
 	@Override
 	boolean copyProperties(Server entityFromForm, Server entityFromDb) {
@@ -52,7 +62,14 @@ public class ServersController  extends  CRUDController<Server, ServerDbService>
 		entityFromDb.setSshKeyFile(entityFromForm.getSshKeyFile());
 		entityFromDb.setServerRole(entityFromForm.getServerRole());
 		entityFromDb.setOs(entityFromForm.getOs());
+		entityFromDb.setCoreNumber(entityFromForm.getCoreNumber());
 		return true;
+	}
+	
+	@PutMapping("/{server}/update-info")
+	public ResponseEntity<AjaxResult> updateServerData(@PathVariable(name="server") Server server, Model model) throws JSchException, IOException {
+		serverStateJob.lockWrapped(server, "fromcontroller");
+		return ResponseEntity.ok(new AjaxDataResult<Server>(server));
 	}
 
 	@Override

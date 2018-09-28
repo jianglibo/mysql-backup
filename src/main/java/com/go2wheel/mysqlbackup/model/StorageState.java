@@ -24,6 +24,11 @@ public class StorageState extends BaseModel {
 		double d = (double)used / (used + available) * 100; 
 		return d;
 	}
+	
+	public double getUsedRatioTrue() {
+		double d = (double)used / (used + available); 
+		return d;
+	}
 
 	public Integer getServerId() {
 		return serverId;

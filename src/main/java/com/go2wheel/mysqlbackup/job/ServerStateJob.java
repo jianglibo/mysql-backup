@@ -12,7 +12,9 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.aop.TrapException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
+import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.ServerStateService;
 import com.go2wheel.mysqlbackup.util.SshSessionFactory;
@@ -30,6 +32,10 @@ public class ServerStateJob implements Job {
 
 	@Autowired
 	private SshSessionFactory sshSessionFactory;
+	
+	@Autowired
+	private JobLogDbService jobLogDbService;
+
 
 	@Override
 	@TrapException(ServerStateJob.class)
@@ -37,6 +43,10 @@ public class ServerStateJob implements Job {
 		JobDataMap data = context.getMergedJobDataMap();
 		int sid = data.getInt(CommonJobDataKey.JOB_DATA_KEY_ID);
 		Server server = serverDbService.findById(sid);
+		lockWrapped(server, context.toString());
+	}
+
+	public void lockWrapped(Server server, String context) {
 		Session session = null;
 		try {
 			if (server.supportSSH()) {
@@ -48,6 +58,8 @@ public class ServerStateJob implements Job {
 			}
 			serverStateService.createServerState(server, session);
 		} catch (JSchException | UnExpectedOutputException | IOException e) {
+			JobLog jl = new JobLog(BorgLocalRepoBackupJob.class, context , e.getMessage());
+			jobLogDbService.save(jl);
 			throw new ExceptionWrapper(e);
 		} finally {
 			if (session != null) {

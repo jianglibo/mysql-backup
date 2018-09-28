@@ -390,13 +390,6 @@ public class BackupCommand {
 		ServerAndSession sas = getServerAndSession(server);
 		int i = serverStateService.getCoreNumber(server, sas.getSession());
 		return FacadeResult.doneExpectedResultDone(i);
-
-//		if (sas.getSession() != null) {
-//			int i = SSHcommonUtil.coreNumber(sas.getSession());
-//			return FacadeResult.doneExpectedResultDone(i);
-//		} else {
-//			return FacadeResult.showMessageUnExpected(CommonMessageKeys.UNSUPPORTED);
-//		}
 	}
 
 

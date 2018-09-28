@@ -10,6 +10,11 @@ import java.util.Date;
 
 public class SQLTimeUtil {
 	
+	/**
+	 * 
+	 * @param days
+	 * @return from now back to days.
+	 */
 	public static Timestamp recentDaysStartPoint(int days) {
 		LocalTime lc = LocalTime.MIDNIGHT;
 		LocalDateTime ldt = lc.atDate(LocalDate.now().minusDays(days - 1));

@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.controller;
 
-import static org.junit.Assert.assertTrue;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -118,7 +116,6 @@ public class DemoController {
 		Software software = sfs.get(0);
 		MysqlInstallInfo ii = (MysqlInstallInfo) mySqlInstaller.install(session, server, software, "123456")
 				.getResult();
-		assertTrue(ii.isInstalled());
 		mysqlService.enableLogbin(session, server);
 
 		return "redirect:/";

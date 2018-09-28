@@ -66,13 +66,6 @@ public class ServerStateService {
 	}
 	
 	public int getCoreNumber(Server server, Session session) throws JSchException, IOException {
-//		OsTypeWrapper otw = OsTypeWrapper.of(server.getOs());
-//		if (otw.isWin()) {
-//			String command = "Get-WmiObject win32_processor | Format-List -Property *";
-//			ProcessExecResult pcr = PSUtil.runPsCommand(command);
-//			Map<String, String> mss = PSUtil.parseFormatList(pcr.getStdOutFilterEmpty()).get(0); // LoadPercentage, NumberOfCores
-//			return StringUtil.parseInt(mss.get("NumberOfCores"));
-//		}
 		return SSHcommonUtil.coreNumber(server.getOs(), session);
 	}
 	

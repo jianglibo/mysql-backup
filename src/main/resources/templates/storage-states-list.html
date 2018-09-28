@@ -1,0 +1,76 @@
+<!doctype html>
+<html th:replace="~{layout :: layout(~{::title}, ~{},  ~{::div.header}, ~{::div.content}, ~{::script})}" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<title>存储状态列表</title>
+</head>
+
+<body>
+	<div id="layout">
+		<div id="main">
+			<div class="header">
+				<h1>存储状态列表</h1>
+			</div>
+			<div class="content">
+				<div id="action-menu-bar"></div>
+				<table class="pure-table pure-table-bordered item-list">
+					<thead>
+						<tr>
+							<th>
+								<input id="item-all" th:id="item-all" type="checkbox">
+							</th>
+							<th>根</th>
+							<th>使用比例</th>
+						</tr>
+					</thead>
+
+					<tbody th:remove="all-but-first">
+						<tr th:each="item: ${listItems}">
+							<td>
+								<input id="particular-item" th:id="|item-${item.id}|" type="checkbox">
+							</td>
+							<td th:text="${item.root}">Honda</td>
+							<td th:text="${#numbers.formatPercent(item.getUsedRatioTrue(), 0, 2)}">Accord</td>
+						</tr>
+						<tr>
+							<td>2</td>
+							<td>Toyota</td>
+							<td>Camry</td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>
+	</div>
+
+	<script th:inline="javascript">
+		var listingUrl = /*[[${listingUrl}]]*/ "/app/listItems";
+		var server = /*[[${server}]]*/ null;
+		window.freact.renderActionMenuBar(listingUrl,
+			".item-list", [{
+				actionId: 'create-item',
+				name: '新建条目',
+				activeOn: 'ALWAYS',
+				onClick: function () {
+					jQuery.ajax({
+						url: listingUrl,
+						method: 'POST',
+						dataType: 'json',
+						data: {server: server.id}
+					}).done(
+						function (responseData, textStatus, jqXHR) {
+							if (responseData.data) {
+								window.location.reload(true);
+							} else {
+								showModal("出错啦", responseData.message);
+							}
+						}
+					);
+				}
+			}]);
+	</script>
+
+</body>
+
+</html>

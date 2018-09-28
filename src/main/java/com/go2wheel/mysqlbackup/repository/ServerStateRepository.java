@@ -9,4 +9,8 @@ public interface ServerStateRepository extends RepositoryBase<ServerStateRecord,
 
 	List<ServerState> getItemsInDays(Integer serverId, int days);
 
+	List<ServerState> findByServerId(Integer id);
+
+	int deleteBefore(int days);
+
 }

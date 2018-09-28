@@ -11,7 +11,13 @@
 			<div class="header">
 				<h1 th:replace="form-parts :: header">编辑或新建</h1>
 			</div>
-			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{})" class="content">
+			<div th:replace="form-parts :: content(~{::div.pure-control-group}, ~{::div.form-buttons})" class="content">
+
+				<div class="pure-button-group form-buttons" style="text-align: center;margin-bottom: 5px;" role="group" aria-label="...">
+				<a class="pure-button ajax-put-link" data-reload="true" href="#" th:href="@{/app/servers/{server}/update-info(server=${singleItem.id})}">查询服务器状态</a>
+				<a class="pure-button" href="#" th:href="@{/app/server-states(server=${singleItem.id})}">服务器状态列表</a>
+				<a class="pure-button" href="#" th:href="@{/app/storage-states(server=${singleItem.id})}">存储状态列表</a>
+				</div>
 				<div class="pure-control-group">
 					<label for="name">名称</label>
 					<input th:field="*{name}" type="text" placeholder="">
@@ -58,6 +64,11 @@
 				<div class="pure-control-group">
 					<label for="sshKeyFile">SSH_KEY_FILE</label>
 					<input th:field="*{sshKeyFile}" type="text" placeholder="">
+					<span class="pure-form-message-inline"></span>
+				</div>
+				<div class="pure-control-group">
+					<label for="coreNumber">CUP核数</label>
+					<input th:field="*{coreNumber}" type="text" placeholder="">
 					<span class="pure-form-message-inline"></span>
 				</div>
 				<div class="pure-control-group">

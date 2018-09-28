@@ -40,4 +40,16 @@ public class JOOQStorageStateRepository extends RepositoryBaseImpl<StorageStateR
 		}
 		
 	}
+
+	@Override
+	public List<StorageState> findByServerId(Integer id) {
+		return jooq.selectFrom(STORAGE_STATE).where(STORAGE_STATE.SERVER_ID.eq(id))
+				.orderBy(STORAGE_STATE.CREATED_AT.desc()).fetch().into(StorageState.class);
+	}
+
+	@Override
+	public int deleteBefore(int days) {
+		Timestamp ts = SQLTimeUtil.recentDaysStartPoint(days);
+		return jooq.deleteFrom(STORAGE_STATE).where(STORAGE_STATE.CREATED_AT.lessThan(ts)).execute();
+	}
 }

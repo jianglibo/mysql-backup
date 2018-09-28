@@ -22,6 +22,12 @@ public class ServerStateDbService extends DbServiceBase<ServerStateRecord, Serve
 		return  ((ServerStateRepository)repo).getItemsInDays(server.getId(), days);
 	}
 
-	
+	public List<ServerState> findByServerId(Integer id) {
+		return  ((ServerStateRepository)repo).findByServerId(id);
+	}
+
+	public int deleteBefore(int days) {
+		return  ((ServerStateRepository)repo).deleteBefore(days);
+	}
 	
 }
