@@ -16,6 +16,7 @@ import com.go2wheel.mysqlbackup.exception.AppNotStartedException;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
+import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.installer.MySqlInstaller;
 import com.go2wheel.mysqlbackup.installer.MysqlInstallInfo;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -33,7 +34,7 @@ public class TestMysqlInstaller extends SpringBaseFort {
 
 	private Software software;
 	
-	private void install(Server server, Software software) throws JSchException, UnExpectedInputException {
+	private void install(Server server, Software software) throws JSchException, UnExpectedInputException, UnExpectedOutputException {
 		Map<String, String> parasMap = Maps.newHashMap();
 		parasMap.put("version", "56");
 		parasMap.put("initPassword", "123456");
@@ -44,7 +45,7 @@ public class TestMysqlInstaller extends SpringBaseFort {
 	
 	
 	@Test
-	public void testUninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+	public void testUninstall() throws JSchException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		clearDb();
 		createSession();
 		createMysqlIntance();

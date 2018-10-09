@@ -109,7 +109,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	public FacadeResult<MysqlInstallInfo> install(Session session, Server server, Software software,
-			String initPassword) throws MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException {
+			String initPassword) throws MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException {
 		try {
 			if (!Stream.of(SUPPORTED_VERSIONS).anyMatch(v -> v.equals(software.getVersion()))) {
 				return FacadeResult.unexpectedResult(String.format("unsupported version: %s", software.getVersion()));
@@ -156,6 +156,8 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 				Channel channel = session.openChannel("shell");
 				channel.connect();
 
+//				ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass';
+				
 				Expect expect;
 				// @formatter:off
 				expect = new ExpectBuilder()
@@ -171,7 +173,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 					
 					try {
 						expect.withTimeout(500, TimeUnit.MILLISECONDS).expect(contains("Access denied"));
-						return FacadeResult.unexpectedResult("执行mysql_secure_installation失败，密码错误，可能原来安装的文件尚在�??");
+						throw new UnExpectedOutputException("1000", "mysql.accessdenied", "");
 					} catch (ExpectIOException e) {
 					}
 					
@@ -246,7 +248,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 	}
 
 	@Override
-	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException, UnExpectedInputException {
+	public FacadeResult<MysqlInstallInfo> install(Server server, Software software, Map<String, String> parasMap) throws JSchException, UnExpectedInputException, UnExpectedOutputException {
 		Session session = sshSessionFactory.getConnectedSession(server).getResult();
 		FacadeResult<MysqlInstallInfo> fr = null;
 		try {
@@ -267,7 +269,7 @@ public class MySqlInstaller extends InstallerBase<MysqlInstallInfo> {
 		return CompletableFuture.supplyAsync(() -> {
 			try {
 				return new AsyncTaskValue(id, install(server, software, parasMap)).withDescription(msgKey);
-			} catch (JSchException | UnExpectedInputException e) {
+			} catch (JSchException | UnExpectedInputException | UnExpectedOutputException e) {
 				return new AsyncTaskValue(id, FacadeResult.unexpectedResult(e)).withDescription(msgKey);
 			}
 		});
