@@ -56,10 +56,10 @@ public class StorageStatesController  extends  CRUDController<StorageState, Stor
 		
 	}
 	
-	@PostMapping
-	public ResponseEntity<AjaxResult> createOne(@RequestParam Server server, HttpServletRequest request) {
-		return ResponseEntity.ok(new AjaxDataResult<>(storageStateJob.lockWrapped(server, "fromcontroller")));
-	}
+//	@PostMapping
+//	public ResponseEntity<AjaxResult> createOne(@RequestParam Server server, HttpServletRequest request) {
+//		return ResponseEntity.ok(new AjaxDataResult<>(storageStateJob.lockWrapped(server, "fromcontroller")));
+//	}
 	
 	
 	@Override

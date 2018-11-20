@@ -141,10 +141,4 @@ public class StartPointer {
         DbProperties factory = new DbProperties();
         return factory;
     }
-//    
-//    @Bean
-//    public JavaMailSenderImpl mailSender() {
-//    	
-//    }
-
 }

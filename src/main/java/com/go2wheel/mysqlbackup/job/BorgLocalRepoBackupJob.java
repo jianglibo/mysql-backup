@@ -15,7 +15,6 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.borg.BorgService;
 import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
@@ -31,9 +30,6 @@ import com.go2wheel.mysqlbackup.value.PruneBackupedFiles;
 @Component
 public class BorgLocalRepoBackupJob implements Job {
 
-	@Autowired
-	private BorgService borgService;
-	
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -53,32 +49,32 @@ public class BorgLocalRepoBackupJob implements Job {
 
 		Server sv = serverDbService.findById(sid);
 		sv = serverDbService.loadFull(sv);
-		lockerWrapped(sv, context.toString());
+//		lockerWrapped(sv, context.toString());
 	}
 
-	public void lockerWrapped(Server sv, String context) throws JobExecutionException {
-		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
-		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
-				try {
-					borgService.backupLocalRepos(sv);
-					BorgDescription bd = sv.getBorgDescription();
-					String pruneStrategy = bd.getPruneStrategy();
-					if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
-						new PruneBackupedFiles(settingsInDb.getRepoDirBase(sv)).prune(pruneStrategy);
-					}
-				} catch (IOException | UnExpectedInputException e) {
-					JobLog jl = new JobLog(BorgLocalRepoBackupJob.class, context , e.getMessage());
-					jobLogDbService.save(jl);
-					throw new ExceptionWrapper(e);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				throw new JobExecutionException(true);
-			}
-		} catch (InterruptedException e) {
-			ExceptionUtil.logErrorException(logger, e);
-		}
-	}
+//	public void lockerWrapped(Server sv, String context) throws JobExecutionException {
+//		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
+//		try {
+//			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+//				try {
+//					borgService.backupLocalRepos(sv);
+//					BorgDescription bd = sv.getBorgDescription();
+//					String pruneStrategy = bd.getPruneStrategy();
+//					if (StringUtil.hasAnyNonBlankWord(pruneStrategy)) {
+//						new PruneBackupedFiles(settingsInDb.getRepoDirBase(sv)).prune(pruneStrategy);
+//					}
+//				} catch (IOException | UnExpectedInputException e) {
+//					JobLog jl = new JobLog(BorgLocalRepoBackupJob.class, context , e.getMessage());
+//					jobLogDbService.save(jl);
+//					throw new ExceptionWrapper(e);
+//				} finally {
+//					lock.unlock();
+//				}
+//			} else {
+//				throw new JobExecutionException(true);
+//			}
+//		} catch (InterruptedException e) {
+//			ExceptionUtil.logErrorException(logger, e);
+//		}
+//	}
 }

@@ -27,7 +27,6 @@ import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyBaseT;
-import com.jcraft.jsch.JSchException;
 
 public class TestRobocopyIncrementJob extends RobocopyBaseT {
 	
@@ -44,7 +43,7 @@ public class TestRobocopyIncrementJob extends RobocopyBaseT {
     public TemporaryFolder srcfolder= new TemporaryFolder();
     
 	@Test
-	public void tEmptyItems() throws SchedulerException, JSchException, IOException {
+	public void tEmptyItems() throws SchedulerException, IOException {
 		createSessionLocalHostWindowsAfterClear();
 		assertThat(countJobs(), equalTo(0L)); // new add mysqlinstance job.
 		
@@ -74,7 +73,7 @@ public class TestRobocopyIncrementJob extends RobocopyBaseT {
     
 	
 	@Test
-	public void tEmptySrcFolder() throws SchedulerException, JSchException, IOException {
+	public void tEmptySrcFolder() throws SchedulerException,  IOException {
 		createSessionLocalHostWindowsAfterClear();
 		assertThat(countJobs(), equalTo(0L)); // new add mysqlinstance job.
 		deleteRepo(server);
@@ -117,7 +116,7 @@ public class TestRobocopyIncrementJob extends RobocopyBaseT {
 	}
 	
 	@Test
-	public void tNormalSrcFolder() throws SchedulerException, JSchException, IOException {
+	public void tNormalSrcFolder() throws SchedulerException, IOException {
 		createSessionLocalHostWindowsAfterClear();
 		assertThat(countJobs(), equalTo(0L)); // new add mysqlinstance job.
 		deleteRepo(server);

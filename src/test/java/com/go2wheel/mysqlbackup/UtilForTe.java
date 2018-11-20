@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
 import static org.quartz.impl.matchers.GroupMatcher.groupEquals;
 
 import java.io.BufferedReader;
@@ -23,14 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 
 public class UtilForTe {
 	
@@ -147,24 +139,4 @@ public class UtilForTe {
 		}
 		return tmpFolder;
 	}
-
-	
-	public static String sshEcho(Session sshSession, String str) throws IOException, JSchException {
-		final Channel channel = sshSession.openChannel("exec");
-		try {
-			((ChannelExec) channel).setCommand("echo " + str);
-			channel.setInputStream(null);
-			((ChannelExec) channel).setErrStream(System.err);
-			InputStream in = channel.getInputStream();
-			channel.connect();
-
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel,null, in);
-			assertThat(cmdOut.getStdOut().trim(), equalTo(str));
-			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
-			return cmdOut.getStdOut();
-		} finally {
-			channel.disconnect();
-		}
-	}
-
 }

@@ -14,9 +14,9 @@ spring.jackson.serialization.INDENT_OUTPUT=false
  
 spring.jooq.sql-dialect=HSQLDB
 # jdbc, memory
-spring.quartz.job-store-type=jdbc
+spring.quartz.job-store-type=memory
 # always, embeded.
-spring.quartz.jdbc.initialize-schema=never
+spring.quartz.jdbc.initialize-schema=always
 
 spring.flyway.locations=classpath:/db/migration
 

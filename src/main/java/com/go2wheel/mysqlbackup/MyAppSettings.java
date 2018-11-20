@@ -17,53 +17,29 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 import com.go2wheel.mysqlbackup.service.KeyValueService;
-import com.go2wheel.mysqlbackup.util.ExceptionUtil;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
 @ConfigurationProperties(prefix = com.go2wheel.mysqlbackup.MyAppSettings.MYAPP_PREFIX)
 @Component
 public class MyAppSettings {
+	
+	@SuppressWarnings("unused")
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String MYAPP_PREFIX = "myapp";
 
 	private SshConfig ssh;
 
-//	private String dataDir;
-
-//	private Path dataRoot;
-
-//	private String downloadFolder;
-//
-//	private Path downloadRoot;
-
 	private Set<String> storageExcludes;
 
 	private CacheTimes cache;
 	
-	private KeyValueProperties kvp;
-
-	// myapp.downloadFolder=notingit
-	// myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
-	// myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
-	// myapp.jp.maxThreads=3
-	// myapp.jp.waitPause=10
-	// myapp.jp.maxWait=10000
-	// myapp.jp.remoteMode=false
-	// myapp.storage_excludes[0]=/dev
-	// myapp.storage_excludes[1]=/dev/shm
-	// myapp.storage_excludes[2]=/run
-	// myapp.storage_excludes[3]=/sys/fs/cgroup
-	// myapp.storage_excludes[4]=/boot
-	// myapp.storage_excludes[5]=/run/user/0
-	// myapp.storage_excludes[6]=/run/user/1000
-	// myapp.storage_excludes[7]=挂载点
-	// myapp.cache.combo=0
-
+	private String dataDir;
+	
+	private Path dataDirPath;
+	
 	@Autowired
 	private KeyValueDbService keyValueDbService;
 
@@ -72,14 +48,11 @@ public class MyAppSettings {
 
 	@PostConstruct
 	public void post() throws IOException {
-		setupProperties();
 		setupSsh();
-//		setupDirectories();
-
-	}
-
-	private void setupProperties() {
-		kvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX);
+		this.dataDirPath = Paths.get(this.dataDir);
+		if (!Files.exists(this.dataDirPath)) {
+			Files.createDirectories(this.dataDirPath);
+		}
 	}
 
 	private void setupSsh() {
@@ -103,49 +76,6 @@ public class MyAppSettings {
 
 	}
 
-//	private Path getHostDir(Server server) {
-//		return getDataRoot().resolve(server.getHost());
-//	}
-
-//	public Path getLogBinDir(Server server) {
-//		Path dstDir = getHostDir(server).resolve("logbin");
-//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-//			try {
-//				Files.createDirectories(dstDir);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		return dstDir;
-//	}
-
-//	public Path getBorgRepoDir(Server server) {
-//		Path dstDir = getHostDir(server).resolve("repo");
-//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-//			try {
-//				Files.createDirectories(dstDir);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		return dstDir;
-//	}
-
-//	public Path getDumpDir(Server server) throws IOException {
-//		Path dstDir = getHostDir(server).resolve("dump");
-//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-//			Files.createDirectories(dstDir);
-//		}
-//		return dstDir;
-//	}
-
-//	public Path getLocalMysqlDir(Server server) throws IOException {
-//		Path dstDir = getHostDir(server).resolve("mysql");
-//		if (!Files.exists(dstDir) || Files.isRegularFile(dstDir)) {
-//			Files.createDirectories(dstDir);
-//		}
-//		return dstDir;
-//	}
 
 	public SshConfig getSsh() {
 		return ssh;
@@ -154,34 +84,6 @@ public class MyAppSettings {
 	public void setSsh(SshConfig ssh) {
 		this.ssh = ssh;
 	}
-
-//	public void setDataDir(String dataDir) {
-//		this.dataDir = dataDir;
-//	}
-
-//	public Path getDataRoot() {
-//		return dataRoot;
-//	}
-//
-//	public void setDataRoot(Path dataRoot) {
-//		this.dataRoot = dataRoot;
-//	}
-
-//	public String getDownloadFolder() {
-//		return downloadFolder;
-//	}
-//
-//	public void setDownloadFolder(String downloadFolder) {
-//		this.downloadFolder = downloadFolder;
-//	}
-//
-//	public Path getDownloadRoot() {
-//		return downloadRoot;
-//	}
-//
-//	public void setDownloadRoot(Path downloadRoot) {
-//		this.downloadRoot = downloadRoot;
-//	}
 
 	public Set<String> getStorageExcludes() {
 		return storageExcludes;
@@ -197,6 +99,22 @@ public class MyAppSettings {
 
 	public void setCache(CacheTimes cache) {
 		this.cache = cache;
+	}
+
+	public String getDataDir() {
+		return dataDir;
+	}
+
+	public void setDataDir(String dataDir) {
+		this.dataDir = dataDir;
+	}
+
+	public Path getDataDirPath() {
+		return dataDirPath;
+	}
+
+	public void setDataDirPath(Path dataDirPath) {
+		this.dataDirPath = dataDirPath;
 	}
 
 	public static class CacheTimes {

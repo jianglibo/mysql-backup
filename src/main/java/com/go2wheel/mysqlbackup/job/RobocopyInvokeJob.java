@@ -34,19 +34,13 @@ import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 
 @Component
 public class RobocopyInvokeJob implements Job {
 
 	@Autowired
 	private RobocopyService robocopyService;
-
-	@Autowired
-	private SshSessionFactory sshSessionFactory;
 
 	@Autowired
 	private ServerDbService serverDbService;
@@ -79,7 +73,7 @@ public class RobocopyInvokeJob implements Job {
 		try {
 			if (lock.tryLock(10, TimeUnit.SECONDS)) {
 				try {
-					doWrk(context.toString(), sv, rd);
+//					doWrk(context.toString(), sv, rd);
 				} finally {
 					lock.unlock();
 				}
@@ -91,30 +85,30 @@ public class RobocopyInvokeJob implements Job {
 		}
 	}
 
-	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) {
-		long start = System.currentTimeMillis();
-		Session session = null;
-		try {
-			session = sshSessionFactory.getConnectedSession(server).getResult();
-			Path filePath = robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-			if (filePath != null) {
-				long ts = System.currentTimeMillis() - start;
-				BorgDownload bd = new BorgDownload();
-				bd.setServerId(server.getId());
-				bd.setDownloadBytes(Files.size(filePath));
-				bd.setCreatedAt(new Date());
-				bd.setTimeCost(ts);
-				borgDownloadDbService.save(bd);
-			}
-		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
-			JobLog jl = new JobLog(RobocopyInvokeJob.class, context, e.getMessage());
-			jobLogDbService.save(jl);
-			throw new ExceptionWrapper(e);
-		} finally {
-			if (session != null) {
-				session.disconnect();
-			}
-		}
-	}
+//	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) {
+//		long start = System.currentTimeMillis();
+//		Session session = null;
+//		try {
+//			session = sshSessionFactory.getConnectedSession(server).getResult();
+//			Path filePath = robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+//			if (filePath != null) {
+//				long ts = System.currentTimeMillis() - start;
+//				BorgDownload bd = new BorgDownload();
+//				bd.setServerId(server.getId());
+//				bd.setDownloadBytes(Files.size(filePath));
+//				bd.setCreatedAt(new Date());
+//				bd.setTimeCost(ts);
+//				borgDownloadDbService.save(bd);
+//			}
+//		} catch (JSchException | CommandNotFoundException | NoSuchAlgorithmException | UnExpectedOutputException | IOException | UnExpectedInputException | RunRemoteCommandException | ScpException e) {
+//			JobLog jl = new JobLog(RobocopyInvokeJob.class, context, e.getMessage());
+//			jobLogDbService.save(jl);
+//			throw new ExceptionWrapper(e);
+//		} finally {
+//			if (session != null) {
+//				session.disconnect();
+//			}
+//		}
+//	}
 
 }

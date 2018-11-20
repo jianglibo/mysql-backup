@@ -6,7 +6,6 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -50,15 +49,7 @@ import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 import com.go2wheel.mysqlbackup.service.StorageStateDbService;
 import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.service.UserAccountDbService;
-import com.go2wheel.mysqlbackup.util.SSHcommonUtil;
-import com.go2wheel.mysqlbackup.util.SshSessionFactory;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
-import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.RemoteCommandResult;
-import com.jcraft.jsch.Channel;
-import com.jcraft.jsch.ChannelExec;
-import com.jcraft.jsch.JSchException;
-import com.jcraft.jsch.Session;
 
 //@formatter:off
 @SpringBootTest(classes = StartPointer.class, 
@@ -156,11 +147,6 @@ public class SpringBaseFort {
 	@Autowired
 	protected DefaultValues dvs;
 	
-	@Autowired
-	protected SshSessionFactory sshSessionFactory;
-	
-	protected Session session;
-	
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
 
 	
@@ -175,7 +161,7 @@ public class SpringBaseFort {
 	}
 	
 	@After
-	public void afterBase() throws IOException, JSchException, RunRemoteCommandException {
+	public void afterBase() throws IOException, RunRemoteCommandException {
 		clearDb();
 	}
 	
@@ -201,38 +187,6 @@ public class SpringBaseFort {
 		serverDbService.deleteAll();
 		serverGrpDbService.deleteAll();
 	}
-	
-	protected void createSession() throws JSchException {
-		if (server == null) {
-			createServer();
-		}
-		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
-		if (frs.isExpected()) {
-			session = frs.getResult();
-		}
-	}
-	
-	
-	protected void createSessionLocalHostWindows() throws JSchException {
-		if (server == null) {
-			createServerLocalhostWindows();
-			server = serverDbService.save(server);
-		}
-		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
-		if (frs.isExpected()) {
-			session = frs.getResult();
-		}
-	}
-	
-	protected Session createSession(Server server) throws JSchException {
-		FacadeResult<Session> frs = sshSessionFactory.getConnectedSession(server);
-		if (frs.isExpected()) {
-			return frs.getResult();
-		} else {
-			return null;
-		}
-	}
-	
 	
 	protected void deleteAllJobs() throws SchedulerException {
 		scheduler.getJobKeys(GroupMatcher.anyJobGroup()).stream().forEach(jk -> {
@@ -306,60 +260,7 @@ public class SpringBaseFort {
 		System.out.println(String.format("time elapsed: %s ms", System.currentTimeMillis() - startTime));
 	}
 
-	protected void createAfileOnServer(String rfile, String content) throws IOException, JSchException {
-		final Channel channel = session.openChannel("exec");
-		try {
-			((ChannelExec) channel).setCommand(String.format("echo %s > %s; cat %s", content,
-					rfile, rfile));
-			channel.setInputStream(null);
-			((ChannelExec) channel).setErrStream(System.err);
-			InputStream in = channel.getInputStream();
-			channel.connect();
 
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel, null, in);
-			assertThat(cmdOut.getStdOut().trim(), equalTo(content));
-			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
-		} finally {
-			channel.disconnect();
-		}
-	}
-
-
-	/**
-	 * create /dir /dir/aabbcc
-	 * @param dir
-	 * @param content
-	 * @param number
-	 * @throws IOException
-	 * @throws JSchException
-	 */
-	protected void createADirOnServer(String dir, String content, int number) throws IOException, JSchException {
-		final Channel channel = session.openChannel("exec");
-		StringBuilder sb = new StringBuilder(String.format("mkdir -p %s; mkdir %s/aabbcc",
-				dir, dir));
-		for (int i = 0; i < number; i++) {
-			sb.append(";");
-			String s = String.format("echo %s > %s/%s", content, dir,
-					"sshbasefile_" + i + ".txt");
-			sb.append(s);
-		}
-		sb.append(";");
-		String s = String.format("echo %s > %s/aabbcc/%s", content, dir, "sshbasefile_x.txt");
-		sb.append(s);
-		try {
-			((ChannelExec) channel).setCommand(sb.toString());
-			channel.setInputStream(null);
-			((ChannelExec) channel).setErrStream(System.err);
-			InputStream in = channel.getInputStream();
-			channel.connect();
-
-			RemoteCommandResult cmdOut = SSHcommonUtil.readChannelOutput(channel,null, in);
-			assertThat(cmdOut.getStdOut().trim(), equalTo(""));
-			assertThat("exit code should be 0.", cmdOut.getExitValue(), equalTo(0));
-		} finally {
-			channel.disconnect();
-		}
-	}
 
 	public Path createALocalFile(Path tmpFile, String content) throws IOException {
 		Path parent = tmpFile.toAbsolutePath().getParent();
@@ -395,19 +296,8 @@ public class SpringBaseFort {
 		assertTrue(true);
 	}
 	
-//	@TestConfiguration
-//	public static  class Tcc {
-//		@Bean
-//		public ObjectMapper prettyprintOm() {
-//			ObjectMapper om = new ObjectMapper();
-//			return om;
-//		}
-//		
-//	}
-	
-	protected void createSessionLocalHostWindowsAfterClear() throws JSchException, SchedulerException {
+	protected void createSessionLocalHostWindowsAfterClear() throws SchedulerException {
 		clearDb();
-		createSessionLocalHostWindows();
 		deleteAllJobs();
 	}
 }

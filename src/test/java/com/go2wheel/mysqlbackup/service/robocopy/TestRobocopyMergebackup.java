@@ -1,29 +1,8 @@
 package com.go2wheel.mysqlbackup.service.robocopy;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.NoSuchAlgorithmException;
-import java.util.List;
-import java.util.stream.Collectors;
-
 import org.junit.Rule;
-import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
-import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
-import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
-import com.go2wheel.mysqlbackup.exception.ScpException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
-import com.go2wheel.mysqlbackup.model.RobocopyDescription;
-import com.go2wheel.mysqlbackup.util.FileUtil;
-import com.jcraft.jsch.JSchException;
 
 public class TestRobocopyMergebackup extends RobocopyBaseT {
 	
@@ -58,47 +37,47 @@ public class TestRobocopyMergebackup extends RobocopyBaseT {
 	 * @throws UnExpectedInputException 
 	 */
 	
-	@Test
-	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException, UnExpectedInputException {
-		createSessionLocalHostWindowsAfterClear();
-		
-		// create demo file.
-		Path rt = srcfolder.getRoot().toPath();
-		createALocalFile(rt.resolve("a/afile.txt"), "abc");
-		
-		// the source is rt, but has two destinations 'abc' and 'abc1';   
-		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
-		
-		// delete existing local repo.
-		Files.list(settingsIndb.getCurrentRepoDir(server)).forEach(f -> {
-			try {
-				Files.delete(f);
-			} catch (IOException e) {
-			}
-		});
-		
-		Path r = robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		
-		Path lrepo = settingsIndb.getCurrentRepoDir(server);
-		List<Path> files = Files.list(lrepo).collect(Collectors.toList());
-		// only has a fullbakcup.rar file.
-		assertThat(files.size(), equalTo(1));
-		
-		// then add a new file.
-		createALocalFile(rt.resolve("a/afile1.txt"), "abc");
-		robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		files = Files.list(lrepo).collect(Collectors.toList());
-		assertThat("should has 2 files, one fullbackup and an incremental.", files.size(), equalTo(2));
-		
-		// then change a file of content.
-		Files.write(rt.resolve("a/afile.txt"), "kkk".getBytes());
-		robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
-		files = Files.list(lrepo).collect(Collectors.toList());
-		assertThat("should has 3 files, one fullbackup and two incremental.", files.size(), equalTo(3));
-		
-		robocopyService.expandLocalArchive(server, robocopyDescription, settingsIndb.getCurrentRepoDir(server));
-		
-		FileUtil.deleteFolder(settingsIndb.getRepoTmp(server), true);
-	
-	}
+//	@Test
+//	public void tFullBackupStep() throws JSchException, IOException, SchedulerException, CommandNotFoundException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException, UnExpectedInputException {
+//		createSessionLocalHostWindowsAfterClear();
+//		
+//		// create demo file.
+//		Path rt = srcfolder.getRoot().toPath();
+//		createALocalFile(rt.resolve("a/afile.txt"), "abc");
+//		
+//		// the source is rt, but has two destinations 'abc' and 'abc1';   
+//		RobocopyDescription robocopyDescription = grpd(repofolder, srcfolder);
+//		
+//		// delete existing local repo.
+//		Files.list(settingsIndb.getCurrentRepoDir(server)).forEach(f -> {
+//			try {
+//				Files.delete(f);
+//			} catch (IOException e) {
+//			}
+//		});
+//		
+//		Path r = robocopyService.fullBackup(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+//		
+//		Path lrepo = settingsIndb.getCurrentRepoDir(server);
+//		List<Path> files = Files.list(lrepo).collect(Collectors.toList());
+//		// only has a fullbakcup.rar file.
+//		assertThat(files.size(), equalTo(1));
+//		
+//		// then add a new file.
+//		createALocalFile(rt.resolve("a/afile1.txt"), "abc");
+//		robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+//		files = Files.list(lrepo).collect(Collectors.toList());
+//		assertThat("should has 2 files, one fullbackup and an incremental.", files.size(), equalTo(2));
+//		
+//		// then change a file of content.
+//		Files.write(rt.resolve("a/afile.txt"), "kkk".getBytes());
+//		robocopyService.incrementalBackupAndDownload(session, server, robocopyDescription, robocopyDescription.getRobocopyItems());
+//		files = Files.list(lrepo).collect(Collectors.toList());
+//		assertThat("should has 3 files, one fullbackup and two incremental.", files.size(), equalTo(3));
+//		
+//		robocopyService.expandLocalArchive(server, robocopyDescription, settingsIndb.getCurrentRepoDir(server));
+//		
+//		FileUtil.deleteFolder(settingsIndb.getRepoTmp(server), true);
+//	
+//	}
 }
