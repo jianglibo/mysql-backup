@@ -3,6 +3,7 @@ package com.go2wheel.mysqlbackup.util;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,6 @@ public class PSUtil {
 	public static ProcessExecResult runPsCommand(String oneLineCommand) {
 		ProcessExecResult per = new ProcessExecResult();
 		try {
-			
-//			ProcessBuilder pb = new ProcessBuilder("powershell.exe", "-Command", String.format("{%s}", oneLineCommand));
 			ProcessBuilder pb = new ProcessBuilder("powershell.exe", oneLineCommand);
 			Process powerShellProcess = pb.start();
 			powerShellProcess.getOutputStream().close();
@@ -29,6 +28,40 @@ public class PSUtil {
 			stdout.close();
 			List<String> stdErrorLines = new ArrayList<>();
 			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
+			while ((line = stderr.readLine()) != null) {
+				stdErrorLines.add(line);
+			}
+			stderr.close();
+			powerShellProcess.waitFor();
+			per.setStdOut(stdOutLines);
+			per.setStdError(stdErrorLines);
+			per.setExitValue(powerShellProcess.exitValue());
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+			per.setException(e);
+		}
+		return per;
+	}
+	
+	public static ProcessExecResult runPsCommandByCall(String oneLineCommand) {
+		return runPsCommandByCall(oneLineCommand, Charset.defaultCharset());
+	}
+	
+	public static ProcessExecResult runPsCommandByCall(String oneLineCommand, Charset cs) {
+		ProcessExecResult per = new ProcessExecResult();
+		try {
+			ProcessBuilder pb = new ProcessBuilder("powershell.exe","-Command", "& {" + oneLineCommand + "}");
+			Process powerShellProcess = pb.start();
+			powerShellProcess.getOutputStream().close();
+			String line;
+			List<String> stdOutLines = new ArrayList<>();
+			BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream(), cs));
+			while ((line = stdout.readLine()) != null) {
+				stdOutLines.add(line);
+			}
+			stdout.close();
+			List<String> stdErrorLines = new ArrayList<>();
+			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream(), cs));
 			while ((line = stderr.readLine()) != null) {
 				stdErrorLines.add(line);
 			}
