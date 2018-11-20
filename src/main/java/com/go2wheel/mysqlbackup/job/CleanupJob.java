@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.service.ServerStateDbService;
-import com.go2wheel.mysqlbackup.service.StorageStateDbService;
+import com.go2wheel.mysqlbackup.dbservice.ServerStateDbService;
+import com.go2wheel.mysqlbackup.dbservice.StorageStateDbService;
 
 @Component
 public class CleanupJob implements Job {

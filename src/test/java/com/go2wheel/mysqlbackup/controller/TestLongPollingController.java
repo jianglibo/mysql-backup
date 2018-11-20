@@ -17,8 +17,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.web.servlet.MvcResult;
 
 import com.go2wheel.mysqlbackup.SpringBaseTWithWeb;
-import com.go2wheel.mysqlbackup.service.GlobalStore;
-import com.go2wheel.mysqlbackup.service.GlobalStore.SavedFuture;
+import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
+import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.value.AjaxDataResult;
 import com.go2wheel.mysqlbackup.value.AjaxResult;
 import com.go2wheel.mysqlbackup.value.AsyncTaskValue;

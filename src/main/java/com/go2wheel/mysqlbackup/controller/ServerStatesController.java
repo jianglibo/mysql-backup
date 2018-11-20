@@ -9,10 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
+import com.go2wheel.mysqlbackup.dbservice.ServerStateDbService;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerState;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.service.ServerStateDbService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 
 

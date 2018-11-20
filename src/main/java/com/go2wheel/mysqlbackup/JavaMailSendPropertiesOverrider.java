@@ -19,10 +19,10 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
+import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
+import com.go2wheel.mysqlbackup.dbservice.KeyValueService;
 import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.service.KeyValueDbService;
-import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 import com.google.common.collect.Sets;
 

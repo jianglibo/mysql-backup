@@ -11,7 +11,7 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
-import com.go2wheel.mysqlbackup.service.TableDiscovery;
+import com.go2wheel.mysqlbackup.dbservice.TableDiscovery;
 
 public class DbTableNameProvider implements ValueProvider {
 

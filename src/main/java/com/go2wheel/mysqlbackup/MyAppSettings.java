@@ -16,9 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
+import com.go2wheel.mysqlbackup.dbservice.KeyValueService;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.service.KeyValueDbService;
-import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
 @ConfigurationProperties(prefix = com.go2wheel.mysqlbackup.MyAppSettings.MYAPP_PREFIX)
@@ -39,6 +39,10 @@ public class MyAppSettings {
 	private String dataDir;
 	
 	private Path dataDirPath;
+	
+	private String psapp;
+	
+	private String powershell;
 	
 	@Autowired
 	private KeyValueDbService keyValueDbService;
@@ -115,6 +119,22 @@ public class MyAppSettings {
 
 	public void setDataDirPath(Path dataDirPath) {
 		this.dataDirPath = dataDirPath;
+	}
+
+	public String getPsapp() {
+		return psapp;
+	}
+
+	public void setPsapp(String psapp) {
+		this.psapp = psapp;
+	}
+
+	public String getPowershell() {
+		return powershell;
+	}
+
+	public void setPowershell(String powershell) {
+		this.powershell = powershell;
 	}
 
 	public static class CacheTimes {

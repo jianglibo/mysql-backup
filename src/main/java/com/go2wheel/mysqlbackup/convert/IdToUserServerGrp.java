@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
 import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 @Component

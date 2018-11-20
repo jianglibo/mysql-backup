@@ -10,7 +10,7 @@ import org.quartz.SchedulerException;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.service.robocopy.RobocopyService;
+import com.go2wheel.mysqlbackup.service.RobocopyService;
 import com.go2wheel.mysqlbackup.util.ProcessExecUtil;
 
 public class TestRoboCopyExitValue extends SpringBaseFort {

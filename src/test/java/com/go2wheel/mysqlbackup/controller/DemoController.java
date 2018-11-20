@@ -11,13 +11,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
+import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
+import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
+import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.RobocopyDescriptionDbService;
-import com.go2wheel.mysqlbackup.service.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
-import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 
 @Controller
 @RequestMapping("/app/demo")

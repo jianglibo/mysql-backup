@@ -11,8 +11,8 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
+import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
 
 public class ServerValueProvider  implements ValueProvider {
 	

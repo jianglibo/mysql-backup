@@ -19,6 +19,7 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
+import com.go2wheel.mysqlbackup.dbservice.SqlService;
 import com.go2wheel.mysqlbackup.jooqschema.tables.Author;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 

@@ -11,8 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
+import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 
 @Service
 public class ChromePDFWriter {

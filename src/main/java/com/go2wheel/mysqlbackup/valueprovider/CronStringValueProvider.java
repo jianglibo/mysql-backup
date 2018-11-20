@@ -13,7 +13,7 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
-import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
+import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
 public class CronStringValueProvider implements ValueProvider {

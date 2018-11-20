@@ -10,8 +10,8 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.service.KeyValueDbService;
 
 public class KeyValueValueProvider  implements ValueProvider {
 	

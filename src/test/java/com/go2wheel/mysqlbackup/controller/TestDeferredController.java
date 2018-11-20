@@ -11,7 +11,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import com.go2wheel.mysqlbackup.SpringBaseTWithWeb;
-import com.go2wheel.mysqlbackup.service.GlobalStore;
+import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
 
 public class TestDeferredController extends SpringBaseTWithWeb {
 	

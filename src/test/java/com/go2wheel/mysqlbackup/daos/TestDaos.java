@@ -14,9 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.repository.ReusableCronRepository;
-import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
 
 public class TestDaos extends SpringBaseFort {
 	

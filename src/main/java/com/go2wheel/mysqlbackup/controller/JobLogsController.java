@@ -5,8 +5,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.model.JobLog;
-import com.go2wheel.mysqlbackup.service.JobLogDbService;
 
 
 @Controller

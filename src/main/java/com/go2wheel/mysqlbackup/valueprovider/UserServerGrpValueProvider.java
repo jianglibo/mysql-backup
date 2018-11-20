@@ -10,8 +10,8 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
 import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.service.SubscribeDbService;
 
 public class UserServerGrpValueProvider  implements ValueProvider {
 	

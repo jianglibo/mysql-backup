@@ -4,6 +4,8 @@ import org.junit.Rule;
 import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.go2wheel.mysqlbackup.service.RobocopyService;
+
 public class TestRobocopyMergebackup extends RobocopyBaseT {
 	
     @Rule

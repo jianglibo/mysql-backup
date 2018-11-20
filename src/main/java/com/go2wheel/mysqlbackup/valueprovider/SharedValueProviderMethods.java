@@ -20,11 +20,11 @@ import com.go2wheel.mysqlbackup.ApplicationState;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
+import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
+import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.ReusableCronDbService;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 @Service

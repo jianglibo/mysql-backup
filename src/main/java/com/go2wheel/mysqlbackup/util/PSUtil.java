@@ -43,6 +43,45 @@ public class PSUtil {
 		return per;
 	}
 	
+	public static ProcessExecResult runPsFile(String filepath, Charset cs, String...others) {
+		ProcessExecResult per = new ProcessExecResult();
+		try {
+			String[] cmds=new String[others.length + 3];
+					cmds[0] = "powershell.exe";
+					cmds[1] = "-File";
+					
+					cmds[2] = filepath;
+			for(int i = 0; i < others.length; i++) {
+				cmds[i+3] = others[i];
+			}
+			String s = String.join(" ", cmds);
+			ProcessBuilder pb = new ProcessBuilder(cmds);
+			Process powerShellProcess = pb.start();
+			powerShellProcess.getOutputStream().close();
+			String line;
+			List<String> stdOutLines = new ArrayList<>();
+			BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream(), cs));
+			while ((line = stdout.readLine()) != null) {
+				stdOutLines.add(line);
+			}
+			stdout.close();
+			List<String> stdErrorLines = new ArrayList<>();
+			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream(), cs));
+			while ((line = stderr.readLine()) != null) {
+				stdErrorLines.add(line);
+			}
+			stderr.close();
+			powerShellProcess.waitFor();
+			per.setStdOut(stdOutLines);
+			per.setStdError(stdErrorLines);
+			per.setExitValue(powerShellProcess.exitValue());
+		} catch (IOException | InterruptedException e) {
+			e.printStackTrace();
+			per.setException(e);
+		}
+		return per;		
+	}
+	
 	public static ProcessExecResult runPsCommandByCall(String oneLineCommand) {
 		return runPsCommandByCall(oneLineCommand, Charset.defaultCharset());
 	}

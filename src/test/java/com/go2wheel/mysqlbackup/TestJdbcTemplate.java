@@ -11,8 +11,8 @@ import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import com.go2wheel.mysqlbackup.dbservice.TableDiscovery;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
-import com.go2wheel.mysqlbackup.service.TableDiscovery;
 
 public class TestJdbcTemplate extends SpringBaseFort {
 

@@ -12,10 +12,10 @@ import org.quartz.JobExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.exception.JobOnGoingException;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.service.JobLogDbService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
 

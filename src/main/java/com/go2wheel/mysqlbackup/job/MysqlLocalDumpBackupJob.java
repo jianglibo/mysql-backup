@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.service.JobLogDbService;
-import com.go2wheel.mysqlbackup.service.MysqlInstanceDbService;
-import com.go2wheel.mysqlbackup.service.ServerDbService;
+import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
+import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
+import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 
 @Component
 public class MysqlLocalDumpBackupJob implements Job {

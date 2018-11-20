@@ -14,11 +14,11 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
+import com.go2wheel.mysqlbackup.dbservice.KeyValueService;
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.service.KeyValueService;
 import com.google.common.base.CaseFormat;
 
 @ConfigurationProperties(prefix="dv")

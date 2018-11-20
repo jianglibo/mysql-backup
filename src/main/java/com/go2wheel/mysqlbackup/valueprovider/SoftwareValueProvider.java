@@ -11,8 +11,8 @@ import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
 import com.go2wheel.mysqlbackup.annotation.MetaAnno;
+import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.service.SoftwareDbService;
 
 public class SoftwareValueProvider  implements ValueProvider {
 	
