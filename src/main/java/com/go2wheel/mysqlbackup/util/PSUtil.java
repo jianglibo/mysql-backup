@@ -44,17 +44,19 @@ public class PSUtil {
 	}
 	
 	public static ProcessExecResult runPsFile(String filepath, Charset cs, String...others) {
+		return runPsFile("powershell.exe", filepath, cs, others);
+	}
+	public static ProcessExecResult runPsFile(String powershell, String filepath, Charset cs, String...others) {
 		ProcessExecResult per = new ProcessExecResult();
 		try {
 			String[] cmds=new String[others.length + 3];
-					cmds[0] = "powershell.exe";
+					cmds[0] = powershell;
 					cmds[1] = "-File";
 					
 					cmds[2] = filepath;
 			for(int i = 0; i < others.length; i++) {
 				cmds[i+3] = others[i];
 			}
-			String s = String.join(" ", cmds);
 			ProcessBuilder pb = new ProcessBuilder(cmds);
 			Process powerShellProcess = pb.start();
 			powerShellProcess.getOutputStream().close();
@@ -87,9 +89,14 @@ public class PSUtil {
 	}
 	
 	public static ProcessExecResult runPsCommandByCall(String oneLineCommand, Charset cs) {
+		return runPsCommandByCall("powershell.exe", oneLineCommand, Charset.defaultCharset());
+	}
+
+	
+	public static ProcessExecResult runPsCommandByCall(String powershell, String oneLineCommand, Charset cs) {
 		ProcessExecResult per = new ProcessExecResult();
 		try {
-			ProcessBuilder pb = new ProcessBuilder("powershell.exe","-Command", "& {" + oneLineCommand + "}");
+			ProcessBuilder pb = new ProcessBuilder(powershell,"-Command", "& {" + oneLineCommand + "}");
 			Process powerShellProcess = pb.start();
 			powerShellProcess.getOutputStream().close();
 			String line;
