@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,51 +14,12 @@ import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
 public class PSUtil {
 	
-	public static ProcessExecResult runPsCommand(String oneLineCommand) {
-		ProcessExecResult per = new ProcessExecResult();
-		try {
-			ProcessBuilder pb = new ProcessBuilder("powershell.exe", oneLineCommand);
-			Process powerShellProcess = pb.start();
-			powerShellProcess.getOutputStream().close();
-			String line;
-			List<String> stdOutLines = new ArrayList<>();
-			BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream()));
-			while ((line = stdout.readLine()) != null) {
-				stdOutLines.add(line);
-			}
-			stdout.close();
-			List<String> stdErrorLines = new ArrayList<>();
-			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream()));
-			while ((line = stderr.readLine()) != null) {
-				stdErrorLines.add(line);
-			}
-			stderr.close();
-			powerShellProcess.waitFor();
-			per.setStdOut(stdOutLines);
-			per.setStdError(stdErrorLines);
-			per.setExitValue(powerShellProcess.exitValue());
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-			per.setException(e);
-		}
-		return per;
-	}
+	private static String POWERSHELL_EXE = "powershell.exe";
 	
-	public static ProcessExecResult runPsFile(String filepath, Charset cs, String...others) {
-		return runPsFile("powershell.exe", filepath, cs, others);
-	}
-	public static ProcessExecResult runPsFile(String powershell, String filepath, Charset cs, String...others) {
+	public static ProcessExecResult invokePowershell(List<String> commandElements, Charset cs) {
 		ProcessExecResult per = new ProcessExecResult();
 		try {
-			String[] cmds=new String[others.length + 3];
-					cmds[0] = powershell;
-					cmds[1] = "-File";
-					
-					cmds[2] = filepath;
-			for(int i = 0; i < others.length; i++) {
-				cmds[i+3] = others[i];
-			}
-			ProcessBuilder pb = new ProcessBuilder(cmds);
+			ProcessBuilder pb = new ProcessBuilder(commandElements.toArray(new String[] {}));
 			Process powerShellProcess = pb.start();
 			powerShellProcess.getOutputStream().close();
 			String line;
@@ -81,7 +43,32 @@ public class PSUtil {
 			e.printStackTrace();
 			per.setException(e);
 		}
-		return per;		
+		return per;
+	}
+	
+	public static ProcessExecResult invokePowershell(String powershell, List<String> commandElements, Charset cs) {
+		commandElements.add(0, powershell);
+		return invokePowershell(commandElements, cs);
+	}
+
+	
+	public static ProcessExecResult runPsCommand(String oneLineCommand) {
+		List<String> ls = new ArrayList<>();
+		ls.add(POWERSHELL_EXE);
+		ls.add(oneLineCommand);
+		return invokePowershell(ls, Charset.defaultCharset());
+	}
+	
+	public static ProcessExecResult runPsFile(String filepath, Charset cs, String...others) {
+		return runPsFile("powershell.exe", filepath, cs, others);
+	}
+	public static ProcessExecResult runPsFile(String powershell, String filepath, Charset cs, String...others) {
+		List<String> ls = new ArrayList<>();
+		ls.add(powershell);
+		ls.add("-File");
+		ls.add(filepath);
+		ls.addAll(Arrays.asList(others));
+		return invokePowershell(ls, cs);
 	}
 	
 	public static ProcessExecResult runPsCommandByCall(String oneLineCommand) {
@@ -94,33 +81,11 @@ public class PSUtil {
 
 	
 	public static ProcessExecResult runPsCommandByCall(String powershell, String oneLineCommand, Charset cs) {
-		ProcessExecResult per = new ProcessExecResult();
-		try {
-			ProcessBuilder pb = new ProcessBuilder(powershell,"-Command", "& {" + oneLineCommand + "}");
-			Process powerShellProcess = pb.start();
-			powerShellProcess.getOutputStream().close();
-			String line;
-			List<String> stdOutLines = new ArrayList<>();
-			BufferedReader stdout = new BufferedReader(new InputStreamReader(powerShellProcess.getInputStream(), cs));
-			while ((line = stdout.readLine()) != null) {
-				stdOutLines.add(line);
-			}
-			stdout.close();
-			List<String> stdErrorLines = new ArrayList<>();
-			BufferedReader stderr = new BufferedReader(new InputStreamReader(powerShellProcess.getErrorStream(), cs));
-			while ((line = stderr.readLine()) != null) {
-				stdErrorLines.add(line);
-			}
-			stderr.close();
-			powerShellProcess.waitFor();
-			per.setStdOut(stdOutLines);
-			per.setStdError(stdErrorLines);
-			per.setExitValue(powerShellProcess.exitValue());
-		} catch (IOException | InterruptedException e) {
-			e.printStackTrace();
-			per.setException(e);
-		}
-		return per;
+		List<String> ls = new ArrayList<>();
+		ls.add(powershell);
+		ls.add("-Command");
+		ls.add("& {" + oneLineCommand + "}");
+		return invokePowershell(ls, cs);
 	}
 	
 	public static ProcessExecResult archiveZip(String src, String dst) {

@@ -10,9 +10,11 @@ import org.junit.Test;
 
 public class TestTaskLock {
 	
+	private static String TASK_FILEBACKUP = "TASK_FILEBACKUP";
+	
 	@Test
 	public void tDoubleAcquire() {
-		Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILEBACKUP);
+		Lock lock = TaskLocks.getBoxLock("abc", TASK_FILEBACKUP);
 		int i = 0;
 		if (lock.tryLock()) {
 			i++;
@@ -30,7 +32,7 @@ public class TestTaskLock {
 	
 	@Test
 	public void tDoubleAcquire1() {
-		ReentrantLock lock = (ReentrantLock) TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILEBACKUP);
+		ReentrantLock lock = (ReentrantLock) TaskLocks.getBoxLock("abc", TASK_FILEBACKUP);
 		int i = 0;
 		if (lock.tryLock()) {
 			lock.lock();
@@ -47,7 +49,7 @@ public class TestTaskLock {
 			@Override
 			public void run() {
 				System.out.println("a");
-				Lock lock = TaskLocks.getBoxLock("abc", TaskLocks.TASK_FILEBACKUP);
+				Lock lock = TaskLocks.getBoxLock("abc", TASK_FILEBACKUP);
 				lock.lock();
 				System.out.println("b");
 				lock.unlock();

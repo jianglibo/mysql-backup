@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueService;
+import com.go2wheel.mysqlbackup.exception.AppConfigurationError;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 
@@ -42,7 +44,13 @@ public class MyAppSettings {
 	
 	private String psapp;
 	
+	private Path psappPath;
+	
 	private String powershell;
+	
+	private String consoleCharsetName;
+	
+	private Charset consoleCharset;
 	
 	@Autowired
 	private KeyValueDbService keyValueDbService;
@@ -51,12 +59,18 @@ public class MyAppSettings {
 	private KeyValueService keyValueService;
 
 	@PostConstruct
-	public void post() throws IOException {
+	public void post() throws IOException, AppConfigurationError {
 		setupSsh();
 		this.dataDirPath = Paths.get(this.dataDir);
 		if (!Files.exists(this.dataDirPath)) {
 			Files.createDirectories(this.dataDirPath);
 		}
+		this.psappPath = Paths.get(this.psapp);
+		
+		if (!Files.exists(this.psappPath)) {
+			throw new AppConfigurationError("psapp", this.psapp);
+		}
+		this.consoleCharset = Charset.forName(this.consoleCharsetName);
 	}
 
 	private void setupSsh() {
@@ -135,6 +149,30 @@ public class MyAppSettings {
 
 	public void setPowershell(String powershell) {
 		this.powershell = powershell;
+	}
+
+	public Path getPsappPath() {
+		return psappPath;
+	}
+
+	public void setPsappPath(Path psappPath) {
+		this.psappPath = psappPath;
+	}
+
+	public String getConsoleCharsetName() {
+		return consoleCharsetName;
+	}
+
+	public void setConsoleCharsetName(String consoleCharsetName) {
+		this.consoleCharsetName = consoleCharsetName;
+	}
+
+	public Charset getConsoleCharset() {
+		return consoleCharset;
+	}
+
+	public void setConsoleCharset(Charset consoleCharset) {
+		this.consoleCharset = consoleCharset;
 	}
 
 	public static class CacheTimes {

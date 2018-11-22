@@ -69,20 +69,20 @@ public class RobocopyInvokeJob implements Job {
 		
 		Server sv = serverDbService.findById(rd.getServerId());
 
-		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
-		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
-				try {
-//					doWrk(context.toString(), sv, rd);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				throw new JobExecutionException(true);
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
+//		try {
+//			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+//				try {
+////					doWrk(context.toString(), sv, rd);
+//				} finally {
+//					lock.unlock();
+//				}
+//			} else {
+//				throw new JobExecutionException(true);
+//			}
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 //	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) {

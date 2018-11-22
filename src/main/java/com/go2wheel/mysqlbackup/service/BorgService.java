@@ -10,25 +10,5 @@ public class BorgService {
 
 	@Autowired
 	private MyAppSettings myAppSettings;
-	
-	public BorgRunner newBorgRunner(String configurationFile) {
-		return new BorgRunner(configurationFile);
-	}
-	
-	
-	public class BorgRunner {
-		
-		private String configurationFile;
-		
-		public BorgRunner(String configurationFile) {
-			this.configurationFile = configurationFile;
-		}
-		
-		public String archive() {
-			return null;
-		}
-		
-		
-	}
 
 }

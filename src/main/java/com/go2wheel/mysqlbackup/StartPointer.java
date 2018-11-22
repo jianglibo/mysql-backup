@@ -34,7 +34,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.go2wheel.mysqlbackup.commands.BackupCommand;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
-import com.go2wheel.mysqlbackup.value.DbProperties;
 
 /**
  * Components scan start from this class's package.
@@ -134,11 +133,4 @@ public class StartPointer {
 		messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
 		return messageSource;
 	}
-	
-	
-    @Bean("propertiesInDb")
-    public DbProperties dbProperties() {
-        DbProperties factory = new DbProperties();
-        return factory;
-    }
 }

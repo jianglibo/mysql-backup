@@ -61,6 +61,7 @@ myapp.storage_excludes[7]=\u6302\u8F7D\u70B9
 myapp.cache.combo=0
 myapp.psapp=D:\\Documents\\GitHub\\easy-installer
 myapp.powershell=powershell.exe
+myapp.consoleCharsetName=gb18030
 
 using.spring.schedulerFactory=true
 expectit.echo=true

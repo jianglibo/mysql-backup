@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.service;
+package com.go2wheel.mysqlbackup.dbservice;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.ServerGrp;

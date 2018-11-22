@@ -50,6 +50,7 @@ import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.DefaultValues;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
 //@formatter:off
 @SpringBootTest(classes = StartPointer.class, 
@@ -289,6 +290,17 @@ public class SpringBaseFort {
 		assertThat("files should right.", Files.list(topPath).filter(Files::isRegularFile).count(), equalTo(files));
 		assertThat("total should right.", Files.walk(topPath).count(), equalTo(total));
 
+	}
+	
+	public void printProcessExecutionResult(ProcessExecResult per) {
+		System.out.println("standout:");
+		for(String s : per.getStdOut()) {
+			System.out.println(s);
+		}
+		System.out.println("standerr:");
+		for(String s : per.getStdError()) {
+			System.out.println(s);
+		}
 	}
 	
 	@Test

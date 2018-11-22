@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.service;
+package com.go2wheel.mysqlbackup.dbservice;
 
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;

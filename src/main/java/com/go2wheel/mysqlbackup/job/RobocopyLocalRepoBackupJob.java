@@ -58,21 +58,21 @@ public class RobocopyLocalRepoBackupJob implements Job {
 		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(robocopyDescription.getId());
 		robocopyDescription.setRobocopyItems(items);
 		Server sv = serverDbService.findById(robocopyDescription.getServerId());
-
-		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
-		try {
-			if (lock.tryLock(10, TimeUnit.SECONDS)) {
-				try {
-//					doWrk(context.toString(), sv, robocopyDescription);
-				} finally {
-					lock.unlock();
-				}
-			} else {
-				throw new JobExecutionException(true);
-			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
+//
+//		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
+//		try {
+//			if (lock.tryLock(10, TimeUnit.SECONDS)) {
+//				try {
+////					doWrk(context.toString(), sv, robocopyDescription);
+//				} finally {
+//					lock.unlock();
+//				}
+//			} else {
+//				throw new JobExecutionException(true);
+//			}
+//		} catch (InterruptedException e) {
+//			e.printStackTrace();
+//		}
 	}
 
 //	private void doWrk(String context, Server server, RobocopyDescription robocopyDescription) throws IOException {
