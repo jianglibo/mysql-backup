@@ -29,8 +29,6 @@ import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlDumpDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
@@ -126,12 +124,6 @@ public class SpringBaseFort {
 	protected BigObDbService bigObDbService;
 	
 	@Autowired
-	protected MysqlFlushDbService mysqlFlushDbService;
-	
-	@Autowired
-	protected MysqlDumpDbService mysqlDumpDbService;
-	
-	@Autowired
 	protected ReusableCronDbService reuseableCronDbService;
 	
 	@Autowired
@@ -174,8 +166,6 @@ public class SpringBaseFort {
 		playBackDbService.deleteAll();
 		mysqlInstanceDbService.deleteAll();
 		borgDescriptionDbService.deleteAll();
-		mysqlDumpDbService.deleteAll();
-		mysqlFlushDbService.deleteAll();
 		serverStateDbService.deleteAll();
 		storageStateDbService.deleteAll();
 		borgDownloadDbService.deleteAll();

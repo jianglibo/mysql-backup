@@ -1,8 +1,14 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ConfigFile {
 	
@@ -14,12 +20,16 @@ public class ConfigFile {
 	
 	private String hostName;
 	
+	private String logDir;
+	
 	private Map<String, String> taskcmd;
 	
 	private Map<String, List<String>> processBuilderNeededList = new HashMap<>();
 	
+	private Map<String, Path> logDirs = new HashMap<>();
+	
 	private Map<String, String> crons;
-
+	
 	public String getAppName() {
 		return appName;
 	}
@@ -74,6 +84,22 @@ public class ConfigFile {
 
 	public void setEntryPoint(String entryPoint) {
 		this.entryPoint = entryPoint;
+	}
+
+	public String getLogDir() {
+		return logDir;
+	}
+
+	public void setLogDir(String logDir) {
+		this.logDir = logDir;
+	}
+
+	public Map<String, Path> getLogDirs() {
+		return logDirs;
+	}
+
+	public void setLogDirs(Map<String, Path> logDirs) {
+		this.logDirs = logDirs;
 	}
 
 }

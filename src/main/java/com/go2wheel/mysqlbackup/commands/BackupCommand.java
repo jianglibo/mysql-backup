@@ -50,25 +50,20 @@ import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
-import com.go2wheel.mysqlbackup.dbservice.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
+import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlDumpDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlFlushDbService;
 import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerGrpDbService;
-import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.dbservice.SqlService;
 import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
 import com.go2wheel.mysqlbackup.dbservice.TemplateContextService;
 import com.go2wheel.mysqlbackup.dbservice.UserAccountDbService;
-import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
-import com.go2wheel.mysqlbackup.exception.MysqlAccessDeniedException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
@@ -79,8 +74,6 @@ import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.KeyValue;
-import com.go2wheel.mysqlbackup.model.MysqlDump;
-import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
@@ -123,9 +116,6 @@ public class BackupCommand {
 	@Autowired
 	private DefaultValues dvs;
 
-	@Autowired
-	private BorgDownloadDbService borgDownloadDbService;
-
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
@@ -142,9 +132,6 @@ public class BackupCommand {
 
 	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;
-
-	@Autowired
-	private MysqlDumpDbService mysqlDumpDbService;
 
 	@Autowired
 	private MailerJob mailerJob;
@@ -172,13 +159,7 @@ public class BackupCommand {
 	private ServerDbService serverDbService;
 
 	@Autowired
-	private MysqlFlushDbService mysqlFlushDbService;
-
-	@Autowired
 	private LocaledMessageService localedMessageService;
-
-	@Autowired
-	private SoftwareDbService softwareDbService;
 
 	@PostConstruct
 	public void post() {
@@ -703,12 +684,12 @@ public class BackupCommand {
 
 
 	
-	@ShellMethod(value = "列出Mysqldump历史纪录")
-	public FacadeResult<?> mysqlDumpList() throws  IOException {
-		Server server = appState.getCurrentServer();
-		List<MysqlDump> dumps = mysqlDumpDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
-		return FacadeResult.doneExpectedResultDone(dumps);
-	}
+//	@ShellMethod(value = "列出Mysqldump历史纪录")
+//	public FacadeResult<?> mysqlDumpList() throws  IOException {
+//		Server server = appState.getCurrentServer();
+//		List<MysqlDump> dumps = mysqlDumpDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlDump.MYSQL_DUMP.SERVER_ID.eq(server.getId()), 0, 50);
+//		return FacadeResult.doneExpectedResultDone(dumps);
+//	}
 
 	// @formatter: off
 	@ShellMethod(value = "添加或更改Mysql的描述")
@@ -774,13 +755,13 @@ public class BackupCommand {
 //		return fr;
 //	}
 	
-	@ShellMethod(value = "列出flush Mysql的历史")
-	public FacadeResult<?> MysqlFlushLogList() throws UnExpectedInputException {
-		sureMysqlReadyForBackup();
-		Server server = appState.getCurrentServer();
-		List<MysqlFlush> mfs = mysqlFlushDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
-		return FacadeResult.doneExpectedResultDone(mfs);
-	}
+//	@ShellMethod(value = "列出flush Mysql的历史")
+//	public FacadeResult<?> MysqlFlushLogList() throws UnExpectedInputException {
+//		sureMysqlReadyForBackup();
+//		Server server = appState.getCurrentServer();
+//		List<MysqlFlush> mfs = mysqlFlushDbService.findAll(com.go2wheel.mysqlbackup.jooqschema.tables.MysqlFlush.MYSQL_FLUSH.SERVER_ID.eq(server.getId()), 0, 50);
+//		return FacadeResult.doneExpectedResultDone(mfs);
+//	}
 
 
 	@ShellMethod(value = "添加常用的CRON表达式")
