@@ -47,7 +47,6 @@ import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
 //@formatter:off
@@ -136,9 +135,6 @@ public class SpringBaseFort {
 	protected SoftwareDbService softwareDbService;
 
 	protected Server server;
-	
-	@Autowired
-	protected DefaultValues dvs;
 	
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
 

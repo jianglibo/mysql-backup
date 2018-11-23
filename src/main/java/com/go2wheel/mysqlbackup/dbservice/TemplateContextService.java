@@ -11,17 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
-import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.model.JobLog;
-import com.go2wheel.mysqlbackup.model.MysqlDump;
-import com.go2wheel.mysqlbackup.model.MysqlFlush;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
-import com.go2wheel.mysqlbackup.model.ServerState;
-import com.go2wheel.mysqlbackup.model.StorageState;
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.value.DefaultValues;
+import com.go2wheel.mysqlbackup.model.UserAccount;
 
 @Service
 public class TemplateContextService {
@@ -46,9 +39,6 @@ public class TemplateContextService {
 	@Autowired
 	private ServerDbService serverDbService;
 	
-	@Autowired
-	private DefaultValues dvs;
-
 //	@Autowired
 //	private MysqlFlushDbService mysqlFlushDbService;
 
@@ -75,8 +65,8 @@ public class TemplateContextService {
 			oscs.add(osc);
 		}
 		Server myself = serverDbService.findByHost("localhost");
-		List<JobLog> jobLogs = jobLogDbService.getRecentItems(dvs.getDefaultCount().getInteger(DefaultValues.JOB_LOG_CN));
-		return new ServerGroupContext(oscs,jobLogs, ua, sg, prepareServerContext(myself));
+//		List<JobLog> jobLogs = jobLogDbService.getRecentItems(dvs.getDefaultCount().getInteger(DefaultValues.JOB_LOG_CN));
+		return new ServerGroupContext(oscs,new ArrayList<>(), ua, sg, prepareServerContext(myself));
 
 	}
 	

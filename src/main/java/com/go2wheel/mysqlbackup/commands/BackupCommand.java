@@ -45,7 +45,6 @@ import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
-import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
@@ -89,7 +88,6 @@ import com.go2wheel.mysqlbackup.util.ToStringFormat;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
-import com.go2wheel.mysqlbackup.value.DefaultValues;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.UserServerGrpVo;
@@ -112,9 +110,6 @@ public class BackupCommand {
 
 	@Autowired
 	private SqlService sqlService;
-
-	@Autowired
-	private DefaultValues dvs;
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -178,26 +173,6 @@ public class BackupCommand {
 		return null;
 	}
 
-	@ShellMethod(value = "新建一个服务器.")
-	public FacadeResult<?> serverCreate(
-			@ShellOption(help = "服务器主机名或者IP") String host,
-			@OstypeIndicator
-			@ShellOption(help = "操作系统类型") String os,
-			@ShowPossibleValue({"GET", "SET"})
-			@ShellOption(help = "服务器的角色，默认是GET，从它那里获取数据。") String serverRole,
-			@ShellOption(help = "服务器的名称") String name) throws IOException {
-		Server server = serverDbService.findByHost(host);
-		if (server == null) {
-			server = new Server(host, name);
-			server.setOs(os);
-			server.setServerRole(serverRole);
-			server.setServerStateCron(dvs.getCron().getServerState());
-			server.setStorageStateCron(dvs.getCron().getStorageState());
-			server = serverDbService.save(server);
-		}
-		return FacadeResult.doneExpectedResultDone(server);
-	}
-	
 	@ShellMethod(value = "删除一个服务器.")
 	public FacadeResult<?> serverDelete(
 			@ShellOption(help = "服务器主机名或者IP") Server server,
@@ -410,22 +385,7 @@ public class BackupCommand {
 //		return borgInstaller.install(getSession(), server, software, null);
 //	}
 
-	@ShellMethod(value = "创建Borg的描述")
-	public FacadeResult<?> borgDescriptionCreate()
-			throws  IOException, UnExpectedInputException {
-		sureServerSelected();
-		Server server = appState.getCurrentServer();
-		BorgDescription bbd = server.getBorgDescription();
-		if (bbd != null) {
-			return FacadeResult.doneExpectedResult(server, CommonActionResult.DONE);
-		}
-		bbd = new BorgDescription.BorgDescriptionBuilder(server.getId()).withArchiveCron(dvs.getCron().getBorgArchive())
-				.withPruneCron(dvs.getCron().getBorgPrune()).build();
-		bbd = borgDescriptionDbService.save(bbd);
-		server.setBorgDescription(bbd);
-		return FacadeResult.doneExpectedResultDone(bbd);
-	}
-	
+
 	
 	@ShellMethod(value = "更新Borg的描述")
 	public FacadeResult<?> borgDescriptionUpdate(
@@ -610,15 +570,6 @@ public class BackupCommand {
 		}
 	}
 
-	private void sureMysqlReadyForBackup() throws UnExpectedInputException {
-		sureMysqlConfigurated();
-		Server server = appState.getCurrentServer();
-		if (server.getMysqlInstance() == null || server.getMysqlInstance().getLogBinSetting() == null) {
-			throw new UnExpectedInputException(null, "mysql.unreadyforbackup", "", server.getHost());
-		}
-	}
-
-	
 	@ShellMethod(value = "列出后台任务")
 	public FacadeResult<?> asyncList() throws  IOException {
 		List<SavedFuture> gobjects = globalStore.getFutureGroupAll(BackupCommand.class.getName());

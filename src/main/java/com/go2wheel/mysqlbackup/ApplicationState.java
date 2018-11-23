@@ -3,8 +3,6 @@ package com.go2wheel.mysqlbackup;
 import java.text.ParseException;
 import java.util.Locale;
 
-import javax.annotation.PostConstruct;
-
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,7 +12,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ServerSwitchEvent;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -27,14 +24,7 @@ public class ApplicationState {
 	
 	public static boolean IS_PROD_MODE = false;
 	
-	private static final Integer APP_STATE_ID = 0;
-	private static final String APP_STATE_NAME = "APP_STATE_NAME";
-	private static final String APP_STATE_LAST_SERVER_ID = "LAST_SERVER_ID";
-	
 	private Logger logger = LoggerFactory.getLogger(getClass());
-	
-	@Autowired
-	private ServerDbService serverDbService;
 	
 	@Autowired
 	private ApplicationEventPublisher applicationEventPublisher;
@@ -50,41 +40,15 @@ public class ApplicationState {
 	@Value("${expectit.echo}")
 	private boolean expectitEcho;
 	
-	@PostConstruct
-	public void post() {
-//		KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
-//		if (kv != null) {
-//			Server server = serverDbService.findById(kv.getTheValue());
-//			if (server != null) {
-//				setCurrentServer(serverDbService.loadFull(server));
-//			}
-//		}
-	}
-
 	public static enum CommandStepState {
 		INIT_START, WAITING_SELECT, BOX_SELECTED
 	}
 	
 	public void fireSwitchEvent() {
 		ServerSwitchEvent sce = new ServerSwitchEvent(this);
-		persistState();
 		applicationEventPublisher.publishEvent(sce);
 	}
 	
-	public void persistState() {
-//		if (getCurrentServer() != null) {
-//			KeyValueInDb kv = keyValueInDbService.findByIdNameKey(APP_STATE_ID, APP_STATE_NAME, APP_STATE_LAST_SERVER_ID);
-//			if (kv == null) {
-//				kv = new KeyValueInDb();
-//				kv.setObjectId(APP_STATE_ID);
-//				kv.setObjectName(APP_STATE_NAME);
-//				kv.setTheKey(APP_STATE_LAST_SERVER_ID);
-//			}
-//			kv.setTheValue(getCurrentServer().getId() + "");
-//			keyValueInDbService.save(kv);
-//		}
-	}
-
 	public CommandStepState getStep() {
 		return step;
 	}
