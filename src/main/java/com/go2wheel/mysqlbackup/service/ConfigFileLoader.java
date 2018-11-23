@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -87,6 +86,16 @@ public class ConfigFileLoader {
 
 	public ConfigFile getOne(String configFileName) throws ExecutionException {
 		return cache.get(configFileName);
+	}
+	
+	public void loadAll(Path configsPath) throws IOException {
+		Files.walk(configsPath).filter(p -> Files.isRegularFile(p)).filter(p -> p.getFileName().toString().endsWith(".json")).forEach(p -> {
+			try {
+				getOne(p.toAbsolutePath().normalize().toString());
+			} catch (ExecutionException e) {
+				e.printStackTrace();
+			}
+		});
 	}
 
 	public void scheduleAll() throws SchedulerException, ParseException {

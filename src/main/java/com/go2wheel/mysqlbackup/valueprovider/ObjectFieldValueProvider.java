@@ -65,7 +65,8 @@ public class ObjectFieldValueProvider implements ValueProvider {
 				return svpm.getOstypeProposals(input);
 			}
 		}
-		return svpm.getOriginValue(completionContext, parameter, input);
+//		return svpm.getOriginValue(completionContext, parameter, input);
+		return new ArrayList<>();
 	}
 
 }

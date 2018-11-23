@@ -38,9 +38,9 @@ public class MyAppSettings {
 
 	private CacheTimes cache;
 	
-	private String dataDir;
+	private String psdataDir;
 	
-	private Path dataDirPath;
+	private Path psdataDirPath;
 	
 	private String psapp;
 	
@@ -61,9 +61,9 @@ public class MyAppSettings {
 	@PostConstruct
 	public void post() throws IOException, AppConfigurationError {
 		setupSsh();
-		this.dataDirPath = Paths.get(this.dataDir);
-		if (!Files.exists(this.dataDirPath)) {
-			Files.createDirectories(this.dataDirPath);
+		this.psdataDirPath = Paths.get(this.psdataDir);
+		if (!Files.exists(this.psdataDirPath)) {
+			Files.createDirectories(this.psdataDirPath);
 		}
 		this.psappPath = Paths.get(this.psapp);
 		
@@ -91,7 +91,6 @@ public class MyAppSettings {
 		} else {
 			getSsh().setKnownHosts(sshKvp.getProperty(SshConfig.KNOWN_HOSTS_KEY));
 		}
-
 	}
 
 
@@ -119,20 +118,21 @@ public class MyAppSettings {
 		this.cache = cache;
 	}
 
-	public String getDataDir() {
-		return dataDir;
+
+	public String getPsdataDir() {
+		return psdataDir;
 	}
 
-	public void setDataDir(String dataDir) {
-		this.dataDir = dataDir;
+	public void setPsdataDir(String psdataDir) {
+		this.psdataDir = psdataDir;
 	}
 
-	public Path getDataDirPath() {
-		return dataDirPath;
+	public Path getPsdataDirPath() {
+		return psdataDirPath;
 	}
 
-	public void setDataDirPath(Path dataDirPath) {
-		this.dataDirPath = dataDirPath;
+	public void setPsdataDirPath(Path psdataDirPath) {
+		this.psdataDirPath = psdataDirPath;
 	}
 
 	public String getPsapp() {

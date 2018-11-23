@@ -12,7 +12,7 @@ public class LocaledMessageService {
 	private MessageSource messageSource;
 	
 	@Autowired
-	private ApplicationState applicationState;
+	private AppEventListenerBean applicationState;
 	
 	public String getMessage(String code, Object...args) {
 		try {

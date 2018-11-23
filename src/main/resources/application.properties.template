@@ -42,7 +42,7 @@ logging.level.org.jooq=DEBUG
 logging.level.org.flywaydb=DEBUG
 org.jooq.tools.LoggerListener=ERROR
 
-myapp.dataDir=boxes
+myapp.psdataDir=psdata
 myapp.downloadFolder=notingit
 myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
 myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts

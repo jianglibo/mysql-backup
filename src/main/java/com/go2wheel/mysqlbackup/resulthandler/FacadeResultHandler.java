@@ -11,7 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.shell.result.TerminalAwareResultHandler;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.AppEventListenerBean;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
@@ -24,7 +24,7 @@ public class FacadeResultHandler<T> extends TerminalAwareResultHandler<FacadeRes
 	private LocaledMessageService messageService;
 	
 	@Autowired
-	private ApplicationState applicationState;
+	private AppEventListenerBean applicationState;
 	
 	@Override
 	protected void doHandleResult(FacadeResult<T> result) {

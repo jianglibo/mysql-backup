@@ -16,7 +16,7 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.ApplicationState;
+import com.go2wheel.mysqlbackup.AppEventListenerBean;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
@@ -41,7 +41,7 @@ public class SharedValueProviderMethods {
 	private ServerDbService serverDbService;
 
 	@Autowired
-	private ApplicationState applicationState;
+	private AppEventListenerBean applicationState;
 
 	public List<CompletionProposal> getOstypeProposals(String input) {
 		return settingsInDb.getListString(SettingsInDb.OSTYPE_PREFIX).stream().map(CompletionProposal::new).collect(Collectors.toList());
@@ -108,50 +108,50 @@ public class SharedValueProviderMethods {
 				.collect(Collectors.toList());
 	}
 
-	public List<CompletionProposal> getOriginValue(CompletionContext completionContext, MethodParameter parameter,
-			String input) {
-		ObjectFieldIndicator sv = parameter.getParameterAnnotation(ObjectFieldIndicator.class);
-		List<String> candicates = new ArrayList<>();
-		if (sv != null) {
-			Field fd = getCurrentField(completionContext, parameter, sv);
-			if (fd != null) {
-				Class<?> c = sv.objectClass();
-				if (c == Server.class) {
-					if (applicationState.getCurrentServer() != null) {
-						try {
-							if ("serverRole".equals(fd.getName())) {
-								candicates.add(Server.ROLE_GET);
-								candicates.add(Server.ROLE_SET);
-							} else {
-								Object o = fd.get(applicationState.getCurrentServer());
-								if (o != null) {
-									candicates.add(o.toString());
-								}
-							}
-						} catch (IllegalArgumentException | IllegalAccessException e) {
-							// e.printStackTrace();
-						}
-					}
-				} else if (c == BorgDescription.class) {
-					if (applicationState.getCurrentServer() != null && applicationState.getCurrentServer().getBorgDescription() != null) {
-						try {
-							Object o = fd.get(applicationState.getCurrentServer().getBorgDescription());
-							if ("includes".equals(fd.getName()) || "excludes".equals(fd.getName()) && o != null) {
-								candicates.add(String.join(":", (List<String>) o));
-							} else {
-								if (o != null) {
-									candicates.add(o.toString());
-								}
-							}
-						} catch (IllegalArgumentException | IllegalAccessException e) {
-							// e.printStackTrace();
-						}
-					}
-				}
-			}
-		}
-		return candicates.stream().map(CompletionProposal::new).collect(Collectors.toList());
-	}
+//	public List<CompletionProposal> getOriginValue(CompletionContext completionContext, MethodParameter parameter,
+//			String input) {
+//		ObjectFieldIndicator sv = parameter.getParameterAnnotation(ObjectFieldIndicator.class);
+//		List<String> candicates = new ArrayList<>();
+//		if (sv != null) {
+//			Field fd = getCurrentField(completionContext, parameter, sv);
+//			if (fd != null) {
+//				Class<?> c = sv.objectClass();
+//				if (c == Server.class) {
+//					if (applicationState.getCurrentServer() != null) {
+//						try {
+//							if ("serverRole".equals(fd.getName())) {
+//								candicates.add(Server.ROLE_GET);
+//								candicates.add(Server.ROLE_SET);
+//							} else {
+//								Object o = fd.get(applicationState.getCurrentServer());
+//								if (o != null) {
+//									candicates.add(o.toString());
+//								}
+//							}
+//						} catch (IllegalArgumentException | IllegalAccessException e) {
+//							// e.printStackTrace();
+//						}
+//					}
+//				} else if (c == BorgDescription.class) {
+//					if (applicationState.getCurrentServer() != null && applicationState.getCurrentServer().getBorgDescription() != null) {
+//						try {
+//							Object o = fd.get(applicationState.getCurrentServer().getBorgDescription());
+//							if ("includes".equals(fd.getName()) || "excludes".equals(fd.getName()) && o != null) {
+//								candicates.add(String.join(":", (List<String>) o));
+//							} else {
+//								if (o != null) {
+//									candicates.add(o.toString());
+//								}
+//							}
+//						} catch (IllegalArgumentException | IllegalAccessException e) {
+//							// e.printStackTrace();
+//						}
+//					}
+//				}
+//			}
+//		}
+//		return candicates.stream().map(CompletionProposal::new).collect(Collectors.toList());
+//	}
 
 	private Field getCurrentField(CompletionContext completionContext, MethodParameter parameter,
 			ObjectFieldIndicator sv) {

@@ -44,7 +44,7 @@ logging.level.com.zaxxer.hikari=DEBUG
 logging.level.com.sun.mail.smtp=DEBUG
 logging.level.org.apache.commons.httpclient=DEBUG
 
-myapp.dataDir=boxes
+myapp.psdataDir=psdata
 myapp.downloadFolder=notingit
 myapp.ssh.sshIdrsa=G:/cygwin64/home/Administrator/.ssh/id_rsa
 myapp.ssh.knownHosts=G:/cygwin64/home/Administrator/.ssh/known_hosts
