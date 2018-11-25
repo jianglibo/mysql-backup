@@ -43,6 +43,7 @@ logging.level.org.flywaydb=DEBUG
 logging.level.com.zaxxer.hikari=DEBUG
 logging.level.com.sun.mail.smtp=DEBUG
 logging.level.org.apache.commons.httpclient=DEBUG
+logging.level.com.go2wheel.mysqlbackup.job=DEBUG
 
 myapp.psdataDir=psdata
 myapp.downloadFolder=notingit

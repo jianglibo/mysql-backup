@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -52,13 +53,19 @@ public class ConfigFileLoader {
 	@PostConstruct
 	private void post() {
 		cache = CacheBuilder.newBuilder().maximumSize(1000).build(new CacheLoader<String, ConfigFile>() {
-			public ConfigFile load(String key) throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
+			public ConfigFile load(String key)
+					throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
 				return loadOne(key);
 			}
 		});
 	}
+	
+	protected void clearCache() {
+		this.cache.invalidateAll();
+	}
 
-	private ConfigFile loadOne(String configFileName) throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
+	private ConfigFile loadOne(String configFileName)
+			throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
 		ConfigFile cf = objectMapper.readValue(Files.readAllBytes(Paths.get(configFileName)), ConfigFile.class);
 		cf.setMypath(configFileName);
 		for (Map.Entry<String, String> entry : cf.getTaskcmd().entrySet()) {
@@ -87,15 +94,14 @@ public class ConfigFileLoader {
 	public ConfigFile getOne(String configFileName) throws ExecutionException {
 		return cache.get(configFileName);
 	}
-	
-	public void loadAll(Path configsPath) throws IOException {
-		Files.walk(configsPath).filter(p -> Files.isRegularFile(p)).filter(p -> p.getFileName().toString().endsWith(".json")).forEach(p -> {
-			try {
-				getOne(p.toAbsolutePath().normalize().toString());
-			} catch (ExecutionException e) {
-				e.printStackTrace();
-			}
-		});
+
+	public void loadAll(Path configsPath) throws IOException, ExecutionException {
+		List<Path> allJsonFiles = Files.walk(configsPath).filter(p -> Files.isRegularFile(p))
+				.filter(p -> p.getFileName().toString().endsWith(".json")).collect(Collectors.toList());
+		for (Path p : allJsonFiles) {
+			getOne(p.toAbsolutePath().normalize().toString());
+		}
+		;
 	}
 
 	public void scheduleAll() throws SchedulerException, ParseException {
@@ -104,7 +110,8 @@ public class ConfigFileLoader {
 		}
 	}
 
-	public ProcessExecResult runCommand(String configFileName, String psCmdKey) throws ExecutionException, NoActionException {
+	public ProcessExecResult runCommand(String configFileName, String psCmdKey)
+			throws ExecutionException, NoActionException {
 		List<String> commands = cache.get(configFileName).getProcessBuilderNeededList().get(psCmdKey);
 		if (commands == null) {
 			throw new NoActionException(cache.get(configFileName), psCmdKey);

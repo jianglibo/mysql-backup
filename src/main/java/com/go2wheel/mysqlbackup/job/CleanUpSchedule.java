@@ -26,7 +26,7 @@ import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 
-@Component
+//@Component
 public class CleanUpSchedule extends SchedulerBase {
 
 	Logger logger = LoggerFactory.getLogger(getClass());

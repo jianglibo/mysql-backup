@@ -7,7 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -23,6 +25,8 @@ public class TestBorgService extends SpringBaseFort {
 	@Autowired
 	private ConfigFileLoader configFileLoader;
 	
+    @Rule
+    public TemporaryFolder repofolder= new TemporaryFolder();
     
 	
 	@Test
@@ -33,7 +37,7 @@ public class TestBorgService extends SpringBaseFort {
 	
 	@Test
 	public void trun() throws ExecutionException, NoActionException, IOException {
-		ProcessExecResult per = configFileLoader.runCommand(borgconfigfile, "ArchiveAndDownload");
+		ProcessExecResult per = configFileLoader.runCommand(borgconfigfile, "archive");
 		printProcessExecutionResult(per);
 	}
 

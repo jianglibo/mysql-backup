@@ -40,7 +40,8 @@ logging.level.com.go2wheel.mysqlbackup.job.SampleJob=ERROR
 logging.level.com.go2wheel.mysqlbackup.job.SampleJobService=ERROR
 logging.level.org.jooq=DEBUG
 logging.level.org.flywaydb=DEBUG
-org.jooq.tools.LoggerListener=ERROR
+logging.level.com.go2wheel.mysqlbackup.job=DEBUG
+logging.level.org.jooq.tools.LoggerListener=ERROR
 
 myapp.psdataDir=psdata
 myapp.downloadFolder=notingit

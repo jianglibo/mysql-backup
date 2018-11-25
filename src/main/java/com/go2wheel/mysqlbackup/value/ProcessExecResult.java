@@ -45,6 +45,10 @@ public class ProcessExecResult implements TimeCost {
 	public void setStdOut(List<String> stdOut) {
 		this.stdOut = stdOut;
 	}
+	
+	public boolean hasStdError() {
+		return getStdError() != null && getStdError().size() > 0;
+	}
 
 	public List<String> getStdError() {
 		return stdError;

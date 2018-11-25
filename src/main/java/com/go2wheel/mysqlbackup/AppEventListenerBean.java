@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -52,15 +53,15 @@ public class AppEventListenerBean implements EnvironmentAware {
     }
     
     @EventListener
-    public void onApplicationStartedEvent(ApplicationStartedEvent event) throws IOException, SchedulerException, ParseException {
+    public void onApplicationStartedEvent(ApplicationStartedEvent event) throws IOException, SchedulerException, ParseException, ExecutionException {
     	IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
     	parsePsdataDir();
     	logger.info("onApplicationStartedEvent be called. active profile: {}", IS_PROD_MODE ? "prod" : "dev");
     }
     
 
-	private void parsePsdataDir() throws IOException, SchedulerException, ParseException {
-		Path psdataDir = myAppSettings.getPsappPath();
+	private void parsePsdataDir() throws IOException, SchedulerException, ParseException, ExecutionException {
+		Path psdataDir = myAppSettings.getPsdataDirPath();
 		Path configs = psdataDir.resolve("configs");
 		if (!Files.exists(configs)) {
 			Files.createDirectories(configs);
