@@ -19,42 +19,42 @@ import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 
 @Component
-public class MailerSchedule extends SchedulerBase {
+public class MailerSchedule {
 
 	Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String MAILER_SUBSCRIBE = "MAILER_UA_SVG_GROUP";
 
-	@EventListener
-	public void whenSubscribeChanged(ModelChangedEvent<Subscribe> subscribeChangedEvent) throws SchedulerException, ParseException {
-		Subscribe before = subscribeChangedEvent.getBefore();
-		Subscribe after = subscribeChangedEvent.getAfter();
-		
-		TriggerKey tk = triggerKey(before.getId() + "", MAILER_SUBSCRIBE);
-		scheduler.unscheduleJob(tk);
-		
-		createTrigger(after
-				,after.getCronExpression()
-				,MailerJob.class
-				,jobKey(after.getId() + "", MAILER_SUBSCRIBE)
-				,triggerKey(after.getId() + "", MAILER_SUBSCRIBE));
-	}
-
-	@EventListener
-	public void whenSubscribeCreated(ModelAfterCreatedEvent<Subscribe> subscribeCreatedEvent) throws SchedulerException, ParseException {
-		Subscribe subscribe = subscribeCreatedEvent.getModel(); 
-		createTrigger(subscribe
-				,subscribe.getCronExpression()
-				,MailerJob.class
-				,jobKey(subscribe.getId() + "", MAILER_SUBSCRIBE)
-				,triggerKey(subscribe.getId() + "", MAILER_SUBSCRIBE));
-	}
-	
-	@EventListener
-	public void whenSubscribeDeleted(ModelDeletedEvent<Subscribe> subscribeDeletedEvent) throws SchedulerException {
-		TriggerKey tk = triggerKey(subscribeDeletedEvent.getModel().getId() + "", MAILER_SUBSCRIBE);
-		scheduler.unscheduleJob(tk);
-		JobKey jk = jobKey(tk.getName(), tk.getGroup());
-		scheduler.deleteJob(jk);
-	}
+//	@EventListener
+//	public void whenSubscribeChanged(ModelChangedEvent<Subscribe> subscribeChangedEvent) throws SchedulerException, ParseException {
+//		Subscribe before = subscribeChangedEvent.getBefore();
+//		Subscribe after = subscribeChangedEvent.getAfter();
+//		
+//		TriggerKey tk = triggerKey(before.getId() + "", MAILER_SUBSCRIBE);
+//		scheduler.unscheduleJob(tk);
+//		
+//		createTrigger(after
+//				,after.getCronExpression()
+//				,MailerJob.class
+//				,jobKey(after.getId() + "", MAILER_SUBSCRIBE)
+//				,triggerKey(after.getId() + "", MAILER_SUBSCRIBE));
+//	}
+//
+//	@EventListener
+//	public void whenSubscribeCreated(ModelAfterCreatedEvent<Subscribe> subscribeCreatedEvent) throws SchedulerException, ParseException {
+//		Subscribe subscribe = subscribeCreatedEvent.getModel(); 
+//		createTrigger(subscribe
+//				,subscribe.getCronExpression()
+//				,MailerJob.class
+//				,jobKey(subscribe.getId() + "", MAILER_SUBSCRIBE)
+//				,triggerKey(subscribe.getId() + "", MAILER_SUBSCRIBE));
+//	}
+//	
+//	@EventListener
+//	public void whenSubscribeDeleted(ModelDeletedEvent<Subscribe> subscribeDeletedEvent) throws SchedulerException {
+//		TriggerKey tk = triggerKey(subscribeDeletedEvent.getModel().getId() + "", MAILER_SUBSCRIBE);
+//		scheduler.unscheduleJob(tk);
+//		JobKey jk = jobKey(tk.getName(), tk.getGroup());
+//		scheduler.deleteJob(jk);
+//	}
 }

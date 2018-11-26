@@ -8,6 +8,7 @@ import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Stream;
 
 import org.quartz.SchedulerException;
 import org.slf4j.Logger;
@@ -22,10 +23,14 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.service.ConfigFileLoader;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 
 @Component
 public class AppEventListenerBean implements EnvironmentAware {
+	
+	private static String CONFIG_TEMPLATE_FOLDER_NAME = "config-templates";
 	
 	private Environment environment;
 	
@@ -40,6 +45,9 @@ public class AppEventListenerBean implements EnvironmentAware {
 	
 	@Autowired
 	private ConfigFileLoader configFileLoader;
+	
+	@Autowired
+	private UserGroupLoader userGroupLoader;
 
     private static final Logger logger = LoggerFactory.getLogger(AppEventListenerBean.class);
     
@@ -58,16 +66,43 @@ public class AppEventListenerBean implements EnvironmentAware {
     	parsePsdataDir();
     	logger.info("onApplicationStartedEvent be called. active profile: {}", IS_PROD_MODE ? "prod" : "dev");
     }
-    
 
 	private void parsePsdataDir() throws IOException, SchedulerException, ParseException, ExecutionException {
 		Path psdataDir = myAppSettings.getPsdataDirPath();
-		Path configs = psdataDir.resolve("configs");
-		if (!Files.exists(configs)) {
-			Files.createDirectories(configs);
-		}
-		configFileLoader.loadAll(configs);
+		Path configsDir = psdataDir.resolve("configs");
+		Path groupsFile = myAppSettings.getGroupsFile();
+		Path usersFile = myAppSettings.getUsersFile();
+		Path adminsFile = myAppSettings.getAdminFile();
+		Path subscribesFile = myAppSettings.getSubscribeFile();
+		
+		Stream.of(configsDir).forEach(dir -> {
+			try {
+				Files.createDirectories(dir);
+			} catch (IOException e) {
+				ExceptionUtil.logErrorException(logger, e);
+			}
+		});
+		
+		Stream.of(groupsFile, usersFile, adminsFile, subscribesFile).forEach(file -> {
+			try {
+				createDemoFile(file);
+			} catch (IOException e) {
+				ExceptionUtil.logErrorException(logger, e);
+			}
+		});
+		
+
+
+		configFileLoader.loadAll(configsDir);
 		configFileLoader.scheduleAll();
+		
+		userGroupLoader.loadAll();
+	}
+
+	private void createDemoFile(Path file) throws IOException {
+		Path demo = myAppSettings.getPsappPath().resolve(CONFIG_TEMPLATE_FOLDER_NAME).resolve(file.getFileName());
+		Files.copy(demo, file);
+		
 	}
 
 	@Override

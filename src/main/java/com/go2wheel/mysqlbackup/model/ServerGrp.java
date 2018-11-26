@@ -1,45 +1,47 @@
 package com.go2wheel.mysqlbackup.model;
 
-import javax.validation.constraints.NotEmpty;
+import java.util.List;
 
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
-
-public class ServerGrp extends BaseModel {
+public class ServerGrp {
 	
-	@NotEmpty
-	private String ename;
+	private String name;
 	
-	private String msgkey;
+	private String description;
 	
-	public ServerGrp() {
-	}
+	private List<String> hostnames;
 	
-	public ServerGrp(String ename) {
-		this.ename = ename;
+	private List<Server> servers;
+	
+	public String getName() {
+		return name;
 	}
 
-	public String getEname() {
-		return ename;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public void setEname(String ename) {
-		this.ename = ename;
+	public String getDescription() {
+		return description;
 	}
 
-	public String getMsgkey() {
-		return msgkey;
-	}
-
-	public void setMsgkey(String msgkey) {
-		this.msgkey = msgkey;
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 
-	@Override
-	public String toListRepresentation(String... fields) {
-		if (fields.length == 0) {
-			fields = new String[]{"id", "ename", "msgkey"};
-		}
-		return ObjectUtil.toListRepresentation(this, fields);
+	public List<Server> getServers() {
+		return servers;
+	}
+
+	public void setServers(List<Server> servers) {
+		this.servers = servers;
+	}
+
+	public List<String> getHostnames() {
+		return hostnames;
+	}
+
+	public void setHostnames(List<String> hostnames) {
+		this.hostnames = hostnames;
 	}
 }

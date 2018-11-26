@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
 import javax.mail.MessagingException;
 import javax.servlet.http.HttpServletRequest;
@@ -30,11 +31,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.go2wheel.mysqlbackup.JavaMailSendPropertiesOverrider;
-import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
 import com.go2wheel.mysqlbackup.dbservice.TemplateContextService;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
 import com.google.common.io.ByteStreams;
 
@@ -49,7 +50,7 @@ public class ReportController {
 	private MailerJob mailerJob;
 	
 	@Autowired
-	private SubscribeDbService subscribeDbService;
+	private UserGroupLoader subscribeDbService;
 	
 	@Autowired
 	private TemplateContextService templateContextService;
@@ -58,14 +59,14 @@ public class ReportController {
 	private ChromePDFWriter pdfWriter;
 
 	@GetMapping("/{tplName}")
-	public String ft(@PathVariable String tplName, @RequestParam Subscribe subscribe, Model model) {
+	public String ft(@PathVariable String tplName, @RequestParam Subscribe subscribe, Model model) throws ExecutionException {
 		ServerGroupContext sgc = templateContextService.createMailerContext(subscribe);
 		model.addAllAttributes(sgc.toMap());
 		return tplName;
 	}
 	
 	@GetMapping("/html/{subscribe}")
-	public String ftPost(@PathVariable Subscribe subscribe, Model model) {
+	public String ftPost(@PathVariable Subscribe subscribe, Model model) throws ExecutionException {
 		ServerGroupContext sgc = templateContextService.createMailerContext(subscribe);
 		model.addAllAttributes(sgc.toMap());
 		return subscribe.getTemplate();
@@ -107,8 +108,8 @@ public class ReportController {
 
 	@PostMapping(path = "/mail")
 	@ResponseBody
-	public Map<String, String> sendSubscribeMail(@RequestParam String id, Model model) throws UnsupportedEncodingException, MessagingException {
-		Subscribe subscribe = subscribeDbService.findById(id);
+	public Map<String, String> sendSubscribeMail(@RequestParam String id, Model model) throws UnsupportedEncodingException, MessagingException, ExecutionException {
+		Subscribe subscribe = subscribeDbService.getSubscribeById(id);
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		mailerJob.mail(subscribe, sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
 		Map<String, String> map = new HashMap<>();

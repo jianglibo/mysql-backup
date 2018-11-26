@@ -72,6 +72,22 @@ public class MyAppSettings {
 		}
 		this.consoleCharset = Charset.forName(this.consoleCharsetName);
 	}
+	
+	public Path getGroupsFile() {
+		return getPsdataDirPath().resolve("server-groups.json");
+	}
+	
+	public Path getUsersFile() {
+		return getPsdataDirPath().resolve("users.json");
+	}
+	
+	public Path getSubscribeFile() {
+		return getPsdataDirPath().resolve("subscribes.json");
+	}
+	
+	public Path getAdminFile() {
+		return getPsdataDirPath().resolve("admins.json");
+	}
 
 	private void setupSsh() {
 		KeyValueProperties sshKvp = keyValueService.getPropertiesByPrefix(MYAPP_PREFIX, "ssh");

@@ -63,6 +63,10 @@ public class ConfigFileLoader {
 	protected void clearCache() {
 		this.cache.invalidateAll();
 	}
+	
+	public ConfigFile getByHostname(String hostname) {
+		return this.cache.asMap().values().stream().filter(cf -> cf.getHostName().equals(hostname)).findFirst().orElse(null);
+	}
 
 	private ConfigFile loadOne(String configFileName)
 			throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {

@@ -12,7 +12,6 @@ import org.springframework.context.event.EventListener;
 
 import com.go2wheel.mysqlbackup.SpringBaseFort;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 
 @Import(com.go2wheel.mysqlbackup.event.TestModelLifeCycleEvent.Tcc.class)
 public class TestModelLifeCycleEvent  extends SpringBaseFort {
@@ -45,16 +44,7 @@ public class TestModelLifeCycleEvent  extends SpringBaseFort {
 		assertThat(countcc, equalTo(1));
 	}
 	
-	@Test
-	public void tCreate2Model() {
-		ReusableCron rc = new ReusableCron("* * 7 * * ?", "ahel");
-		rc = reuseableCronDbService.save(rc);
-		ServerGrp sg = new ServerGrp("hleol");
-		serverGrpDbService.save(sg);
-		
-		assertThat(countReu, equalTo(1));
-		assertThat(countTotal, equalTo(2));
-	}
+
 	
 	@TestConfiguration
 	public static  class Tcc {

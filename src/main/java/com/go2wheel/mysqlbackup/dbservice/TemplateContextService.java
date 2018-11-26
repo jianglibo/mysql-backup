@@ -2,6 +2,7 @@ package com.go2wheel.mysqlbackup.dbservice;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 
 @Service
 public class TemplateContextService {
@@ -25,37 +27,22 @@ public class TemplateContextService {
 	private ServerStateDbService serverStateDbService;
 
 	@Autowired
-	private SubscribeDbService userServerGrpDbService;
-
-	@Autowired
-	private UserAccountDbService userAccountDbService;
-
-	@Autowired
-	private ServerGrpDbService serverGrpDbService;
-	
-	@Autowired
 	private JobLogDbService jobLogDbService;
 
 	@Autowired
 	private ServerDbService serverDbService;
 	
-//	@Autowired
-//	private MysqlFlushDbService mysqlFlushDbService;
-
 	@Autowired
 	private StorageStateDbService storageStateDbService;
-
-//	@Autowired
-//	private MysqlDumpDbService mysqlDumpDbService;
-
-	@Autowired
-	private BorgDownloadDbService borgDownloadDbService;
 	
-	public ServerGroupContext createMailerContext(Subscribe subscribe) {
-		ServerGrp sg = serverGrpDbService.findById(subscribe.getServerGrpId());
-		UserAccount ua = userAccountDbService.findById(subscribe.getUserAccountId());
+	@Autowired
+	private UserGroupLoader userGroupLoader;
 
-		List<Server> servers = serverGrpDbService.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
+	public ServerGroupContext createMailerContext(Subscribe subscribe) throws ExecutionException {
+		ServerGrp sg = userGroupLoader.getGroupContent(subscribe.getGroupname());
+		UserAccount ua = userGroupLoader.getNotifyUser(subscribe.getUsername());
+
+		List<Server> servers = userGroupLoader.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
 				.collect(Collectors.toList());
 
 		List<ServerContext> oscs = new ArrayList<>();
@@ -70,10 +57,10 @@ public class TemplateContextService {
 
 	}
 	
-	public ServerGroupContext createMailerContext(int subscribeId) {
-		Subscribe subscribe = userServerGrpDbService.findById(subscribeId);
-		return createMailerContext(subscribe);
-	}
+//	public ServerGroupContext createMailerContext(int subscribeId) {
+//		Subscribe subscribe = userServerGrpDbService.findById(subscribeId);
+//		return createMailerContext(subscribe);
+//	}
 	
 	public ServerContext prepareServerContext(Server server) {
 //		List<ServerState> serverStates = serverStateDbService.getItemsInDays(server, dvs.getServerStateCount());

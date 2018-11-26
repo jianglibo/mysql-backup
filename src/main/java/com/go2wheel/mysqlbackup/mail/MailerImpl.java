@@ -39,7 +39,7 @@ public class MailerImpl implements Mailer {
 		message.setFrom(mailProperties.getUsername());
 		message.setTo(email);
 		String htmlContent = emailViewRender.render(template, sgctx);
-		message.setSubject(MimeUtility.encodeText(sgctx.getServerGroup().getEname() + "的备份和工况报表", "UTF-8", "B"));
+		message.setSubject(MimeUtility.encodeText(sgctx.getServerGroup().getName() + "的备份和工况报表", "UTF-8", "B"));
 		message.setText(htmlContent, true); // true = isHtml
 		
 		Path pdf = pdfWriter.writePdf("http://localhost:8080/app/report/html/" + subscribe.getId());

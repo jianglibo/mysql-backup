@@ -52,7 +52,6 @@ public class DemoController {
 		if (ls == null) {
 			ls = new Server("localhost", "benji");
 			ls.setOs("win");
-			ls.setServerRole(Server.ROLE_GET);
 			ls = serverDbService.save(ls);
 		}
 		

@@ -6,23 +6,23 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.dbservice.UserAccountDbService;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 @Component
 public class NameToUserAccount implements Converter<String, UserAccount> {
 	
 	@Autowired
-	private UserAccountDbService userAccountDbService;
+	private UserGroupLoader userAccountDbService;
 
 	@Override
 	public UserAccount convert(String source) {
 		Optional<String> nameOp = ObjectUtil.getValueIfIsToListRepresentation(source, "name");
 		if (nameOp.isPresent() && !nameOp.get().isEmpty()) {
-			return userAccountDbService.findByName(nameOp.get());
+			return userAccountDbService.getNotifyUser(nameOp.get());
 		} else {
-			return userAccountDbService.findByName(source);
+			return userAccountDbService.getNotifyUser(source);
 		}
 	}
 

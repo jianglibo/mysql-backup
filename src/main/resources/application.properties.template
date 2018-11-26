@@ -112,6 +112,5 @@ spring.freemarker.template-loader-path=file:templates/freemarker/
 spring.freemarker.suffix=
 spring.freemarker.prefix=
 spring.freemarker.prefer-file-system-access=true
-
 spring.mvc.async.request-timeout=180000
 spring.jackson.mapper.ACCEPT_CASE_INSENSITIVE_PROPERTIES=true

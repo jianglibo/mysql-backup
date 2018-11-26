@@ -64,11 +64,11 @@ public class SampleController implements ApplicationContextAware {
 		return dir + "/" + tplName;
 	}
 	
-	@GetMapping("/createctx/{userServerGrpId}")
-	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
-		templateContextService.createMailerContext(userServerGrpId);
-		return ResponseEntity.ok("done");
-	}
+//	@GetMapping("/createctx/{userServerGrpId}")
+//	public ResponseEntity<String> createctx(@PathVariable int userServerGrpId) {
+//		templateContextService.createMailerContext(userServerGrpId);
+//		return ResponseEntity.ok("done");
+//	}
 
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {

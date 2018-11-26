@@ -10,13 +10,13 @@ import org.springframework.shell.CompletionContext;
 import org.springframework.shell.CompletionProposal;
 import org.springframework.shell.standard.ValueProvider;
 
-import com.go2wheel.mysqlbackup.dbservice.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 
 public class ServerGrpValueProvider  implements ValueProvider {
 	
 	@Autowired
-	private ServerGrpDbService serverGrpDbService;
+	private UserGroupLoader serverGrpDbService;
 
     @Override
     public boolean supports(MethodParameter parameter, CompletionContext completionContext) {
@@ -32,7 +32,7 @@ public class ServerGrpValueProvider  implements ValueProvider {
         	return new ArrayList<>();
         }
         List<ServerGrp> serverGrps = serverGrpDbService.findLikeEname(input); 
-        return serverGrps.stream().map(sv -> sv.getEname()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
+        return serverGrps.stream().map(sv -> sv.getName()).map(h -> new CompletionProposal(h)).collect(Collectors.toList());
     }
     
 }

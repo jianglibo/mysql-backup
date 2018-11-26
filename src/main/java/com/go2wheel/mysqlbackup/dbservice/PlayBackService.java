@@ -24,14 +24,6 @@ public class PlayBackService {
 			throw new UnExpectedInputException(null, null, "null source or target server.");
 		}
 		
-		if (!Server.ROLE_GET.equals(sourceServer.getServerRole())) {
-			throw new UnExpectedInputException(null, null, "source must a get server.");
-		}
-		
-		if (!Server.ROLE_SET.equals(targetServer.getServerRole())) {
-			throw new UnExpectedInputException(null, null, "target must a set server.");
-		}
-		
 		PlayBack pb = new PlayBack();
 		pb.setPairs(settings);
 		pb.setPlayWhat(playWhat);

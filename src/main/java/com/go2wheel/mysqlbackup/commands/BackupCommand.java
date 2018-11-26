@@ -16,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.mail.MessagingException;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
@@ -36,7 +35,6 @@ import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
-import com.go2wheel.mysqlbackup.annotation.CronStringIndicator;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
@@ -49,11 +47,8 @@ import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.dbservice.SqlService;
-import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
 import com.go2wheel.mysqlbackup.dbservice.TemplateContextService;
-import com.go2wheel.mysqlbackup.dbservice.UserAccountDbService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -68,9 +63,7 @@ import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
@@ -79,7 +72,6 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.value.UserServerGrpVo;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 @ShellComponent()
@@ -109,9 +101,6 @@ public class BackupCommand {
 	private Environment environment;
 
 	@Autowired
-	private UserAccountDbService userAccountDbService;
-
-	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;
 
 	@Autowired
@@ -125,13 +114,7 @@ public class BackupCommand {
 	private SchedulerService schedulerService;
 
 	@Autowired
-	private ServerGrpDbService serverGrpDbService;
-
-	@Autowired
 	private BorgDescriptionDbService borgDescriptionDbService;
-
-	@Autowired
-	private SubscribeDbService userServerGrpDbService;
 
 	@Autowired
 	private ReusableCronDbService reusableCronDbService;
@@ -449,19 +432,19 @@ public class BackupCommand {
 		return FacadeResult.doneExpectedResult(reusableCronDbService.findAll(), CommonActionResult.DONE);
 	}
 
-	@ShellMethod(value = "添加用户。")
-	public FacadeResult<?> userAdd(@ShellOption(help = "用户名") String name, @ShellOption(help = "email地址") String email,
-			@ShellOption(help = "手机号码", defaultValue = ShellOption.NULL) String mobile,
-			@ShellOption(help = "描述", defaultValue = "") String description) {
-		UserAccount ua = new UserAccount.UserAccountBuilder(name, email).withMobile(mobile).withDescription(description)
-				.build();
-		return FacadeResult.doneExpectedResult(userAccountDbService.save(ua), CommonActionResult.DONE);
-	}
-
-	@ShellMethod(value = "用户列表。")
-	public FacadeResult<?> userList() {
-		return FacadeResult.doneExpectedResult(userAccountDbService.findAll(), CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "添加用户。")
+//	public FacadeResult<?> userAdd(@ShellOption(help = "用户名") String name, @ShellOption(help = "email地址") String email,
+//			@ShellOption(help = "手机号码", defaultValue = ShellOption.NULL) String mobile,
+//			@ShellOption(help = "描述", defaultValue = "") String description) {
+//		UserAccount ua = new UserAccount.UserAccountBuilder(name, email).withMobile(mobile).withDescription(description)
+//				.build();
+//		return FacadeResult.doneExpectedResult(userAccountDbService.save(ua), CommonActionResult.DONE);
+//	}
+//
+//	@ShellMethod(value = "用户列表。")
+//	public FacadeResult<?> userList() {
+//		return FacadeResult.doneExpectedResult(userAccountDbService.findAll(), CommonActionResult.DONE);
+//	}
 
 	private FacadeResult<?> parameterRequired(String pn) {
 		if (!pn.startsWith("--")) {
@@ -470,86 +453,86 @@ public class BackupCommand {
 		return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
 	}
 
-	private UserServerGrpVo getusgvo(Subscribe usgl) {
-		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),
-				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
-	}
+//	private UserServerGrpVo getusgvo(Subscribe usgl) {
+//		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),
+//				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
+//	}
 
-	@ShellMethod(value = "列出用户和服务器组的关系。")
-	public FacadeResult<?> subscribeList() {
-		List<UserServerGrpVo> vos = userServerGrpDbService.findAll().stream().map(usgl -> getusgvo(usgl))
-				.collect(Collectors.toList());
-
-		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "列出用户和服务器组的关系。")
+//	public FacadeResult<?> subscribeList() {
+//		List<UserServerGrpVo> vos = userServerGrpDbService.findAll().stream().map(usgl -> getusgvo(usgl))
+//				.collect(Collectors.toList());
+//
+//		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
+//	}
 	
-	@ShellMethod(value = "添加用户和服务器组的关系。")
-	public FacadeResult<?> subscribeCreate(
-			@ShellOption(help = "用户名") UserAccount user,
-			@ShellOption(help = "服务器组") ServerGrp serverGroup,
-			@ShellOption(help = "一个有意义的名称") String name,
-			@TemplateIndicator
-			@ShellOption(help = "邮件的模板名称") String template,
-			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
-		Subscribe usg;
-		if (user == null) {
-			return parameterRequired("user");
-		}
-		if (serverGroup == null) {
-			return parameterRequired("server-group");
-		}
-		usg = new Subscribe.SubscribeBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
-				.withTemplate(template)
-				.build();
-		usg = userServerGrpDbService.save(usg);
-		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "添加用户和服务器组的关系。")
+//	public FacadeResult<?> subscribeCreate(
+//			@ShellOption(help = "用户名") UserAccount user,
+//			@ShellOption(help = "服务器组") ServerGrp serverGroup,
+//			@ShellOption(help = "一个有意义的名称") String name,
+//			@TemplateIndicator
+//			@ShellOption(help = "邮件的模板名称") String template,
+//			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
+//		Subscribe usg;
+//		if (user == null) {
+//			return parameterRequired("user");
+//		}
+//		if (serverGroup == null) {
+//			return parameterRequired("server-group");
+//		}
+//		usg = new Subscribe.SubscribeBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
+//				.withTemplate(template)
+//				.build();
+//		usg = userServerGrpDbService.save(usg);
+//		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
+//	}
 	
-	@ShellMethod(value = "删除用户和服务器组的关系。")
-	public FacadeResult<?> subscribeDelete(
-			@ShellOption(help = "要删除的User和ServerGrp关系。") Subscribe usg) {
-		userServerGrpDbService.delete(usg);
-		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "删除用户和服务器组的关系。")
+//	public FacadeResult<?> subscribeDelete(
+//			@ShellOption(help = "要删除的User和ServerGrp关系。") Subscribe usg) {
+//		userServerGrpDbService.delete(usg);
+//		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
+//	}
 
-	@ShellMethod(value = "添加服务器组。")
-	public FacadeResult<?> ServerGroupAdd(@ShellOption(help = "组的英文名称") String ename,
-			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
-		ServerGrp sg = new ServerGrp(ename);
-		sg.setMsgkey(msgkey);
-		sg = serverGrpDbService.save(sg);
-		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "添加服务器组。")
+//	public FacadeResult<?> ServerGroupAdd(@ShellOption(help = "组的英文名称") String ename,
+//			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
+//		ServerGrp sg = new ServerGrp(ename);
+//		sg.setMsgkey(msgkey);
+//		sg = serverGrpDbService.save(sg);
+//		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
+//	}
 
-	@ShellMethod(value = "列出服务器组。")
-	public FacadeResult<?> ServerGroupList() {
-		List<ServerGrp> sgs = serverGrpDbService.findAll();
-		return FacadeResult.doneExpectedResult(sgs, CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "列出服务器组。")
+//	public FacadeResult<?> ServerGroupList() {
+//		List<ServerGrp> sgs = serverGrpDbService.findAll();
+//		return FacadeResult.doneExpectedResult(sgs, CommonActionResult.DONE);
+//	}
 
-	@ShellMethod(value = "管理服务器组的主机")
-	public FacadeResult<?> ServerGroupMembers(@ShowPossibleValue({ "LIST", "ADD",
-			"REMOVE" }) @ShellOption(help = "The action to take.") String action,
-			@ShellOption(help = "The server group to manage.") @NotNull ServerGrp serverGroup,
-			@ShellOption(help = "The server to manage.", defaultValue = ShellOption.NULL) Server server) {
-		switch (action) {
-		case "ADD":
-			if (server == null) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
-			}
-			serverGrpDbService.addServer(serverGroup, server);
-			break;
-		case "REMOVE":
-			if (server == null) {
-				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
-			}
-			serverGrpDbService.removeServer(serverGroup, server);
-			break;
-		default:
-			break;
-		}
-		return FacadeResult.doneExpectedResult(serverGrpDbService.getServers(serverGroup), CommonActionResult.DONE);
-	}
+//	@ShellMethod(value = "管理服务器组的主机")
+//	public FacadeResult<?> ServerGroupMembers(@ShowPossibleValue({ "LIST", "ADD",
+//			"REMOVE" }) @ShellOption(help = "The action to take.") String action,
+//			@ShellOption(help = "The server group to manage.") @NotNull ServerGrp serverGroup,
+//			@ShellOption(help = "The server to manage.", defaultValue = ShellOption.NULL) Server server) {
+//		switch (action) {
+//		case "ADD":
+//			if (server == null) {
+//				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
+//			}
+//			serverGrpDbService.addServer(serverGroup, server);
+//			break;
+//		case "REMOVE":
+//			if (server == null) {
+//				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
+//			}
+//			serverGrpDbService.removeServer(serverGroup, server);
+//			break;
+//		default:
+//			break;
+//		}
+//		return FacadeResult.doneExpectedResult(serverGrpDbService.getServers(serverGroup), CommonActionResult.DONE);
+//	}
 
 	@ShellMethod(value = "添加用户组。")
 	public FacadeResult<?> userGroupAdd(@ShellOption(help = "组的英文名称") String ename,
@@ -619,20 +602,20 @@ public class BackupCommand {
 //	}
 	
 	
-	@ShellMethod(value = "创建模板的Context数据")
-	public FacadeResult<?> extraTemplateContext(
-			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
-			@ShellOption(help = "输出文件的名称。", defaultValue=ShellOption.NULL) String outfile
-			) throws IOException {
-		ServerGroupContext sgc = templateContextService.createMailerContext(userServerGrpId);
-		Path pa = Paths.get("templates", "tplcontext.yml");
-		if (outfile != null) {
-			pa = Paths.get("templates", outfile); 
-		}
-		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgc);
-		Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
-		return FacadeResult.doneExpectedResult();
-	}
+//	@ShellMethod(value = "创建模板的Context数据")
+//	public FacadeResult<?> extraTemplateContext(
+//			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
+//			@ShellOption(help = "输出文件的名称。", defaultValue=ShellOption.NULL) String outfile
+//			) throws IOException {
+//		ServerGroupContext sgc = templateContextService.createMailerContext(userServerGrpId);
+//		Path pa = Paths.get("templates", "tplcontext.yml");
+//		if (outfile != null) {
+//			pa = Paths.get("templates", outfile); 
+//		}
+//		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgc);
+//		Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
+//		return FacadeResult.doneExpectedResult();
+//	}
 
 //	@ShellMethod(value = "查看最后一个命令的详细执行结果")
 //	public String facadeResultLast() {
@@ -702,22 +685,22 @@ public class BackupCommand {
 		return securityService.securityCopyKnownHosts(toFile);
 	}
 
-	@ShellMethod(value = "立即发送建邮件通知。")
-	public FacadeResult<?> emailNoticeSend(
-			@ShellOption(help = "邮件地址") @Email String email,
-			@TemplateIndicator
-			@ShellOption(help = "邮件模板") String template,
-			@ShellOption(help = "用户服务器组") Subscribe subscribe,
-			@ShellOption(help = "真的发送") boolean sendTruely
-			) throws ClassNotFoundException, IOException, MessagingException {
-		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
-		if (sendTruely) {
-			mailerJob.mail(subscribe, email, template, sgctx);
-			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
-		} else {
-			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
-		}
-	}
+//	@ShellMethod(value = "立即发送建邮件通知。")
+//	public FacadeResult<?> emailNoticeSend(
+//			@ShellOption(help = "邮件地址") @Email String email,
+//			@TemplateIndicator
+//			@ShellOption(help = "邮件模板") String template,
+//			@ShellOption(help = "用户服务器组") Subscribe subscribe,
+//			@ShellOption(help = "真的发送") boolean sendTruely
+//			) throws ClassNotFoundException, IOException, MessagingException {
+//		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
+//		if (sendTruely) {
+//			mailerJob.mail(subscribe, email, template, sgctx);
+//			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
+//		} else {
+//			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
+//		}
+//	}
 	
 	@Autowired
 	private PlayBackService playBackService;

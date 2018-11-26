@@ -35,18 +35,14 @@ import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerStateDbService;
 import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.dbservice.StorageStateDbService;
-import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
-import com.go2wheel.mysqlbackup.dbservice.UserAccountDbService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
 //@formatter:off
@@ -99,9 +95,6 @@ public class SpringBaseFort {
 	protected PlayBackDbService playBackDbService;
 	
 	@Autowired
-	protected SubscribeDbService subscribeDbService;
-	
-	@Autowired
 	protected MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
@@ -117,9 +110,6 @@ public class SpringBaseFort {
 	protected BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
-	protected UserAccountDbService userAccountDbService;
-	
-	@Autowired
 	protected BigObDbService bigObDbService;
 	
 	@Autowired
@@ -127,9 +117,6 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected BorgDownloadDbService borgDownloadDbService;
-	
-	@Autowired
-	protected ServerGrpDbService serverGrpDbService;
 	
 	@Autowired
 	protected SoftwareDbService softwareDbService;
@@ -166,13 +153,10 @@ public class SpringBaseFort {
 		storageStateDbService.deleteAll();
 		borgDownloadDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
-		subscribeDbService.deleteAll();
-		userAccountDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		robocopyItemDbService.deleteAll();
 		robocopyDescriptionDbService.deleteAll();
 		serverDbService.deleteAll();
-		serverGrpDbService.deleteAll();
 	}
 	
 	protected void deleteAllJobs() throws SchedulerException {
@@ -207,14 +191,13 @@ public class SpringBaseFort {
 	
 	protected Server createServer(String host, String name, boolean set) {
 		Server s = new Server(host, name);
-		s.setServerRole(set ? "SET" : "GET");
 		return serverDbService.save(s);
 	}
 	
-	protected UserAccount createUser() {
-		UserAccount ua = new UserAccount.UserAccountBuilder("江立波", "jianglibo@gmail.com").build();
-		return userAccountDbService.save(ua);
-	}
+//	protected UserAccount createUser() {
+//		UserAccount ua = new UserAccount.UserAccountBuilder("江立波", "jianglibo@gmail.com").build();
+//		return userAccountDbService.save(ua);
+//	}
 	
 	protected void createMysqlIntance() {
 		createMysqlIntance(server, "123456");

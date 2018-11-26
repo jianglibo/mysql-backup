@@ -1,92 +1,46 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
-
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
-
-public class Subscribe extends BaseModel {
+public class Subscribe {
 	
-	private Integer userAccountId;
-	private Integer serverGrpId;
+	private String id;
 	
-	private String name;
+	private String username;
 	
 	private String template;
 	
-	@CronExpressionConstraint
-	private String cronExpression;
+	private String groupname;
+
+	private String cron;
 	
-	public Integer getUserAccountId() {
-		return userAccountId;
+	public String getUsername() {
+		return username;
 	}
-	public void setUserAccountId(Integer userAccountId) {
-		this.userAccountId = userAccountId;
+	public void setUsername(String username) {
+		this.username = username;
 	}
-	public Integer getServerGrpId() {
-		return serverGrpId;
+	public String getGroupname() {
+		return groupname;
 	}
-	public void setServerGrpId(Integer serverGrpId) {
-		this.serverGrpId = serverGrpId;
+	public void setGroupname(String groupname) {
+		this.groupname = groupname;
 	}
-	public String getCronExpression() {
-		return cronExpression;
+	public String getCron() {
+		return cron;
 	}
-	public void setCronExpression(String cronExpression) {
-		this.cronExpression = cronExpression;
-	}
-	
-	
-	
-	public static class SubscribeBuilder {
-		
-		private final Integer userAccountId;
-		private final Integer serverGrpId;
-		private final String cronExpression;
-		private final String name;
-		
-		private String template;
-		
-		public SubscribeBuilder(Integer userAccountId, Integer serverGrpId, String cronExpression, String name) {
-			super();
-			this.userAccountId = userAccountId;
-			this.serverGrpId = serverGrpId;
-			this.cronExpression = cronExpression;
-			this.name = name;
-		}
-		
-		public SubscribeBuilder withTemplate(String template) {
-			this.template = template;
-			return this;
-		}
-		
-		
-		public Subscribe build() {
-			Subscribe usg = new Subscribe();
-			usg.setCreatedAt(new Date());
-			usg.setCronExpression(cronExpression);
-			usg.setServerGrpId(serverGrpId);
-			usg.setUserAccountId(userAccountId);
-			usg.setName(name);
-			usg.setTemplate(template);
-			return usg;
-		}
+	public void setCron(String cron) {
+		this.cron = cron;
 	}
 
-	@Override
-	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this,"id", "name", "userAccountId", "serverGrpId");
-	}
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
-	}
 	public String getTemplate() {
 		return template;
 	}
 	public void setTemplate(String template) {
 		this.template = template;
+	}
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
 	}
 }

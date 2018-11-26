@@ -26,7 +26,6 @@ public class TestEmailRender extends SpringBaseFort {
 		String content = new String(Files.readAllBytes(pa), StandardCharsets.UTF_8);
 		return YamlInstance.INSTANCE.yaml.loadAs(content, ServerGroupContext.class);
 	}
-	
 
 	@Test()
 	public void tThymeleafTplNoExt() throws IOException {
@@ -37,5 +36,4 @@ public class TestEmailRender extends SpringBaseFort {
 		assertThat(s, containsString("<!DOCTYPE>"));
 
 	}
-	
 }

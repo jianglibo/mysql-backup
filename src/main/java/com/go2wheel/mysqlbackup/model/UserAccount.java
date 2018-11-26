@@ -1,22 +1,13 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.util.Date;
 import java.util.UUID;
 
-import javax.validation.constraints.NotEmpty;
-
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
-
-public class UserAccount extends BaseModel {
+public class UserAccount {
 	
-	@NotEmpty
 	private String name;
 	
-	@NotEmpty
 	private String mobile;
 	private String description;
-	
-	@NotEmpty
 	private String email;
 	
 	public String getName() {
@@ -68,7 +59,6 @@ public class UserAccount extends BaseModel {
 		
 		public UserAccount build() {
 			UserAccount ua = new UserAccount();
-			ua.setCreatedAt(new Date());
 			ua.setDescription(description);
 			ua.setEmail(email);
 			if (mobile == null) {
@@ -81,13 +71,4 @@ public class UserAccount extends BaseModel {
 		}
 		
 	}
-
-	@Override
-	public String toListRepresentation(String... fields) {
-		if (fields.length == 0) {
-			fields = new String[]{"name", "email", "mobile"};
-		}
-		return ObjectUtil.toListRepresentation(this, fields);
-	}
-
 }

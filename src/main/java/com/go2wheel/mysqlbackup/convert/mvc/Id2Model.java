@@ -12,10 +12,7 @@ import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerGrpDbService;
 import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
-import com.go2wheel.mysqlbackup.dbservice.SubscribeDbService;
-import com.go2wheel.mysqlbackup.dbservice.UserAccountDbService;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.JobLog;
@@ -25,23 +22,14 @@ import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Software;
-import com.go2wheel.mysqlbackup.model.Subscribe;
-import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 
 public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	
 	@Autowired
 	private ServerDbService serverDbService;
-	@Autowired
-	private UserAccountDbService userAccountDbService;
-	@Autowired
-	private ServerGrpDbService serverGrpDbService;
-	
-	@Autowired
-	private SubscribeDbService subscribeDbService;
 	
 	@Autowired
 	private MysqlInstanceDbService mysqlInstanceDbService;
@@ -63,6 +51,9 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	@Autowired
 	private RobocopyItemDbService robocopyItemDbService;
+	
+	@Autowired
+	private UserGroupLoader userGroupLoader;
 
 	
 	@Autowired
@@ -84,12 +75,6 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 		public T convert(String source) {
 			if (modelType == Server.class) {
 				return (T) serverDbService.findById(source);
-			} else if( modelType == UserAccount.class) {
-				return (T) userAccountDbService.findById(source);
-			} else if (modelType == ServerGrp.class) {
-				return (T) serverGrpDbService.findById(source);
-			} else if (modelType == Subscribe.class) {
-				return (T) subscribeDbService.findById(source);
 			} else if (modelType == JobLog.class) {
 				return (T) jobLogDbService.findById(source);
 			} else if (modelType == MysqlInstance.class) {

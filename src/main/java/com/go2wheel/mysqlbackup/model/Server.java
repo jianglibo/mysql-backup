@@ -1,34 +1,17 @@
 package com.go2wheel.mysqlbackup.model;
 
-import java.nio.file.Files;
-import java.nio.file.Paths;
-
-import javax.validation.constraints.NotEmpty;
-
 import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
 
 public class Server extends BaseModel {
 	
-	public static final String NO_PASSWORD="i_have_no_password";
 	
-	public static final String NO_SSHKEY_FILE="i_have_no_sshkey_file";
-	
-	public static final String ROLE_GET="GET";
-	
-	public static final String ROLE_SET="SET";
-	
-	@NotEmpty
 	private String host;
 	
-	@NotEmpty
 	private String name;
 	
 	private int coreNumber;
-	
-	private int port = 22;
 	
 	/**
 	 * os的格式。
@@ -42,16 +25,10 @@ public class Server extends BaseModel {
 	private String os;
 	
 	private String username = "root";
-	private String password = NO_PASSWORD;
-	
-	private String sshKeyFile = NO_SSHKEY_FILE;
 	
 	private MysqlInstance mysqlInstance;
 	
 	private BorgDescription borgDescription;
-	
-	@NotEmpty
-	private String serverRole = ROLE_GET;
 	
 	@CronExpressionConstraint(allowEmpty=true)
 	private String serverStateCron;
@@ -86,14 +63,6 @@ public class Server extends BaseModel {
 		this.coreNumber = coreNumber;
 	}
 	
-	public int getPort() {
-		return port;
-	}
-
-	public void setPort(int port) {
-		this.port = port;
-	}
-
 	public String getUsername() {
 		return username;
 	}
@@ -102,21 +71,6 @@ public class Server extends BaseModel {
 		this.username = username;
 	}
 
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
-
-	public String getSshKeyFile() {
-		return sshKeyFile;
-	}
-
-	public void setSshKeyFile(String sshKeyFile) {
-		this.sshKeyFile = sshKeyFile;
-	}
 
 	@Override
 	public String toListRepresentation(String... fields) {
@@ -139,22 +93,6 @@ public class Server extends BaseModel {
 		this.borgDescription = borgDescription;
 	}
 
-	public boolean canSShKeyAuth() {
-		boolean b =  sshKeyFile != null && !sshKeyFile.trim().isEmpty() && Files.exists(Paths.get(sshKeyFile.trim()));
-		return b;
-	}
-	
-	public boolean canPasswordAuth() {
-		return StringUtil.hasAnyNonBlankWord(getPassword()) && !NO_PASSWORD.equals(getPassword());
-	}
-
-	public String getServerRole() {
-		return serverRole;
-	}
-
-	public void setServerRole(String serverRole) {
-		this.serverRole = serverRole;
-	}
 
 	public String getName() {
 		return name;
