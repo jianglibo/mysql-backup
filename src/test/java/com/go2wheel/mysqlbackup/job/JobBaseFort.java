@@ -54,7 +54,7 @@ public class JobBaseFort extends SpringBaseFort {
 	
 	protected void createContext() {
 		JobDataMap jdm = new JobDataMap();
-		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
+//		jdm.put(CommonJobDataKey.JOB_DATA_KEY_ID, server.getId());
 		given(context.getMergedJobDataMap()).willReturn(jdm);
 	}
 }

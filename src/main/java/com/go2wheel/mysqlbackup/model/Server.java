@@ -1,10 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
-import com.go2wheel.mysqlbackup.annotation.OstypeIndicator;
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
-import com.go2wheel.mysqlbackup.validator.CronExpressionConstraint;
-
-public class Server extends BaseModel {
+public class Server {
 	
 	
 	private String host;
@@ -13,28 +9,9 @@ public class Server extends BaseModel {
 	
 	private int coreNumber;
 	
-	/**
-	 * os的格式。
-	 * linux_centos_7_xx
-	 * win_xp_
-	 * win_10_
-	 * win_2000_
-	 * 
-	 */
-	@OstypeIndicator
 	private String os;
 	
 	private String username = "root";
-	
-	private MysqlInstance mysqlInstance;
-	
-	private BorgDescription borgDescription;
-	
-	@CronExpressionConstraint(allowEmpty=true)
-	private String serverStateCron;
-	
-	@CronExpressionConstraint(allowEmpty=true)
-	private String storageStateCron;
 	
 	private int loadValve = 70;
 	private int memoryValve = 70;
@@ -72,28 +49,6 @@ public class Server extends BaseModel {
 	}
 
 
-	@Override
-	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this, "id","name", "host");
-	}
-
-	public MysqlInstance getMysqlInstance() {
-		return mysqlInstance;
-	}
-
-	public void setMysqlInstance(MysqlInstance mysqlInstance) {
-		this.mysqlInstance = mysqlInstance;
-	}
-
-	public BorgDescription getBorgDescription() {
-		return borgDescription;
-	}
-
-	public void setBorgDescription(BorgDescription borgDescription) {
-		this.borgDescription = borgDescription;
-	}
-
-
 	public String getName() {
 		return name;
 	}
@@ -115,22 +70,6 @@ public class Server extends BaseModel {
 			return true;
 		}
 		return getOs().contains("linux");
-	}
-
-	public String getServerStateCron() {
-		return serverStateCron;
-	}
-
-	public void setServerStateCron(String serverStateCron) {
-		this.serverStateCron = serverStateCron;
-	}
-
-	public String getStorageStateCron() {
-		return storageStateCron;
-	}
-
-	public void setStorageStateCron(String storageStateCron) {
-		this.storageStateCron = storageStateCron;
 	}
 
 	public int getLoadValve() {

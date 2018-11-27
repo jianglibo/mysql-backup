@@ -5,7 +5,6 @@ import java.util.UUID;
 public class UserAccount {
 	
 	private String name;
-	
 	private String mobile;
 	private String description;
 	private String email;

@@ -1,8 +1,6 @@
 package com.go2wheel.mysqlbackup.job;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.Lock;
 
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -13,25 +11,18 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.dbservice.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.RobocopyService;
-import com.go2wheel.mysqlbackup.util.TaskLocks;
 
 @Component
 public class RobocopyLocalRepoBackupJob implements Job {
 
 	@Autowired
 	private RobocopyService robocopyService;
-
-	@Autowired
-	private ServerDbService serverDbService;
 
 	@Autowired
 	private RobocopyItemDbService robocopyItemDbService;
@@ -45,9 +36,6 @@ public class RobocopyLocalRepoBackupJob implements Job {
 	@Autowired
 	private JobLogDbService jobLogDbService;
 	
-	@Autowired
-	private BorgDownloadDbService borgDownloadDbService;
-
 	@Override
 	@TrapException(RobocopyLocalRepoBackupJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -57,7 +45,7 @@ public class RobocopyLocalRepoBackupJob implements Job {
 		RobocopyDescription robocopyDescription = robocopyDescriptionDbService.findById(rid);
 		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(robocopyDescription.getId());
 		robocopyDescription.setRobocopyItems(items);
-		Server sv = serverDbService.findById(robocopyDescription.getServerId());
+//		Server sv = serverDbService.findById(robocopyDescription.getServerId());
 //
 //		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
 //		try {

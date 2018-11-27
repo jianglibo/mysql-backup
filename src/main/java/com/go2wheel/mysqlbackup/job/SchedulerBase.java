@@ -16,7 +16,6 @@ import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 
@@ -24,9 +23,6 @@ public class SchedulerBase {
 	
 	@Autowired
 	protected Scheduler scheduler;
-	
-	@Autowired
-	protected ServerDbService serverDbService;
 	
 	/**
 	 * 

@@ -4,7 +4,6 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,10 +20,7 @@ import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.ObjectFieldIndicator;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 @Service
@@ -37,8 +33,6 @@ public class SharedValueProviderMethods {
 	@Autowired
 	private ReusableCronDbService reusableCronDbService;
 
-	@Autowired
-	private ServerDbService serverDbService;
 
 	@Autowired
 	private AppEventListenerBean applicationState;

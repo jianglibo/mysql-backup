@@ -30,53 +30,53 @@ public class RobocopySchedule extends SchedulerBase {
 	
 	//@formatter:off
 	
-	@EventListener
-	public void whenRobocopyDescriptionCreated(ModelAfterCreatedEvent<RobocopyDescription> RobocopyDescriptionCreatedEvent) throws SchedulerException, ParseException {
-		RobocopyDescription bd = RobocopyDescriptionCreatedEvent.getModel();
-		Server server = serverDbService.findById(bd.getServerId());
-		createTrigger(bd,
-				bd.getInvokeCron(),
-				RobocopyInvokeJob.class,
-				jobKey(server.getHost(), ARCHIVE_GROUP),
-				triggerKey(server.getHost(), ARCHIVE_GROUP));
-
-		createTrigger(bd,
-				bd.getLocalBackupCron(),
-				RobocopyLocalRepoBackupJob.class,
-				jobKey(server.getHost(), BACKUP_LOCAL_REPO),
-				triggerKey(server.getHost(), BACKUP_LOCAL_REPO));
-		
-	}
-	
-	@EventListener
-	public void whenRobocopyDescriptionChanged(ModelChangedEvent<RobocopyDescription> RobocopyDescriptionChangedEvent) throws SchedulerException, ParseException {
-		RobocopyDescription before = RobocopyDescriptionChangedEvent.getBefore();
-		RobocopyDescription after = RobocopyDescriptionChangedEvent.getAfter();
-		Server server = serverDbService.findById(after.getServerId());
-		reschedule(after,
-				before.getInvokeCron(),
-				after.getInvokeCron(),
-				RobocopyInvokeJob.class,
-				jobKey(server.getHost(), ARCHIVE_GROUP),
-				triggerKey(server.getHost(), ARCHIVE_GROUP));
-		
-		reschedule(after,
-				before.getLocalBackupCron(),
-				after.getLocalBackupCron(),
-				RobocopyLocalRepoBackupJob.class,
-				jobKey(server.getHost(), BACKUP_LOCAL_REPO),
-				triggerKey(server.getHost(), BACKUP_LOCAL_REPO));
-	}
-	
-	@EventListener
-	public void whenRobocopyDescriptionDeleted(ModelDeletedEvent<RobocopyDescription> RobocopyDescriptionDeletedEvent) throws SchedulerException, ParseException {
-		RobocopyDescription bd = RobocopyDescriptionDeletedEvent.getModel();
-		Server server = serverDbService.findById(bd.getServerId());
-		
-		scheduler.unscheduleJob(triggerKey(server.getHost(), ARCHIVE_GROUP));
-		
-		scheduler.deleteJob(jobKey(server.getHost(), ARCHIVE_GROUP));
-		
-		scheduler.deleteJob(jobKey(server.getHost(), BACKUP_LOCAL_REPO));
-	}
+//	@EventListener
+//	public void whenRobocopyDescriptionCreated(ModelAfterCreatedEvent<RobocopyDescription> RobocopyDescriptionCreatedEvent) throws SchedulerException, ParseException {
+//		RobocopyDescription bd = RobocopyDescriptionCreatedEvent.getModel();
+//		Server server = serverDbService.findById(bd.getServerId());
+//		createTrigger(bd,
+//				bd.getInvokeCron(),
+//				RobocopyInvokeJob.class,
+//				jobKey(server.getHost(), ARCHIVE_GROUP),
+//				triggerKey(server.getHost(), ARCHIVE_GROUP));
+//
+//		createTrigger(bd,
+//				bd.getLocalBackupCron(),
+//				RobocopyLocalRepoBackupJob.class,
+//				jobKey(server.getHost(), BACKUP_LOCAL_REPO),
+//				triggerKey(server.getHost(), BACKUP_LOCAL_REPO));
+//		
+//	}
+//	
+//	@EventListener
+//	public void whenRobocopyDescriptionChanged(ModelChangedEvent<RobocopyDescription> RobocopyDescriptionChangedEvent) throws SchedulerException, ParseException {
+//		RobocopyDescription before = RobocopyDescriptionChangedEvent.getBefore();
+//		RobocopyDescription after = RobocopyDescriptionChangedEvent.getAfter();
+//		Server server = serverDbService.findById(after.getServerId());
+//		reschedule(after,
+//				before.getInvokeCron(),
+//				after.getInvokeCron(),
+//				RobocopyInvokeJob.class,
+//				jobKey(server.getHost(), ARCHIVE_GROUP),
+//				triggerKey(server.getHost(), ARCHIVE_GROUP));
+//		
+//		reschedule(after,
+//				before.getLocalBackupCron(),
+//				after.getLocalBackupCron(),
+//				RobocopyLocalRepoBackupJob.class,
+//				jobKey(server.getHost(), BACKUP_LOCAL_REPO),
+//				triggerKey(server.getHost(), BACKUP_LOCAL_REPO));
+//	}
+//	
+//	@EventListener
+//	public void whenRobocopyDescriptionDeleted(ModelDeletedEvent<RobocopyDescription> RobocopyDescriptionDeletedEvent) throws SchedulerException, ParseException {
+//		RobocopyDescription bd = RobocopyDescriptionDeletedEvent.getModel();
+//		Server server = serverDbService.findById(bd.getServerId());
+//		
+//		scheduler.unscheduleJob(triggerKey(server.getHost(), ARCHIVE_GROUP));
+//		
+//		scheduler.deleteJob(jobKey(server.getHost(), ARCHIVE_GROUP));
+//		
+//		scheduler.deleteJob(jobKey(server.getHost(), BACKUP_LOCAL_REPO));
+//	}
 }

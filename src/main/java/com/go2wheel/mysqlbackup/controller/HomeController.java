@@ -1,7 +1,5 @@
 package com.go2wheel.mysqlbackup.controller;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.BeansException;
@@ -12,9 +10,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.dbservice.TemplateContextService;
-import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.ui.MainMenuItemImpl;
 import com.go2wheel.mysqlbackup.util.TplUtil;
 
@@ -32,13 +28,10 @@ public class HomeController extends ControllerBase {
 	@Autowired
 	private TemplateContextService templateContextService;
 	
-	@Autowired
-	private ServerDbService serverDbService;
-
 	@ModelAttribute
 	public void populateContext(Model model, HttpServletRequest request) {
-		Server myself = serverDbService.findByHost("localhost");
-		model.addAttribute("myself", templateContextService.prepareServerContext(myself));
+//		Server myself = serverDbService.findByHost("localhost");
+//		model.addAttribute("myself", templateContextService.prepareServerContext(myself));
 		model.addAttribute("tplUtil", new TplUtil());
 	}
 

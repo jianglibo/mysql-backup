@@ -116,4 +116,5 @@ spring.freemarker.prefer-file-system-access=true
 spring.mvc.async.request-timeout=180000
 spring.jackson.serialization.indent_output=false
 fort.borg.configuration.file=D:/Documents/GitHub/easy-installer/scripts/borg/demo-config.1.json
+fort.logfolder=E:\\backups\\logs\\192.168.33.110
 spring.jackson.mapper.ACCEPT_CASE_INSENSITIVE_PROPERTIES=true

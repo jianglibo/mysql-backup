@@ -1,9 +1,8 @@
-package com.go2wheel.mysqlbackup.dbservice;
+package com.go2wheel.mysqlbackup.service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,9 @@ import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
+import com.go2wheel.mysqlbackup.model.ServerState;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
-import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 
 @Service
 public class TemplateContextService {
@@ -24,26 +23,13 @@ public class TemplateContextService {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	@Autowired
-	private ServerStateDbService serverStateDbService;
-
-	@Autowired
-	private JobLogDbService jobLogDbService;
-
-	@Autowired
-	private ServerDbService serverDbService;
-	
-	@Autowired
-	private StorageStateDbService storageStateDbService;
-	
-	@Autowired
 	private UserGroupLoader userGroupLoader;
 
 	public ServerGroupContext createMailerContext(Subscribe subscribe) throws ExecutionException {
-		ServerGrp sg = userGroupLoader.getGroupContent(subscribe.getGroupname());
-		UserAccount ua = userGroupLoader.getNotifyUser(subscribe.getUsername());
+		ServerGrp sg = userGroupLoader.getGroupByName(subscribe.getGroupname());
+		UserAccount ua = userGroupLoader.getUserByName(subscribe.getUsername());
 
-		List<Server> servers = userGroupLoader.getServers(sg).stream().map(sv -> serverDbService.loadFull(sv))
-				.collect(Collectors.toList());
+		List<Server> servers = userGroupLoader.getServersInGroup(sg);
 
 		List<ServerContext> oscs = new ArrayList<>();
 
@@ -51,9 +37,7 @@ public class TemplateContextService {
 			ServerContext osc = prepareServerContext(server);
 			oscs.add(osc);
 		}
-		Server myself = serverDbService.findByHost("localhost");
-//		List<JobLog> jobLogs = jobLogDbService.getRecentItems(dvs.getDefaultCount().getInteger(DefaultValues.JOB_LOG_CN));
-		return new ServerGroupContext(oscs,new ArrayList<>(), ua, sg, prepareServerContext(myself));
+		return new ServerGroupContext(oscs,new ArrayList<>(), ua, sg, null);
 
 	}
 	

@@ -12,6 +12,8 @@ public class Subscribe {
 
 	private String cron;
 	
+	private String description;
+	
 	public String getUsername() {
 		return username;
 	}
@@ -42,5 +44,11 @@ public class Subscribe {
 	}
 	public void setId(String id) {
 		this.id = id;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
 	}
 }

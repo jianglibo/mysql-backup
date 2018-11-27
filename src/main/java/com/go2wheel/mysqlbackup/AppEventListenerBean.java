@@ -4,13 +4,10 @@ package com.go2wheel.mysqlbackup;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,15 +58,16 @@ public class AppEventListenerBean implements EnvironmentAware {
     }
     
     @EventListener
-    public void onApplicationStartedEvent(ApplicationStartedEvent event) throws IOException, SchedulerException, ParseException, ExecutionException {
+    public void onApplicationStartedEvent(ApplicationStartedEvent event) throws Exception {
     	IS_PROD_MODE = !Arrays.stream(environment.getActiveProfiles()).anyMatch(p -> "dev".equals(p));
     	parsePsdataDir();
     	logger.info("onApplicationStartedEvent be called. active profile: {}", IS_PROD_MODE ? "prod" : "dev");
     }
 
-	private void parsePsdataDir() throws IOException, SchedulerException, ParseException, ExecutionException {
+	private void parsePsdataDir() throws Exception {
 		Path psdataDir = myAppSettings.getPsdataDirPath();
 		Path configsDir = psdataDir.resolve("configs");
+		
 		Path groupsFile = myAppSettings.getGroupsFile();
 		Path usersFile = myAppSettings.getUsersFile();
 		Path adminsFile = myAppSettings.getAdminFile();
@@ -100,9 +98,10 @@ public class AppEventListenerBean implements EnvironmentAware {
 	}
 
 	private void createDemoFile(Path file) throws IOException {
-		Path demo = myAppSettings.getPsappPath().resolve(CONFIG_TEMPLATE_FOLDER_NAME).resolve(file.getFileName());
-		Files.copy(demo, file);
-		
+		if (!Files.exists(file)) {
+			Path demo = myAppSettings.getPsappPath().resolve(CONFIG_TEMPLATE_FOLDER_NAME).resolve(file.getFileName());
+			Files.copy(demo, file);
+		}
 	}
 
 	@Override

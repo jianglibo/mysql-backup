@@ -27,8 +27,6 @@ public class PlayBackService {
 		PlayBack pb = new PlayBack();
 		pb.setPairs(settings);
 		pb.setPlayWhat(playWhat);
-		pb.setSourceServerId(sourceServer.getId());
-		pb.setTargetServerId(targetServer.getId());
 		
 		return playBackDbService.save(pb);
 	}

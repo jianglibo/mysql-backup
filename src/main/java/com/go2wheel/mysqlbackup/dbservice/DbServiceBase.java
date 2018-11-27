@@ -81,9 +81,6 @@ public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends Base
 		findAll().forEach(item -> delete(item));
 	}
 	
-	public List<P> getRecentItems(Server server, int number) {
-		return repo.getRecentItems(server, number);
-	}
 	
 	public List<P> getRecentItems(int number) {
 		return repo.getRecentItems(number);

@@ -18,7 +18,7 @@ public class EnameToServerGrp implements Converter<String, ServerGrp> {
 	@Override
 	public ServerGrp convert(String source) {
 		try {
-			return serverGrpDbService.getGroupContent(source);
+			return serverGrpDbService.getGroupByName(source);
 		} catch (ExecutionException e) {
 			e.printStackTrace();
 			return null;

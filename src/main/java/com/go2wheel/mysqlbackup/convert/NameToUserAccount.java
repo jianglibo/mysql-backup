@@ -20,9 +20,9 @@ public class NameToUserAccount implements Converter<String, UserAccount> {
 	public UserAccount convert(String source) {
 		Optional<String> nameOp = ObjectUtil.getValueIfIsToListRepresentation(source, "name");
 		if (nameOp.isPresent() && !nameOp.get().isEmpty()) {
-			return userAccountDbService.getNotifyUser(nameOp.get());
+			return userAccountDbService.getUserByName(nameOp.get());
 		} else {
-			return userAccountDbService.getNotifyUser(source);
+			return userAccountDbService.getUserByName(source);
 		}
 	}
 

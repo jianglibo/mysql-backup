@@ -10,11 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.dbservice.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -27,9 +25,6 @@ public class RobocopyInvokeJob implements Job {
 	private RobocopyService robocopyService;
 
 	@Autowired
-	private ServerDbService serverDbService;
-	
-	@Autowired
 	private RobocopyItemDbService robocopyItemDbService;
 	
 	@Autowired
@@ -38,9 +33,6 @@ public class RobocopyInvokeJob implements Job {
 	@Autowired
 	private JobLogDbService jobLogDbService;
 	
-	@Autowired
-	private BorgDownloadDbService borgDownloadDbService;
-
 	@Override
 	@TrapException(RobocopyInvokeJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
@@ -51,7 +43,7 @@ public class RobocopyInvokeJob implements Job {
 		List<RobocopyItem> items = robocopyItemDbService.findByDescriptionId(rd.getId());
 		rd.setRobocopyItems(items);
 		
-		Server sv = serverDbService.findById(rd.getServerId());
+//		Server sv = serverDbService.findById(rd.getServerId());
 
 //		Lock lock = TaskLocks.getBoxLock(sv.getHost(), TaskLocks.TASK_FILEBACKUP);
 //		try {

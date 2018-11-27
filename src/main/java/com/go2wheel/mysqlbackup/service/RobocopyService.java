@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackResultDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 
@@ -18,9 +17,6 @@ import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 public class RobocopyService {
 
 	private Logger logger = LoggerFactory.getLogger(getClass());
-
-	@Autowired
-	private ServerDbService serverDbService;
 
 	@Autowired
 	private PlayBackResultDbService playBackResultDbService;

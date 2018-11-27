@@ -1,8 +1,6 @@
 package com.go2wheel.mysqlbackup.model;
 
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
-
-public class MysqlFlush extends BaseModel {
+public class MysqlFlush {
 	
 	private Integer serverId;
 	/* 全部log文件的长度 */
@@ -39,10 +37,6 @@ public class MysqlFlush extends BaseModel {
 	}
 	public void setFileNumber(Integer fileNumber) {
 		this.fileNumber = fileNumber;
-	}
-	@Override
-	public String toListRepresentation(String... fields) {
-		return ObjectUtil.toListRepresentation(this, fields);
 	}
 
 }

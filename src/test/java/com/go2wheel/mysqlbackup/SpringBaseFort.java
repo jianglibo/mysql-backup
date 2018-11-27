@@ -26,7 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.dbservice.BigObDbService;
 import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
-import com.go2wheel.mysqlbackup.dbservice.BorgDownloadDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
@@ -34,14 +33,9 @@ import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerStateDbService;
 import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
-import com.go2wheel.mysqlbackup.dbservice.StorageStateDbService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
-import com.go2wheel.mysqlbackup.model.BorgDescription;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 
@@ -83,15 +77,6 @@ public class SpringBaseFort {
 	protected Scheduler scheduler;
 	
 	@Autowired
-	protected StorageStateDbService storageStateDbService;
-	
-	@Autowired
-	protected ServerStateDbService serverStateDbService;
-	
-	@Autowired
-	protected ServerDbService serverDbService;
-	
-	@Autowired
 	protected PlayBackDbService playBackDbService;
 	
 	@Autowired
@@ -114,9 +99,6 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected ReusableCronDbService reuseableCronDbService;
-	
-	@Autowired
-	protected BorgDownloadDbService borgDownloadDbService;
 	
 	@Autowired
 	protected SoftwareDbService softwareDbService;
@@ -149,14 +131,10 @@ public class SpringBaseFort {
 		playBackDbService.deleteAll();
 		mysqlInstanceDbService.deleteAll();
 		borgDescriptionDbService.deleteAll();
-		serverStateDbService.deleteAll();
-		storageStateDbService.deleteAll();
-		borgDownloadDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		robocopyItemDbService.deleteAll();
 		robocopyDescriptionDbService.deleteAll();
-		serverDbService.deleteAll();
 	}
 	
 	protected void deleteAllJobs() throws SchedulerException {
@@ -169,62 +147,20 @@ public class SpringBaseFort {
 		});
 	}
 	
-	protected Server createServer() {
-		server = createServer(HOST_DEFAULT_GET);
-		return server;
-	}
+
+
 	
-	protected Server createServerLocalhostWindows() {
-		server = createServer("localhost");
-		server.setOs("win");
-		server.setUsername(System.getProperty("user.name"));
-		return server;
-	}
-	
-	protected Server createServer(String host) {
-		return createServer(host, host, false);
-	}
-	
-	protected Server createServer(String host, boolean set) {
-		return createServer(host, host, set);
-	}
-	
-	protected Server createServer(String host, String name, boolean set) {
-		Server s = new Server(host, name);
-		return serverDbService.save(s);
-	}
+
 	
 //	protected UserAccount createUser() {
 //		UserAccount ua = new UserAccount.UserAccountBuilder("江立波", "jianglibo@gmail.com").build();
 //		return userAccountDbService.save(ua);
 //	}
 	
-	protected void createMysqlIntance() {
-		createMysqlIntance(server, "123456");
-	}
+
 	
-	protected void createMysqlIntance(Server server, String initPassword) {
-		MysqlInstance mi = new MysqlInstance.MysqlInstanceBuilder(server.getId(), initPassword,
-					"mysql",
-					MysqlInstance.getDefaultDumpFileName(server.getOs()),
-					MysqlInstance.getDefaultRestartCmd(server.getOs()))
-				.addSetting("log_bin", "ON")
-				.addSetting("log_bin_basename", "/var/lib/mysql/hm-log-bin")
-				.addSetting("log_bin_index", "/var/lib/mysql/hm-log-bin.index")
-				.withFlushLogCron(A_VALID_CRON_EXPRESSION)
-				.build();
-		server.setMysqlInstance(mysqlInstanceDbService.save(mi));
-	}
+
 	
-	protected void createBorgDescription() {
-		BorgDescription bd = new BorgDescription.BorgDescriptionBuilder(server.getId())
-				.addInclude("/etc").build();
-		server.setBorgDescription(borgDescriptionDbService.save(bd));
-	}
-	
-	protected void boxDeleteLogBinSetting() {
-		server.getMysqlInstance().setLogBinSetting(null);
-	}
 	
 	protected void time() {
 		System.out.println(String.format("time elapsed: %s ms", System.currentTimeMillis() - startTime));

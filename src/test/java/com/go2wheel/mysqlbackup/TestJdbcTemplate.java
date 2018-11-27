@@ -1,18 +1,13 @@
 package com.go2wheel.mysqlbackup;
 
-import static com.go2wheel.mysqlbackup.jooqschema.tables.MysqlInstance.MYSQL_INSTANCE;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
-
-import java.util.List;
 
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.go2wheel.mysqlbackup.dbservice.TableDiscovery;
-import com.go2wheel.mysqlbackup.model.MysqlInstance;
 
 public class TestJdbcTemplate extends SpringBaseFort {
 
@@ -22,11 +17,7 @@ public class TestJdbcTemplate extends SpringBaseFort {
 	@Autowired
 	protected TableDiscovery tableDiscovery;
 	
-	@Test
-	public void tj() {
-		List<MysqlInstance> msqls = jooq.selectFrom(MYSQL_INSTANCE).fetchInto(MysqlInstance.class);
-		assertNotNull(msqls);
-	}
+
 	
 	@Test
 	public void classFind() throws ClassNotFoundException {

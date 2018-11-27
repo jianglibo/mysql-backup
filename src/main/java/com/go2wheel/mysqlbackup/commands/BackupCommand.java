@@ -2,7 +2,6 @@ package com.go2wheel.mysqlbackup.commands;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -14,8 +13,6 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
-import javax.mail.MessagingException;
-import javax.validation.constraints.Email;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
@@ -38,7 +35,6 @@ import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
-import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
@@ -46,9 +42,7 @@ import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
-import com.go2wheel.mysqlbackup.dbservice.ServerDbService;
 import com.go2wheel.mysqlbackup.dbservice.SqlService;
-import com.go2wheel.mysqlbackup.dbservice.TemplateContextService;
 import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
@@ -58,13 +52,12 @@ import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
-import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserGrp;
+import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
@@ -72,7 +65,7 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
-import com.go2wheel.mysqlbackup.yml.YamlInstance;
+import com.jcraft.jsch.JSchException;
 
 @ShellComponent()
 public class BackupCommand {
@@ -120,9 +113,6 @@ public class BackupCommand {
 	private ReusableCronDbService reusableCronDbService;
 
 	@Autowired
-	private ServerDbService serverDbService;
-
-	@Autowired
 	private LocaledMessageService localedMessageService;
 	
 	@Autowired
@@ -134,10 +124,10 @@ public class BackupCommand {
 	}
 
 
-	@ShellMethod(value = "List all managed servers.")
-	public FacadeResult<?> serverList() throws IOException {
-		return FacadeResult.doneExpectedResultDone(serverDbService.findAll());
-	}
+//	@ShellMethod(value = "List all managed servers.")
+//	public FacadeResult<?> serverList() throws IOException {
+//		return FacadeResult.doneExpectedResultDone(serverDbService.findAll());
+//	}
 
 //	@ShellMethod(value = "Pickup a server to work on.")
 //	public FacadeResult<?> serverSelect(@ShellOption(help = "服务器主机名或者IP") Server server) throws IOException {
@@ -145,19 +135,19 @@ public class BackupCommand {
 //		return null;
 //	}
 
-	@ShellMethod(value = "删除一个服务器.")
-	public FacadeResult<?> serverDelete(
-			@ShellOption(help = "服务器主机名或者IP") Server server,
-			@ShellOption(defaultValue = "") String iknow) throws IOException {
-		if (!DANGEROUS_ALERT.equals(iknow)) {
-			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
-		}
-		if (server == null) {
-			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, "");
-		}
-		serverDbService.delete(server);
-		return FacadeResult.doneExpectedResult();
-	}
+//	@ShellMethod(value = "删除一个服务器.")
+//	public FacadeResult<?> serverDelete(
+//			@ShellOption(help = "服务器主机名或者IP") Server server,
+//			@ShellOption(defaultValue = "") String iknow) throws IOException {
+//		if (!DANGEROUS_ALERT.equals(iknow)) {
+//			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
+//		}
+//		if (server == null) {
+//			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, "");
+//		}
+//		serverDbService.delete(server);
+//		return FacadeResult.doneExpectedResult();
+//	}
 
 //	@ShellMethod(value = "显示服务器描述")
 //	public FacadeResult<?> serverDetail() throws  IOException, UnExpectedInputException {

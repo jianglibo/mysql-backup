@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.aop.TrapException;
-import com.go2wheel.mysqlbackup.dbservice.ServerStateDbService;
-import com.go2wheel.mysqlbackup.dbservice.StorageStateDbService;
 
 @Component
 public class CleanupJob implements Job {
@@ -19,21 +17,15 @@ public class CleanupJob implements Job {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 	
 	@Autowired
-	private ServerStateDbService serverStateDbService;
-	
-	@Autowired
-	private StorageStateDbService storageStateDbService;
-	
-	@Autowired
 	private SettingsInDb settingsInDb;
 
 	@Override
 	@TrapException(CleanupJob.class)
 	public void execute(JobExecutionContext context) throws JobExecutionException {
-		int serverStateDeleted = serverStateDbService.deleteBefore(settingsInDb.getInteger("app.cleanup.max-keep-days", 90));
-		int storageStateDeleted = storageStateDbService.deleteBefore(settingsInDb.getInteger("app.cleanup.max-keep-days", 90));
-		logger.info("cleanup serverState: {}", serverStateDeleted);
-		logger.info("cleanup storageState: {}", storageStateDeleted);
+//		int serverStateDeleted = serverStateDbService.deleteBefore(settingsInDb.getInteger("app.cleanup.max-keep-days", 90));
+//		int storageStateDeleted = storageStateDbService.deleteBefore(settingsInDb.getInteger("app.cleanup.max-keep-days", 90));
+//		logger.info("cleanup serverState: {}", serverStateDeleted);
+//		logger.info("cleanup storageState: {}", storageStateDeleted);
 	}
 
 }

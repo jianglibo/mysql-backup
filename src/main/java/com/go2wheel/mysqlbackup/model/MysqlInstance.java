@@ -171,11 +171,10 @@ public class MysqlInstance extends BaseModel {
 		
 		private Set<String> mysqlSettings = new HashSet<>();
 		
-		private final int serverId;
+		private int serverId;
 		
 		public MysqlInstanceBuilder(Server server, String password, String clientBin) {
 			super();
-			this.serverId = server.getId();
 			this.password = password;
 			this.clientBin = clientBin;
 			this.dumpFileName = getDefaultDumpFileName(server.getOs());

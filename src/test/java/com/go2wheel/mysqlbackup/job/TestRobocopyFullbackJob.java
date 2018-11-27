@@ -57,7 +57,7 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
 		deleteRepo(server);
 		RobocopyDescription rd = grpd(repofolder, srcfolder);
 		
-		rd.setServerId(server.getId());
+//		rd.setServerId(server.getId());
 		rd.setInvokeCron(A_VALID_CRON_EXPRESSION);
 		rd = robocopyDescriptionDbService.save(rd);
 		
@@ -87,7 +87,7 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
 		RobocopyDescription rd = grpd(repofolder, srcfolder);
 		List<RobocopyItem> items = rd.getRobocopyItems();
 		
-		rd.setServerId(server.getId());
+//		rd.setServerId(server.getId());
 		rd.setInvokeCron(A_VALID_CRON_EXPRESSION);
 		rd = robocopyDescriptionDbService.save(rd);
 		
@@ -129,7 +129,7 @@ public class TestRobocopyFullbackJob extends RobocopyBaseT {
 		RobocopyDescription rd = grpd(repofolder, srcfolder);
 		List<RobocopyItem> items = rd.getRobocopyItems();
 		
-		rd.setServerId(server.getId());
+//		rd.setServerId(server.getId());
 		rd.setInvokeCron(A_VALID_CRON_EXPRESSION);
 		rd = robocopyDescriptionDbService.save(rd);
 		

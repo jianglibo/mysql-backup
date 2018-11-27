@@ -19,7 +19,7 @@ public class RobocopyBaseT extends SpringBaseFort {
     protected String zipApp;
 
 	protected RobocopyDescription grpd(TemporaryFolder repofolder, TemporaryFolder srcfolder) throws IOException {
-		RobocopyDescription rd = new RobocopyDescription.RobocopyDescriptionBuilder(server.getId(), repofolder.getRoot().toPath().toAbsolutePath().toString()).build();
+		RobocopyDescription rd = new RobocopyDescription.RobocopyDescriptionBuilder(0, repofolder.getRoot().toPath().toAbsolutePath().toString()).build();
 		String compress = String.format("& '%s' a -ms %%s %%s", zipApp);
 		rd.setCompressCommand(compress);
 		String expand = String.format("& '%s' x -o+ %%s %%s", zipApp);
