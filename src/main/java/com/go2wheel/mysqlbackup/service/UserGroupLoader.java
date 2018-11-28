@@ -1,13 +1,15 @@
 package com.go2wheel.mysqlbackup.service;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +22,7 @@ import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.value.ConfigFile;
 
 @Service
 public class UserGroupLoader {
@@ -28,6 +31,8 @@ public class UserGroupLoader {
 
 	private Map<String, ServerGrp> groupCache = new HashMap<>();
 	private Map<String, UserAccount> userCache = new HashMap<>();
+	
+	private Map<String, Server> serverCache = new HashMap<>();
 	
 	private Map<String, Subscribe> subscribesCache = new HashMap<>();
 	
@@ -44,41 +49,77 @@ public class UserGroupLoader {
 
 
 	public List<Subscribe> getAllSubscribes() {
-		return null;
+		return new ArrayList<>(subscribesCache.values());
+	}
+	
+	protected void clearAll() {
+		groupCache.clear();
+		userCache.clear();
+		subscribesCache.clear();
+		adminUserCache.clear();
 	}
 	
 	public void loadAll() throws Exception {
 		loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(), myAppSettings.getAdminFile());
 	}
-
+	
+	private Reader readContentUtf8(Path file) throws IOException {
+		return Files.newBufferedReader(file, StandardCharsets.UTF_8);
+	}
+	
 	public void loadAll(Path groupsFilePath, Path usersFilePath, Path subscribesFilePath, Path adminFilePath) throws Exception {
-		ConfigFileGroupFile cfg = objectMapper.readValue(groupsFilePath.toFile(),
+		
+		ConfigFileGroupFile cfg = objectMapper.readValue(readContentUtf8(groupsFilePath),
 				ConfigFileGroupFile.class);
 
-		for (ServerGrp gif : cfg.getGroups()) {
-			String grpname = gif.getName();
-			List<Server> cfs = gif.getHostnames().stream().map(hst -> configFileLoader.getByHostname(hst))
-					.filter(Objects::nonNull).map(cf -> cf.asServer()).collect(Collectors.toList());
-			ServerGrp grp = new ServerGrp();
-			grp.setServers(cfs);
+		for (ServerGrp grp : cfg.getGroups()) {
+			String grpname = grp.getName();
+			List<Server> servers = new ArrayList<>();
+			
+			for(String hostname: grp.getHostnames()) {
+				Server sv;
+				ConfigFile cf = configFileLoader.getByHostname(hostname);
+				if (cf == null) {
+					String message = "hostname in server group hostnames does't contain " + hostname;
+					throw new Exception(message);
+				}
+				if (serverCache.containsKey(hostname)) {
+					sv = serverCache.get(hostname);
+				} else {
+					sv = new Server();
+					sv.setName(cf.getServerName());
+					sv.setHost(cf.getHostName());
+					serverCache.put(hostname, sv);
+				}
+				sv.getConfigFiles().add(cf);
+				servers.add(sv);
+			}
+			grp.setServers(servers);
 			groupCache.put(grpname, grp);
 		}
 		
-		ConfigFileUserFile cfuf = objectMapper.readValue(usersFilePath.toFile(),
+		ConfigFileUserFile cfuf = objectMapper.readValue(readContentUtf8(usersFilePath),
 				ConfigFileUserFile.class);
 		
 		for(UserAccount ua: cfuf.getUsers()) {
 			userCache.put(ua.getName(), ua);
 		}
 		
-		ConfigFileSubscribeFile subscribeFile = objectMapper.readValue(subscribesFilePath.toFile(),
+		ConfigFileSubscribeFile subscribeFile = objectMapper.readValue(readContentUtf8(subscribesFilePath),
 				ConfigFileSubscribeFile.class);
 		
 		for(Subscribe sb: subscribeFile.getSubscribes()) {
+			String groupname = sb.getGroupname();
+			ServerGrp grp = groupCache.get(groupname);
+			if (grp == null) {
+				String message = "subscribe file  groupname does't exists: " + groupname;
+				throw new Exception(message);
+			}
+			sb.setServerGroup(grp);
 			subscribesCache.put(sb.getId(), sb);
 		}
 		
-		ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper.readValue(adminFilePath.toFile(),
+		ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper.readValue(readContentUtf8(adminFilePath),
 				ConfigFileSubscribeAdminFile.class);
 		
 		for(String username: subscribeAdminFile.getAdmins()) {
@@ -149,32 +190,23 @@ public class UserGroupLoader {
 		return userCache.get(username);
 	}
 
-	public Object getAllUsers() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<UserAccount> getAllUsers() {
+		return new ArrayList<>(userCache.values());
 	}
 
-	public Object getAllGroups() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<ServerGrp> getAllGroups() {
+		return new ArrayList<>(groupCache.values());
 	}
 
 	public Subscribe getSubscribeById(String id) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public List<Server> getServersInGroup(ServerGrp sg) {
 		return null;
 	}
 
 	public List<ServerGrp> findLikeEname(String input) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
 	public List<UserAccount> findUserAccountLikeName(String input) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 }

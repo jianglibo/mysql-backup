@@ -17,6 +17,8 @@ public class ConfigFile {
 	
 	private String hostName;
 	
+	private String serverName;
+	
 	private String logDir;
 	
 	private Map<String, String> taskcmd;
@@ -102,6 +104,14 @@ public class ConfigFile {
 
 	public void setLogDirs(Map<String, Path> logDirs) {
 		this.logDirs = logDirs;
+	}
+
+	public String getServerName() {
+		return serverName;
+	}
+
+	public void setServerName(String serverName) {
+		this.serverName = serverName;
 	}
 
 }

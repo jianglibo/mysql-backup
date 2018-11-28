@@ -6,15 +6,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 
 @Controller
 @RequestMapping("/app/demo")
 public class DemoController {
 
-	@Autowired
-	protected SoftwareDbService softwareDbService;
-	
 	@Autowired
 	private RobocopyItemDbService robocopyItemDbService;
 	

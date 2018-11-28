@@ -14,6 +14,8 @@ public class Subscribe {
 	
 	private String description;
 	
+	private ServerGrp serverGroup;
+	
 	public String getUsername() {
 		return username;
 	}
@@ -50,5 +52,11 @@ public class Subscribe {
 	}
 	public void setDescription(String description) {
 		this.description = description;
+	}
+	public ServerGrp getServerGroup() {
+		return serverGroup;
+	}
+	public void setServerGroup(ServerGrp serverGroup) {
+		this.serverGroup = serverGroup;
 	}
 }

@@ -29,7 +29,7 @@ public class TemplateContextService {
 		ServerGrp sg = userGroupLoader.getGroupByName(subscribe.getGroupname());
 		UserAccount ua = userGroupLoader.getUserByName(subscribe.getUsername());
 
-		List<Server> servers = userGroupLoader.getServersInGroup(sg);
+		List<Server> servers = sg.getServers();
 
 		List<ServerContext> oscs = new ArrayList<>();
 

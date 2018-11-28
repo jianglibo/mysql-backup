@@ -1,7 +1,11 @@
 package com.go2wheel.mysqlbackup.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.go2wheel.mysqlbackup.value.ConfigFile;
+
 public class Server {
-	
 	
 	private String host;
 	
@@ -12,6 +16,8 @@ public class Server {
 	private String os;
 	
 	private String username = "root";
+	
+	private List<ConfigFile> configFiles = new ArrayList<>();
 	
 	private int loadValve = 70;
 	private int memoryValve = 70;
@@ -96,4 +102,11 @@ public class Server {
 		this.diskValve = diskValve;
 	}
 
+	public List<ConfigFile> getConfigFiles() {
+		return configFiles;
+	}
+
+	public void setConfigFiles(List<ConfigFile> configFiles) {
+		this.configFiles = configFiles;
+	}
 }

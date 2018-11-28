@@ -67,6 +67,7 @@ myapp.app.client-bin=e:\\wamp64\\bin\\mysql\\mysql5.7.21\\bin\\mysql.exe
 myapp.psapp=D:\\Documents\\GitHub\\easy-installer
 myapp.powershell=powershell.exe
 myapp.consoleCharsetName=gb18030
+myapp.notautoload=true
 
 using.spring.schedulerFactory=true
 expectit.echo=true

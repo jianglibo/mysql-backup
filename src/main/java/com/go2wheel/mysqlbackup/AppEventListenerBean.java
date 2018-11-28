@@ -89,12 +89,11 @@ public class AppEventListenerBean implements EnvironmentAware {
 			}
 		});
 		
-
-
-		configFileLoader.loadAll(configsDir);
-		configFileLoader.scheduleAll();
-		
-		userGroupLoader.loadAll();
+		if (!myAppSettings.isNotautoload()) {
+			configFileLoader.loadAll(configsDir);
+			configFileLoader.scheduleAll();
+			userGroupLoader.loadAll();
+		}
 	}
 
 	private void createDemoFile(Path file) throws IOException {

@@ -33,7 +33,6 @@ import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
 import com.go2wheel.mysqlbackup.model.Server;
@@ -100,9 +99,6 @@ public class SpringBaseFort {
 	@Autowired
 	protected ReusableCronDbService reuseableCronDbService;
 	
-	@Autowired
-	protected SoftwareDbService softwareDbService;
-
 	protected Server server;
 	
 	protected String TMP_SERVER_FILE_NAME = "/tmp/abc.txt";
@@ -124,7 +120,6 @@ public class SpringBaseFort {
 	}
 	
 	protected void clearDb() {
-		softwareDbService.deleteAll();
 		keyValueDbService.deleteAll();
 		jobLogDbService.deleteAll();
 		bigObDbService.deleteAll();

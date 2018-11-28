@@ -31,6 +31,11 @@ public class MyAppSettings {
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	public static final String MYAPP_PREFIX = "myapp";
+	
+	public static final String SERVER_GROUP_FILE_NAME = "server-groups.json";
+	public static final String USER_FILE_NAME = "users.json";
+	public static final String SUBSCRIBE_FILE_NAME = "subscribes.json";
+	public static final String ADMIN_FILE_NAME = "admins.json";
 
 	private SshConfig ssh;
 
@@ -43,6 +48,8 @@ public class MyAppSettings {
 	private Path psdataDirPath;
 	
 	private String psapp;
+	
+	private boolean notautoload;
 	
 	private Path psappPath;
 	
@@ -74,19 +81,19 @@ public class MyAppSettings {
 	}
 	
 	public Path getGroupsFile() {
-		return getPsdataDirPath().resolve("server-groups.json");
+		return getPsdataDirPath().resolve(SERVER_GROUP_FILE_NAME);
 	}
 	
 	public Path getUsersFile() {
-		return getPsdataDirPath().resolve("users.json");
+		return getPsdataDirPath().resolve(USER_FILE_NAME);
 	}
 	
 	public Path getSubscribeFile() {
-		return getPsdataDirPath().resolve("subscribes.json");
+		return getPsdataDirPath().resolve(SUBSCRIBE_FILE_NAME);
 	}
 	
 	public Path getAdminFile() {
-		return getPsdataDirPath().resolve("admins.json");
+		return getPsdataDirPath().resolve(ADMIN_FILE_NAME);
 	}
 
 	private void setupSsh() {
@@ -189,6 +196,14 @@ public class MyAppSettings {
 
 	public void setConsoleCharset(Charset consoleCharset) {
 		this.consoleCharset = consoleCharset;
+	}
+
+	public boolean isNotautoload() {
+		return notautoload;
+	}
+
+	public void setNotautoload(boolean notautoload) {
+		this.notautoload = notautoload;
 	}
 
 	public static class CacheTimes {

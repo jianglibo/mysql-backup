@@ -1,0 +1,12 @@
+{
+  "subscribes": [
+    {
+      "id": "jlb",
+      "username": "demouser",
+      "groupname": "demogroup",
+      "cron": "3 33 10 * * ? *",
+      "template": "ctx.html",
+      "description": ""
+    }
+  ]
+}

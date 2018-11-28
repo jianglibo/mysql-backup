@@ -11,7 +11,6 @@ import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
-import com.go2wheel.mysqlbackup.dbservice.SoftwareDbService;
 import com.go2wheel.mysqlbackup.model.BaseModel;
 import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.JobLog;
@@ -52,9 +51,6 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	private UserGroupLoader userGroupLoader;
 
 	
-	@Autowired
-	private SoftwareDbService softwareDbService;
-
 	public <T extends BaseModel> Converter<String, T> getConverter(Class<T> targetType) {
 		return new StringToModelConverter<T>(targetType);
 	}
@@ -77,8 +73,6 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) keyValueDbService.findById(source);
 			} else if (modelType == BorgDescription.class) {
 				return (T) borgDescriptionDbService.findById(source);
-			} else if (modelType == Software.class) {
-				return (T) softwareDbService.findById(source);
 			} else if (modelType == PlayBack.class) {
 				return (T) playBackDbService.findById(source);
 			} else if (modelType == RobocopyDescription.class) {
