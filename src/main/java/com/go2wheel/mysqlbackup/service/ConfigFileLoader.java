@@ -17,6 +17,8 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 
 import org.quartz.SchedulerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +29,7 @@ import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.exception.IncompatibleConfigurationError;
 import com.go2wheel.mysqlbackup.exception.NoActionException;
 import com.go2wheel.mysqlbackup.job.PowershellCommandSchedule;
+import com.go2wheel.mysqlbackup.util.BomUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
@@ -36,6 +39,8 @@ import com.google.common.cache.LoadingCache;
 
 @Service
 public class ConfigFileLoader {
+	
+	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	private LoadingCache<String, ConfigFile> cache;
 
@@ -64,13 +69,14 @@ public class ConfigFileLoader {
 		this.cache.invalidateAll();
 	}
 	
-	public ConfigFile getByHostname(String hostname) {
-		return this.cache.asMap().values().stream().filter(cf -> cf.getHostName().equals(hostname)).findFirst().orElse(null);
+	public List<ConfigFile> getByHostname(String hostname) {
+		return this.cache.asMap().values().stream().filter(cf -> cf.getHostName().equals(hostname)).collect(Collectors.toList());
 	}
 
 	private ConfigFile loadOne(String configFileName)
 			throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
-		ConfigFile cf = objectMapper.readValue(Files.readAllBytes(Paths.get(configFileName)), ConfigFile.class);
+		String content = BomUtil.removeBom(Files.readAllBytes(Paths.get(configFileName))).toString();
+		ConfigFile cf = objectMapper.readValue(content, ConfigFile.class);
 		cf.setMypath(configFileName);
 		for (Map.Entry<String, String> entry : cf.getTaskcmd().entrySet()) {
 			String k = entry.getKey();
@@ -106,6 +112,16 @@ public class ConfigFileLoader {
 			getOne(p.toAbsolutePath().normalize().toString());
 		}
 		;
+	}
+	
+	public void runAllCmds() {
+		for(ConfigFile cf: cache.asMap().values()) {
+			for(List<String> commands: cf.getProcessBuilderNeededList().values()) {
+				ProcessExecResult per = PSUtil.invokePowershell(commands, myAppSettings.getConsoleCharset());
+				logger.debug(String.join("\n", per.getStdOut()));
+				logger.debug(String.join("\n", per.getStdError()));
+			}
+		}
 	}
 
 	public void scheduleAll() throws SchedulerException, ParseException {

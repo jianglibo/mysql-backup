@@ -1,5 +1,6 @@
 package com.go2wheel.mysqlbackup.util;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -13,7 +14,9 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -92,7 +95,7 @@ public class FileUtil {
 	public static void deleteFolder(Path folder, Pattern keep) throws IOException {
 		deleteFolder(folder, true, keep);
 	}
-	
+
 	public static void deleteFolder(Path folder, boolean keepRoot) throws IOException {
 		deleteFolder(folder, keepRoot, null);
 	}
@@ -184,29 +187,31 @@ public class FileUtil {
 			}
 		}
 	}
-	
+
 	public static void backupAlreadyVersioned(Path versionedfileOrDirectoryToBackup, boolean keepOrigin)
 			throws IOException, UnExpectedInputException {
 		if (!Files.exists(versionedfileOrDirectoryToBackup)) {
-			logger.error("Source file: '{}' does't exists.", versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
+			logger.error("Source file: '{}' does't exists.",
+					versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
 			return;
 		}
-		
+
 		Pattern ptn = Pattern.compile("^(.*)\\.(\\d+)$");
 		Matcher m = ptn.matcher(versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
-		
+
 		if (!m.matches()) {
-			throw new UnExpectedInputException("1000", "common.filebackup.unverioned", versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
+			throw new UnExpectedInputException("1000", "common.filebackup.unverioned",
+					versionedfileOrDirectoryToBackup.toAbsolutePath().toString());
 		}
-		
+
 		String bn = m.group(1);
 		String dg = m.group(2);
 		int len = dg.length();
 		int pw = 1;
-		for(int i =0;i < len; i++) {
+		for (int i = 0; i < len; i++) {
 			pw *= 10;
 		}
-		Path target = PathUtil.getNextAvailable(Paths.get(bn), dg.length(), pw -1);
+		Path target = PathUtil.getNextAvailable(Paths.get(bn), dg.length(), pw - 1);
 		docopy(versionedfileOrDirectoryToBackup, keepOrigin, target);
 	}
 
@@ -324,6 +329,25 @@ public class FileUtil {
 
 			return splitedFolder;
 		}
+	}
+
+	private static class FileCreateComparator implements Comparator<File> {
+		@Override
+		public int compare(File o1, File o2) {
+			Long l1 = o1.lastModified();
+			Long l2 = o2.lastModified();
+			return l2.compareTo(l1);
+		}
+	}
+
+	public static File[] getNewestFiles(Path dir, int num) {
+		File[] files = dir.toFile().listFiles();
+		Arrays.sort(files, new FileCreateComparator());
+		int len = files.length;
+		if (num > len) {
+			num = len;
+		}
+		return Arrays.copyOfRange(files, 0, num);
 	}
 
 }

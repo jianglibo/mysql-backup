@@ -1,8 +1,5 @@
 package com.go2wheel.mysqlbackup.service;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.util.BomUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
@@ -63,13 +61,9 @@ public class UserGroupLoader {
 		loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(), myAppSettings.getAdminFile());
 	}
 	
-	private Reader readContentUtf8(Path file) throws IOException {
-		return Files.newBufferedReader(file, StandardCharsets.UTF_8);
-	}
-	
 	public void loadAll(Path groupsFilePath, Path usersFilePath, Path subscribesFilePath, Path adminFilePath) throws Exception {
 		
-		ConfigFileGroupFile cfg = objectMapper.readValue(readContentUtf8(groupsFilePath),
+		ConfigFileGroupFile cfg = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(groupsFilePath)).toString(),
 				ConfigFileGroupFile.class);
 
 		for (ServerGrp grp : cfg.getGroups()) {
@@ -78,8 +72,8 @@ public class UserGroupLoader {
 			
 			for(String hostname: grp.getHostnames()) {
 				Server sv;
-				ConfigFile cf = configFileLoader.getByHostname(hostname);
-				if (cf == null) {
+				List<ConfigFile> cf = configFileLoader.getByHostname(hostname);
+				if (cf.isEmpty()) {
 					String message = "hostname in server group hostnames does't contain " + hostname;
 					throw new Exception(message);
 				}
@@ -87,25 +81,25 @@ public class UserGroupLoader {
 					sv = serverCache.get(hostname);
 				} else {
 					sv = new Server(objectMapper);
-					sv.setName(cf.getServerName());
-					sv.setHost(cf.getHostName());
+					sv.setName(cf.get(0).getServerName());
+					sv.setHost(cf.get(0).getHostName());
 					serverCache.put(hostname, sv);
 				}
-				sv.getConfigFiles().add(cf);
+				sv.getConfigFiles().addAll(cf);
 				servers.add(sv);
 			}
 			grp.setServers(servers);
 			groupCache.put(grpname, grp);
 		}
 		
-		ConfigFileUserFile cfuf = objectMapper.readValue(readContentUtf8(usersFilePath),
+		ConfigFileUserFile cfuf = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(usersFilePath)).toString(),
 				ConfigFileUserFile.class);
 		
 		for(UserAccount ua: cfuf.getUsers()) {
 			userCache.put(ua.getName(), ua);
 		}
 		
-		ConfigFileSubscribeFile subscribeFile = objectMapper.readValue(readContentUtf8(subscribesFilePath),
+		ConfigFileSubscribeFile subscribeFile = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(subscribesFilePath)).toString(),
 				ConfigFileSubscribeFile.class);
 		
 		for(Subscribe sb: subscribeFile.getSubscribes()) {
@@ -119,7 +113,7 @@ public class UserGroupLoader {
 			subscribesCache.put(sb.getId(), sb);
 		}
 		
-		ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper.readValue(readContentUtf8(adminFilePath),
+		ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(adminFilePath)).toString(),
 				ConfigFileSubscribeAdminFile.class);
 		
 		for(String username: subscribeAdminFile.getAdmins()) {

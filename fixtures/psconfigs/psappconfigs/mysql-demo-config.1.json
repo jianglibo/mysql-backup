@@ -1,0 +1,76 @@
+{
+  "AppName": "mysql",
+  "entryPoint": "scripts/mysql/mysql-client-side.ps1",
+  "MysqlVersion": "57",
+  "ClientScp": "scp",
+  "ClientSsh": "ssh",
+  "openssl": "openssl",
+  "ClientOpenssl": "E:\\Program Files\\OpenSSL-Win64\\v1.0.2p\\bin\\openssl.exe",
+  "ClientEnv": {
+    "OPENSSL_CONF": "E:\\Program Files\\OpenSSL-Win64\\v1.0.2p\\bin\\openssl.cfg"
+  },
+  "HostName": "192.168.33.110",
+  "ServerName": "测试机",
+  "coreNumber": 8,
+  "mem": "8G",
+  "UserName": "root",
+  "IdentityFile": "C:/Users/Administrator/192.168.33.110.ifile",
+  "PublicKeyFile": "default|none",
+  "PrivateKeyFile": "/root/.ssh/id_rsa",
+  "ServerPassword": null,
+  "MysqlUser": "root",
+  "MysqlPassword": "PZLyfUnHJYqUWe6Vg6U6y2+Asi1NHRWqJPS8P2gf9v4sKMuiOBXWqVE/GudVStS4uCN8iBE4baJuw33AoG3amfbPfIcoXi0z4aKMHXM7OEy3T3ALFDdEngMfX99C+hRbCn8RDabhoeEkM3vwPHpQxkp+Q/oJyZtwFHPH5mamyKMGflCySWEhpQbTHAIWXbf4iBiyjv5PIcEUuQ3bSezMG89uR/P1NSKh8nGlsP9/qT3BAl8TaGq5gwYVNXVD5wTpjBc0ZpbEfPg2iih/edKcP9zmPNdz3Pn7eK8fuuYToUwdtjz2I5PhEx+nrQYoWoC2OTMYbJAiiAdBtTECsZE7cA==",
+  "ClientBin": "mysql",
+  "DumpBin": "mysqldump",
+  "DumpFilename": "/tmp/mysqldump.sql",
+  "MysqlAdminBin": "mysqladmin",
+  "MysqlLogFile": "/var/log/mysqld.log",
+  "LocalDir": "e:/backups/mysql",
+  "LogDir": "e:/backups/logs",
+  "taskcmd": {
+    "flushlog": "%s -Action FlushLogs -ConfigFile %s -LogResult -Json",
+    "dump": "%s -Action Dump -ConfigFile %s -LogResult -Json",
+    "backuplocal": "%s -Action BackupLocal -ConfigFile %s -LogResult -Json"
+  },
+  "crons": {
+    "flushlog": "0/10 * * * * ? *",
+    "backuplocal": "3 * * ? * * *"
+  },
+  "DumpPrunePattern": "0 3 0 3 0 0 2",
+  "OsType": "centos",
+  "SwitchByOs": {
+    "centos": {
+      "Softwares": [
+        {
+          "PackageUrl": "https://cdn.mysql.com//Downloads/MySQL-5.7/mysql-community-common-5.7.23-1.el7.x86_64.rpm",
+          "LocalName": null,
+          "InstallDetect": {
+            "command": "yum list installed | Where-Object {$_ -match 'mysql57-community-release.noarch'}",
+            "expect": "aru",
+            "unexpect": ""
+          },
+          "Install": {
+            "command": "yum --nogpgcheck -y localinstall {0}"
+          }
+        }
+      ],
+      "ServerSide": {
+        "StartCommand": "systemctl start mysqld",
+        "StopCommand": "systemctl stop mysqld",
+        "RestartCommand": "systemctl restart mysqld",
+        "StatusCommand": "systemctl status mysqld",
+        "UninstallCommand": "yum remove -y (Invoke-Expression -Command '& yum list installed' | ForEach-Object {$_ -split '\\s+' | Select-Object -First 1 }| Where-Object {$PSItem -like '*mysql*server.x86_64'})",
+        "ScriptDir": "/tmp/easyinstaller-scripts/mysql",
+        "PackageDir": "/tmp/easyinstaller-scripts/packages",
+        "EntryPoint": "mysql-server-side.ps1",
+        "Software": {
+          "InstallDetect": {
+            "command": "systemctl status mysqld",
+            "expect": "",
+            "unexpect": "not-found"
+          }
+        }
+      }
+    }
+  }
+}

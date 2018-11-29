@@ -42,6 +42,7 @@ public class TestUserGroupLoader extends SpringBaseFort {
 		userGroupLoader.clearAll();
 		configFileLoader.clearCache();
 		configFileLoader.loadAll(psappconfig);
+		
 		userGroupLoader.loadAll(pss[0], pss[1], pss[2], pss[3]);
 		List<ServerGrp> grps = userGroupLoader.getAllGroups();
 		assertThat(grps.size(), equalTo(1));

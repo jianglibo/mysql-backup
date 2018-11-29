@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,6 +39,16 @@ public class TestFileUtil {
 		dir1 = tfolder.newFolder().toPath();
 	}
 	
+	
+	@Test
+	public void tNewsfiles() throws IOException, InterruptedException {
+		File f1 = tfolder.newFile();
+		Thread.sleep(1000);
+		File f2 = tfolder.newFile();
+		File f = FileUtil.getNewestFiles(tfolder.getRoot().toPath(), 1)[0];
+		assertThat(f.getAbsolutePath(), equalTo(f2.getAbsolutePath()));
+	}
+	
 	@Test
 	public void testSort() {
 		List<String> ls = new ArrayList<>();
@@ -50,12 +61,6 @@ public class TestFileUtil {
 		assertThat(ls, contains("000", "001", "099", "1000"));
 	}
 	
-//	@Test
-//	public void testBigFile() throws IOException {
-//		Path f = Paths.get("D:", "webpic.rar");
-//		Path splittedFolder = FileUtil.splitFile(f, 1024 * 1024 * 256);
-//		FileUtil.joinFile(splittedFolder);
-//	}
 	
 	@Test
 	public void testSplitByteFile() throws IOException {

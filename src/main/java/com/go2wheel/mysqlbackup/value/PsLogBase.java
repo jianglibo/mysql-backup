@@ -28,6 +28,7 @@ public class PsLogBase {
 		private PsDownloadCatalog total;
 		private PsDownloadCatalog failed;
 		private PsDownloadCatalog copied;
+		
 		public PsDownloadCatalog getTotal() {
 			return total;
 		}

@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -14,6 +12,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.util.BomUtil;
+import com.go2wheel.mysqlbackup.util.FileUtil;
 
 public class Server {
 	
@@ -36,14 +35,7 @@ public class Server {
 	private int diskValve = 70;
 	
 	
-	private class FileCreateComparator implements Comparator<File> {
-		@Override
-		public int compare(File o1, File o2) {
-			Long l1 = o1.lastModified();
-			Long l2 = o2.lastModified();
-			return l1.compareTo(l2);  
-		}
-	}
+
 	
 	 public <T> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num) throws JsonParseException, JsonMappingException, IOException {
 			Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
@@ -51,13 +43,8 @@ public class Server {
 			if (cfop.isPresent()) {
 				Path logf = cfop.get().getLogDirs().get(cmdKey);
 				if (logf != null) {
-					File[] files = logf.toFile().listFiles();
-					Arrays.sort(files, new FileCreateComparator());
-					int len = files.length;
-					if (num > len) {
-						num = len;
-					}
-					for(int i = 0; i< num; i++) {
+					File[] files = FileUtil.getNewestFiles(logf, num);
+					for(int i = 0; i < num; i++) {
 						byte[] bytes = Files.readAllBytes(files[i].toPath());
 						String content = BomUtil.removeBom(bytes).toString();
 						results.add(objectMapper.readValue(content, clazz));
