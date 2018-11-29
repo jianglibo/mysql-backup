@@ -15,12 +15,12 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.util.BomUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 @Service
 public class UserGroupLoader {
@@ -50,7 +50,7 @@ public class UserGroupLoader {
 		return new ArrayList<>(subscribesCache.values());
 	}
 	
-	protected void clearAll() {
+	public void clearAll() {
 		groupCache.clear();
 		userCache.clear();
 		subscribesCache.clear();

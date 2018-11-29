@@ -5,36 +5,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.MailBaseFort;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
-public class TestUserGroupLoader extends SpringBaseFort {
-
-	@Autowired
-	private UserGroupLoader userGroupLoader;
-	
-	@Autowired
-	private ConfigFileLoader configFileLoader;
-
-	private Path psconfig = Paths.get("fixtures", "psconfigs", "config-templates");
-	
-	private Path psappconfig = Paths.get("fixtures", "psconfigs", "psappconfigs");
-
-	private Path[] getPathes() {
-		return new Path[] { psconfig.resolve(MyAppSettings.SERVER_GROUP_FILE_NAME),
-				psconfig.resolve(MyAppSettings.USER_FILE_NAME), psconfig.resolve(MyAppSettings.SUBSCRIBE_FILE_NAME),
-				psconfig.resolve(MyAppSettings.ADMIN_FILE_NAME) };
-	}
+public class TestUserGroupLoader extends MailBaseFort {
 
 	@Test
 	public void tServers() throws Exception {
@@ -42,8 +23,8 @@ public class TestUserGroupLoader extends SpringBaseFort {
 		userGroupLoader.clearAll();
 		configFileLoader.clearCache();
 		configFileLoader.loadAll(psappconfig);
-		
 		userGroupLoader.loadAll(pss[0], pss[1], pss[2], pss[3]);
+		
 		List<ServerGrp> grps = userGroupLoader.getAllGroups();
 		assertThat(grps.size(), equalTo(1));
 		ServerGrp grp = grps.get(0);

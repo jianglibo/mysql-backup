@@ -14,8 +14,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 @Service
 public class MailerImpl implements Mailer {

@@ -1,6 +1,4 @@
-package com.go2wheel.mysqlbackup.model;
-
-import com.go2wheel.mysqlbackup.value.ServerGrp;
+package com.go2wheel.mysqlbackup.value;
 
 public class Subscribe {
 	

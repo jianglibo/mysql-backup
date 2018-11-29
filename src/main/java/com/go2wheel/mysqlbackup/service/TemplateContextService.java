@@ -11,11 +11,10 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.mail.ServerContext;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
-import com.go2wheel.mysqlbackup.model.ServerState;
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 @Service
 public class TemplateContextService {
@@ -37,7 +36,7 @@ public class TemplateContextService {
 			ServerContext osc = prepareServerContext(server);
 			oscs.add(osc);
 		}
-		return new ServerGroupContext(oscs,new ArrayList<>(), ua, sg, null);
+		return new ServerGroupContext(oscs,ua, sg);
 
 	}
 	

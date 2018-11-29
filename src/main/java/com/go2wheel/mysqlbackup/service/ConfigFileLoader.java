@@ -65,7 +65,7 @@ public class ConfigFileLoader {
 		});
 	}
 	
-	protected void clearCache() {
+	public void clearCache() {
 		this.cache.invalidateAll();
 	}
 	

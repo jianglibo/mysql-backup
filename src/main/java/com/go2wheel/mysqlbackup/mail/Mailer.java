@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 
 import javax.mail.MessagingException;
 
-import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 public interface Mailer {
 	

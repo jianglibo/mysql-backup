@@ -33,10 +33,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.go2wheel.mysqlbackup.JavaMailSendPropertiesOverrider;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
-import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 import com.google.common.io.ByteStreams;
 
 @Controller

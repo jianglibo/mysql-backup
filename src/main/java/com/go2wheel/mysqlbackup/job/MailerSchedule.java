@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
-import com.go2wheel.mysqlbackup.model.Subscribe;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 @Component
 public class MailerSchedule {

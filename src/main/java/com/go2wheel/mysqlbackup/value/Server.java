@@ -15,65 +15,68 @@ import com.go2wheel.mysqlbackup.util.BomUtil;
 import com.go2wheel.mysqlbackup.util.FileUtil;
 
 public class Server {
-	
+
 	private String host;
-	
+
 	private String name;
-	
+
 	private int coreNumber;
-	
+
 	private String os;
-	
+
 	private String username = "root";
-	
+
 	private final ObjectMapper objectMapper;
-	
+
 	private List<ConfigFile> configFiles = new ArrayList<>();
-	
+
 	private int loadValve = 70;
 	private int memoryValve = 70;
 	private int diskValve = 70;
-	
-	
 
-	
-	 public <T> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num) throws JsonParseException, JsonMappingException, IOException {
-			Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
-			List<T> results = new ArrayList<>();
-			if (cfop.isPresent()) {
-				Path logf = cfop.get().getLogDirs().get(cmdKey);
-				if (logf != null) {
-					File[] files = FileUtil.getNewestFiles(logf, num);
-					for(int i = 0; i < num; i++) {
-						byte[] bytes = Files.readAllBytes(files[i].toPath());
-						String content = BomUtil.removeBom(bytes).toString();
-						results.add(objectMapper.readValue(content, clazz));
-					}
+	public <T> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
+			throws JsonParseException, JsonMappingException, IOException {
+		Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
+		List<T> results = new ArrayList<>();
+		if (cfop.isPresent()) {
+			Path logf = cfop.get().getLogDirs().get(cmdKey);
+			if (logf != null) {
+				File[] files = FileUtil.getNewestFiles(logf, num);
+				for (int i = 0; i < num; i++) {
+					byte[] bytes = Files.readAllBytes(files[i].toPath());
+					String content = BomUtil.removeBom(bytes).toString();
+					results.add(objectMapper.readValue(content, clazz));
 				}
 			}
-			return results;
-	 }
-	
-	public List<PsDiskMemFreeResult> getDiskFreeResult(int num) throws JsonParseException, JsonMappingException, IOException {
+		}
+		return results;
+	}
+
+	public List<PsDiskMemFreeResult> getDiskFreeResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
 		return getLogResult("borg", "diskfree", PsDiskMemFreeResult.class, num);
 	}
-	
-	public List<PsBorgAchiveResult> getBorgArchiveResult(int num) throws JsonParseException, JsonMappingException, IOException {
+
+	public List<PsBorgAchiveResult> getBorgArchiveResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
 		return getLogResult("borg", "archive", PsBorgAchiveResult.class, num);
 	}
-	
-	public List<PsBorgAchiveResult> getBorgPruneResult(int num) throws JsonParseException, JsonMappingException, IOException {
+
+	public List<PsBorgAchiveResult> getBorgPruneResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
 		return getLogResult("borg", "prune", PsBorgAchiveResult.class, num);
 	}
-	
-	public List<PsMysqldumpResult> getMysqlDumpResult(int num) throws JsonParseException, JsonMappingException, IOException {
+
+	public List<PsMysqldumpResult> getMysqlDumpResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
 		return getLogResult("mysql", "dump", PsMysqldumpResult.class, num);
 	}
-	
-	public List<PsMysqlflushResult> getMysqlFlushResult(int num) throws JsonParseException, JsonMappingException, IOException {
+
+	public List<PsMysqlflushResult> getMysqlFlushResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
 		return getLogResult("mysql", "flushlog", PsMysqlflushResult.class, num);
 	}
-	
+
 	public Server(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
@@ -93,7 +96,7 @@ public class Server {
 	public void setCoreNumber(int coreNumber) {
 		this.coreNumber = coreNumber;
 	}
-	
+
 	public String getUsername() {
 		return username;
 	}
@@ -101,7 +104,6 @@ public class Server {
 	public void setUsername(String username) {
 		this.username = username;
 	}
-
 
 	public String getName() {
 		return name;
@@ -118,7 +120,7 @@ public class Server {
 	public void setOs(String os) {
 		this.os = os;
 	}
-	
+
 	public boolean supportSSH() {
 		if (getOs() == null) {
 			return true;
