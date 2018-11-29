@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.model;
+package com.go2wheel.mysqlbackup.value;
 
 public class PsMysqldumpResult  extends PsLogBase {
 	

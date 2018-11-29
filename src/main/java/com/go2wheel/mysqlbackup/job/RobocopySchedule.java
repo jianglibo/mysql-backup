@@ -15,7 +15,7 @@ import com.go2wheel.mysqlbackup.event.ModelChangedEvent;
 import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
-import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.value.Server;
 
 @Component
 public class RobocopySchedule extends SchedulerBase {

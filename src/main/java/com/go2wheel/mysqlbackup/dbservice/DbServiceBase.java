@@ -15,8 +15,8 @@ import com.go2wheel.mysqlbackup.event.ModelAfterCreatedEvent;
 import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
 import com.go2wheel.mysqlbackup.event.ModelPreCreatedEvent;
 import com.go2wheel.mysqlbackup.model.BaseModel;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.repository.RepositoryBase;
+import com.go2wheel.mysqlbackup.value.Server;
 
 public abstract class DbServiceBase<R extends UpdatableRecord<R>, P extends BaseModel> implements ApplicationEventPublisherAware {
 	

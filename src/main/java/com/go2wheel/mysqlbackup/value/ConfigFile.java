@@ -5,8 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.go2wheel.mysqlbackup.model.Server;
-
 public class ConfigFile {
 	
 	private String mypath;
@@ -25,14 +23,12 @@ public class ConfigFile {
 	
 	private Map<String, List<String>> processBuilderNeededList = new HashMap<>();
 	
+	/**
+	 * taskcmd in configfile as key. and the path is a directory.
+	 */
 	private Map<String, Path> logDirs = new HashMap<>();
 	
 	private Map<String, String> crons;
-	
-	
-	public Server asServer() {
-		return new Server();
-	}
 	
 	public String getAppName() {
 		return appName;

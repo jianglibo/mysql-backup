@@ -15,8 +15,8 @@ import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.RobocopyService;
+import com.go2wheel.mysqlbackup.value.Server;
 
 @Component
 public class RobocopyInvokeJob implements Job {

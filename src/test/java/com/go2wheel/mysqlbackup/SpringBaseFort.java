@@ -28,15 +28,14 @@ import com.go2wheel.mysqlbackup.dbservice.BigObDbService;
 import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.http.FileDownloader;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
+import com.go2wheel.mysqlbackup.value.Server;
 
 //@formatter:off
 @SpringBootTest(classes = StartPointer.class, 
@@ -77,9 +76,6 @@ public class SpringBaseFort {
 	
 	@Autowired
 	protected PlayBackDbService playBackDbService;
-	
-	@Autowired
-	protected MysqlInstanceDbService mysqlInstanceDbService;
 	
 	@Autowired
 	protected KeyValueDbService keyValueDbService;
@@ -124,7 +120,6 @@ public class SpringBaseFort {
 		jobLogDbService.deleteAll();
 		bigObDbService.deleteAll();
 		playBackDbService.deleteAll();
-		mysqlInstanceDbService.deleteAll();
 		borgDescriptionDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();

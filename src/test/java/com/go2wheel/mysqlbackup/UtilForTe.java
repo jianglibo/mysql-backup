@@ -20,8 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.go2wheel.mysqlbackup.MyAppSettings.SshConfig;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.StringUtil;
+import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.yml.YamlInstance;
 
 public class UtilForTe {

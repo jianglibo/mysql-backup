@@ -1,4 +1,4 @@
-package com.go2wheel.mysqlbackup.model;
+package com.go2wheel.mysqlbackup.value;
 
 import java.util.Map;
 

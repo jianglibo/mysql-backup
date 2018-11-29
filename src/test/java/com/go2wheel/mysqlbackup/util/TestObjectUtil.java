@@ -11,7 +11,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.value.Server;
 
 
 public class TestObjectUtil {

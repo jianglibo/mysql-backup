@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.PlayBack;
-import com.go2wheel.mysqlbackup.model.Server;
+import com.go2wheel.mysqlbackup.value.Server;
 
 @Service
 public class PlayBackService {

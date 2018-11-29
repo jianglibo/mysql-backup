@@ -3,8 +3,8 @@ package com.go2wheel.mysqlbackup.repository;
 import java.util.List;
 
 import com.go2wheel.mysqlbackup.jooqschema.tables.records.StorageStateRecord;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.StorageState;
+import com.go2wheel.mysqlbackup.value.Server;
 
 public interface StorageStateRepository extends RepositoryBase<StorageStateRecord, StorageState>{
 

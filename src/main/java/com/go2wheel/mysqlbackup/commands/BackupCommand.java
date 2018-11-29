@@ -39,7 +39,6 @@ import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
-import com.go2wheel.mysqlbackup.dbservice.MysqlInstanceDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.SqlService;
@@ -55,7 +54,6 @@ import com.go2wheel.mysqlbackup.job.SchedulerService;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -64,6 +62,7 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
+import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.jcraft.jsch.JSchException;
 
@@ -92,9 +91,6 @@ public class BackupCommand {
 
 	@Autowired
 	private Environment environment;
-
-	@Autowired
-	private MysqlInstanceDbService mysqlInstanceDbService;
 
 	@Autowired
 	private MailerJob mailerJob;

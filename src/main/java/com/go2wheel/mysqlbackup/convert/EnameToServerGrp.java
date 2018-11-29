@@ -6,8 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
+import com.go2wheel.mysqlbackup.value.ServerGrp;
 
 @Component
 public class EnameToServerGrp implements Converter<String, ServerGrp> {

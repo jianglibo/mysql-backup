@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
+import com.go2wheel.mysqlbackup.value.PsBorgAchiveResult;
+import com.go2wheel.mysqlbackup.value.PsMysqldumpResult;
+import com.go2wheel.mysqlbackup.value.PsMysqlflushResult;
 
 public class TestPsLogResult  extends SpringBaseFort {
 	

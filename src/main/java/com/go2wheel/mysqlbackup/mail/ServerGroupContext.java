@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.go2wheel.mysqlbackup.model.JobLog;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.util.TplUtil;
+import com.go2wheel.mysqlbackup.value.ServerGrp;
 
 public class ServerGroupContext {
 	

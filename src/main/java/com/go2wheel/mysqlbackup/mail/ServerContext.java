@@ -1,11 +1,11 @@
 package com.go2wheel.mysqlbackup.mail;
 
-import com.go2wheel.mysqlbackup.model.PsBorgAchiveResult;
-import com.go2wheel.mysqlbackup.model.PsDiskMemFreeResult;
-import com.go2wheel.mysqlbackup.model.PsMysqldumpResult;
-import com.go2wheel.mysqlbackup.model.PsMysqlflushResult;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.value.MsgKeyAndFills2;
+import com.go2wheel.mysqlbackup.value.PsBorgAchiveResult;
+import com.go2wheel.mysqlbackup.value.PsDiskMemFreeResult;
+import com.go2wheel.mysqlbackup.value.PsMysqldumpResult;
+import com.go2wheel.mysqlbackup.value.PsMysqlflushResult;
+import com.go2wheel.mysqlbackup.value.Server;
 
 public class ServerContext {
 	

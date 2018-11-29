@@ -15,9 +15,9 @@ import org.springframework.stereotype.Component;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.exception.JobOnGoingException;
 import com.go2wheel.mysqlbackup.model.JobLog;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.TaskLocks;
+import com.go2wheel.mysqlbackup.value.Server;
 
 @Aspect
 @Component

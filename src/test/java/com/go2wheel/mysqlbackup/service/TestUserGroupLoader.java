@@ -13,10 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SpringBaseFort;
-import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
+import com.go2wheel.mysqlbackup.value.Server;
+import com.go2wheel.mysqlbackup.value.ServerGrp;
 
 public class TestUserGroupLoader extends SpringBaseFort {
 
@@ -52,7 +52,6 @@ public class TestUserGroupLoader extends SpringBaseFort {
 		Server sv = grp.getServers().get(0);
 		assertNotNull(sv.getName());
 		
-		
 		List<UserAccount> users = userGroupLoader.getAllUsers();
 		assertThat(users.size(), equalTo(1));
 		
@@ -73,6 +72,14 @@ public class TestUserGroupLoader extends SpringBaseFort {
 		assertThat(sb.getTemplate(), equalTo("ctx.html"));
 		assertThat(sb.getUsername(), equalTo(ua.getName()));
 		assertNotNull(sb.getServerGroup());
+		
+		sv = sb.getServerGroup().getServers().get(0);
+		
+		assertThat(sv.getBorgArchiveResult(1).size(), equalTo(1));
+		assertThat(sv.getBorgPruneResult(1).size(), equalTo(1));
+		assertThat(sv.getDiskFreeResult(1).size(), equalTo(1));
+		assertThat(sv.getMysqlDumpResult(1).size(), equalTo(1));
+		assertThat(sv.getMysqlFlushResult(1).size(), equalTo(1));
 	}
 
 }

@@ -25,8 +25,8 @@ import com.go2wheel.mysqlbackup.exception.ExceptionWrapper;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
-import com.go2wheel.mysqlbackup.model.Server;
 import com.go2wheel.mysqlbackup.service.robocopy.RobocopyBaseT;
+import com.go2wheel.mysqlbackup.value.Server;
 
 public class TestRobocopyIncrementJob extends RobocopyBaseT {
 	

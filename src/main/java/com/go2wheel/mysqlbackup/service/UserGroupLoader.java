@@ -18,11 +18,11 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.MyAppSettings;
-import com.go2wheel.mysqlbackup.model.Server;
-import com.go2wheel.mysqlbackup.model.ServerGrp;
 import com.go2wheel.mysqlbackup.model.Subscribe;
 import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
+import com.go2wheel.mysqlbackup.value.Server;
+import com.go2wheel.mysqlbackup.value.ServerGrp;
 
 @Service
 public class UserGroupLoader {
@@ -86,7 +86,7 @@ public class UserGroupLoader {
 				if (serverCache.containsKey(hostname)) {
 					sv = serverCache.get(hostname);
 				} else {
-					sv = new Server();
+					sv = new Server(objectMapper);
 					sv.setName(cf.getServerName());
 					sv.setHost(cf.getHostName());
 					serverCache.put(hostname, sv);
