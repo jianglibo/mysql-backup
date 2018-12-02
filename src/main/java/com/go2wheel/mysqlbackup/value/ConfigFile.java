@@ -17,6 +17,10 @@ public class ConfigFile {
 	
 	private String serverName;
 	
+	private int coreNumber;
+	
+	private String mem;
+	
 	private String logDir;
 	
 	private Map<String, String> taskcmd;
@@ -109,5 +113,23 @@ public class ConfigFile {
 	public void setServerName(String serverName) {
 		this.serverName = serverName;
 	}
+
+	public int getCoreNumber() {
+		return coreNumber;
+	}
+
+	public void setCoreNumber(int coreNumber) {
+		this.coreNumber = coreNumber;
+	}
+
+	public String getMem() {
+		return mem;
+	}
+
+	public void setMem(String mem) {
+		this.mem = mem;
+	}
+	
+	
 
 }

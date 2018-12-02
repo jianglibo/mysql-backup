@@ -1,8 +1,11 @@
 package com.go2wheel.mysqlbackup.value;
 
+import java.util.Date;
 import java.util.List;
 
 public class PsLogBase {
+	
+	private Date createdAt;
 	
 	private TimeSpan timespan;
 	
@@ -24,6 +27,14 @@ public class PsLogBase {
 		this.success = success;
 	}
 	
+	public Date getCreatedAt() {
+		return createdAt;
+	}
+
+	public void setCreatedAt(Date createdAt) {
+		this.createdAt = createdAt;
+	}
+
 	public static class PsDownloadResult {
 		private PsDownloadCatalog total;
 		private PsDownloadCatalog failed;

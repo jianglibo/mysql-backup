@@ -3,7 +3,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
   <head>
-    <title th:text="${serverGroup.ename}">服务器报表</title>
+    <title th:text="${serverGroup.name}">服务器报表</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <style>
       /*!
@@ -33,7 +33,7 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
   </head>
 
   <body>
-    <h1 th:style="${allHealthy} ? 'text-align: center;color: blue;' : 'text-align: center;color: red;'" style="text-align: center;color: blue;" th:text="|${serverGroup.ename}服务器以及备份状况报表|">浙江政务服务网奉化区服务器以及备份状况报表</h1>
+    <h1 th:style="${allHealthy} ? 'text-align: center;color: blue;' : 'text-align: center;color: red;'" style="text-align: center;color: blue;" th:text="|${serverGroup.name}服务器以及备份状况报表|">浙江政务服务网奉化区服务器以及备份状况报表</h1>
     <p>概要：</p>
     <table class="pure-table pure-table-bordered">
       <thead>
@@ -49,11 +49,13 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
         <td th:text="${serverCtx.server.host}">2.41</td>
         <td th:text="#{${hl.key}(${hl.o1}, ${hl.o2})}">正常</td>
       </tr>
+      <!--
       <tr th:with="hl=${myself.healthy()}" th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'">
         <td th:text="${myself.server.name}">Onions</td>
         <td th:text="${myself.server.host}">2.41</td>
         <td th:text="#{${hl.key}(${hl.o1}, ${hl.o2})}">正常</td>
       </tr>
+      -->
     </tbody>
     </table>
 <!--    [[${tplUtil}]] -->
@@ -62,9 +64,10 @@ Copyright (c) Nicolas Gallagher and Jonathan Neal
         <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${serverCtx})}"></div>
         <hr>
     </div>
-
+<!--
     <h3>备份服务器自身状况</h3>
     <div th:insert="~{fragments-mail/server.html :: detail (tplUtil=${tplUtil}, serverCtx=${myself})}" th:with="hl=${myself.healthy()}"  th:style="${hl.empty} ? '' : 'color:red;font-weight:bolder;'"></div>
+-->
   </body>
 
 </html>

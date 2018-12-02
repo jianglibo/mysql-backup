@@ -5,6 +5,8 @@ import java.util.List;
 public class PsMysqlflushResult  extends PsLogBase {
 	
 	private List<PsDownloadItem> result;
+	
+	private PsDownloadCatalog download;
 
 	public List<PsDownloadItem> getResult() {
 		return result;
@@ -14,5 +16,11 @@ public class PsMysqlflushResult  extends PsLogBase {
 		this.result = result;
 	}
 
+	public PsDownloadCatalog getDownload() {
+		return download;
+	}
 
+	public void setDownload(PsDownloadCatalog download) {
+		this.download = download;
+	}
 }

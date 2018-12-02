@@ -27,8 +27,12 @@ public class TestMailer extends MailBaseFort {
 		userGroupLoader.loadAll(pss[0], pss[1], pss[2], pss[3]);
 		
 		Subscribe subscribe = userGroupLoader.getAllSubscribes().get(0);
+		
+		String mailContent = mailer.renderTemplate("ctx.html", templateContextService.createMailerContext(subscribe));
+		
+		System.out.println(mailContent);
+		
 
-		mailer.renderTemplate("abc.html", templateContextService.createMailerContext(subscribe));
 	}
 
 }

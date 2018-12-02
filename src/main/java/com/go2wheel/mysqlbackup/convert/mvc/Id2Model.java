@@ -17,9 +17,7 @@ import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 import com.go2wheel.mysqlbackup.model.RobocopyItem;
-import com.go2wheel.mysqlbackup.model.Software;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
-import com.go2wheel.mysqlbackup.value.Server;
 
 public class Id2Model implements ConverterFactory<String, BaseModel> {
 	

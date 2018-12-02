@@ -32,6 +32,9 @@ public class UserGroupLoader {
 	
 	private Map<String, Server> serverCache = new HashMap<>();
 	
+	/**
+	 * id to subscribe map.
+	 */
 	private Map<String, Subscribe> subscribesCache = new HashMap<>();
 	
 	private List<UserAccount> adminUserCache = new ArrayList<>();
@@ -83,6 +86,8 @@ public class UserGroupLoader {
 					sv = new Server(objectMapper);
 					sv.setName(cf.get(0).getServerName());
 					sv.setHost(cf.get(0).getHostName());
+					sv.setCoreNumber(cf.get(0).getCoreNumber());
+					sv.setMem(cf.get(0).getMem());
 					serverCache.put(hostname, sv);
 				}
 				sv.getConfigFiles().addAll(cf);
@@ -193,7 +198,7 @@ public class UserGroupLoader {
 	}
 
 	public Subscribe getSubscribeById(String id) {
-		return null;
+		return subscribesCache.get(id);
 	}
 
 	public List<ServerGrp> findLikeEname(String input) {

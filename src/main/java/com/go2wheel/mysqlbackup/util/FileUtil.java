@@ -342,6 +342,9 @@ public class FileUtil {
 
 	public static File[] getNewestFiles(Path dir, int num) {
 		File[] files = dir.toFile().listFiles();
+		if (files == null) {
+			return new File[] {};
+		}
 		Arrays.sort(files, new FileCreateComparator());
 		int len = files.length;
 		if (num > len) {

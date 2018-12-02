@@ -1,5 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
+import com.go2wheel.mysqlbackup.util.StringUtil;
+
 public class Subscribe {
 	
 	private String id;
@@ -36,7 +38,11 @@ public class Subscribe {
 	}
 
 	public String getTemplate() {
-		return template;
+		if (StringUtil.hasAnyNonBlankWord(template)) {
+			return template;
+		} else {
+			return "ctx.html";
+		}
 	}
 	public void setTemplate(String template) {
 		this.template = template;

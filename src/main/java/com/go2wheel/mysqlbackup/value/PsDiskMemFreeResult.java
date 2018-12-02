@@ -1,6 +1,7 @@
 package com.go2wheel.mysqlbackup.value;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PsDiskMemFreeResult extends PsLogBase {
 	
@@ -53,7 +54,7 @@ public class PsDiskMemFreeResult extends PsLogBase {
 
 
 	public List<PsDiskMemFreeItem> getResult() {
-		return result;
+		return result.stream().filter(it -> it.used > 0).collect(Collectors.toList());
 	}
 
 

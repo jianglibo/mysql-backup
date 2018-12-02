@@ -5,30 +5,21 @@
 <body>
   <div th:fragment="detail (tplUtil, serverCtx)">
     <div th:assert="${tplUtil}, ${serverCtx}"></div>
-    <div th:if="${(serverCtx.borgDownloads ne null) and (not #lists.isEmpty(serverCtx.borgDownloads))}">
-      <table class="pure-table pure-table-bordered">
-        <caption>文件系统备份情况表</caption>
+    <div th:each="borgarchive: ${serverCtx.getBorgArchiveResults(1)}">
+	      <table class="pure-table pure-table-bordered" style="width:100%;">
+        <caption th:text="|BORG_ARCHIVE结果 ${#dates.format(borgarchive.createdAt, 'yyyy-MM-dd HH:mm:ss')}|">BORG_ARCHIVE结果</caption>
         <thead>
         <tr>
-          <th>日期</th>
-          <th>总文件数</th>
           <th>下载文件数</th>
-          <th>总大小</th>
-          <th>下载大小</th>
+          <th>下载字节数</th>
           <th>耗时</th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="download : ${serverCtx.borgDownloads}">
-          <td th:text="${#dates.format(download.createdAt, 'yyyy-MM-dd')}">Onions</td>
-          <td th:text="${download.totalFiles}">Onions</td>
-          <td th:text="${download.downloadFiles}">Onions</td>
-          <td th:text="${tplUtil.formatSize(download.totalBytes)}">2.41</td>
-          <td th:text="${tplUtil.formatSize(download.downloadBytes)}">2.41</td>
-          <td th:text="${tplUtil.getFormatedTimeCosts(download.timeCost)}">Onions</td>
-          <!--/*-->
-          <td th:text="${download.getFormatedTimeCosts(T(java.util.concurrent.TimeUnit).SECONDS)}">Onions</td>
-          <!--*/-->
+        <tr>
+          <td th:text="${borgarchive.download.copied.count}">2.41</td>
+          <td th:text="${tplUtil.formatSize(borgarchive.download.copied.length)}">2.41</td>
+          <td th:text="${#numbers.formatDecimal(borgarchive.timespan.TotalMinutes, 1, 3)} + '分钟'">Onions</td>
         </tr>
       </tbody>
       </table>

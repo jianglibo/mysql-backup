@@ -30,9 +30,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import com.go2wheel.mysqlbackup.AppEventListenerBean;
 import com.go2wheel.mysqlbackup.JavaMailSendPropertiesOverrider;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
+import com.go2wheel.mysqlbackup.service.ConfigFileLoader;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
@@ -50,7 +52,13 @@ public class ReportController {
 	private MailerJob mailerJob;
 	
 	@Autowired
-	private UserGroupLoader subscribeDbService;
+	private UserGroupLoader userGroupLoader;
+	
+	@Autowired
+	private ConfigFileLoader configFileLoader;
+	
+	@Autowired
+	private AppEventListenerBean appEventListenerBean;
 	
 	@Autowired
 	private TemplateContextService templateContextService;
@@ -59,22 +67,37 @@ public class ReportController {
 	private ChromePDFWriter pdfWriter;
 
 	@GetMapping("/{tplName}")
-	public String ft(@PathVariable String tplName, @RequestParam Subscribe subscribe, Model model) throws ExecutionException {
-		ServerGroupContext sgc = templateContextService.createMailerContext(subscribe);
+	public String ft(@PathVariable String tplName, @RequestParam String subscribe, Model model) throws Exception {
+		Subscribe subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		if (subscribeOb == null) {
+			loadUserGroups(false);
+			subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		}
+		ServerGroupContext sgc = templateContextService.createMailerContext(subscribeOb);
 		model.addAllAttributes(sgc.toMap());
 		return tplName;
 	}
 	
 	@GetMapping("/html/{subscribe}")
-	public String ftPost(@PathVariable Subscribe subscribe, Model model) throws ExecutionException {
-		ServerGroupContext sgc = templateContextService.createMailerContext(subscribe);
+	public String ftPost(@PathVariable String subscribe, Model model) throws Exception {
+		Subscribe subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		if (subscribeOb == null) {
+			loadUserGroups(false);
+			subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		}
+		ServerGroupContext sgc = templateContextService.createMailerContext(subscribeOb);
 		model.addAllAttributes(sgc.toMap());
-		return subscribe.getTemplate();
+		return subscribeOb.getTemplate();
 	}
 	
 	@GetMapping("/pdf/{subscribe}")
 	@ResponseBody
-	public ResponseEntity<StreamingResponseBody> pdfPost(@PathVariable Subscribe subscribe, Model model, HttpServletRequest request) throws IOException {
+	public ResponseEntity<StreamingResponseBody> pdfPost(@PathVariable String subscribe, Model model, HttpServletRequest request) throws Exception {
+		Subscribe subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		if (subscribeOb == null) {
+			loadUserGroups(false);
+			subscribeOb = userGroupLoader.getSubscribeById(subscribe);
+		}
 		ServletUriComponentsBuilder ucb = ServletUriComponentsBuilder.fromRequest(request);
 		String urlPath = request.getRequestURI();
 		String htmlUrl = ucb.replacePath(urlPath.replaceFirst("pdf", "html")).build().toUriString();
@@ -95,7 +118,12 @@ public class ReportController {
 
 	}
 	
-
+	@GetMapping("/loaddata")
+	@ResponseBody
+	public String loadUserGroups(@RequestParam(required=false) boolean schedule) throws Exception {
+		appEventListenerBean.loadData(null, schedule);
+		return "OK";
+	}
 	
 	@GetMapping("/mailsettings")
 	@ResponseBody
@@ -109,7 +137,7 @@ public class ReportController {
 	@PostMapping(path = "/mail")
 	@ResponseBody
 	public Map<String, String> sendSubscribeMail(@RequestParam String id, Model model) throws UnsupportedEncodingException, MessagingException, ExecutionException {
-		Subscribe subscribe = subscribeDbService.getSubscribeById(id);
+		Subscribe subscribe = userGroupLoader.getSubscribeById(id);
 		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
 		mailerJob.mail(subscribe, sgctx.getUser().getEmail(), subscribe.getTemplate(), sgctx);
 		Map<String, String> map = new HashMap<>();

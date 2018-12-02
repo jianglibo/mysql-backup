@@ -41,8 +41,6 @@ public class ServerGroupContext {
 		return b;
 	}
 	
-	public ServerGroupContext() {}
-	
 	public ServerGroupContext(List<ServerContext> servers, UserAccount user, ServerGrp serverGroup) {
 		super();
 		this.user = user;

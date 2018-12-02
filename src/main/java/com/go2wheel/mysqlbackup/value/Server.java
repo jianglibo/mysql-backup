@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +22,7 @@ public class Server {
 	private String name;
 
 	private int coreNumber;
+	private String mem;
 
 	private String os;
 
@@ -34,7 +36,7 @@ public class Server {
 	private int memoryValve = 70;
 	private int diskValve = 70;
 
-	public <T> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
+	public <T extends PsLogBase> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
 			throws JsonParseException, JsonMappingException, IOException {
 		Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
 		List<T> results = new ArrayList<>();
@@ -42,14 +44,27 @@ public class Server {
 			Path logf = cfop.get().getLogDirs().get(cmdKey);
 			if (logf != null) {
 				File[] files = FileUtil.getNewestFiles(logf, num);
+				int fn = files.length;
+				if (num > fn) {
+					num = fn;
+				}
 				for (int i = 0; i < num; i++) {
-					byte[] bytes = Files.readAllBytes(files[i].toPath());
+					File f = files[i];
+					byte[] bytes = Files.readAllBytes(f.toPath());
 					String content = BomUtil.removeBom(bytes).toString();
-					results.add(objectMapper.readValue(content, clazz));
+					T result = objectMapper.readValue(content, clazz);
+					long t = f.lastModified();
+					result.setCreatedAt(new Date(t));
+					results.add(result);
 				}
 			}
 		}
 		return results;
+	}
+	
+	public List<PsDiskMemFreeResult> getMemoryFreeResult(int num)
+			throws JsonParseException, JsonMappingException, IOException {
+		return getLogResult("borg", "memoryfree", PsDiskMemFreeResult.class, num);
 	}
 
 	public List<PsDiskMemFreeResult> getDiskFreeResult(int num)
@@ -158,5 +173,13 @@ public class Server {
 
 	public void setConfigFiles(List<ConfigFile> configFiles) {
 		this.configFiles = configFiles;
+	}
+
+	public String getMem() {
+		return mem;
+	}
+
+	public void setMem(String mem) {
+		this.mem = mem;
 	}
 }

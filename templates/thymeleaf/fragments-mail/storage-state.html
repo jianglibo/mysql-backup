@@ -7,21 +7,21 @@
 <!--*/-->
 
 <body>
-  <div th:fragment="detail" th:with="tb=${serverCtx.getStorageStateByRoot()}" >
-  <div th:if="${not #maps.isEmpty(tb)}">
+  <div th:fragment="detail" th:with="diskfrees=${serverCtx.getDiskfrees(1)}">
+  <div th:each="diskfree: ${diskfrees}">
     <div>
       <table class="pure-table pure-table-bordered">
-        <caption>存储容量变化表</caption>
+        <caption th:text="|存储容量 ${#dates.format(diskfree.createdAt, 'yyyy-MM-dd HH:mm:ss')}|">存储容量</caption>
         <thead>
-        <tr th:with="dts=${tb.values().iterator().next().keySet()}">
+        <tr>
           <th>根目录</th>
-          <th th:each="dt: ${dts}" th:text="${dt}">使用比例</th>
+          <th>使用比例</th>
         </tr>
       </thead>
       <tbody>
-        <tr th:each="rootDatePercentsEntry: ${tb}">
-          <td th:text="${rootDatePercentsEntry.key}">2.41</td>
-          <td th:each="dp: ${rootDatePercentsEntry.value}" th:text="|${#numbers.formatDecimal(dp.value.getUsedRatio(),0,2)}%|">使用比例</td>
+        <tr th:each="dfItem: ${diskfree.result}">
+          <td th:text="${dfItem.name}">2.41</td>
+          <td th:text="${dfItem.percent}">使用比例</td>
         </tr>
          </tbody>
       </table>
