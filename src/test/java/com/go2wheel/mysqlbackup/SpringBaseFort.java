@@ -25,7 +25,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.dbservice.BigObDbService;
-import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
@@ -87,9 +86,6 @@ public class SpringBaseFort {
 	protected RobocopyItemDbService robocopyItemDbService;
 	
 	@Autowired
-	protected BorgDescriptionDbService borgDescriptionDbService;
-	
-	@Autowired
 	protected BigObDbService bigObDbService;
 	
 	@Autowired
@@ -120,7 +116,6 @@ public class SpringBaseFort {
 		jobLogDbService.deleteAll();
 		bigObDbService.deleteAll();
 		playBackDbService.deleteAll();
-		borgDescriptionDbService.deleteAll();
 		reuseableCronDbService.deleteAll();
 		jooq.deleteFrom(SERVERGRP_AND_SERVER).execute();
 		robocopyItemDbService.deleteAll();

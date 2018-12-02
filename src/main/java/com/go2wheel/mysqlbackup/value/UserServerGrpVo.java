@@ -1,6 +1,5 @@
 package com.go2wheel.mysqlbackup.value;
 
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 public class UserServerGrpVo implements ToListRepresentation {

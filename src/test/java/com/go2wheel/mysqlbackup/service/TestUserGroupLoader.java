@@ -10,10 +10,10 @@ import java.util.List;
 import org.junit.Test;
 
 import com.go2wheel.mysqlbackup.MailBaseFort;
-import com.go2wheel.mysqlbackup.model.UserAccount;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
 import com.go2wheel.mysqlbackup.value.Subscribe;
+import com.go2wheel.mysqlbackup.value.UserAccount;
 
 public class TestUserGroupLoader extends MailBaseFort {
 

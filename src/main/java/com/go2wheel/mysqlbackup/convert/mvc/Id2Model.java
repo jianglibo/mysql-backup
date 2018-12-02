@@ -4,14 +4,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.convert.converter.ConverterFactory;
 
-import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.JobLogDbService;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.RobocopyItemDbService;
 import com.go2wheel.mysqlbackup.model.BaseModel;
-import com.go2wheel.mysqlbackup.model.BorgDescription;
 import com.go2wheel.mysqlbackup.model.JobLog;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
@@ -27,9 +25,6 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 	
 	@Autowired
 	private JobLogDbService jobLogDbService;
-	
-	@Autowired
-	private BorgDescriptionDbService borgDescriptionDbService;
 	
 	@Autowired
 	private PlayBackDbService playBackDbService;
@@ -62,8 +57,6 @@ public class Id2Model implements ConverterFactory<String, BaseModel> {
 				return (T) jobLogDbService.findById(source);
 			} else if (modelType == KeyValue.class) {
 				return (T) keyValueDbService.findById(source);
-			} else if (modelType == BorgDescription.class) {
-				return (T) borgDescriptionDbService.findById(source);
 			} else if (modelType == PlayBack.class) {
 				return (T) playBackDbService.findById(source);
 			} else if (modelType == RobocopyDescription.class) {

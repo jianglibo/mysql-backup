@@ -1,16 +1,11 @@
 package com.go2wheel.mysqlbackup;
 
 import static org.hamcrest.CoreMatchers.equalTo;
-
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
-
-import com.go2wheel.mysqlbackup.model.BorgDownload;
-import com.go2wheel.mysqlbackup.util.ObjectUtil;
 
 public class TestTimeUnit {
 	
@@ -24,14 +19,5 @@ public class TestTimeUnit {
 	}
 	
 	
-	@Test
-	public void tObjectUtil() {
-		String s = ObjectUtil.dumpObjectAsMap(new BorgDownload());
-		
-		assertTrue(s.contains("totalFiles:"));
-		assertTrue(s.contains("downloadFiles:"));
-		assertTrue(s.contains("totalBytes:"));
-		assertTrue(s.contains("downloadBytes:"));
-		
-	}
+
 }

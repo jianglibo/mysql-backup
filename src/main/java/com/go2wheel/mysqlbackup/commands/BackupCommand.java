@@ -35,7 +35,6 @@ import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
-import com.go2wheel.mysqlbackup.dbservice.BorgDescriptionDbService;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
@@ -62,8 +61,8 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
-import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.Server;
 import com.jcraft.jsch.JSchException;
 
 @ShellComponent()
@@ -101,9 +100,6 @@ public class BackupCommand {
 	@Autowired
 	@Lazy
 	private SchedulerService schedulerService;
-
-	@Autowired
-	private BorgDescriptionDbService borgDescriptionDbService;
 
 	@Autowired
 	private ReusableCronDbService reusableCronDbService;
