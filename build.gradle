@@ -57,7 +57,7 @@ flyway {
 }
 
 archivesBaseName = 'mysql-backup'
-version = '1.1.6'
+version = '1.1.7'
 
 sourceSets {
     main {
@@ -247,3 +247,7 @@ copyFilesToArchive.dependsOn bootJar
 packmyzip.dependsOn copyFilesToArchive
 test.dependsOn bootBuildInfo
 // gradle test --tests *TestUpgradeUtil
+
+bootRun {
+  jvmArgs = ["-agentlib:jdwp=transport=dt_socket,server=y,address=8011,suspend=n"]
+}

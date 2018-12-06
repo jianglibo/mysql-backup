@@ -2,12 +2,14 @@ package com.go2wheel.mysqlbackup.service;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.MyAppSettings;
+import com.go2wheel.mysqlbackup.job.MailerSchedule;
 import com.go2wheel.mysqlbackup.util.BomUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.Server;
@@ -31,6 +34,9 @@ public class UserGroupLoader {
 	private Map<String, UserAccount> userCache = new HashMap<>();
 	
 	private Map<String, Server> serverCache = new HashMap<>();
+	
+	@Autowired
+	private MailerSchedule mailerSchedule;
 	
 	/**
 	 * id to subscribe map.
@@ -62,6 +68,12 @@ public class UserGroupLoader {
 	
 	public void loadAll() throws Exception {
 		loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(), myAppSettings.getAdminFile());
+	}
+	
+	public void schuduleAllSubscribes() throws SchedulerException, ParseException {
+		for(Subscribe subscribe: subscribesCache.values()) {
+			mailerSchedule.schedule(subscribe);
+		}
 	}
 	
 	public void loadAll(Path groupsFilePath, Path usersFilePath, Path subscribesFilePath, Path adminFilePath) throws Exception {
@@ -96,7 +108,7 @@ public class UserGroupLoader {
 			grp.setServers(servers);
 			groupCache.put(grpname, grp);
 		}
-		
+
 		ConfigFileUserFile cfuf = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(usersFilePath)).toString(),
 				ConfigFileUserFile.class);
 		
@@ -115,6 +127,13 @@ public class UserGroupLoader {
 				throw new Exception(message);
 			}
 			sb.setServerGroup(grp);
+			String username = sb.getUsername();
+			UserAccount ua = userCache.get(username);
+			if (ua == null) {
+				String message = "subscribe file username does't exists: " + username;
+				throw new Exception(message);
+			}
+			sb.setUser(ua);
 			subscribesCache.put(sb.getId(), sb);
 		}
 		

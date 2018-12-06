@@ -40,6 +40,8 @@ public class MyAppSettings {
 	private SshConfig ssh;
 
 	private Set<String> storageExcludes;
+	
+	private String chromeexec;
 
 	private CacheTimes cache;
 	
@@ -204,6 +206,14 @@ public class MyAppSettings {
 
 	public void setNotautoload(boolean notautoload) {
 		this.notautoload = notautoload;
+	}
+
+	public String getChromeexec() {
+		return chromeexec;
+	}
+
+	public void setChromeexec(String chromeexec) {
+		this.chromeexec = chromeexec;
 	}
 
 	public static class CacheTimes {

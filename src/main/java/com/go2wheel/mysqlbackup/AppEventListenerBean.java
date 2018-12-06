@@ -4,13 +4,10 @@ package com.go2wheel.mysqlbackup;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.ParseException;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
-import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,10 +100,11 @@ public class AppEventListenerBean implements EnvironmentAware {
 			configsDir = psdataDir.resolve("configs");
 		}
 		configFileLoader.loadAll(configsDir);
+		userGroupLoader.loadAll();
 		if (schedule) {
 			configFileLoader.scheduleAll();
+			userGroupLoader.schuduleAllSubscribes();
 		}
-		userGroupLoader.loadAll();
 	}
 
 	private void createDemoFile(Path file) throws IOException {

@@ -10,9 +10,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
-import javax.annotation.PostConstruct;
+import javax.mail.MessagingException;
+import javax.validation.constraints.Email;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
@@ -28,13 +30,14 @@ import org.springframework.shell.standard.ShellMethod;
 import org.springframework.shell.standard.ShellOption;
 
 import com.go2wheel.mysqlbackup.AppEventListenerBean;
-import com.go2wheel.mysqlbackup.LocaledMessageService;
+import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.SettingsInDb;
 import com.go2wheel.mysqlbackup.annotation.CandidatesFromSQL;
 import com.go2wheel.mysqlbackup.annotation.DbTableName;
 import com.go2wheel.mysqlbackup.annotation.SetServerOnly;
 import com.go2wheel.mysqlbackup.annotation.ShowPossibleValue;
+import com.go2wheel.mysqlbackup.annotation.TemplateIndicator;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore;
 import com.go2wheel.mysqlbackup.dbservice.GlobalStore.SavedFuture;
 import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
@@ -50,11 +53,13 @@ import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.MailerJob;
 import com.go2wheel.mysqlbackup.job.SchedulerService;
+import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
+import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
@@ -63,7 +68,7 @@ import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.Server;
-import com.jcraft.jsch.JSchException;
+import com.go2wheel.mysqlbackup.value.Subscribe;
 
 @ShellComponent()
 public class BackupCommand {
@@ -79,6 +84,9 @@ public class BackupCommand {
 
 	@Autowired
 	private GlobalStore globalStore;
+	
+	@Autowired
+	private MyAppSettings myAppSettings;
 
 	@Autowired
 	private SqlService sqlService;
@@ -105,16 +113,11 @@ public class BackupCommand {
 	private ReusableCronDbService reusableCronDbService;
 
 	@Autowired
-	private LocaledMessageService localedMessageService;
+	private AppEventListenerBean appEventListenerBean;
 	
 	@Autowired
-	private AppEventListenerBean appEventListenerBean;
-
-	@PostConstruct
-	public void post() {
-
-	}
-
+	private UserGroupLoader userGroupLoader;
+	
 
 //	@ShellMethod(value = "List all managed servers.")
 //	public FacadeResult<?> serverList() throws IOException {
@@ -255,6 +258,9 @@ public class BackupCommand {
 				formatKeyVal("log file", environment.getProperty("logging.file")),
 				formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
 				formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),
+				formatKeyVal("myapp.psapp", myAppSettings.getPsappPath().toAbsolutePath().toString()),
+				formatKeyVal("myapp.psdataDir", myAppSettings.getPsdataDirPath().toAbsolutePath().toString()),
+				formatKeyVal("myapp.chromeexec", myAppSettings.getChromeexec()),
 				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
 	}
 
@@ -440,13 +446,17 @@ public class BackupCommand {
 //				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
 //	}
 
-//	@ShellMethod(value = "列出用户和服务器组的关系。")
-//	public FacadeResult<?> subscribeList() {
-//		List<UserServerGrpVo> vos = userServerGrpDbService.findAll().stream().map(usgl -> getusgvo(usgl))
-//				.collect(Collectors.toList());
-//
-//		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
-//	}
+	@ShellMethod(value = "列出用户和服务器组的关系。")
+	public FacadeResult<?> subscribeList() {
+		List<Subscribe> vos = userGroupLoader.getAllSubscribes();
+		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
+	}
+	
+	@ShellMethod(value = "加载测试数据。")
+	public FacadeResult<?> loadDemoData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
+		appEventListenerBean.loadData(null, schedule);
+		return FacadeResult.doneExpectedResult();
+	}
 	
 //	@ShellMethod(value = "添加用户和服务器组的关系。")
 //	public FacadeResult<?> subscribeCreate(
@@ -667,22 +677,22 @@ public class BackupCommand {
 		return securityService.securityCopyKnownHosts(toFile);
 	}
 
-//	@ShellMethod(value = "立即发送建邮件通知。")
-//	public FacadeResult<?> emailNoticeSend(
-//			@ShellOption(help = "邮件地址") @Email String email,
-//			@TemplateIndicator
-//			@ShellOption(help = "邮件模板") String template,
-//			@ShellOption(help = "用户服务器组") Subscribe subscribe,
-//			@ShellOption(help = "真的发送") boolean sendTruely
-//			) throws ClassNotFoundException, IOException, MessagingException {
-//		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
-//		if (sendTruely) {
-//			mailerJob.mail(subscribe, email, template, sgctx);
-//			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
-//		} else {
-//			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
-//		}
-//	}
+	@ShellMethod(value = "立即发送建邮件通知。")
+	public FacadeResult<?> emailNoticeSend(
+			@ShellOption(help = "邮件地址") @Email String email,
+			@TemplateIndicator
+			@ShellOption(help = "邮件模板") String template,
+			@ShellOption(help = "用户服务器组") Subscribe subscribe,
+			@ShellOption(help = "真的发送") boolean sendTruely
+			) throws ClassNotFoundException, IOException, MessagingException, ExecutionException {
+		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
+		if (sendTruely) {
+			mailerJob.mail(subscribe, email, template, sgctx);
+			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
+		} else {
+			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
+		}
+	}
 	
 	@Autowired
 	private PlayBackService playBackService;

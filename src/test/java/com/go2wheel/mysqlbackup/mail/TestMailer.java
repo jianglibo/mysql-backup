@@ -29,10 +29,8 @@ public class TestMailer extends MailBaseFort {
 		Subscribe subscribe = userGroupLoader.getAllSubscribes().get(0);
 		
 		String mailContent = mailer.renderTemplate("ctx.html", templateContextService.createMailerContext(subscribe));
-		
 		System.out.println(mailContent);
-		
-
+		mailer.sendMail(subscribe, "jianglibo@hotmail.com", "ctx.html", templateContextService.createMailerContext(subscribe));
 	}
 
 }
