@@ -5,6 +5,12 @@ Param(
 
 $localZipfile = Get-ChildItem -Path . -Filter "*.zip" -Recurse | Where-Object -Property  FullName -Match "mysql-backup-\d\.\d\.\d+" | Sort-Object -Property FullName -Descending | Select-Object -First 1
 
+if (-not $localZipfile) {
+    "Cannot find *.zip file, start run: 'gradle clean packmyzip' ...." | Out-Host
+    gradle clean packmyzip
+    $localZipfile = Get-ChildItem -Path . -Filter "*.zip" -Recurse | Where-Object -Property  FullName -Match "mysql-backup-\d\.\d\.\d+" | Sort-Object -Property FullName -Descending | Select-Object -First 1
+}
+
 $cpcmd = "scp {0} {1}" -f $localZipfile.FullName, $RemotePath
 
 Invoke-Expression -Command $cpcmd

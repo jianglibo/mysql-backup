@@ -24,6 +24,8 @@ gradle-app.setting
 
 application.properties
 application-dev.properties
+application-prod.yml
+application-dev.yml
 mrjars/
 hadoop-config.xml
 jobproperties/**/*.job
@@ -51,3 +53,4 @@ dbdata/
 _upgrade.properties
 testfield/
 psdata/
+*.bak
