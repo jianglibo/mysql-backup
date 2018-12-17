@@ -51,7 +51,7 @@ public class TestConfigFileLoader extends SpringBaseFort {
     	Files.copy(bcf, root.resolve(bcf.getFileName()));
 		File f = repofolder.newFile("a.json");
 		Files.write(f.toPath(), "abc".getBytes());
-		configFileLoader.loadAll(root);
+		configFileLoader.loadAll(root, true);
 		configFileLoader.clearCache();
     }
     
@@ -60,7 +60,7 @@ public class TestConfigFileLoader extends SpringBaseFort {
     	Path root = repofolder.getRoot().toPath();
     	Path bcf = Paths.get(borgconfigfile);
     	Files.copy(bcf, root.resolve(bcf.getFileName()));
-		configFileLoader.loadAll(root);
+		configFileLoader.loadAll(root, true);
 		configFileLoader.clearCache();
     }
     
@@ -70,7 +70,7 @@ public class TestConfigFileLoader extends SpringBaseFort {
 		Path bcf = Paths.get(borgconfigfile);
 		String fn = bcf.getFileName().toString().replaceFirst("\\.\\d+\\.",".");
     	Files.copy(bcf, root.resolve(fn)); // from aa.1.json -> aa.json
-		configFileLoader.loadAll(root);
+		configFileLoader.loadAll(root, true);
 		List<Trigger> triggers = schedulerService.getAllTriggers();
 		assertThat(triggers.size(), equalTo(0));
 

@@ -23,7 +23,7 @@ public class TestMailer extends MailBaseFort {
 		Path[] pss = getPathes();
 		userGroupLoader.clearAll();
 		configFileLoader.clearCache();
-		configFileLoader.loadAll(psappconfig);
+		configFileLoader.loadAll(psappconfig, true);
 		userGroupLoader.loadAll(pss[0], pss[1], pss[2], pss[3]);
 		
 		Subscribe subscribe = userGroupLoader.getAllSubscribes().get(0);

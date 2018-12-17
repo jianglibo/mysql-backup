@@ -117,7 +117,10 @@ public class ConfigFileLoader {
 		}
 	}
 
-	public void loadAll(Path configsPath) throws IOException, ExecutionException {
+	public void loadAll(Path configsPath, boolean reloadCache) throws IOException, ExecutionException {
+		if (reloadCache) {
+			this.cache.invalidateAll();
+		}
 		List<Path> allJsonFiles = Files.walk(configsPath).filter(p -> Files.isRegularFile(p))
 				.filter(p -> p.getFileName().toString().endsWith(".json"))
 				.filter(p -> !p.getFileName().toString().matches(".*\\.\\d+\\.json")).collect(Collectors.toList());

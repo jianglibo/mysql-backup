@@ -121,7 +121,7 @@ public class ReportController {
 	@GetMapping("/loaddata")
 	@ResponseBody
 	public String loadUserGroups(@RequestParam(required=false) boolean schedule) throws Exception {
-		appEventListenerBean.loadData(null, schedule);
+		appEventListenerBean.loadData(null, schedule, true);
 		return "OK";
 	}
 	

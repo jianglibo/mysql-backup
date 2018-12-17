@@ -90,16 +90,16 @@ public class AppEventListenerBean implements EnvironmentAware {
 		});
 		
 		if (!myAppSettings.isNotautoload()) {
-			loadData(configsDir, true);
+			loadData(configsDir, true, true);
 		}
 	}
 	
-	public void loadData(Path configsDir, boolean schedule) throws Exception {
+	public void loadData(Path configsDir, boolean schedule, boolean reloadCache) throws Exception {
 		if (configsDir == null) {
 			Path psdataDir = myAppSettings.getPsdataDirPath();
 			configsDir = psdataDir.resolve("configs");
 		}
-		configFileLoader.loadAll(configsDir);
+		configFileLoader.loadAll(configsDir, reloadCache);
 		userGroupLoader.loadAll();
 		if (schedule) {
 			configFileLoader.scheduleAll();

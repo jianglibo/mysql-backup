@@ -426,7 +426,7 @@ public class BackupCommand {
 	
 	@ShellMethod(value = "加载测试数据。")
 	public FacadeResult<?> loadDemoData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
-		appEventListenerBean.loadData(null, schedule);
+		appEventListenerBean.loadData(null, schedule, true);
 		return FacadeResult.doneExpectedResult();
 	}
 	
