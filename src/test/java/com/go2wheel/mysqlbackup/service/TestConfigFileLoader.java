@@ -67,15 +67,16 @@ public class TestConfigFileLoader extends SpringBaseFort {
     @Test
     public void tScheduleAll() throws IOException, ExecutionException, SchedulerException, ParseException {
     	Path root = repofolder.getRoot().toPath();
-    	Path bcf = Paths.get(borgconfigfile);
-    	Files.copy(bcf, root.resolve(bcf.getFileName()));
+		Path bcf = Paths.get(borgconfigfile);
+		String fn = bcf.getFileName().toString().replaceFirst("\\.\\d+\\.",".");
+    	Files.copy(bcf, root.resolve(fn)); // from aa.1.json -> aa.json
 		configFileLoader.loadAll(root);
 		List<Trigger> triggers = schedulerService.getAllTriggers();
 		assertThat(triggers.size(), equalTo(0));
+
 		configFileLoader.scheduleAll();
-		
 		triggers = schedulerService.getAllTriggers();
-		assertThat(triggers.size(), equalTo(2));
+		assertThat(triggers.size(), equalTo(4));
 		configFileLoader.clearCache();
     }
 

@@ -51,29 +51,6 @@ public class TestSpringQrtzScheduler extends SpringBaseFort  {
 	}
 
 
-	@Test
-	public void testJobAndTriggers() throws SchedulerException, InterruptedException {
-		
-//		when(myJobListener.getName()).thenReturn("myjl");
-//		assertNotNull(scheduler);
-//		List<String> grps = scheduler.getJobGroupNames();
-//		Collections.sort(grps);
-//		List<String> expected = Arrays.asList("group1", "MYSQL", SpringQrtzScheduler.GROUP_NAME);
-//		Collections.sort(expected);
-//		assertTrue(grps.contains("FOR_TEST_GROUP") && grps.contains("group1"));
-//		
-//		
-//		scheduler.getListenerManager().addJobListener(myJobListener, allJobs());
-//		
-//		Set<JobKey> jks = scheduler.getJobKeys(GroupMatcher.groupEquals("MYSQL"));
-//		jks = scheduler.getJobKeys(GroupMatcher.groupEquals("DEFAULT"));
-//		jks = scheduler.getJobKeys(GroupMatcher.groupEquals(SpringQrtzScheduler.GROUP_NAME));
-//		
-//		String jkname = jks.iterator().next().toString();
-//		assertThat(jkname, equalTo(SpringQrtzScheduler.GROUP_NAME + ".Qrtz_Job_Detail"));
-//		assertThat(jks.size(), equalTo(1));
-	}
-	
 	public class MyJobListener implements JobListener {
 
 	    private String name;
@@ -120,45 +97,45 @@ public class TestSpringQrtzScheduler extends SpringBaseFort  {
 	    }
 
 
-	    @Bean
-	    public JobDetailFactoryBean sampleJobDetail() {
-	        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-	        jobDetailFactory.setJobClass(SampleJob.class);
-	        jobDetailFactory.setName("Qrtz_Job_Detail");
-	        jobDetailFactory.setGroup(GROUP_NAME);
-	        jobDetailFactory.setDescription("Invoke Sample Job service...");
-	        jobDetailFactory.setDurability(true);
-	        JobDataMap jobDataMap = new JobDataMap();
-	        jobDataMap.put("date", new Date());
-	        jobDetailFactory.setJobDataMap(jobDataMap);
-	        return jobDetailFactory;
-	    }
+	    // @Bean
+	    // public JobDetailFactoryBean sampleJobDetail() {
+	    //     JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
+	    //     jobDetailFactory.setJobClass(SampleJob.class);
+	    //     jobDetailFactory.setName("Qrtz_Job_Detail");
+	    //     jobDetailFactory.setGroup(GROUP_NAME);
+	    //     jobDetailFactory.setDescription("Invoke Sample Job service...");
+	    //     jobDetailFactory.setDurability(true);
+	    //     JobDataMap jobDataMap = new JobDataMap();
+	    //     jobDataMap.put("date", new Date());
+	    //     jobDetailFactory.setJobDataMap(jobDataMap);
+	    //     return jobDetailFactory;
+	    // }
 	    
-	    @Bean
-	    public DynamicTriggers dynamicTriggers() {
-	    	return new DynamicTriggers();
-	    }
+	    // @Bean
+	    // public DynamicTriggers dynamicTriggers() {
+	    // 	return new DynamicTriggers();
+	    // }
 	    
-	    @Bean
-	    public SampleJobService sampleJobService() {
-	    	return new SampleJobService();
-	    }
+	    // @Bean
+	    // public SampleJobService sampleJobService() {
+	    // 	return new SampleJobService();
+	    // }
 	    
 
-	    @Bean
-	    public SimpleTriggerFactoryBean sampleJobTrigger() {
-	        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-	        trigger.setJobDetail(sampleJobDetail().getObject());
+	    // @Bean
+	    // public SimpleTriggerFactoryBean sampleJobTrigger() {
+	    //     SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
+	    //     trigger.setJobDetail(sampleJobDetail().getObject());
 
-	        int frequencyInSec = 10;
-	        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
+	    //     int frequencyInSec = 10;
+	    //     logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
 
-	        trigger.setRepeatInterval(frequencyInSec * 1000);
-	        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-	        trigger.setName("Qrtz_Trigger");
-	        trigger.setGroup(GROUP_NAME);
-	        return trigger;
-	    }
+	    //     trigger.setRepeatInterval(frequencyInSec * 1000);
+	    //     trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
+	    //     trigger.setName("Qrtz_Trigger");
+	    //     trigger.setGroup(GROUP_NAME);
+	    //     return trigger;
+	    // }
 	    
 	    
 	    public static class DynamicTriggers {
@@ -203,103 +180,51 @@ public class TestSpringQrtzScheduler extends SpringBaseFort  {
 	    	}
 	    }
 	    
-	    
-//	    @Bean
-//	    public JobDetailFactoryBean sampleJobDetail1() {
-//	        JobDetailFactoryBean jobDetailFactory = new JobDetailFactoryBean();
-//	        jobDetailFactory.setJobClass(SampleJob.class);
-//	        jobDetailFactory.setName("Qrtz_Job_Detail");
-//	        jobDetailFactory.setDescription("Invoke Sample Job service...");
-//	        jobDetailFactory.setDurability(true);
-//	        return jobDetailFactory;
-//	    }
-
-	//    
-//	    @Bean
-//	    public CronTriggerFactoryBean sampleJobTrigger2() {
-//	    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-//	        trigger.setJobDetail(sampleJobDetail().getObject());
-//	        trigger.setCronExpression("0 0 12 * * ?");
-//	        trigger.setName("Qrtz_Trigger_2");
-//	        trigger.setGroup(GROUP_NAME);
-//	        return trigger;
-//	    }
-	//    
-//	    @Bean
-//	    public CronTriggerFactoryBean sampleJobTrigger3() {
-//	    	CronTriggerFactoryBean trigger = new CronTriggerFactoryBean();
-//	        trigger.setJobDetail(sampleJobDetail().getObject());
-//	        trigger.setCronExpression("0 0 12 * * ?");
-//	        trigger.setName("Qrtz_Trigger_2");
-//	        return trigger;
-//	    }
-
-//	    @Bean
-//	    public SimpleTriggerFactoryBean sampleJobTrigger1() {
-//	        SimpleTriggerFactoryBean trigger = new SimpleTriggerFactoryBean();
-//	        trigger.setJobDetail(sampleJobDetail().getObject());
-	//
-//	        int frequencyInSec = 10;
-//	        logger.info("Configuring trigger to fire every {} seconds", frequencyInSec);
-	//
-//	        trigger.setRepeatInterval(frequencyInSec * 1000);
-//	        trigger.setRepeatCount(SimpleTrigger.REPEAT_INDEFINITELY);
-//	        trigger.setName("Qrtz_Trigger_1");
-//	        trigger.setGroup(GROUP_NAME);
-//	        return trigger;
-//	    }
-	    
-		@Bean
-		public SampleJob sampleJob() {
-			return new SampleJob();
-		}
+		// @Bean
+		// public SampleJob sampleJob() {
+		// 	return new SampleJob();
+		// }
 		
-		
-		public static class SampleJob implements Job {
+		// public static class SampleJob implements Job {
 
-		    Logger logger = LoggerFactory.getLogger(getClass());
+		//     Logger logger = LoggerFactory.getLogger(getClass());
 
-		    @Autowired
-		    private SampleJobService jobService;
+		//     @Autowired
+		//     private SampleJobService jobService;
 		    
-		    private Date date;
+		//     private Date date;
 
-		    public void execute(JobExecutionContext context) throws JobExecutionException {
+		//     public void execute(JobExecutionContext context) throws JobExecutionException {
 
-		        logger.info("Job ** {} ** fired @ {}", context.getJobDetail().getKey().getName(), context.getFireTime());
+		//         logger.info("Job ** {} ** fired @ {}", context.getJobDetail().getKey().getName(), context.getFireTime());
 
-		        jobService.executeSampleJob();
-//		        JobDataMap dataMap = context.getJobDetail().getJobDataMap();
-		        
-//		        JobDataMap jobDataMap = context.getMergedJobDataMap();
-//		        Date date = (Date) jobDataMap.get("date");
+		//         jobService.executeSampleJob();
+		//         logger.info("Next job scheduled @ {}", context.getNextFireTime());
+		//     }
 
-		        logger.info("Next job scheduled @ {}", context.getNextFireTime());
-		    }
+		// 	public Date getDate() {
+		// 		return date;
+		// 	}
 
-			public Date getDate() {
-				return date;
-			}
-
-			public void setDate(Date date) {
-				this.date = date;
-			}
-		}
+		// 	public void setDate(Date date) {
+		// 		this.date = date;
+		// 	}
+		// }
 		
-		public static class SampleJobService {
-		    private Logger logger = LoggerFactory.getLogger(getClass());
+		// public static class SampleJobService {
+		//     private Logger logger = LoggerFactory.getLogger(getClass());
 
-		    public void executeSampleJob() {
+		//     public void executeSampleJob() {
 
-		        logger.info("The sample job has begun...");
-		        try {
-		            Thread.sleep(5000);
-		        } catch (InterruptedException e) {
-		            logger.error("Error while executing sample job", e);
-		        } finally {
-		            logger.info("Sample job has finished...");
-		        }
-		    }
-		}
+		//         logger.info("The sample job has begun...");
+		//         try {
+		//             Thread.sleep(5000);
+		//         } catch (InterruptedException e) {
+		//             logger.error("Error while executing sample job", e);
+		//         } finally {
+		//             logger.info("Sample job has finished...");
+		//         }
+		//     }
+		// }
 	}
 }

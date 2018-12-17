@@ -2,8 +2,20 @@ param (
 	[switch]$Debug,
 	[ValidateSet("prod", "dev")]
 	[string]$ActiveProfile="dev",
-	[int]$HttpPort=8080
+	[int]$HttpPort=8080,
+	[string]$PsDataDir,
+	[string]$PsAppDir
 )
+
+if (-not (Test-Path -Path $PsDataDir)) {
+	"$PsDataDir does'nt exists." | Write-Error
+	return
+}
+
+if (-not (Test-Path -Path $PsAppDir)) {
+	"$PsAppDir does'nt exists." | Write-Error
+	return
+}
 
 $here =  $MyInvocation.MyCommand.Path | Split-Path -Parent
 

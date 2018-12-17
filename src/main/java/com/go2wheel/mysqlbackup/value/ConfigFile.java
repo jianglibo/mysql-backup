@@ -50,6 +50,9 @@ public class ConfigFile {
 		this.taskcmd = taskcmd;
 	}
 
+	/**
+	 * it's the file path of this configfile object. string.
+	 */
 	public String getMypath() {
 		return mypath;
 	}

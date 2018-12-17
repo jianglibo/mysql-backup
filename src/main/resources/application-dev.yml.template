@@ -147,5 +147,5 @@ ppp:
         - abc
         - ccd
 fort:
-    borg.configuration.file: D:/Documents/GitHub/easy-installer/scripts/borg/demo-config.1.json
+    borg.configuration.file: D:/Documents/GitHub/easy-installer/scripts/borg/demo-config.powershell.1.json
     logfolder: E:\\backups\\logs\\192.168.33.110

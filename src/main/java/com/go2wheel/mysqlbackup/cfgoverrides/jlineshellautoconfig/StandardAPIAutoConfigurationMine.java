@@ -5,6 +5,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.shell.standard.StandardAPIAutoConfiguration;
 import org.springframework.shell.standard.ValueProvider;
 
+import com.go2wheel.mysqlbackup.valueprovider.ConfigFileCmdProvider;
+import com.go2wheel.mysqlbackup.valueprovider.ConfigFileProvider;
 import com.go2wheel.mysqlbackup.valueprovider.CronStringValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DbTableNameProvider;
 import com.go2wheel.mysqlbackup.valueprovider.DefaultValueProvider;
@@ -39,7 +41,16 @@ public class StandardAPIAutoConfigurationMine {
 	public ValueProvider candidatesFromSQLProvider() {
 		return new SQLCandiatesValueProvider();
 	}
-	
+
+	@Bean
+	public ValueProvider configFileProvider() {
+		return new ConfigFileProvider();
+	}
+
+	@Bean
+	public ValueProvider configFileCmdProvider() {
+		return new ConfigFileCmdProvider();
+	}
 	
 	@Bean
 	public ValueProvider ostypeValueProvider() {

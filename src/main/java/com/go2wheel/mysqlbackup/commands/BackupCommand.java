@@ -16,19 +16,6 @@ import java.util.stream.Collectors;
 import javax.mail.MessagingException;
 import javax.validation.constraints.Email;
 
-import org.jline.utils.AttributedString;
-import org.jline.utils.AttributedStyle;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.core.env.Environment;
-import org.springframework.shell.jline.PromptProvider;
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
-import org.springframework.shell.standard.ShellOption;
-
 import com.go2wheel.mysqlbackup.AppEventListenerBean;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
@@ -44,8 +31,8 @@ import com.go2wheel.mysqlbackup.dbservice.KeyValueDbService;
 import com.go2wheel.mysqlbackup.dbservice.PlayBackService;
 import com.go2wheel.mysqlbackup.dbservice.ReusableCronDbService;
 import com.go2wheel.mysqlbackup.dbservice.SqlService;
-import com.go2wheel.mysqlbackup.exception.CommandNotFoundException;
 import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
+import com.go2wheel.mysqlbackup.exception.NoActionException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
@@ -58,6 +45,7 @@ import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
 import com.go2wheel.mysqlbackup.model.UserGrp;
+import com.go2wheel.mysqlbackup.service.ConfigFileLoader;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
 import com.go2wheel.mysqlbackup.util.ExceptionUtil;
@@ -65,10 +53,25 @@ import com.go2wheel.mysqlbackup.util.StringUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 import com.go2wheel.mysqlbackup.util.UpgradeUtil.UpgradeFile;
 import com.go2wheel.mysqlbackup.value.CommonMessageKeys;
+import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.FacadeResult;
 import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
+import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.Subscribe;
+
+import org.jline.utils.AttributedString;
+import org.jline.utils.AttributedStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.core.env.Environment;
+import org.springframework.shell.jline.PromptProvider;
+import org.springframework.shell.standard.ShellComponent;
+import org.springframework.shell.standard.ShellMethod;
+import org.springframework.shell.standard.ShellOption;
 
 @ShellComponent()
 public class BackupCommand {
@@ -84,7 +87,7 @@ public class BackupCommand {
 
 	@Autowired
 	private GlobalStore globalStore;
-	
+
 	@Autowired
 	private MyAppSettings myAppSettings;
 
@@ -117,6 +120,9 @@ public class BackupCommand {
 	
 	@Autowired
 	private UserGroupLoader userGroupLoader;
+
+	@Autowired
+	private ConfigFileLoader configFileLoader;
 	
 
 //	@ShellMethod(value = "List all managed servers.")
@@ -304,53 +310,19 @@ public class BackupCommand {
 		return String.format("%s: %s", k, v);
 	}
 
+	@ShellMethod(value = "列出配置文件列表")
+	public FacadeResult<?> listConfigFile() throws  IOException {
+		List<String> ls =  new ArrayList<>(configFileLoader.listConfigFiles().keySet());
+		return FacadeResult.doneExpectedResultDone(ls);
+	}
 
-	/**
-	 * 1. check if already initialized. 2. get my.cnf content 3. check if
-	 * 
-	 * @return
-	 * @throws IOException
-	 * @throws JSchException
-	 * @throws UnExpectedInputException 
-	 * @throws UnExpectedOutputException 
-	 * @throws MysqlAccessDeniedException 
-	 * @throws CommandNotFoundException 
-	 */
-//	@ShellMethod(value = "为备份MYSQL作准备。")
-//	public FacadeResult<?> mysqlEnableLogbin(
-//			@ShowDefaultValue @ShellOption(help = "Mysql log_bin的值，如果mysql已经启用logbin，不会尝试去更改它。", defaultValue = MycnfFileHolder.DEFAULT_LOG_BIN_BASE_NAME) String logBinValue)
-//			throws  IOException, UnExpectedInputException, UnExpectedOutputException, MysqlAccessDeniedException, CommandNotFoundException {
-//		sureMysqlConfigurated();
-//		return mysqlService.enableLogbin(getSession(), appState.getCurrentServer(), logBinValue);
-//	}
-//
-//	@ShellMethod(value = "查看logbin状态")
-//	public FacadeResult<?> mysqlGetLogbinState()
-//			throws  IOException, MysqlAccessDeniedException, AppNotStartedException, UnExpectedInputException, UnExpectedOutputException, CommandNotFoundException {
-//		sureMysqlConfigurated();
-//		return mysqlService.getLogbinState(getSession(), appState.getCurrentServer());
-//	}
-//
-//	@ShellMethod(value = "查看myCnf")
-//	public FacadeResult<?> mysqlGetMycnf()
-//			throws  IOException, MysqlAccessDeniedException, AppNotStartedException, RunRemoteCommandException, ScpException, UnExpectedInputException, UnExpectedOutputException {
-//		sureMysqlConfigurated();
-//		return mysqlService.getMyCnf(getSession(), appState.getCurrentServer());
-//	}
-//
-//	@ShellMethod(value = "安装borg。")
-//	public FacadeResult<?> borgInstall(@MetaAnno("BORG") Software software) throws UnExpectedInputException, JSchException {
-//		sureBorgConfigurated();
-//		Server server = appState.getCurrentServer();
-//		return borgInstaller.install(getSession(), server, software, null);
-//	}
-
-
-	
-
-
-
-
+	@ShellMethod(value = "执行配置文件中的命令")
+	public FacadeResult<?> runConfigFileCommand(@ShellOption(help = "Config file name.") ConfigFile configFile, @ShellOption(help = "cmd key in config file.") String psCmdKey) throws  IOException, ExecutionException, NoActionException {
+		ProcessExecResult pe = configFileLoader.runCommand(configFile.getMypath(), psCmdKey);
+		List<String> lines = pe.getStdOut();
+		lines.addAll(pe.getStdError());
+		return FacadeResult.doneExpectedResultDone(lines);
+	}
 
 
 	@ShellMethod(value = "列出后台任务")
@@ -434,12 +406,12 @@ public class BackupCommand {
 //		return FacadeResult.doneExpectedResult(userAccountDbService.findAll(), CommonActionResult.DONE);
 //	}
 
-	private FacadeResult<?> parameterRequired(String pn) {
-		if (!pn.startsWith("--")) {
-			pn = "--" + pn;
-		}
-		return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
-	}
+	// private FacadeResult<?> parameterRequired(String pn) {
+	// 	if (!pn.startsWith("--")) {
+	// 		pn = "--" + pn;
+	// 	}
+	// 	return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
+	// }
 
 //	private UserServerGrpVo getusgvo(Subscribe usgl) {
 //		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),

@@ -30,6 +30,7 @@ import com.go2wheel.mysqlbackup.exception.IncompatibleConfigurationError;
 import com.go2wheel.mysqlbackup.exception.NoActionException;
 import com.go2wheel.mysqlbackup.job.PowershellCommandSchedule;
 import com.go2wheel.mysqlbackup.util.BomUtil;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.util.PSUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
@@ -39,7 +40,7 @@ import com.google.common.cache.LoadingCache;
 
 @Service
 public class ConfigFileLoader {
-	
+
 	private Logger logger = LoggerFactory.getLogger(getClass());
 
 	private LoadingCache<String, ConfigFile> cache;
@@ -64,14 +65,20 @@ public class ConfigFileLoader {
 			}
 		});
 	}
-	
+
 	public void clearCache() {
 		this.cache.invalidateAll();
 	}
-	
+
 	public List<ConfigFile> getByHostname(String hostname) {
-		return this.cache.asMap().values().stream().filter(cf -> cf.getHostName().equals(hostname)).collect(Collectors.toList());
+		return this.cache.asMap().values().stream().filter(cf -> cf.getHostName().equals(hostname))
+				.collect(Collectors.toList());
 	}
+
+	/**
+	 * configuration files store in the subfolder named 'configs' under the folder
+	 * where 'psdataDir' in the application-prod.yml point to.
+	 */
 
 	private ConfigFile loadOne(String configFileName)
 			throws JsonParseException, JsonMappingException, IOException, IncompatibleConfigurationError {
@@ -101,22 +108,28 @@ public class ConfigFileLoader {
 		return cf;
 	}
 
-	public ConfigFile getOne(String configFileName) throws ExecutionException {
-		return cache.get(configFileName);
+	public ConfigFile getOne(String configFileName) {
+		try {
+			return cache.get(configFileName);
+		} catch (ExecutionException e) {
+			ExceptionUtil.logErrorException(logger, e);
+			return null;
+		}
 	}
 
 	public void loadAll(Path configsPath) throws IOException, ExecutionException {
 		List<Path> allJsonFiles = Files.walk(configsPath).filter(p -> Files.isRegularFile(p))
-				.filter(p -> p.getFileName().toString().endsWith(".json")).collect(Collectors.toList());
+				.filter(p -> p.getFileName().toString().endsWith(".json"))
+				.filter(p -> !p.getFileName().toString().matches(".*\\.\\d+\\.json")).collect(Collectors.toList());
 		for (Path p : allJsonFiles) {
 			getOne(p.toAbsolutePath().normalize().toString());
 		}
 		;
 	}
-	
+
 	public void runAllCmds() {
-		for(ConfigFile cf: cache.asMap().values()) {
-			for(List<String> commands: cf.getProcessBuilderNeededList().values()) {
+		for (ConfigFile cf : cache.asMap().values()) {
+			for (List<String> commands : cf.getProcessBuilderNeededList().values()) {
 				ProcessExecResult per = PSUtil.invokePowershell(commands, myAppSettings.getConsoleCharset());
 				logger.debug(String.join("\n", per.getStdOut()));
 				logger.debug(String.join("\n", per.getStdError()));
@@ -137,5 +150,9 @@ public class ConfigFileLoader {
 			throw new NoActionException(cache.get(configFileName), psCmdKey);
 		}
 		return PSUtil.invokePowershell(commands, myAppSettings.getConsoleCharset());
+	}
+
+	public Map<String, ConfigFile> listConfigFiles() {
+		return this.cache.asMap();
 	}
 }
