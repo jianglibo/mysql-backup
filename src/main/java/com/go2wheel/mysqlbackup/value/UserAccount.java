@@ -2,6 +2,8 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.util.UUID;
 
+import com.google.common.base.MoreObjects;
+
 public class UserAccount {
 	
 	private String name;
@@ -32,6 +34,12 @@ public class UserAccount {
 	}
 	public void setEmail(String email) {
 		this.email = email;
+	}
+
+	@Override
+	public String toString() {
+		return MoreObjects.toStringHelper(this).add("name", getName()).add("mobile", getMobile())
+				.add("email", getEmail()).toString();
 	}
 	
 	public static class UserAccountBuilder {

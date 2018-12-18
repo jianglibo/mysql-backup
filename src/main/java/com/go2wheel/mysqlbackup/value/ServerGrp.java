@@ -2,16 +2,23 @@ package com.go2wheel.mysqlbackup.value;
 
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
+
 public class ServerGrp {
-	
+
 	private String name;
-	
+
 	private String description;
-	
+
 	private List<String> hostnames;
-	
+
 	private List<Server> servers;
-	
+
+	@Override
+	public String toString() {
+		return MoreObjects.toStringHelper(this).add("name", getName()).add("description", getDescription()).toString();
+	}
+
 	public String getName() {
 		return name;
 	}
@@ -27,7 +34,6 @@ public class ServerGrp {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-
 
 	public List<Server> getServers() {
 		return servers;

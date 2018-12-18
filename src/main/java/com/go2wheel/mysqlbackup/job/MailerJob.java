@@ -38,6 +38,10 @@ public class MailerJob implements Job {
 	public void execute(JobExecutionContext context) throws JobExecutionException {
 		JobDataMap data = context.getMergedJobDataMap();
 		String subscribeId = data.getString(CommonJobDataKey.JOB_DATA_KEY_USERNAME);
+		mail(subscribeId);
+	}
+
+	public void mail(String subscribeId) throws JobExecutionException {
 		Subscribe subscribe = userGroupLoader.getSubscribeById(subscribeId);
 		ServerGroupContext sgctx;
 		try {
@@ -48,13 +52,14 @@ public class MailerJob implements Job {
 			throw new JobExecutionException(e);
 		}
 	}
-	
+
 	@Autowired
 	public void setMailer(Mailer mailer) {
 		this.mailer = mailer;
 	}
-	
-	public void mail(Subscribe subscribe, String email, String template, ServerGroupContext sgctx) throws UnsupportedEncodingException, MessagingException {
+
+	public void mail(Subscribe subscribe, String email, String template, ServerGroupContext sgctx)
+			throws UnsupportedEncodingException, MessagingException {
 		this.mailer.sendMail(subscribe, email, template, sgctx);
 	}
 

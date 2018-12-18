@@ -19,6 +19,7 @@ import com.go2wheel.mysqlbackup.valueprovider.PlayBackValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.PossibleValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.SQLCandiatesValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.ServerGrpValueProvider;
+import com.go2wheel.mysqlbackup.valueprovider.SubscribeProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TemplateValueProvider;
 import com.go2wheel.mysqlbackup.valueprovider.TriggerKeyProvider;
 
@@ -35,6 +36,11 @@ public class StandardAPIAutoConfigurationMine {
 	@Bean
 	public ValueProvider keyValueValueProvider() {
 		return new KeyValueValueProvider();
+	}
+
+	@Bean
+	public ValueProvider subscribeProvider() {
+		return new SubscribeProvider();
 	}
 	
 	@Bean

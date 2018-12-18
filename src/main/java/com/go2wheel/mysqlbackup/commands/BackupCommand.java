@@ -392,117 +392,27 @@ public class BackupCommand {
 		return FacadeResult.doneExpectedResult(reusableCronDbService.findAll(), CommonActionResult.DONE);
 	}
 
-//	@ShellMethod(value = "添加用户。")
-//	public FacadeResult<?> userAdd(@ShellOption(help = "用户名") String name, @ShellOption(help = "email地址") String email,
-//			@ShellOption(help = "手机号码", defaultValue = ShellOption.NULL) String mobile,
-//			@ShellOption(help = "描述", defaultValue = "") String description) {
-//		UserAccount ua = new UserAccount.UserAccountBuilder(name, email).withMobile(mobile).withDescription(description)
-//				.build();
-//		return FacadeResult.doneExpectedResult(userAccountDbService.save(ua), CommonActionResult.DONE);
-//	}
-//
-//	@ShellMethod(value = "用户列表。")
-//	public FacadeResult<?> userList() {
-//		return FacadeResult.doneExpectedResult(userAccountDbService.findAll(), CommonActionResult.DONE);
-//	}
+	@ShellMethod(value = "用户列表。")
+	public FacadeResult<?> listUsers() {
+		return FacadeResult.doneExpectedResult(userGroupLoader.getAllUsers(), CommonActionResult.DONE);
+	}
 
-	// private FacadeResult<?> parameterRequired(String pn) {
-	// 	if (!pn.startsWith("--")) {
-	// 		pn = "--" + pn;
-	// 	}
-	// 	return FacadeResult.showMessageExpected(CommonMessageKeys.PARAMETER_REQUIRED, pn);
-	// }
+	@ShellMethod(value = "服务器组列表。")
+	public FacadeResult<?> listServerGroups() {
+		return FacadeResult.doneExpectedResult(userGroupLoader.getAllGroups(), CommonActionResult.DONE);
+	}
 
-//	private UserServerGrpVo getusgvo(Subscribe usgl) {
-//		return new UserServerGrpVo(usgl.getId(), userAccountDbService.findById(usgl.getUserAccountId()),
-//				serverGrpDbService.findById(usgl.getServerGrpId()), usgl.getCronExpression());
-//	}
 
 	@ShellMethod(value = "列出用户和服务器组的关系。")
-	public FacadeResult<?> subscribeList() {
+	public FacadeResult<?> listSubscribes() {
 		List<Subscribe> vos = userGroupLoader.getAllSubscribes();
 		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
 	}
 	
 	@ShellMethod(value = "加载测试数据。")
-	public FacadeResult<?> loadDemoData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
+	public FacadeResult<?> loadData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
 		appEventListenerBean.loadData(null, schedule, true);
 		return FacadeResult.doneExpectedResult();
-	}
-	
-//	@ShellMethod(value = "添加用户和服务器组的关系。")
-//	public FacadeResult<?> subscribeCreate(
-//			@ShellOption(help = "用户名") UserAccount user,
-//			@ShellOption(help = "服务器组") ServerGrp serverGroup,
-//			@ShellOption(help = "一个有意义的名称") String name,
-//			@TemplateIndicator
-//			@ShellOption(help = "邮件的模板名称") String template,
-//			@CronStringIndicator @ShellOption(help = "任务计划") String cron) {
-//		Subscribe usg;
-//		if (user == null) {
-//			return parameterRequired("user");
-//		}
-//		if (serverGroup == null) {
-//			return parameterRequired("server-group");
-//		}
-//		usg = new Subscribe.SubscribeBuilder(user.getId(), serverGroup.getId(),ReusableCron.getExpressionFromToListRepresentation(cron), name)
-//				.withTemplate(template)
-//				.build();
-//		usg = userServerGrpDbService.save(usg);
-//		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-//	}
-	
-//	@ShellMethod(value = "删除用户和服务器组的关系。")
-//	public FacadeResult<?> subscribeDelete(
-//			@ShellOption(help = "要删除的User和ServerGrp关系。") Subscribe usg) {
-//		userServerGrpDbService.delete(usg);
-//		return FacadeResult.doneExpectedResult(getusgvo(usg), CommonActionResult.DONE);
-//	}
-
-//	@ShellMethod(value = "添加服务器组。")
-//	public FacadeResult<?> ServerGroupAdd(@ShellOption(help = "组的英文名称") String ename,
-//			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
-//		ServerGrp sg = new ServerGrp(ename);
-//		sg.setMsgkey(msgkey);
-//		sg = serverGrpDbService.save(sg);
-//		return FacadeResult.doneExpectedResult(sg, CommonActionResult.DONE);
-//	}
-
-//	@ShellMethod(value = "列出服务器组。")
-//	public FacadeResult<?> ServerGroupList() {
-//		List<ServerGrp> sgs = serverGrpDbService.findAll();
-//		return FacadeResult.doneExpectedResult(sgs, CommonActionResult.DONE);
-//	}
-
-//	@ShellMethod(value = "管理服务器组的主机")
-//	public FacadeResult<?> ServerGroupMembers(@ShowPossibleValue({ "LIST", "ADD",
-//			"REMOVE" }) @ShellOption(help = "The action to take.") String action,
-//			@ShellOption(help = "The server group to manage.") @NotNull ServerGrp serverGroup,
-//			@ShellOption(help = "The server to manage.", defaultValue = ShellOption.NULL) Server server) {
-//		switch (action) {
-//		case "ADD":
-//			if (server == null) {
-//				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
-//			}
-//			serverGrpDbService.addServer(serverGroup, server);
-//			break;
-//		case "REMOVE":
-//			if (server == null) {
-//				return FacadeResult.showMessageUnExpected(CommonMessageKeys.PARAMETER_REQUIRED, "--server");
-//			}
-//			serverGrpDbService.removeServer(serverGroup, server);
-//			break;
-//		default:
-//			break;
-//		}
-//		return FacadeResult.doneExpectedResult(serverGrpDbService.getServers(serverGroup), CommonActionResult.DONE);
-//	}
-
-	@ShellMethod(value = "添加用户组。")
-	public FacadeResult<?> userGroupAdd(@ShellOption(help = "组的英文名称") String ename,
-			@ShellOption(help = "message的键值，如果需要国际化的话", defaultValue = ShellOption.NULL) String msgkey) {
-		UserGrp ug = new UserGrp(ename, msgkey);
-		return FacadeResult.doneExpectedResultDone(ug);
 	}
 
 
