@@ -5,93 +5,104 @@ import com.google.common.base.MoreObjects;
 
 public class Subscribe {
 
-	private String id;
+  private String id;
 
-	private String username;
+  private String username;
 
-	private String template;
+  private String template;
 
-	private String groupname;
+  private String groupname;
 
-	private String cron;
+  private String cron;
 
-	private String description;
+  private String description;
 
-	private ServerGrp serverGroup;
-	
-	private UserAccount user;
+  private ServerGrp serverGroup;
 
-	public String getUsername() {
-		return username;
-	}
+  private UserAccount user;
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  public String getUsername() {
+    return username;
+  }
 
-	public String getGroupname() {
-		return groupname;
-	}
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public void setGroupname(String groupname) {
-		this.groupname = groupname;
-	}
+  public String getGroupname() {
+    return groupname;
+  }
 
-	public String getCron() {
-		return cron;
-	}
+  public void setGroupname(String groupname) {
+    this.groupname = groupname;
+  }
 
-	public void setCron(String cron) {
-		this.cron = cron;
-	}
+  public String getCron() {
+    return cron;
+  }
 
-	public String getTemplate() {
-		if (StringUtil.hasAnyNonBlankWord(template)) {
-			return template;
-		} else {
-			return "ctx.html";
-		}
-	}
+  public void setCron(String cron) {
+    this.cron = cron;
+  }
 
-	public void setTemplate(String template) {
-		this.template = template;
-	}
+  /**
+   * 
+   * @return customize or default template.
+   */
+  public String getTemplate() {
+    if (StringUtil.hasAnyNonBlankWord(template)) {
+      return template;
+    } else {
+      return "ctx.html";
+    }
+  }
 
-	public String getId() {
-		return id;
-	}
+  public void setTemplate(String template) {
+    this.template = template;
+  }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+  public String getId() {
+    return id;
+  }
 
-	public String getDescription() {
-		return description;
-	}
+  public void setId(String id) {
+    this.id = id;
+  }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+  public String getDescription() {
+    return description;
+  }
 
-	public ServerGrp getServerGroup() {
-		return serverGroup;
-	}
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-	public void setServerGroup(ServerGrp serverGroup) {
-		this.serverGroup = serverGroup;
-	}
+  public ServerGrp getServerGroup() {
+    return serverGroup;
+  }
 
-	@Override
-	public String toString() {
-		return MoreObjects.toStringHelper(this).add("id", getId()).add("username", getUsername())
-				.add("groupname", getGroupname()).add("template", getTemplate()).toString();
-	}
+  public void setServerGroup(ServerGrp serverGroup) {
+    this.serverGroup = serverGroup;
+  }
 
-	public UserAccount getUser() {
-		return user;
-	}
+  //@formatter:off
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+    .add("id", getId())
+    .add("username", getUsername())
+    .add("cron", getCron())
+    .add("groupname", getGroupname())
+    .add("template", getTemplate())
+    .toString();
+  }
+  //@formatter:on
 
-	public void setUser(UserAccount user) {
-		this.user = user;
-	}
+  public UserAccount getUser() {
+    return user;
+  }
+
+  public void setUser(UserAccount user) {
+    this.user = user;
+  }
 }

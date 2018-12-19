@@ -1,5 +1,11 @@
 package com.go2wheel.mysqlbackup.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.go2wheel.mysqlbackup.SettingsInDb;
+import com.go2wheel.mysqlbackup.dbservice.PlayBackResultDbService;
+import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
+import com.go2wheel.mysqlbackup.model.RobocopyDescription;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,362 +13,452 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.go2wheel.mysqlbackup.SettingsInDb;
-import com.go2wheel.mysqlbackup.dbservice.PlayBackResultDbService;
-import com.go2wheel.mysqlbackup.event.ModelDeletedEvent;
-import com.go2wheel.mysqlbackup.model.RobocopyDescription;
 
 @Service
 public class RobocopyService {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private PlayBackResultDbService playBackResultDbService;
+  @Autowired
+  private PlayBackResultDbService playBackResultDbService;
 
-	@Autowired
-	private SettingsInDb settingsInDb;
-	
-	@Autowired
-	private ApplicationContext applicationContext;
-	
-	@Autowired
-	private ObjectMapper objectMapper;
+  @Autowired
+  private SettingsInDb settingsInDb;
 
+  @Autowired
+  private ApplicationContext applicationContext;
 
-//	public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
-//		final Path localRepo = settingsInDb.getCurrentRepoDir(server);
-//		FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups", 999999), false);
-//		return FacadeResult.doneExpectedResult();
-//	}
+  @Autowired
+  private ObjectMapper objectMapper;
 
-	@EventListener
-	public void whenRobocopyDescriptionDelete(ModelDeletedEvent<RobocopyDescription> rde) {
+  // public FacadeResult<?> backupLocalRepos(Server server) throws IOException {
+  // final Path localRepo = settingsInDb.getCurrentRepoDir(server);
+  // FileUtil.backup(localRepo, 6, settingsInDb.getInteger("borg.repo.backups",
+  // 999999), false);
+  // return FacadeResult.doneExpectedResult();
+  // }
 
-	}
-	
-	/**
-	 * increamental archive is a fixed name.
-	 * @param session
-	 * @param server
-	 * @param robocopyDescription
-	 * @param items
-	 * @return
-	 * @throws CommandNotFoundException
-	 * @throws JSchException
-	 * @throws IOException
-	 * @throws UnExpectedOutputException
-	 * @throws RunRemoteCommandException
-	 * @throws NoSuchAlgorithmException
-	 * @throws ScpException
-	 * @throws UnExpectedInputException 
-	 */
-//	public FacadeResult<Path> downloadIncreamentalArchive(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException, UnExpectedInputException {
-//		robocopyDescription.modifiItems(items);
-//		
-//		Path currentRepo = settingsInDb.getCurrentRepoDir(server);
-//		Path comppressedArchive = currentRepo.resolve(PathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()));
-//		
-//		if (!Files.exists(comppressedArchive)) {
-//			fullBackup(session, server, robocopyDescription, items);
-//			// no need to do this increment backup.
-//			return FacadeResult.doneExpectedResult(comppressedArchive, CommonActionResult.DONE);
-//		}
-//		
-//		String increamentalArchive = robocopyDescription.getWorkingSpaceIncreamentalArchive();
-//		String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 | Format-List", increamentalArchive);
-//		
-//		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
-//		
-//		if(rcr.getExitValue() != 0) {
-//			throw new UnExpectedOutputException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
-//		}
-//		
-//		Map<String, String> md5Item = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
-//
-//		final String rFile = md5Item.get("Path");
-//		
-//		Path localPaht = currentRepo.resolve(PathUtil.getFileName(rFile));
-//		
-//		localPaht = PathUtil.getNextAvailable(localPaht, 7);
-//		
-//		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rFile, md5Item.get("Hash"), localPaht);
-//		return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
-//	}
+  @EventListener
+  public void whenRobocopyDescriptionDelete(ModelDeletedEvent<RobocopyDescription> rde) {
 
-	
-//	public FacadeResult<Path> downloadCompressed(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, IOException, ScpException {
-//		String compressedArchive = robocopyDescription.getWorkingSpaceCompressedArchive();
-//		String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 | Format-List", compressedArchive);
-//		
-//		RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
-//		
-//		if(rcr.getExitValue() != 0) {
-//			throw new UnExpectedOutputException("1000", "powershell.getitem", rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
-//		}
-//		
-//		Map<String, String> md5Item = PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
-//		
-//
-//		final String rRepo = md5Item.get("Path");
-//		final Path localRepo = settingsInDb.getCurrentRepoDir(server).resolve(PathUtil.getFileName(rRepo));
-//		Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(), session, rRepo, md5Item.get("Hash"), localRepo);
-//		return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
-//	}
-//	
-	
-//	public CompletableFuture<AsyncTaskValue> playbackAsync(PlayBack playback, String localRepo, Long id) {
-//		Server source = serverDbService.findById(playback.getSourceServerId());
-//		Server target = serverDbService.findById(playback.getTargetServerId());
-//		return CompletableFuture.supplyAsync(() -> {
-//			Session[] sessions = new Session[2];
-//			try {
-//				sessions[0] = sshSessionFactory.getConnectedSession(source).getResult();
-//				sessions[1] = sshSessionFactory.getConnectedSession(target).getResult();
-//			} catch (JSchException e) {
-//				SshSessionFactory.closeSession(sessions[0]);
-//				SshSessionFactory.closeSession(sessions[1]);
-//				throw new ExceptionWrapper(e);
-//			}
-//			return sessions;
-//		}).thenApplyAsync(sessions -> {
-//			try {
-//				FacadeResult<PlayBackResult> fr = playback(sessions[0], sessions[1], source, target, playback, localRepo);
-//				PlayBackResult bd = fr.getResult();
-//				bd = playBackResultDbService.save(bd);
-//				fr.setResult(bd);
-//				return new AsyncTaskValue(id, fr);
-//			} catch (IOException | RunRemoteCommandException | JSchException e) {
-//				throw new ExceptionWrapper(e);
-//			} finally {
-//				SshSessionFactory.closeSession(sessions[0]);
-//				SshSessionFactory.closeSession(sessions[1]);
-//			}
-//		}).exceptionally(t -> {
-//			Throwable tt = t.getCause();
-//			Throwable ttt = tt;
-//			if (tt instanceof ExceptionWrapper) {
-//				ttt = ((ExceptionWrapper) tt).getException();
-//			}
-//			ExceptionUtil.logErrorException(logger, ttt);
-//			
-//			return new AsyncTaskValue(id, FacadeResult.unexpectedResult(ttt));
-//		});
-//	}
-	
-//	public FacadeResult<PlayBackResult> playbackSync(PlayBack playback, String localRepo) throws IOException, RunRemoteCommandException, JSchException {
-//		Server serverSource = serverDbService.findById(playback.getSourceServerId());
-//		Server serverTarget = serverDbService.findById(playback.getTargetServerId());
-//		Session[] sessions = new Session[2];
-//		try {
-//			sessions[0] = sshSessionFactory.getConnectedSession(serverSource).getResult();
-//			sessions[1] = sshSessionFactory.getConnectedSession(serverTarget).getResult();
-//		} catch (JSchException e) {
-//			SshSessionFactory.closeSession(sessions[0]);
-//			SshSessionFactory.closeSession(sessions[1]);
-//			throw new ExceptionWrapper(e);
-//		}
-//		return playback(sessions[0], sessions[1], serverSource, serverTarget, playback, localRepo);
-//	}
-	
-//	public FacadeResult<PlayBackResult> playback(Session sessionSource, Session sessiontarget, Server serverSource, Server serverTarget, PlayBack playback, String localRepo) throws IOException, RunRemoteCommandException, JSchException {
-//		// from server get borgdescription, get repo properties. Create a directory on playback server. and upload local repo. Then invoke borg command on that server, listing extracting.
-//		if (serverSource.getBorgDescription() == null) {
-//			serverSource = serverDbService.loadFull(serverSource);
-//		}
-//		BorgDescription bd = serverSource.getBorgDescription();
-//		String serverRepo = bd.getRepo();
-//		SSHcommonUtil.mkdirsp(serverTarget.getOs(), sessiontarget, serverRepo);
-//		Path local = settingsInDb.getCurrentRepoDir(serverSource).getParent().resolve(localRepo);
-//		SSHcommonUtil.copyFolder(serverTarget.getOs(), sessiontarget, local, serverRepo);
-//		return null;
-//	}
-//	
-//	public SSHPowershellInvokeResult invokeRoboCopyCommand(Session session, String cmd) throws JSchException, IOException {
-//		String command = cmd + ";$LASTEXITCODE";
-//		return new SSHPowershellInvokeResult(SSHcommonUtil.runRemoteCommand(session, "GBK", "GBK", command));
-//	}
-	
-	/**
-	 * The source is getRobocopyDst(), The dst is the name of the source.
-	 * But .rar or .zip?
-	 * @param session
-	 * @param server
-	 * @param robocopyDescription
-	 * @return
-	 * @throws JSchException
-	 * @throws IOException
-	 */
-//	public SSHPowershellInvokeResult compressArchive(Session session, Server server, RobocopyDescription robocopyDescription) throws JSchException, IOException {
-////		& 'C:/Program Files/WinRAR/Rar.exe' a C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/workingspace/compressed C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/robocopydst;$LASTEXITCODE
-//		String cmd = robocopyDescription.getCompressCommandInstance();
-//		return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
-//	}
-	
-//	public SSHPowershellInvokeResult expandArchive(Session session, Server server, RobocopyDescription robocopyDescription, String archive, String expandDst) throws JSchException, IOException {
-//		archive = archive.replace('\\', '/');
-//		expandDst = expandDst.replace('\\', '/');
-//		if (!expandDst.endsWith("/")) {
-//			expandDst += "/";
-//		}
-//		// expandDst must have directory trail. / or \.
-//		String cmd = String.format(robocopyDescription.getExpandCommand(), archive, expandDst);
-//		if (!cmd.startsWith("&")) {
-//			cmd = "& " + cmd;
-//		}
-//		cmd = cmd + ";$LASTEXITCODE";
-//		return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
-//		
-////		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
-//	}
-	
-//	public void expandLocalArchive(Server server, RobocopyDescription robocopyDescription, Path whichRepo) throws JSchException, IOException {
-//		String archive = whichRepo.resolve(robocopyDescription.getArchiveName()).toAbsolutePath().toString();
-//		archive = archive.replace('\\', '/');
-//		String expandDst = settingsInDb.getRepoTmp(server).toAbsolutePath().toString();
-//		expandDst = expandDst.replace('\\', '/');
-//		if (!expandDst.endsWith("/")) {
-//			expandDst += "/";
-//		}
-//		// expandDst must have directory trail. / or \.
-//		String cmd = String.format(settingsInDb.getString("applicaion.expand-command", RobocopyDescription.DEFAULT_EXPAND_COMMAND), archive, expandDst);
-//		if (!cmd.startsWith("&")) {
-//			cmd = "& " + cmd;
-//		}
-//		cmd = cmd + ";$LASTEXITCODE";
-//		ProcessExecResult per = PSUtil.runPsCommand(cmd);
-//		System.out.println(per.getStdOut());
-////		& 'C:/Program Files/WinRAR/Rar.exe' x -o+ C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
-//	}
-	
-	/**
-	 * The line number of script equals to items number.
-	 * @param session
-	 * @param server
-	 * @param robocopyDescription
-	 * @param items
-	 * @return
-	 */
-//	public List<String> getBackupScripts(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) {
-//		robocopyDescription.modifiItems(items);
-//		List<String> results = Lists.newArrayList();
-//		
-//		for(RobocopyItem item : items) {
-//			StringBuffer sb = new StringBuffer("Robocopy.exe");
-//			sb.append(' ').append(item.getSourceSlash())
-//			.append(' ').append(item.getDstCalced())
-//			.append(' ').append(item.getFileParametersNullSafe());
-//			
-//			if (item.getExcludeFilesNullSafe().size() > 0) {
-//				sb.append(' ').append("/xf ").append(item.getExcludeFilesNullSafe().stream().collect(joining(" ")));					
-//			}
-//			
-//			if (item.getExcludeDirectoriesNullSafe().size() > 0) {
-//				sb.append(' ').append("/xd ").append(item.getExcludeDirectoriesNullSafe().stream().collect(joining(" ")));							
-//			}
-//			
-//			sb.append(" /log+:").append(robocopyDescription.getWorkingSpaceRoboLog());
-//			
-//			/**
-//			 * /xf and /xd are special and excluded.
-//			 */
-//			if (item.getFileSelectionOptionsNullSafe().size() > 0) {
-//				sb.append(' ').append(item.getFileSelectionOptionsNullSafe().stream().collect(joining(" ")));							
-//			}
-//			
-//			if (item.getCopyOptionsNullSafe().size() > 0) {
-//				sb.append(' ').append(item.getCopyOptionsNullSafe().stream().collect(joining(" ")));							
-//			}
-//			
-//			if (item.getLoggingOptionsNullSafe().size() > 0) {
-//				sb.append(' ').append(item.getLoggingOptionsNullSafe().stream().collect(joining(" ")));							
-//			}
-////			sb.append(' ').append("|ForEach-Object {$_.trim()} |Where-Object {$_ -notmatch '.*\\\\$'} | Where-Object {($_ -split  '\\s+').length -gt 2}\", src.toAbsolutePath().toString(), dst.toAbsolutePath().toString())");
-////			RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, sb.toString());
-//			results.add(sb.toString());
-//		}
-//		return results;
-//	}
+  }
 
-	
+  /**
+   * increamental archive is a fixed name.
+   * 
+   * @param session
+   * @param server
+   * @param robocopyDescription
+   * @param items
+   * @return
+   * @throws CommandNotFoundException
+   * @throws JSchException
+   * @throws IOException
+   * @throws UnExpectedOutputException
+   * @throws RunRemoteCommandException
+   * @throws NoSuchAlgorithmException
+   * @throws ScpException
+   * @throws UnExpectedInputException
+   */
+  // public FacadeResult<Path> downloadIncreamentalArchive(Session session, Server
+  // server, RobocopyDescription robocopyDescription, List<RobocopyItem> items)
+  // throws CommandNotFoundException, JSchException, IOException,
+  // UnExpectedOutputException, RunRemoteCommandException,
+  // NoSuchAlgorithmException, ScpException, UnExpectedInputException {
+  // robocopyDescription.modifiItems(items);
+  //
+  // Path currentRepo = settingsInDb.getCurrentRepoDir(server);
+  // Path comppressedArchive =
+  // currentRepo.resolve(PathUtil.getFileName(robocopyDescription.getWorkingSpaceCompressedArchive()));
+  //
+  // if (!Files.exists(comppressedArchive)) {
+  // fullBackup(session, server, robocopyDescription, items);
+  // // no need to do this increment backup.
+  // return FacadeResult.doneExpectedResult(comppressedArchive,
+  // CommonActionResult.DONE);
+  // }
+  //
+  // String increamentalArchive =
+  // robocopyDescription.getWorkingSpaceIncreamentalArchive();
+  // String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 |
+  // Format-List", increamentalArchive);
+  //
+  // RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+  //
+  // if(rcr.getExitValue() != 0) {
+  // throw new UnExpectedOutputException("1000", "powershell.getitem",
+  // rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+  // }
+  //
+  // Map<String, String> md5Item =
+  // PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
+  //
+  // final String rFile = md5Item.get("Path");
+  //
+  // Path localPaht = currentRepo.resolve(PathUtil.getFileName(rFile));
+  //
+  // localPaht = PathUtil.getNextAvailable(localPaht, 7);
+  //
+  // Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(),
+  // session, rFile, md5Item.get("Hash"), localPaht);
+  // return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
+  // }
 
-	/**
-	 * repo stores robocopied folders. workingspace has two subdirectories, compressed for ziped file, expanded for extracted files.
-	 * 
-	 * @param session
-	 * @param server
-	 * @param robocopyDescription
-	 * @param items
-	 * @return
-	 * @throws CommandNotFoundException
-	 * @throws JSchException
-	 * @throws IOException
-	 */
-//	@Exclusive(TaskLocks.TASK_FILEBACKUP)
-//	public FacadeResult<List<SSHPowershellInvokeResult>> executeRobocopies(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException {
-//		List<String> individualCommands = getBackupScripts(session, server, robocopyDescription, items);
-//		List<SSHPowershellInvokeResult> results = Lists.newArrayList();
-//		for(String command: individualCommands) {
-//			results.add(invokeRoboCopyCommand(session, command));
-//		}
-//		return FacadeResult.doneExpectedResultDone(results);
-//	}
-//	
-//	
-//	public SSHPowershellInvokeResult increamentalBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, UnExpectedInputException, UnExpectedOutputException {
-//		if (items == null || items.isEmpty()) {
-//			throw new UnExpectedInputException("1000", "validator.emptyornull", "No Source directories assigned.");
-//		}
-//		robocopyDescription.modifiItems(items);
-//		String cmd = robocopyDescription.getWorkingSpaceScriptFile() + " -action increamental";
-//		SSHPowershellInvokeResult sshir =  SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
-//		if (sshir.isCommandNotFound()) {
-//			copyScriptToServer(session, server, robocopyDescription, items);
-//			sshir =  SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK", null, cmd));
-//		}
-//		if (sshir.exitCode() > 8) {
-//			throw new UnExpectedOutputException("1000", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")), sshir.getRcr().getCommand());
-//		}
-//		return sshir;
-//	}
-//	
-//	public Path incrementalBackupAndDownload(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws UnExpectedInputException, CommandNotFoundException, JSchException, IOException, UnExpectedOutputException, RunRemoteCommandException, NoSuchAlgorithmException, ScpException {
-//		SSHPowershellInvokeResult sshir =  increamentalBackup(session, server, robocopyDescription, items);
-//		if (sshir.exitCode() != -1) {
-//			FacadeResult<Path> fp = downloadIncreamentalArchive(session, server, robocopyDescription, items);
-//			return fp.getResult();
-//		}
-//		return null;
-//	}
-//	
-//	private String serializeToJson(RobocopyDescription robocopyDescription) throws JsonProcessingException {
-//		ObjectNode jn = objectMapper.valueToTree(robocopyDescription);
-//		String cc = robocopyDescription.getCompressCommand();
-//		jn.set("compressExe", new TextNode(StringUtil.extractExecutable(cc)));
-//		String s = objectMapper.writeValueAsString(jn); 
-//		return s;
-//	}
-//	
-//	public Path fullBackup(Session session, Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws CommandNotFoundException, JSchException, IOException, NoSuchAlgorithmException, UnExpectedOutputException, RunRemoteCommandException, ScpException, UnExpectedInputException {
-//		if (items == null || items.isEmpty()) {
-//			throw new UnExpectedInputException("1000", "validator.emptyornull", "No Source directories assigned.");
-//		}
-//		copyScriptToServer(session, server, robocopyDescription, items);
-//		FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session, server, robocopyDescription, items);
-//		
-//		for(SSHPowershellInvokeResult sshir : fr.getResult()) {
-//			if (sshir.hasError()) {
-//				throw new UnExpectedOutputException("", "", sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
-//			}
-//		}
-//		SSHPowershellInvokeResult rcr = compressArchive(session, server, robocopyDescription);
-//		if (rcr.exitCode() != 0) {
-//			throw new UnExpectedOutputException("1000", "powershell.robocopy.compress", rcr.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
-//		}
-//		return downloadCompressed(session, server, robocopyDescription).getResult();
-//	}
-//	
+  // public FacadeResult<Path> downloadCompressed(Session session, Server server,
+  // RobocopyDescription robocopyDescription) throws JSchException,
+  // NoSuchAlgorithmException, UnExpectedOutputException,
+  // RunRemoteCommandException, IOException, ScpException {
+  // String compressedArchive =
+  // robocopyDescription.getWorkingSpaceCompressedArchive();
+  // String cmd = String.format("Get-Item -Path %s | Get-FileHash -Algorithm MD5 |
+  // Format-List", compressedArchive);
+  //
+  // RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session, cmd);
+  //
+  // if(rcr.getExitValue() != 0) {
+  // throw new UnExpectedOutputException("1000", "powershell.getitem",
+  // rcr.getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+  // }
+  //
+  // Map<String, String> md5Item =
+  // PSUtil.parseFormatList(rcr.getAllTrimedNotEmptyLines()).get(0);
+  //
+  //
+  // final String rRepo = md5Item.get("Path");
+  // final Path localRepo =
+  // settingsInDb.getCurrentRepoDir(server).resolve(PathUtil.getFileName(rRepo));
+  // Path dd = SSHcommonUtil.downloadWithTmpDownloadingFile(server.getOs(),
+  // session, rRepo, md5Item.get("Hash"), localRepo);
+  // return FacadeResult.doneExpectedResult(dd, CommonActionResult.DONE);
+  // }
+  //
+
+  // public CompletableFuture<AsyncTaskValue> playbackAsync(PlayBack playback,
+  // String localRepo, Long id) {
+  // Server source = serverDbService.findById(playback.getSourceServerId());
+  // Server target = serverDbService.findById(playback.getTargetServerId());
+  // return CompletableFuture.supplyAsync(() -> {
+  // Session[] sessions = new Session[2];
+  // try {
+  // sessions[0] = sshSessionFactory.getConnectedSession(source).getResult();
+  // sessions[1] = sshSessionFactory.getConnectedSession(target).getResult();
+  // } catch (JSchException e) {
+  // SshSessionFactory.closeSession(sessions[0]);
+  // SshSessionFactory.closeSession(sessions[1]);
+  // throw new ExceptionWrapper(e);
+  // }
+  // return sessions;
+  // }).thenApplyAsync(sessions -> {
+  // try {
+  // FacadeResult<PlayBackResult> fr = playback(sessions[0], sessions[1], source,
+  // target, playback, localRepo);
+  // PlayBackResult bd = fr.getResult();
+  // bd = playBackResultDbService.save(bd);
+  // fr.setResult(bd);
+  // return new AsyncTaskValue(id, fr);
+  // } catch (IOException | RunRemoteCommandException | JSchException e) {
+  // throw new ExceptionWrapper(e);
+  // } finally {
+  // SshSessionFactory.closeSession(sessions[0]);
+  // SshSessionFactory.closeSession(sessions[1]);
+  // }
+  // }).exceptionally(t -> {
+  // Throwable tt = t.getCause();
+  // Throwable ttt = tt;
+  // if (tt instanceof ExceptionWrapper) {
+  // ttt = ((ExceptionWrapper) tt).getException();
+  // }
+  // ExceptionUtil.logErrorException(logger, ttt);
+  //
+  // return new AsyncTaskValue(id, FacadeResult.unexpectedResult(ttt));
+  // });
+  // }
+
+  // public FacadeResult<PlayBackResult> playbackSync(PlayBack playback, String
+  // localRepo) throws IOException, RunRemoteCommandException, JSchException {
+  // Server serverSource = serverDbService.findById(playback.getSourceServerId());
+  // Server serverTarget = serverDbService.findById(playback.getTargetServerId());
+  // Session[] sessions = new Session[2];
+  // try {
+  // sessions[0] =
+  // sshSessionFactory.getConnectedSession(serverSource).getResult();
+  // sessions[1] =
+  // sshSessionFactory.getConnectedSession(serverTarget).getResult();
+  // } catch (JSchException e) {
+  // SshSessionFactory.closeSession(sessions[0]);
+  // SshSessionFactory.closeSession(sessions[1]);
+  // throw new ExceptionWrapper(e);
+  // }
+  // return playback(sessions[0], sessions[1], serverSource, serverTarget,
+  // playback, localRepo);
+  // }
+
+  // public FacadeResult<PlayBackResult> playback(Session sessionSource, Session
+  // sessiontarget, Server serverSource, Server serverTarget, PlayBack playback,
+  // String localRepo) throws IOException, RunRemoteCommandException,
+  // JSchException {
+  // // from server get borgdescription, get repo properties. Create a directory
+  // on playback server. and upload local repo. Then invoke borg command on that
+  // server, listing extracting.
+  // if (serverSource.getBorgDescription() == null) {
+  // serverSource = serverDbService.loadFull(serverSource);
+  // }
+  // BorgDescription bd = serverSource.getBorgDescription();
+  // String serverRepo = bd.getRepo();
+  // SSHcommonUtil.mkdirsp(serverTarget.getOs(), sessiontarget, serverRepo);
+  // Path local =
+  // settingsInDb.getCurrentRepoDir(serverSource).getParent().resolve(localRepo);
+  // SSHcommonUtil.copyFolder(serverTarget.getOs(), sessiontarget, local,
+  // serverRepo);
+  // return null;
+  // }
+  //
+  // public SSHPowershellInvokeResult invokeRoboCopyCommand(Session session,
+  // String cmd) throws JSchException, IOException {
+  // String command = cmd + ";$LASTEXITCODE";
+  // return new SSHPowershellInvokeResult(SSHcommonUtil.runRemoteCommand(session,
+  // "GBK", "GBK", command));
+  // }
+
+  /**
+   * The source is getRobocopyDst(), The dst is the name of the source. But .rar
+   * or .zip?
+   * 
+   * @param session
+   * @param server
+   * @param robocopyDescription
+   * @return
+   * @throws JSchException
+   * @throws IOException
+   */
+  // public SSHPowershellInvokeResult compressArchive(Session session, Server
+  // server, RobocopyDescription robocopyDescription) throws JSchException,
+  // IOException {
+  //// & 'C:/Program Files/WinRAR/Rar.exe' a
+  // C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/workingspace/compressed
+  // C:/Users/ADMINI~1/AppData/Local/Temp/junit5949670059685808788/robocopydst;$LASTEXITCODE
+  // String cmd = robocopyDescription.getCompressCommandInstance();
+  // return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session,
+  // "GBK", null, cmd));
+  // }
+
+  // public SSHPowershellInvokeResult expandArchive(Session session, Server
+  // server, RobocopyDescription robocopyDescription, String archive, String
+  // expandDst) throws JSchException, IOException {
+  // archive = archive.replace('\\', '/');
+  // expandDst = expandDst.replace('\\', '/');
+  // if (!expandDst.endsWith("/")) {
+  // expandDst += "/";
+  // }
+  // // expandDst must have directory trail. / or \.
+  // String cmd = String.format(robocopyDescription.getExpandCommand(), archive,
+  // expandDst);
+  // if (!cmd.startsWith("&")) {
+  // cmd = "& " + cmd;
+  // }
+  // cmd = cmd + ";$LASTEXITCODE";
+  // return SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session,
+  // "GBK", null, cmd));
+  //
+  //// & 'C:/Program Files/WinRAR/Rar.exe' x -o+
+  // C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar
+  // C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
+  // }
+
+  // public void expandLocalArchive(Server server, RobocopyDescription
+  // robocopyDescription, Path whichRepo) throws JSchException, IOException {
+  // String archive =
+  // whichRepo.resolve(robocopyDescription.getArchiveName()).toAbsolutePath().toString();
+  // archive = archive.replace('\\', '/');
+  // String expandDst =
+  // settingsInDb.getRepoTmp(server).toAbsolutePath().toString();
+  // expandDst = expandDst.replace('\\', '/');
+  // if (!expandDst.endsWith("/")) {
+  // expandDst += "/";
+  // }
+  // // expandDst must have directory trail. / or \.
+  // String cmd =
+  // String.format(settingsInDb.getString("applicaion.expand-command",
+  // RobocopyDescription.DEFAULT_EXPAND_COMMAND), archive, expandDst);
+  // if (!cmd.startsWith("&")) {
+  // cmd = "& " + cmd;
+  // }
+  // cmd = cmd + ";$LASTEXITCODE";
+  // ProcessExecResult per = PSUtil.runPsCommand(cmd);
+  // System.out.println(per.getStdOut());
+  //// & 'C:/Program Files/WinRAR/Rar.exe' x -o+
+  // C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\compressed\robocopydst.rar
+  // C:\Users\ADMINI~1\AppData\Local\Temp\junit6021286854869517036\workingspace\expanded
+  // }
+
+  /**
+   * The line number of script equals to items number.
+   * 
+   * @param session
+   * @param server
+   * @param robocopyDescription
+   * @param items
+   * @return
+   */
+  // public List<String> getBackupScripts(Session session, Server server,
+  // RobocopyDescription robocopyDescription, List<RobocopyItem> items) {
+  // robocopyDescription.modifiItems(items);
+  // List<String> results = Lists.newArrayList();
+  //
+  // for(RobocopyItem item : items) {
+  // StringBuffer sb = new StringBuffer("Robocopy.exe");
+  // sb.append(' ').append(item.getSourceSlash())
+  // .append(' ').append(item.getDstCalced())
+  // .append(' ').append(item.getFileParametersNullSafe());
+  //
+  // if (item.getExcludeFilesNullSafe().size() > 0) {
+  // sb.append(' ').append("/xf
+  // ").append(item.getExcludeFilesNullSafe().stream().collect(joining(" ")));
+  // }
+  //
+  // if (item.getExcludeDirectoriesNullSafe().size() > 0) {
+  // sb.append(' ').append("/xd
+  // ").append(item.getExcludeDirectoriesNullSafe().stream().collect(joining("
+  // ")));
+  // }
+  //
+  // sb.append(" /log+:").append(robocopyDescription.getWorkingSpaceRoboLog());
+  //
+  // /**
+  // * /xf and /xd are special and excluded.
+  // */
+  // if (item.getFileSelectionOptionsNullSafe().size() > 0) {
+  // sb.append('
+  // ').append(item.getFileSelectionOptionsNullSafe().stream().collect(joining("
+  // ")));
+  // }
+  //
+  // if (item.getCopyOptionsNullSafe().size() > 0) {
+  // sb.append('
+  // ').append(item.getCopyOptionsNullSafe().stream().collect(joining(" ")));
+  // }
+  //
+  // if (item.getLoggingOptionsNullSafe().size() > 0) {
+  // sb.append('
+  // ').append(item.getLoggingOptionsNullSafe().stream().collect(joining(" ")));
+  // }
+  //// sb.append(' ').append("|ForEach-Object {$_.trim()} |Where-Object {$_
+  // -notmatch '.*\\\\$'} | Where-Object {($_ -split '\\s+').length -gt 2}\",
+  // src.toAbsolutePath().toString(), dst.toAbsolutePath().toString())");
+  //// RemoteCommandResult rcr = SSHcommonUtil.runRemoteCommand(session,
+  // sb.toString());
+  // results.add(sb.toString());
+  // }
+  // return results;
+  // }
+
+  /**
+   * repo stores robocopied folders. workingspace has two subdirectories,
+   * compressed for ziped file, expanded for extracted files.
+   * 
+   * @param session
+   * @param server
+   * @param robocopyDescription
+   * @param items
+   * @return
+   * @throws CommandNotFoundException
+   * @throws JSchException
+   * @throws IOException
+   */
+  // @Exclusive(TaskLocks.TASK_FILEBACKUP)
+  // public FacadeResult<List<SSHPowershellInvokeResult>>
+  // executeRobocopies(Session session, Server server, RobocopyDescription
+  // robocopyDescription, List<RobocopyItem> items) throws
+  // CommandNotFoundException, JSchException, IOException {
+  // List<String> individualCommands = getBackupScripts(session, server,
+  // robocopyDescription, items);
+  // List<SSHPowershellInvokeResult> results = Lists.newArrayList();
+  // for(String command: individualCommands) {
+  // results.add(invokeRoboCopyCommand(session, command));
+  // }
+  // return FacadeResult.doneExpectedResultDone(results);
+  // }
+  //
+  //
+  // public SSHPowershellInvokeResult increamentalBackup(Session session, Server
+  // server, RobocopyDescription robocopyDescription, List<RobocopyItem> items)
+  // throws CommandNotFoundException, JSchException, IOException,
+  // UnExpectedInputException, UnExpectedOutputException {
+  // if (items == null || items.isEmpty()) {
+  // throw new UnExpectedInputException("1000", "validator.emptyornull", "No
+  // Source directories assigned.");
+  // }
+  // robocopyDescription.modifiItems(items);
+  // String cmd = robocopyDescription.getWorkingSpaceScriptFile() + " -action
+  // increamental";
+  // SSHPowershellInvokeResult sshir =
+  // SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session, "GBK",
+  // null, cmd));
+  // if (sshir.isCommandNotFound()) {
+  // copyScriptToServer(session, server, robocopyDescription, items);
+  // sshir = SSHPowershellInvokeResult.of(SSHcommonUtil.runRemoteCommand(session,
+  // "GBK", null, cmd));
+  // }
+  // if (sshir.exitCode() > 8) {
+  // throw new UnExpectedOutputException("1000", "",
+  // sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")),
+  // sshir.getRcr().getCommand());
+  // }
+  // return sshir;
+  // }
+  //
+  // public Path incrementalBackupAndDownload(Session session, Server server,
+  // RobocopyDescription robocopyDescription, List<RobocopyItem> items) throws
+  // UnExpectedInputException, CommandNotFoundException, JSchException,
+  // IOException, UnExpectedOutputException, RunRemoteCommandException,
+  // NoSuchAlgorithmException, ScpException {
+  // SSHPowershellInvokeResult sshir = increamentalBackup(session, server,
+  // robocopyDescription, items);
+  // if (sshir.exitCode() != -1) {
+  // FacadeResult<Path> fp = downloadIncreamentalArchive(session, server,
+  // robocopyDescription, items);
+  // return fp.getResult();
+  // }
+  // return null;
+  // }
+  //
+  // private String serializeToJson(RobocopyDescription robocopyDescription)
+  // throws JsonProcessingException {
+  // ObjectNode jn = objectMapper.valueToTree(robocopyDescription);
+  // String cc = robocopyDescription.getCompressCommand();
+  // jn.set("compressExe", new TextNode(StringUtil.extractExecutable(cc)));
+  // String s = objectMapper.writeValueAsString(jn);
+  // return s;
+  // }
+  //
+  // public Path fullBackup(Session session, Server server, RobocopyDescription
+  // robocopyDescription, List<RobocopyItem> items) throws
+  // CommandNotFoundException, JSchException, IOException,
+  // NoSuchAlgorithmException, UnExpectedOutputException,
+  // RunRemoteCommandException, ScpException, UnExpectedInputException {
+  // if (items == null || items.isEmpty()) {
+  // throw new UnExpectedInputException("1000", "validator.emptyornull", "No
+  // Source directories assigned.");
+  // }
+  // copyScriptToServer(session, server, robocopyDescription, items);
+  // FacadeResult<List<SSHPowershellInvokeResult>> fr = executeRobocopies(session,
+  // server, robocopyDescription, items);
+  //
+  // for(SSHPowershellInvokeResult sshir : fr.getResult()) {
+  // if (sshir.hasError()) {
+  // throw new UnExpectedOutputException("", "",
+  // sshir.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+  // }
+  // }
+  // SSHPowershellInvokeResult rcr = compressArchive(session, server,
+  // robocopyDescription);
+  // if (rcr.exitCode() != 0) {
+  // throw new UnExpectedOutputException("1000", "powershell.robocopy.compress",
+  // rcr.getRcr().getAllTrimedNotEmptyLines().stream().collect(joining("\n")));
+  // }
+  // return downloadCompressed(session, server, robocopyDescription).getResult();
+  // }
+  //
 //	//@formatter:off
 //	public CompletableFuture<AsyncTaskValue> fullBackupAsync(Server server, RobocopyDescription robocopyDescription, List<RobocopyItem> items, String taskDescription, Long id) {
 //		return CompletableFuture.supplyAsync(() -> {

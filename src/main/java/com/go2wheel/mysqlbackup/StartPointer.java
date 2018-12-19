@@ -45,92 +45,89 @@ import com.go2wheel.mysqlbackup.util.UpgradeUtil;
 // StandardAPIAutoConfiguration
 
 @SpringBootApplication(exclude = {})
-//@SpringBootApplication(exclude = { SpringShellAutoConfiguration.class,
-//		JLineShellAutoConfiguration.class,
-//		StandardAPIAutoConfiguration.class})
+// @SpringBootApplication(exclude = { SpringShellAutoConfiguration.class,
+// JLineShellAutoConfiguration.class,
+// StandardAPIAutoConfiguration.class})
 @EnableAspectJAutoProxy
 @EnableAsync
 public class StartPointer {
 
-	private static Logger logger = LoggerFactory.getLogger(StartPointer.class);
+  private static Logger logger = LoggerFactory.getLogger(StartPointer.class);
 
-	// This line of code will cause flyway initializing earlier.
-	@SuppressWarnings("unused")
-	@Autowired
-	private FlywayMigrationInitializer flywayInitializer;
+  // This line of code will cause flyway initializing earlier.
+  @SuppressWarnings("unused")
+  @Autowired
+  private FlywayMigrationInitializer flywayInitializer;
 
-	@SuppressWarnings("unused")
-	public static void main(String[] args) throws Exception {
-		logger.info("---start args----");
-		for (String a : args) {
-			logger.info(a);
-		}
-		logger.info("---start args----");
-		UpgradeUtil.doUpgrade(Paths.get(""), args);
-		String[] disabledCommands = { "--spring.shell.command.quit.enabled=false" };
-		// String[] disabledCommands =
-		// {"--spring.shell.command.stacktrace.enabled=false"};
-		String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
-
-		// ConfigurableApplicationContext context =
-		// SpringApplication.run(StartPointer.class, fullArgs);
-		ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class)
-				.listeners(new ApplicationPidFileWriter("./bin/app.pid"), new ApplicationListener<ApplicationReadyEvent>() {
-					@Override
-					public void onApplicationEvent(ApplicationReadyEvent event) {
-				    	Path upgrade = Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE);
-				    	if (Files.exists(upgrade)) {
-				    		try {
-								Files.delete(upgrade);
-								System.exit(BackupCommand.RESTART_CODE);
-							} catch (IOException e) {
-								ExceptionUtil.logErrorException(logger, e);
-							}
-				    	}
-					}
-				}).logStartupInfo(false).run(fullArgs);
-	}
-	
-
-
-	@Bean
-	@ConfigurationProperties(prefix = "spring.messages")
-	public MessageSourceProperties messageSourceProperties() {
-		return new MessageSourceProperties();
-	}
-	
-	@Bean
-	public JdbcTemplate jdbcTemplate(DataSource ds) {
-		return new JdbcTemplate(ds);
-	}
-	
-    @Bean()
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder build) {
-    	build.featuresToDisable(SerializationFeature.INDENT_OUTPUT);
-    	ObjectMapper mapper = build.build();
-    	return mapper;
+  @SuppressWarnings("unused")
+  public static void main(String[] args) throws Exception {
+    logger.info("---start args----");
+    for (String a : args) {
+      logger.info(a);
     }
-    
+    logger.info("---start args----");
+    UpgradeUtil.doUpgrade(Paths.get(""), args);
+    String[] disabledCommands = { "--spring.shell.command.quit.enabled=false" };
+    // String[] disabledCommands =
+    // {"--spring.shell.command.stacktrace.enabled=false"};
+    String[] fullArgs = StringUtils.concatenateStringArrays(args, disabledCommands);
 
-	@Bean
-	public MessageSource messageSource() {
-		MessageSourceProperties properties = messageSourceProperties();
-		ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
-		String bn = properties.getBasename();
-		if (StringUtils.hasText(bn)) {
-			messageSource.setBasenames(StringUtils
-					.commaDelimitedListToStringArray(StringUtils.trimAllWhitespace(properties.getBasename())));
-		}
-		if (properties.getEncoding() != null) {
-			messageSource.setDefaultEncoding(properties.getEncoding().name());
-		}
-		messageSource.setFallbackToSystemLocale(properties.isFallbackToSystemLocale());
-		Duration cacheDuration = properties.getCacheDuration();
-		if (cacheDuration != null) {
-			messageSource.setCacheMillis(cacheDuration.toMillis());
-		}
-		messageSource.setAlwaysUseMessageFormat(properties.isAlwaysUseMessageFormat());
-		messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
-		return messageSource;
-	}
+    // ConfigurableApplicationContext context =
+    // SpringApplication.run(StartPointer.class, fullArgs);
+    ConfigurableApplicationContext context = new SpringApplicationBuilder(StartPointer.class)
+        .listeners(new ApplicationPidFileWriter("./bin/app.pid"), new ApplicationListener<ApplicationReadyEvent>() {
+          @Override
+          public void onApplicationEvent(ApplicationReadyEvent event) {
+            Path upgrade = Paths.get(UpgradeUtil.UPGRADE_FLAG_FILE);
+            if (Files.exists(upgrade)) {
+              try {
+                Files.delete(upgrade);
+                System.exit(BackupCommand.RESTART_CODE);
+              } catch (IOException e) {
+                ExceptionUtil.logErrorException(logger, e);
+              }
+            }
+          }
+        }).logStartupInfo(false).run(fullArgs);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "spring.messages")
+  public MessageSourceProperties messageSourceProperties() {
+    return new MessageSourceProperties();
+  }
+
+  @Bean
+  public JdbcTemplate jdbcTemplate(DataSource ds) {
+    return new JdbcTemplate(ds);
+  }
+
+  @Bean()
+  public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder build) {
+    build.featuresToDisable(SerializationFeature.INDENT_OUTPUT);
+    ObjectMapper mapper = build.build();
+    return mapper;
+  }
+
+  @Bean
+  public MessageSource messageSource() {
+    MessageSourceProperties properties = messageSourceProperties();
+    ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+    String bn = properties.getBasename();
+    if (StringUtils.hasText(bn)) {
+      messageSource.setBasenames(
+          StringUtils.commaDelimitedListToStringArray(StringUtils.trimAllWhitespace(properties.getBasename())));
+    }
+    if (properties.getEncoding() != null) {
+      messageSource.setDefaultEncoding(properties.getEncoding().name());
+    }
+    messageSource.setFallbackToSystemLocale(properties.isFallbackToSystemLocale());
+    Duration cacheDuration = properties.getCacheDuration();
+    if (cacheDuration != null) {
+      messageSource.setCacheMillis(cacheDuration.toMillis());
+    }
+    messageSource.setAlwaysUseMessageFormat(properties.isAlwaysUseMessageFormat());
+    messageSource.setUseCodeAsDefaultMessage(properties.isUseCodeAsDefaultMessage());
+    return messageSource;
+  }
 }

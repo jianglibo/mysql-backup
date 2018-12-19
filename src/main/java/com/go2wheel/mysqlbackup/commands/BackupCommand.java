@@ -1,22 +1,7 @@
 package com.go2wheel.mysqlbackup.commands;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import javax.mail.MessagingException;
-import javax.validation.constraints.Email;
-
 import com.go2wheel.mysqlbackup.AppEventListenerBean;
+import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.SecurityService;
 import com.go2wheel.mysqlbackup.SettingsInDb;
@@ -44,7 +29,6 @@ import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.model.PlayBack;
 import com.go2wheel.mysqlbackup.model.ReusableCron;
-import com.go2wheel.mysqlbackup.model.UserGrp;
 import com.go2wheel.mysqlbackup.service.ConfigFileLoader;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
@@ -60,8 +44,25 @@ import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.Subscribe;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import javax.mail.MessagingException;
+import javax.validation.constraints.Email;
+
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
+import org.quartz.SchedulerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -76,593 +77,395 @@ import org.springframework.shell.standard.ShellOption;
 @ShellComponent()
 public class BackupCommand {
 
-	public static final String DESCRIPTION_FILENAME = "description.yml";
+  public static final String DESCRIPTION_FILENAME = "description.yml";
 
-	public static final String DANGEROUS_ALERT = "I know what i am doing.";
+  public static final String DANGEROUS_ALERT = "I know what i am doing.";
 
-	public static final int RESTART_CODE = 101;
+  public static final int RESTART_CODE = 101;
 
-	@Autowired
-	private SecurityService securityService;
+  @Autowired
+  private SecurityService securityService;
 
-	@Autowired
-	private GlobalStore globalStore;
+  @Autowired
+  private GlobalStore globalStore;
 
-	@Autowired
-	private MyAppSettings myAppSettings;
+  @Autowired
+  private MyAppSettings myAppSettings;
 
-	@Autowired
-	private SqlService sqlService;
+  @Autowired
+  private SqlService sqlService;
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
-	@Autowired
-	private SettingsInDb settingsInDb;
+  @Autowired
+  private SettingsInDb settingsInDb;
 
-	@Autowired
-	private Environment environment;
+  @Autowired
+  private Environment environment;
 
-	@Autowired
-	private MailerJob mailerJob;
+  @Autowired
+  private MailerJob mailerJob;
 
-	@Autowired
-	private TemplateContextService templateContextService;
+  @Autowired
+  private TemplateContextService templateContextService;
 
-	@Autowired
-	@Lazy
-	private SchedulerService schedulerService;
+  @Autowired
+  @Lazy
+  private SchedulerService schedulerService;
 
-	@Autowired
-	private ReusableCronDbService reusableCronDbService;
+  @Autowired
+  private ReusableCronDbService reusableCronDbService;
 
-	@Autowired
-	private AppEventListenerBean appEventListenerBean;
-	
-	@Autowired
-	private UserGroupLoader userGroupLoader;
+  @Autowired
+  private AppEventListenerBean appEventListenerBean;
 
-	@Autowired
-	private ConfigFileLoader configFileLoader;
-	
+  @Autowired
+  private UserGroupLoader userGroupLoader;
 
-//	@ShellMethod(value = "List all managed servers.")
-//	public FacadeResult<?> serverList() throws IOException {
-//		return FacadeResult.doneExpectedResultDone(serverDbService.findAll());
-//	}
+  @Autowired
+  private LocaledMessageService localedMessageService;
 
-//	@ShellMethod(value = "Pickup a server to work on.")
-//	public FacadeResult<?> serverSelect(@ShellOption(help = "服务器主机名或者IP") Server server) throws IOException {
-//		appState.setCurrentServer(server);
-//		return null;
-//	}
+  @Autowired
+  private ConfigFileLoader configFileLoader;
 
-//	@ShellMethod(value = "删除一个服务器.")
-//	public FacadeResult<?> serverDelete(
-//			@ShellOption(help = "服务器主机名或者IP") Server server,
-//			@ShellOption(defaultValue = "") String iknow) throws IOException {
-//		if (!DANGEROUS_ALERT.equals(iknow)) {
-//			return FacadeResult.unexpectedResult("mysql.dump.again.wrongprompt");
-//		}
-//		if (server == null) {
-//			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, "");
-//		}
-//		serverDbService.delete(server);
-//		return FacadeResult.doneExpectedResult();
-//	}
+  @ShellMethod(value = "获取CPU的核数")
+  public FacadeResult<?> serverCoreNumber(
+      @ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws RunRemoteCommandException, UnExpectedInputException {
 
-//	@ShellMethod(value = "显示服务器描述")
-//	public FacadeResult<?> serverDetail() throws  IOException, UnExpectedInputException {
-//		sureServerSelected();
-//		return FacadeResult.doneExpectedResult(appState.getCurrentServer(), CommonActionResult.DONE);
-//	}
+    // int i = serverStateService.getCoreNumber(server, sas.getSession());
+    // return FacadeResult.doneExpectedResultDone(i);
+    return null;
+  }
 
-	@ShellMethod(value = "显示服务器健康度")
-	public FacadeResult<?> serverHealthyState(
-			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server
-			) throws  IOException, RunRemoteCommandException, UnExpectedInputException, UnExpectedOutputException {
-		
-//		ServerState ss = serverStateService.createServerState(sas.getServer(), sas.getSession());
-//		return FacadeResult.doneExpectedResultDone(ss);
-		return null;
-	}
-	
-	@ShellMethod(value = "显示服务器存储状态")
-	public FacadeResult<?> serverStorageState(
-			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws  IOException, RunRemoteCommandException, UnExpectedInputException {
-//		List<StorageState> ssl = storageStateService.getStorageState(sas.getServer(), sas.getSession());
-//		return FacadeResult.doneExpectedResultDone(ssl);
-		return null;
-	}
+  @ShellMethod(value = "将数据库在目标服务器上重建。")
+  public FacadeResult<?> serverAddDbPair(@SetServerOnly @ShellOption(help = "模拟的SET类型的服务器") Server server) throws IOException {
+    return FacadeResult.doneExpectedResultDone(server);
+  }
 
-//	@ShellMethod(value = "整理数据库中的关于存储状态的记录")
-//	public FacadeResult<?> serverStorageStatePrune(
-//			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
-//			@ShellOption(help = "保留指定天数内的记录", defaultValue="180") int keepDays,
-//			@ShellOption(help = "针对所有服务器。") boolean allServer) throws  IOException, RunRemoteCommandException, UnExpectedInputException {
-//		int deleted;
-//		
-//		if (allServer) {
-//			deleted = storageStateService.pruneStorageState(null, keepDays);
-//		} else {
-//			deleted = storageStateService.pruneStorageState(sas.getServer(), keepDays);
-//		}
-//		
-//		return FacadeResult.showMessageExpected(CommonMessageKeys.DB_RECORD_DELETED, deleted);
-//	}
+  @ShellMethod(value = "将文件目录在目标服务器上重建。")
+  public FacadeResult<?> serverAddDirPair(@SetServerOnly @ShellOption(help = "模拟的SET类型的服务器") Server server,
+      @ShellOption(help = "模拟路径") Server dir) throws IOException {
+    return FacadeResult.doneExpectedResultDone(server);
+  }
 
-	@ShellMethod(value = "获取CPU的核数")
-	public FacadeResult<?> serverCoreNumber(
-			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws  IOException, RunRemoteCommandException, UnExpectedInputException {
-		
-//		int i = serverStateService.getCoreNumber(server, sas.getSession());
-//		return FacadeResult.doneExpectedResultDone(i);
-		return null;
-	}
+  @ShellMethod(value = "显示配置相关信息。")
+  public List<String> systemInfo(@ShellOption(help = "环境变量名", defaultValue = "") String envname) throws IOException {
+    if (StringUtil.hasAnyNonBlankWord(envname)) {
+      return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
+    }
+    return Arrays.asList(formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
+        formatKeyVal("working directory", Paths.get("").toAbsolutePath().normalize().toString()),
+        formatKeyVal("download directory", settingsInDb.getDownloadPath().normalize().toAbsolutePath().toString()),
+        formatKeyVal("log file", environment.getProperty("logging.file")),
+        formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
+        formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),
+        formatKeyVal("myapp.psapp", myAppSettings.getPsappPath().toAbsolutePath().toString()),
+        formatKeyVal("myapp.psdataDir", myAppSettings.getPsdataDirPath().toAbsolutePath().toString()),
+        formatKeyVal("myapp.chromeexec", myAppSettings.getChromeexec()),
+        formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
+  }
 
+  @ShellMethod(value = "Exit the shell.", key = { "quit", "exit" })
+  public void quit(@ShellOption(help = "退出值", defaultValue = "0") int exitValue,
+      @ShellOption(help = "重启") boolean restart) {
+    if (restart) {
+      System.exit(101);
+    }
+    System.exit(exitValue);
+  }
 
-//	@ShellMethod(value = "和修改服务器描述")
-//	public FacadeResult<?> serverUpdate(
-//			@ShowPossibleValue({"host", "name" ,"port", "username", "password" ,"sshKeyFile", "serverRole", "uptimeCron", "diskfreeCron", "os"})
-//			@ShellOption(help = "需要改变的属性") String field,
-//			@ObjectFieldIndicator(objectClass=Server.class)
-//			@ShellOption(help = "新的值", defaultValue=ShellOption.NULL) String value
-//			) throws  IOException, UnExpectedInputException {
-//		sureServerSelected();
-//		Server server = appState.getCurrentServer();
-//		Optional<Field> fo = ObjectUtil.getField(Server.class, field);
-//		Optional<Object> originOp = Optional.empty();
-//		
-//		value = ObjectUtil.getValueWetherIsToListRepresentationOrNot(value, field);
-//		try {
-//			if (fo.isPresent()) {
-//				originOp = Optional.ofNullable(fo.get().get(server));
-//				ObjectUtil.setValue(fo.get(), server, value);
-//				server = serverDbService.save(server);
-//			} else {
-//				return FacadeResult.showMessageUnExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, field);
-//			}
-//		} catch (Exception e) {
-//			if (originOp.isPresent()) {
-//				try {
-//					fo.get().set(server, originOp.get());
-//				} catch (IllegalArgumentException | IllegalAccessException e1) {
-//					e1.printStackTrace();
-//				}
-//			}
-//			return FacadeResult.unexpectedResult(e);
-//		}
-//		return FacadeResult.doneExpectedResultDone(server);
-//	}
+  @ShellMethod(value = "Upgrade system.")
+  public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) throws UnExpectedInputException {
+    Path zp = zipFile.toPath();
+    if (!Files.exists(zp)) {
+      return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, zipFile);
+    }
+    try {
+      UpgradeUtil uu = new UpgradeUtil(zp);
+      boolean writed = uu.writeUpgradeFile();
+      if (!writed) {
+        UpgradeFile uf = uu.getUpgradeFile();
+        if (uf != null) {
+          return FacadeResult.showMessageExpected("command.upgrade.degrade", uf.getNewVersion(),
+              uf.getCurrentVersion());
+        } else {
+          return FacadeResult.showMessageExpected("command.upgrade.degrade", "unknown", "unknown");
+        }
+      }
+    } catch (IOException e) {
+      ExceptionUtil.logErrorException(logger, e);
+      return FacadeResult.unexpectedResult(e, "command.upgrade.failed");
+    }
+    quit(0, true);
+    return null;
+  }
 
-	@ShellMethod(value = "将数据库在目标服务器上重建。")
-	public FacadeResult<?> serverAddDbPair(
-			@SetServerOnly
-			@ShellOption(help = "模拟的SET类型的服务器") Server server) throws IOException {
-		
-		return FacadeResult.doneExpectedResultDone(server);
-	}
-	
-	@ShellMethod(value = "将文件目录在目标服务器上重建。")
-	public FacadeResult<?> serverAddDirPair(
-			@SetServerOnly
-			@ShellOption(help = "模拟的SET类型的服务器") Server server,
-			@ShellOption(help = "模拟路径") Server dir) throws IOException {
-		return FacadeResult.doneExpectedResultDone(server);
-	}
+  private String formatKeyVal(String k, String v) {
+    return String.format("%s: %s", k, v);
+  }
 
-	@ShellMethod(value = "显示配置相关信息。")
-	public List<String> systemInfo(@ShellOption(help = "环境变量名", defaultValue = "") String envname) throws IOException {
-		if (StringUtil.hasAnyNonBlankWord(envname)) {
-			return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
-		}
-		return Arrays.asList(
-				// formatKeyVal("server profile dirctory", settingsInDb.getDataDir().toAbsolutePath().toString()),
-				formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
-				formatKeyVal("working directory", Paths.get("").toAbsolutePath().normalize().toString()),
-				formatKeyVal("download directory",
-						settingsInDb.getDownloadPath().normalize().toAbsolutePath().toString()),
-				formatKeyVal("log file", environment.getProperty("logging.file")),
-				formatKeyVal("spring.config.name", environment.getProperty("spring.config.name")),
-				formatKeyVal("spring.config.location", environment.getProperty("spring.config.location")),
-				formatKeyVal("myapp.psapp", myAppSettings.getPsappPath().toAbsolutePath().toString()),
-				formatKeyVal("myapp.psdataDir", myAppSettings.getPsdataDirPath().toAbsolutePath().toString()),
-				formatKeyVal("myapp.chromeexec", myAppSettings.getChromeexec()),
-				formatKeyVal("Spring active profile", String.join(",", environment.getActiveProfiles())));
-	}
+  @ShellMethod(value = "列出配置文件列表")
+  public FacadeResult<?> listConfigFile() throws IOException {
+    List<String> ls = new ArrayList<>(configFileLoader.listConfigFiles().keySet());
+    return FacadeResult.doneExpectedResultDone(ls);
+  }
 
-	@ShellMethod(value = "Exit the shell.", key = { "quit", "exit" })
-	public void quit(@ShellOption(help = "退出值", defaultValue = "0") int exitValue,
-			@ShellOption(help = "重启") boolean restart) {
-		if (restart) {
-			System.exit(101);
-		}
-		System.exit(exitValue);
-	}
+  @ShellMethod(value = "执行配置文件中的命令")
+  public FacadeResult<?> runConfigFileCommand(@ShellOption(help = "Config file name.") ConfigFile configFile,
+      @ShellOption(help = "cmd key in config file.") String psCmdKey)
+      throws IOException, ExecutionException, NoActionException {
+    ProcessExecResult pe = configFileLoader.runCommand(configFile.getMypath(), psCmdKey);
+    List<String> lines = pe.getStdOut();
+    lines.addAll(pe.getStdError());
+    return FacadeResult.doneExpectedResultDone(lines);
+  }
 
-	@ShellMethod(value = "Upgrade system.")
-	public FacadeResult<?> systemUpgrade(@ShellOption(help = "新版本的zip文件") File zipFile) throws UnExpectedInputException {
-		Path zp = zipFile.toPath();
-		if (!Files.exists(zp)) {
-			return FacadeResult.showMessageExpected(CommonMessageKeys.OBJECT_NOT_EXISTS, zipFile);
-		}
-		try {
-			UpgradeUtil uu = new UpgradeUtil(zp);
-			boolean writed = uu.writeUpgradeFile();
-			if (!writed) {
-				UpgradeFile uf = uu.getUpgradeFile();
-				if (uf != null) {
-					return FacadeResult.showMessageExpected("command.upgrade.degrade", uf.getNewVersion(),
-							uf.getCurrentVersion());
-				} else {
-					return FacadeResult.showMessageExpected("command.upgrade.degrade", "unknown",
-							"unknown");
-				}
-			}
-		} catch (IOException e) {
-			ExceptionUtil.logErrorException(logger, e);
-			return FacadeResult.unexpectedResult(e, "command.upgrade.failed");
-		}
-		quit(0, true);
-		return null;
-	}
+  @ShellMethod(value = "列出后台任务")
+  public FacadeResult<?> asyncList() throws IOException {
+    List<SavedFuture> gobjects = globalStore.getFutureGroupAll(BackupCommand.class.getName());
 
-	private String formatKeyVal(String k, String v) {
-		return String.format("%s: %s", k, v);
-	}
+    List<String> ls = gobjects.stream()
+        .map(sf -> String.format("Task %s, Done: %s", sf.getDescription(), sf.getCf().isDone()))
+        .collect(Collectors.toList());
+    return FacadeResult.doneExpectedResultDone(ls);
 
-	@ShellMethod(value = "列出配置文件列表")
-	public FacadeResult<?> listConfigFile() throws  IOException {
-		List<String> ls =  new ArrayList<>(configFileLoader.listConfigFiles().keySet());
-		return FacadeResult.doneExpectedResultDone(ls);
-	}
+  }
 
-	@ShellMethod(value = "执行配置文件中的命令")
-	public FacadeResult<?> runConfigFileCommand(@ShellOption(help = "Config file name.") ConfigFile configFile, @ShellOption(help = "cmd key in config file.") String psCmdKey) throws  IOException, ExecutionException, NoActionException {
-		ProcessExecResult pe = configFileLoader.runCommand(configFile.getMypath(), psCmdKey);
-		List<String> lines = pe.getStdOut();
-		lines.addAll(pe.getStdError());
-		return FacadeResult.doneExpectedResultDone(lines);
-	}
+  @ShellMethod(value = "添加常用的CRON表达式")
+  public FacadeResult<?> cronExpressionAdd(@ShellOption(help = "cron表达式") String expression,
+      @ShellOption(help = "描述", defaultValue = "") String description) {
+    ReusableCron rc = new ReusableCron(expression, description);
+    try {
+      rc = reusableCronDbService.save(rc);
+      return FacadeResult.doneExpectedResult(rc, CommonActionResult.DONE);
+    } catch (Exception e) {
+      return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, rc.getExpression());
+    }
+  }
 
+  @ShellMethod(value = "构建CRON表达式")
+  public String cronExpressionBuild(
+      @ShellOption(help = "支持的格式示例：1 或者 1,8,10 或者 5-25 或者 5/15(从5开始以15递增。)", defaultValue = "0") String second,
+      @ShellOption(help = "格式同second参数，范围0-59", defaultValue = "0") String minute,
+      @ShellOption(help = "格式同second参数，范围0-23", defaultValue = "0") String hour,
+      @ShellOption(help = "格式同second参数，范围1-31", defaultValue = "?") String dayOfMonth,
+      @ShellOption(help = "格式同second参数，范围1-12", defaultValue = "*") String month,
+      @ShellOption(help = "格式同second参数，范围1-7，其中1是周六。", defaultValue = "*") String dayOfWeek,
+      @ShellOption(help = "空白或者1970-2099", defaultValue = "") String year) {
 
-	@ShellMethod(value = "列出后台任务")
-	public FacadeResult<?> asyncList() throws  IOException {
-		List<SavedFuture> gobjects = globalStore.getFutureGroupAll(BackupCommand.class.getName());
-		
-		List<String> ls =  gobjects.stream()
-				.map(sf -> String.format("Task %s, Done: %s",sf.getDescription(), sf.getCf().isDone()))
-				.collect(Collectors.toList());
-		return FacadeResult.doneExpectedResultDone(ls);
-		
-	}
-	
-	@ShellMethod(value = "添加常用的CRON表达式")
-	public FacadeResult<?> cronExpressionAdd(@ShellOption(help = "cron表达式") String expression,
-			@ShellOption(help = "描述", defaultValue = "") String description) {
-		ReusableCron rc = new ReusableCron(expression, description);
-		try {
-			rc = reusableCronDbService.save(rc);
-			return FacadeResult.doneExpectedResult(rc, CommonActionResult.DONE);
-		} catch (Exception e) {
-			return FacadeResult.showMessageUnExpected(CommonMessageKeys.MALFORMED_VALUE, rc.getExpression());
-		}
-	}
+    CronExpressionBuilder ceb = new CronExpressionBuilder();
+    try {
 
-	@ShellMethod(value = "构建CRON表达式")
-	public String cronExpressionBuild(
-			@ShellOption(help = "支持的格式示例：1 或者 1,8,10 或者 5-25 或者 5/15(从5开始以15递增。)", defaultValue = "0") String second,
-			@ShellOption(help = "格式同second参数，范围0-59", defaultValue = "0") String minute,
-			@ShellOption(help = "格式同second参数，范围0-23", defaultValue = "0") String hour,
-			@ShellOption(help = "格式同second参数，范围1-31", defaultValue = "?") String dayOfMonth,
-			@ShellOption(help = "格式同second参数，范围1-12", defaultValue = "*") String month,
-			@ShellOption(help = "格式同second参数，范围1-7，其中1是周六。", defaultValue = "*") String dayOfWeek,
-			@ShellOption(help = "空白或者1970-2099", defaultValue = "") String year) {
+      CronExpressionBuilder.validCronField(CronExpressionField.SECOND, second);
+      ceb.second(second);
 
-		CronExpressionBuilder ceb = new CronExpressionBuilder();
-		try {
+      CronExpressionBuilder.validCronField(CronExpressionField.MINUTE, minute);
+      ceb.minute(minute);
 
-			CronExpressionBuilder.validCronField(CronExpressionField.SECOND, second);
-			ceb.second(second);
+      CronExpressionBuilder.validCronField(CronExpressionField.HOUR, hour);
+      ceb.hour(hour);
 
-			CronExpressionBuilder.validCronField(CronExpressionField.MINUTE, minute);
-			ceb.minute(minute);
+      CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_MONTH, dayOfMonth);
+      ceb.dayOfMonth(dayOfMonth);
 
-			CronExpressionBuilder.validCronField(CronExpressionField.HOUR, hour);
-			ceb.hour(hour);
+      CronExpressionBuilder.validCronField(CronExpressionField.MONTH, month);
+      ceb.month(month);
 
-			CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_MONTH, dayOfMonth);
-			ceb.dayOfMonth(dayOfMonth);
+      CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_WEEK, dayOfWeek);
+      ceb.dayOfWeek(dayOfWeek);
+      CronExpressionBuilder.validCronField(CronExpressionField.YEAR, year);
+      ceb.year(year);
 
-			CronExpressionBuilder.validCronField(CronExpressionField.MONTH, month);
-			ceb.month(month);
+      return ceb.build();
+    } catch (InvalidCronExpressionFieldException e) {
+      return e.getMessage();
+    }
+  }
 
-			CronExpressionBuilder.validCronField(CronExpressionField.DAY_OF_WEEK, dayOfWeek);
-			ceb.dayOfWeek(dayOfWeek);
-			CronExpressionBuilder.validCronField(CronExpressionField.YEAR, year);
-			ceb.year(year);
+  @ShellMethod(value = "列出常用的CRON表达式")
+  public FacadeResult<?> cronExpressionList() {
+    return FacadeResult.doneExpectedResult(reusableCronDbService.findAll(), CommonActionResult.DONE);
+  }
 
-			return ceb.build();
-		} catch (InvalidCronExpressionFieldException e) {
-			return e.getMessage();
-		}
-	}
+  @ShellMethod(value = "用户列表。")
+  public FacadeResult<?> listUsers() {
+    return FacadeResult.doneExpectedResult(userGroupLoader.getAllUsers(), CommonActionResult.DONE);
+  }
 
-	@ShellMethod(value = "列出常用的CRON表达式")
-	public FacadeResult<?> cronExpressionList() {
-		return FacadeResult.doneExpectedResult(reusableCronDbService.findAll(), CommonActionResult.DONE);
-	}
+  @ShellMethod(value = "服务器组列表。")
+  public FacadeResult<?> listServerGroups() {
+    return FacadeResult.doneExpectedResult(userGroupLoader.getAllGroups(), CommonActionResult.DONE);
+  }
 
-	@ShellMethod(value = "用户列表。")
-	public FacadeResult<?> listUsers() {
-		return FacadeResult.doneExpectedResult(userGroupLoader.getAllUsers(), CommonActionResult.DONE);
-	}
+  @ShellMethod(value = "列出用户和服务器组的关系。")
+  public FacadeResult<?> listSubscribes() {
+    List<Subscribe> vos = userGroupLoader.getAllSubscribes();
+    return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
+  }
 
-	@ShellMethod(value = "服务器组列表。")
-	public FacadeResult<?> listServerGroups() {
-		return FacadeResult.doneExpectedResult(userGroupLoader.getAllGroups(), CommonActionResult.DONE);
-	}
+  @ShellMethod(value = "加载测试数据。")
+  public FacadeResult<?> loadData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
+    appEventListenerBean.loadData(null, schedule, true);
+    return FacadeResult.doneExpectedResult();
+  }
 
+  @ShellMethod(value = "支持的语言")
+  public List<String> languageList() {
+    List<String> las = new ArrayList<>();
+    las.add(Locale.TRADITIONAL_CHINESE.getLanguage());
+    las.add(Locale.ENGLISH.getLanguage());
+    las.add(Locale.JAPANESE.getLanguage());
+    return las;
+  }
 
-	@ShellMethod(value = "列出用户和服务器组的关系。")
-	public FacadeResult<?> listSubscribes() {
-		List<Subscribe> vos = userGroupLoader.getAllSubscribes();
-		return FacadeResult.doneExpectedResult(vos, CommonActionResult.DONE);
-	}
-	
-	@ShellMethod(value = "加载测试数据。")
-	public FacadeResult<?> loadData(@ShellOption(help = "加入计划任务") boolean schedule) throws Exception {
-		appEventListenerBean.loadData(null, schedule, true);
-		return FacadeResult.doneExpectedResult();
-	}
+  @ShellMethod(value = "支持的语言")
+  public String languageSet(String language) {
+    if (!languageList().contains(language)) {
+      return String.format("Supported languages are: %s", String.join(", ", languageList()));
+    }
+    Locale l = Locale.forLanguageTag(language);
+    appEventListenerBean.setLocal(l);
+    return "switch to language: " + language;
+  }
 
+  @ShellMethod(value = "列出当前主机的计划任务")
+  public FacadeResult<?> listSchedulerJob(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException {
+    return FacadeResult.doneExpectedResultDone(
+        schedulerService.getAllJobKeys().stream().map(StringUtil::formatJobkey).collect(Collectors.toList()));
+  }
 
-	@ShellMethod(value = "支持的语言")
-	public List<String> languageList() {
-		List<String> las = new ArrayList<>();
-		las.add(Locale.TRADITIONAL_CHINESE.getLanguage());
-		las.add(Locale.ENGLISH.getLanguage());
-		las.add(Locale.JAPANESE.getLanguage());
-		return las;
-	}
+  @ShellMethod(value = "查看最后一个命令的详细执行结果")
+  public String facadeResultLast() {
+    FacadeResult<?> fr = appEventListenerBean.getFacadeResult();
+    if (fr == null) {
+      return "";
+    } else {
+      if (fr.getException() != null) {
+        return ExceptionUtil.stackTraceToString(fr.getException());
+      } else if (fr.getResult() != null) {
+        return fr.getResult().toString();
+      } else if (fr.getMessage() != null && !fr.getMessage().isEmpty()) {
+        return localedMessageService.getMessage(fr.getMessage());
+      } else {
+        return "";
+      }
+    }
+  }
 
-	@ShellMethod(value = "支持的语言")
-	public String languageSet(String language) {
-		if (!languageList().contains(language)) {
-			return String.format("Supported languages are: %s", String.join(", ", languageList()));
-		}
-		Locale l = Locale.forLanguageTag(language);
-		appEventListenerBean.setLocal(l);
-		return "switch to language: " + language;
-	}
+  @ShellMethod(value = "执行SQL SELECT.")
+  public FacadeResult<?> sqlSelect(@DbTableName @ShellOption(help = "数据表名称") String tableName,
+      @ShellOption(help = "返回的记录数", defaultValue="1   0 ") int limit) {
+    return FacadeResult.doneExpectedResultDone(sqlService.select(tableName, limit));
+  }
 
-//	@ShellMethod(value = "列出当前主机的计划任务")
-//	public FacadeResult<?> schedulerJobList(@ShellOption(help = "列出全部而不单单是当前主机。") boolean all) throws SchedulerException, UnExpectedInputException {
-//		Server server = appState.getCurrentServer();
-//		if (all) {
-//			return FacadeResult.doneExpectedResultDone(schedulerService.getAllJobKeys().stream().map(StringUtil::formatJobkey).collect(Collectors.toList()));
-//		} else {
-//			return FacadeResult.doneExpectedResultDone(schedulerService.getJobkeysOfServer(server).stream().map(StringUtil::formatJobkey).collect(Collectors.toList()));
-//		}
-//	}
-	
-//	
-//	@ShellMethod(value = "删除JOB")
-//	public FacadeResult<?> schedulerJobDelete(@ShellOption(help = "job key。") JobKey jobKey) throws SchedulerException, UnExpectedInputException {
-//		sureServerSelected();
-//		schedulerService.getDeleteJob(jobKey);
-//		return FacadeResult.doneExpectedResult();
-//	}
-//	
-//	@ShellMethod(value = "重新设置出发器")
-//	public void schedulerRescheduleJob(String triggerKey, String cronExpression)
-//			throws SchedulerException, ParseException, UnExpectedInputException {
-//		sureServerSelected();
-//		schedulerService.schedulerRescheduleJob(triggerKey, cronExpression);
-//	}
+  @ShellMethod(value = "执行SQL DELETE.")
+  public FacadeResult<?> sqlDelete(@DbTableName @ShellOption(help = "数据表名称") String tableName,
+      @ShellOption(help = "记录的ID") int id) {
+    return FacadeResult.doneExpectedResultDone(sqlService.delete(tableName, id));
+  }
 
+  @ShellMethod(value = "获取HSQLDB的CRYPT_KEY")
+  public FacadeResult<?> securityKeygen(@ShellOption(help = "编码方式", defaultValue="   A ES") String enc) throws ClassNotFoundException, SQLException {
+    return securityService.securityKeygen(enc);
+  }
 
+  @ShellMethod(value = "将SSHkey从文件复制到数据库或反之。")
+  public FacadeResult<?> securityCopySshkey(@ShellOption(help = "db到文件") boolean toFile,
+      @ShellOption(help = "删除ssh文件") boolean deleteFile) throws ClassNotFoundException, IOException {
+    return securityService.securityCopySshkey(toFile, deleteFile);
+  }
 
-//	@ShellMethod(value = "列出当前主机的计划任务触发器")
-//	public List<String> schedulerTriggerList() throws SchedulerException, UnExpectedInputException {
-//		sureServerSelected();
-//		return schedulerService.getServerTriggers(appState.getCurrentServer()).stream()
-//				.map(ToStringFormat::formatTriggerOutput).collect(Collectors.toList());
-//	}
-//
-//	@ShellMethod(value = "删除计划任务触发器")
-//	public FacadeResult<?> schedulerTriggerDelete(@ShellOption(help = "Trigger的名称。") TriggerKey triggerKey) throws UnExpectedInputException {
-//		sureServerSelected();
-//		return schedulerService.delteBoxTriggers(triggerKey);
-//	}
-	
-	
-//	@ShellMethod(value = "创建模板的Context数据")
-//	public FacadeResult<?> extraTemplateContext(
-//			@ShellOption(help = "userServerGrp的ID值，可通过user-server-group-list命令查看。") int userServerGrpId,
-//			@ShellOption(help = "输出文件的名称。", defaultValue=ShellOption.NULL) String outfile
-//			) throws IOException {
-//		ServerGroupContext sgc = templateContextService.createMailerContext(userServerGrpId);
-//		Path pa = Paths.get("templates", "tplcontext.yml");
-//		if (outfile != null) {
-//			pa = Paths.get("templates", outfile); 
-//		}
-//		String s = YamlInstance.INSTANCE.yaml.dumpAsMap(sgc);
-//		Files.write(pa, s.getBytes(StandardCharsets.UTF_8));
-//		return FacadeResult.doneExpectedResult();
-//	}
+  @ShellMethod(value = "将KnownHosts从文件复制到数据库或反之。")
+  public FacadeResult<?> securityCopyKnownHosts(@ShellOption(help = "db到文件") boolean toFile) throws ClassNotFoundException, IOException {
+    return securityService.securityCopyKnownHosts(toFile);
+  }
 
-//	@ShellMethod(value = "查看最后一个命令的详细执行结果")
-//	public String facadeResultLast() {
-//		FacadeResult<?> fr = appEventListenerBean.getFacadeResult();
-//		if (fr == null) {
-//			return "";
-//		} else {
-//			if (fr.getException() != null) {
-//				return ExceptionUtil.stackTraceToString(fr.getException());
-//			} else if (fr.getResult() != null) {
-//				return fr.getResult().toString();
-//			} else if (fr.getMessage() != null && !fr.getMessage().isEmpty()) {
-//				return localedMessageService.getMessage(fr.getMessage());
-//			} else {
-//				return "";
-//			}
-//		}
-//	}
-	
-	@ShellMethod(value = "执行SQL SELECT.")
-	public FacadeResult<?> sqlSelect(
-			@DbTableName
-			@ShellOption(help = "数据表名称") String tableName,
-			@ShellOption(help = "返回的记录数", defaultValue="10") int limit) {
-		return FacadeResult.doneExpectedResultDone(sqlService.select(tableName, limit));
-	}
-	
-	@ShellMethod(value = "执行SQL DELETE.")
-	public FacadeResult<?> sqlDelete(
-			@DbTableName
-			@ShellOption(help = "数据表名称") String tableName,
-			@ShellOption(help = "记录的ID") int id) {
-		return FacadeResult.doneExpectedResultDone(sqlService.delete(tableName, id));
-	}
-	
-//	@ShellMethod(value = "执行远程命令.")
-//	public FacadeResult<?> testRunRemote(
-//			@ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server,
-//			@ShellOption(help = "command to run.") String command
-//			) throws RunRemoteCommandException, UnExpectedInputException,  IOException {
-//		ServerAndSession sas = null;
-//		try {
-//			sas = getServerAndSession(server);
-//		} catch (JSchException e) {
-//			return Exception2FacadeResult.parseException(e);
-//		}
-//		if (sas != null && sas.getSession() != null) {
-//			return FacadeResult.doneExpectedResultDone(SSHcommonUtil.runRemoteCommand(sas.getSession(), command));
-//		}
-//		return FacadeResult.unexpectedResult(CommonMessageKeys.UNSUPPORTED);
-//	}
+  @ShellMethod(value = "立即发送建邮件通知。")
+  public FacadeResult<?> emailNoticeSend(
+    @ShellOption(help = "邮件地址") @Email String email,
+    @TemplateIndicator
+    @ShellOption(help = "邮件模板") String template,
+    @ShellOption(help = "用户服务器组") Subscribe subscribe,
+    @ShellOption(help = "真的发送") boolean sendTruely
+    ) throws ClassNotFoundException, IOException, MessagingException, ExecutionException {
+    ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
+    if (sendTruely) {
+      mailerJob.mail(subscribe, email, template, sgctx);
+      return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
+    } else {
+      return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
+    }
+  }
 
-	
-	@ShellMethod(value = "获取HSQLDB的CRYPT_KEY")
-	public FacadeResult<?> securityKeygen(@ShellOption(help = "编码方式", defaultValue="AES") String enc) throws ClassNotFoundException, SQLException {
-		return securityService.securityKeygen(enc);
-	}
-	
-	@ShellMethod(value = "将SSHkey从文件复制到数据库或反之。")
-	public FacadeResult<?> securityCopySshkey(@ShellOption(help = "db到文件") boolean toFile,
-			@ShellOption(help = "删除ssh文件") boolean deleteFile) throws ClassNotFoundException, IOException {
-		return securityService.securityCopySshkey(toFile, deleteFile);
-	}
-	
-	@ShellMethod(value = "将KnownHosts从文件复制到数据库或反之。")
-	public FacadeResult<?> securityCopyKnownHosts(@ShellOption(help = "db到文件") boolean toFile) throws ClassNotFoundException, IOException {
-		return securityService.securityCopyKnownHosts(toFile);
-	}
+  @Autowired
+  private PlayBackService playBackService;
 
-	@ShellMethod(value = "立即发送建邮件通知。")
-	public FacadeResult<?> emailNoticeSend(
-			@ShellOption(help = "邮件地址") @Email String email,
-			@TemplateIndicator
-			@ShellOption(help = "邮件模板") String template,
-			@ShellOption(help = "用户服务器组") Subscribe subscribe,
-			@ShellOption(help = "真的发送") boolean sendTruely
-			) throws ClassNotFoundException, IOException, MessagingException, ExecutionException {
-		ServerGroupContext sgctx = templateContextService.createMailerContext(subscribe);
-		if (sendTruely) {
-			mailerJob.mail(subscribe, email, template, sgctx);
-			return FacadeResult.doneExpectedResultDone("mail had sent to " + email + ".");
-		} else {
-			return FacadeResult.doneExpectedResultDone(mailerJob.renderTemplate(template, sgctx));
-		}
-	}
-	
-	@Autowired
-	private PlayBackService playBackService;
-	
-	@ShellMethod(value = "创建回放设定。")
-	public FacadeResult<?> playbackCreate(
-			@ShellOption(help = "源服务器") Server sourceServer,
-			@ShellOption(help = "回放服务器") Server targetServer,
-			@ShowPossibleValue({PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL})
-			@ShellOption(help = "回放内容") String playWhat,
-			@ShellOption(help = "设定条目", defaultValue=ShellOption.NULL) List<String> settings
-			) throws UnExpectedInputException {
-		PlayBack pb = playBackService.create(sourceServer, targetServer, playWhat, settings);
-		return FacadeResult.doneExpectedResultDone(pb);
-	}
-	
-	@ShellMethod(value = "删除回放设定。")
-	public FacadeResult<?> playbackDelete(
-			@ShellOption(help = "回放设定") PlayBack playback) {
-		playBackService.remove(playback);
-		return FacadeResult.doneExpectedResult();
-	}
-	
-	@Autowired
-	private KeyValueDbService keyValueDbService;
-	
-	public static final String KEY_VALUE_CANDIDATES_SQL = "SELECT ITEM_KEY FROM KEY_VALUE WHERE ITEM_KEY LIKE '%%%s%%'";
-	
-	@ShellMethod(value = "查询键值对。")
-	public FacadeResult<?> keyValueGet(
-			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
-			@ShellOption(help = "键值，可以用dot分隔") String key
-			) {
-		List<KeyValue> kvs = keyValueDbService.findByKeyPrefix(key);
-		return FacadeResult.doneExpectedResultDone(kvs);
-	}
-	
-	@ShellMethod(value = "删除键值对。")
-	public FacadeResult<?> keyValueDelete(
-			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
-			@ShellOption(help = "键值，可以用dot分隔") String key
-			) {
-		KeyValue kv = keyValueDbService.findOneByKey(key);
-		if (kv == null) {
-			return FacadeResult.doneExpectedResultPreviousDone(CommonMessageKeys.DB_ITEMNOTEXISTS);
-		} else {
-			keyValueDbService.delete(kv);
-			return FacadeResult.doneExpectedResultDone(kv);
-		}
-		
-	}
+  @ShellMethod(value = "创建回放设定。")
+  public FacadeResult<?> playbackCreate(
+    @ShellOption(help = "源服务器") Server sourceServer,
+    @ShellOption(help = "回放服务器") Server targetServer,
+    @ShowPossibleValue({PlayBack.PLAY_BORG, PlayBack.PLAY_MYSQL})
+    @ShellOption(help = "回放内容") String playWhat,
+    @ShellOption(help = "设定条目", defaultValue=ShellOption.NULL) List<String> settings
+    ) throws UnExpectedInputException {
+    PlayBack pb = playBackService.create(sourceServer, targetServer, playWhat, settings);
+    return FacadeResult.doneExpectedResultDone(pb);
+  }
 
-	
-	@ShellMethod(value = "新建或更新键值对。")
-	public FacadeResult<?> keyValueUpdateOrCreate(
-			@CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL)
-			@ShellOption(help = "键值，可以用dot分隔") String key,
-			@ShellOption(help = "值") String value
-			) {
-		KeyValue kv = keyValueDbService.findOneByKey(key);
-		if (kv != null) {
-			if (!kv.getItemValue().equals(value)) {
-				kv.setItemValue(value);
-				kv = keyValueDbService.save(kv);
-			}
-		} else {
-			kv = new KeyValue(key, value);
-			kv = keyValueDbService.save(kv);
-		}
-		return FacadeResult.doneExpectedResultDone(kv);
-	}
+  @ShellMethod(value = "删除回放设定。")
+  public FacadeResult<?> playbackDelete(@ShellOption(help = "回放设定") PlayBack playback) {
+    playBackService.remove(playback);
+    return FacadeResult.doneExpectedResult();
+  }
 
-	@Bean
-	public PromptProvider myPromptProvider() {
-		return () -> new AttributedString(getPromptString(),
-				AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
-	}
-	
-	private String getPromptString() {
-//	switch (appState.getStep()) {
-//	case WAITING_SELECT:
-//		return "Please choose an instance by preceding number: ";
-//	default:
-//		Server server = appState.getCurrentServer();
-//		if (server != null) {
-//			return server.getHost() + "> ";
-//		} else {
-			return "no_server_selected> ";
-//		}
-	}
+  @Autowired
+  private KeyValueDbService keyValueDbService;
+
+  public static final String KEY_VALUE_CANDIDATES_SQL = "SELECT ITEM_KEY FROM KEY_VALUE WHERE ITEM_KEY LIKE '%%%s%%'";
+
+  @ShellMethod(value = "查询键值对。")
+  public FacadeResult<?> keyValueGet(
+      @CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL) @ShellOption(help = "键值，可以用dot分隔") String key) {
+    List<KeyValue> kvs = keyValueDbService.findByKeyPrefix(key);
+    return FacadeResult.doneExpectedResultDone(kvs);
+  }
+
+  @ShellMethod(value = "删除键值对。")
+  public FacadeResult<?> keyValueDelete(
+      @CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL) @ShellOption(help = "键值，可以用dot分隔") String key) {
+    KeyValue kv = keyValueDbService.findOneByKey(key);
+    if (kv == null) {
+      return FacadeResult.doneExpectedResultPreviousDone(CommonMessageKeys.DB_ITEMNOTEXISTS);
+    } else {
+      keyValueDbService.delete(kv);
+      return FacadeResult.doneExpectedResultDone(kv);
+    }
+
+  }
+
+  @ShellMethod(value = "新建或更新键值对。")
+  public FacadeResult<?> keyValueUpdateOrCreate(
+      @CandidatesFromSQL(KEY_VALUE_CANDIDATES_SQL) @ShellOption(help = "键值，可以用dot分隔") String key,
+      @ShellOption(help = "值") String value) {
+    KeyValue kv = keyValueDbService.findOneByKey(key);
+    if (kv != null) {
+      if (!kv.getItemValue().equals(value)) {
+        kv.setItemValue(value);
+        kv = keyValueDbService.save(kv);
+      }
+    } else {
+      kv = new KeyValue(key, value);
+      kv = keyValueDbService.save(kv);
+    }
+    return FacadeResult.doneExpectedResultDone(kv);
+  }
+
+  @Bean
+  public PromptProvider myPromptProvider() {
+    return () -> new AttributedString(getPromptString(), AttributedStyle.DEFAULT.foreground(AttributedStyle.YELLOW));
+  }
+
+  private String getPromptString() {
+    return "no_server_selected> ";
+  }
 }

@@ -29,213 +29,214 @@ import com.go2wheel.mysqlbackup.value.UserAccount;
 @Service
 public class UserGroupLoader {
 
-	private Logger logger = LoggerFactory.getLogger(getClass());
+  private Logger logger = LoggerFactory.getLogger(getClass());
 
-	private Map<String, ServerGrp> groupCache = new HashMap<>();
-	private Map<String, UserAccount> userCache = new HashMap<>();
-	
-	private Map<String, Server> serverCache = new HashMap<>();
-	
-	@Autowired
-	private MailerSchedule mailerSchedule;
-	
-	/**
-	 * id to subscribe map.
-	 */
-	private Map<String, Subscribe> subscribesCache = new HashMap<>();
-	
-	private List<UserAccount> adminUserCache = new ArrayList<>();
+  private Map<String, ServerGrp> groupCache = new HashMap<>();
+  private Map<String, UserAccount> userCache = new HashMap<>();
 
-	@Autowired
-	private ObjectMapper objectMapper;
+  private Map<String, Server> serverCache = new HashMap<>();
 
-	@Autowired
-	private MyAppSettings myAppSettings;
+  @Autowired
+  private MailerSchedule mailerSchedule;
 
-	@Autowired
-	private ConfigFileLoader configFileLoader;
+  /**
+   * id to subscribe map.
+   */
+  private Map<String, Subscribe> subscribesCache = new HashMap<>();
 
+  private List<UserAccount> adminUserCache = new ArrayList<>();
 
-	public List<Subscribe> getAllSubscribes() {
-		return new ArrayList<>(subscribesCache.values());
-	}
-	
-	public void clearAll() {
-		groupCache.clear();
-		userCache.clear();
-		subscribesCache.clear();
-		adminUserCache.clear();
-	}
-	
-	public void loadAll(boolean reloadCache) throws Exception {
-		if (reloadCache) {
-			clearAll();
-		}
-		loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(), myAppSettings.getAdminFile());
-	}
-	
-	public void schuduleAllSubscribes() {
-		for(Subscribe subscribe: subscribesCache.values()) {
-			try {
-				mailerSchedule.schedule(subscribe);
-			} catch (SchedulerException | ParseException e) {
-				String es = String.format("subscribe : %s, cron: %s had errors.", subscribe.getId(), subscribe.getCron());
-				logger.error(es);
-				ExceptionUtil.logErrorException(logger, e);
-				System.out.println(es);
-			}
-		}
-	}
-	
-	public void loadAll(Path groupsFilePath, Path usersFilePath, Path subscribesFilePath, Path adminFilePath) throws Exception {
-		
-		ConfigFileGroupFile cfg = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(groupsFilePath)).toString(),
-				ConfigFileGroupFile.class);
+  @Autowired
+  private ObjectMapper objectMapper;
 
-		for (ServerGrp grp : cfg.getGroups()) {
-			String grpname = grp.getName();
-			List<Server> servers = new ArrayList<>();
-			
-			for(String hostname: grp.getHostnames()) {
-				Server sv;
-				List<ConfigFile> cf = configFileLoader.getByHostname(hostname);
-				if (cf.isEmpty()) {
-					String message = "hostname in server group hostnames does't contain " + hostname;
-					throw new Exception(message);
-				}
-				if (serverCache.containsKey(hostname)) {
-					sv = serverCache.get(hostname);
-				} else {
-					sv = new Server(objectMapper);
-					sv.setName(cf.get(0).getServerName());
-					sv.setHost(cf.get(0).getHostName());
-					sv.setCoreNumber(cf.get(0).getCoreNumber());
-					sv.setMem(cf.get(0).getMem());
-					serverCache.put(hostname, sv);
-				}
-				sv.getConfigFiles().addAll(cf);
-				servers.add(sv);
-			}
-			grp.setServers(servers);
-			groupCache.put(grpname, grp);
-		}
+  @Autowired
+  private MyAppSettings myAppSettings;
 
-		ConfigFileUserFile cfuf = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(usersFilePath)).toString(),
-				ConfigFileUserFile.class);
-		
-		for(UserAccount ua: cfuf.getUsers()) {
-			userCache.put(ua.getName(), ua);
-		}
-		
-		ConfigFileSubscribeFile subscribeFile = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(subscribesFilePath)).toString(),
-				ConfigFileSubscribeFile.class);
-		
-		for(Subscribe sb: subscribeFile.getSubscribes()) {
-			String groupname = sb.getGroupname();
-			ServerGrp grp = groupCache.get(groupname);
-			if (grp == null) {
-				String message = "subscribe file  groupname does't exists: " + groupname;
-				throw new Exception(message);
-			}
-			sb.setServerGroup(grp);
-			String username = sb.getUsername();
-			UserAccount ua = userCache.get(username);
-			if (ua == null) {
-				String message = "subscribe file username does't exists: " + username;
-				throw new Exception(message);
-			}
-			sb.setUser(ua);
-			subscribesCache.put(sb.getId(), sb);
-		}
-		
-		ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(adminFilePath)).toString(),
-				ConfigFileSubscribeAdminFile.class);
-		
-		for(String username: subscribeAdminFile.getAdmins()) {
-			UserAccount sb = userCache.get(username);
-			if (sb == null) {
-				String message = "admin id " + username + " is'nt a valid userid.";
-				logger.error(message);
-				throw new Exception(message);
-			}
-			adminUserCache.add(sb);
-		}
-	}
+  @Autowired
+  private ConfigFileLoader configFileLoader;
 
-	public ServerGrp getGroupByName(String grpName) throws ExecutionException {
-		return groupCache.get(grpName);
-	}
-	
-	public static class ConfigFileSubscribeAdminFile {
-		private List<String> admins;
+  public List<Subscribe> getAllSubscribes() {
+    return new ArrayList<>(subscribesCache.values());
+  }
 
-		public List<String> getAdmins() {
-			return admins;
-		}
+  public void clearAll() {
+    groupCache.clear();
+    userCache.clear();
+    subscribesCache.clear();
+    adminUserCache.clear();
+  }
 
-		public void setAdmins(List<String> admins) {
-			this.admins = admins;
-		}
-	}
-	
-	public static class ConfigFileSubscribeFile {
-		private List<Subscribe> subscribes;
+  public void loadAll(boolean reloadCache) throws Exception {
+    if (reloadCache) {
+      clearAll();
+    }
+    loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(),
+        myAppSettings.getAdminFile());
+  }
 
-		public List<Subscribe> getSubscribes() {
-			return subscribes;
-		}
+  public void schuduleAllSubscribes() {
+    for (Subscribe subscribe : subscribesCache.values()) {
+      try {
+        mailerSchedule.schedule(subscribe);
+      } catch (SchedulerException | ParseException e) {
+        String es = String.format("subscribe : %s, cron: %s had errors.", subscribe.getId(), subscribe.getCron());
+        logger.error(es);
+        ExceptionUtil.logErrorException(logger, e);
+        System.out.println(es);
+      }
+    }
+  }
 
-		public void setSubscribes(List<Subscribe> subscribes) {
-			this.subscribes = subscribes;
-		}
-	}
+  public void loadAll(Path groupsFilePath, Path usersFilePath, Path subscribesFilePath, Path adminFilePath)
+      throws Exception {
 
-	public static class ConfigFileGroupFile {
-		private List<ServerGrp> groups;
+    ConfigFileGroupFile cfg = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(groupsFilePath)).toString(),
+        ConfigFileGroupFile.class);
 
-		public List<ServerGrp> getGroups() {
-			return groups;
-		}
+    for (ServerGrp grp : cfg.getGroups()) {
+      String grpname = grp.getName();
+      List<Server> servers = new ArrayList<>();
 
-		public void setGroups(List<ServerGrp> groups) {
-			this.groups = groups;
-		}
-	}
+      for (String hostname : grp.getHostnames()) {
+        Server sv;
+        List<ConfigFile> cf = configFileLoader.getByHostname(hostname);
+        if (cf.isEmpty()) {
+          String message = "hostname in server group hostnames does't contain " + hostname;
+          throw new Exception(message);
+        }
+        if (serverCache.containsKey(hostname)) {
+          sv = serverCache.get(hostname);
+        } else {
+          sv = new Server(objectMapper);
+          sv.setName(cf.get(0).getServerName());
+          sv.setHost(cf.get(0).getHostName());
+          sv.setCoreNumber(cf.get(0).getCoreNumber());
+          sv.setMem(cf.get(0).getMem());
+          serverCache.put(hostname, sv);
+        }
+        sv.getConfigFiles().addAll(cf);
+        servers.add(sv);
+      }
+      grp.setServers(servers);
+      groupCache.put(grpname, grp);
+    }
 
-	public static class ConfigFileUserFile {
+    ConfigFileUserFile cfuf = objectMapper.readValue(BomUtil.removeBom(Files.readAllBytes(usersFilePath)).toString(),
+        ConfigFileUserFile.class);
 
-		private List<UserAccount> users;
+    for (UserAccount ua : cfuf.getUsers()) {
+      userCache.put(ua.getName(), ua);
+    }
 
-		public List<UserAccount> getUsers() {
-			return users;
-		}
+    ConfigFileSubscribeFile subscribeFile = objectMapper
+        .readValue(BomUtil.removeBom(Files.readAllBytes(subscribesFilePath)).toString(), ConfigFileSubscribeFile.class);
 
-		public void setUsers(List<UserAccount> users) {
-			this.users = users;
-		}
-	}
+    for (Subscribe sb : subscribeFile.getSubscribes()) {
+      String groupname = sb.getGroupname();
+      ServerGrp grp = groupCache.get(groupname);
+      if (grp == null) {
+        String message = "subscribe file  groupname does't exists: " + groupname;
+        throw new Exception(message);
+      }
+      sb.setServerGroup(grp);
+      String username = sb.getUsername();
+      UserAccount ua = userCache.get(username);
+      if (ua == null) {
+        String message = "subscribe file username does't exists: " + username;
+        throw new Exception(message);
+      }
+      sb.setUser(ua);
+      subscribesCache.put(sb.getId(), sb);
+    }
 
-	public UserAccount getUserByName(String username) {
-		return userCache.get(username);
-	}
+    ConfigFileSubscribeAdminFile subscribeAdminFile = objectMapper
+        .readValue(BomUtil.removeBom(Files.readAllBytes(adminFilePath)).toString(), ConfigFileSubscribeAdminFile.class);
 
-	public List<UserAccount> getAllUsers() {
-		return new ArrayList<>(userCache.values());
-	}
+    for (String username : subscribeAdminFile.getAdmins()) {
+      UserAccount sb = userCache.get(username);
+      if (sb == null) {
+        String message = "admin id " + username + " is'nt a valid userid.";
+        logger.error(message);
+        throw new Exception(message);
+      }
+      adminUserCache.add(sb);
+    }
+  }
 
-	public List<ServerGrp> getAllGroups() {
-		return new ArrayList<>(groupCache.values());
-	}
+  public ServerGrp getGroupByName(String grpName) throws ExecutionException {
+    return groupCache.get(grpName);
+  }
 
-	public Subscribe getSubscribeById(String id) {
-		return subscribesCache.get(id);
-	}
+  public static class ConfigFileSubscribeAdminFile {
+    private List<String> admins;
 
-	public List<ServerGrp> findLikeEname(String input) {
-		return null;
-	}
+    public List<String> getAdmins() {
+      return admins;
+    }
 
-	public List<UserAccount> findUserAccountLikeName(String input) {
-		return null;
-	}
+    public void setAdmins(List<String> admins) {
+      this.admins = admins;
+    }
+  }
+
+  public static class ConfigFileSubscribeFile {
+    private List<Subscribe> subscribes;
+
+    public List<Subscribe> getSubscribes() {
+      return subscribes;
+    }
+
+    public void setSubscribes(List<Subscribe> subscribes) {
+      this.subscribes = subscribes;
+    }
+  }
+
+  public static class ConfigFileGroupFile {
+    private List<ServerGrp> groups;
+
+    public List<ServerGrp> getGroups() {
+      return groups;
+    }
+
+    public void setGroups(List<ServerGrp> groups) {
+      this.groups = groups;
+    }
+  }
+
+  public static class ConfigFileUserFile {
+
+    private List<UserAccount> users;
+
+    public List<UserAccount> getUsers() {
+      return users;
+    }
+
+    public void setUsers(List<UserAccount> users) {
+      this.users = users;
+    }
+  }
+
+  public UserAccount getUserByName(String username) {
+    return userCache.get(username);
+  }
+
+  public List<UserAccount> getAllUsers() {
+    return new ArrayList<>(userCache.values());
+  }
+
+  public List<ServerGrp> getAllGroups() {
+    return new ArrayList<>(groupCache.values());
+  }
+
+  public Subscribe getSubscribeById(String id) {
+    return subscribesCache.get(id);
+  }
+
+  public List<ServerGrp> findLikeEname(String input) {
+    return null;
+  }
+
+  public List<UserAccount> findUserAccountLikeName(String input) {
+    return null;
+  }
 }
