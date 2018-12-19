@@ -26,7 +26,7 @@ import com.go2wheel.mysqlbackup.model.KeyValue;
 import com.go2wheel.mysqlbackup.value.KeyValueProperties;
 import com.google.common.collect.Sets;
 
-@Component
+// @Component
 public class JavaMailSendPropertiesOverrider implements EnvironmentAware {
 	
 	private Logger logger = LoggerFactory.getLogger(getClass());

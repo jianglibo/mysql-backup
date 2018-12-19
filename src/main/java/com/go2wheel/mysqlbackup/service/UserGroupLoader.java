@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.go2wheel.mysqlbackup.MyAppSettings;
 import com.go2wheel.mysqlbackup.job.MailerSchedule;
 import com.go2wheel.mysqlbackup.util.BomUtil;
+import com.go2wheel.mysqlbackup.util.ExceptionUtil;
 import com.go2wheel.mysqlbackup.value.ConfigFile;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.ServerGrp;
@@ -66,13 +67,23 @@ public class UserGroupLoader {
 		adminUserCache.clear();
 	}
 	
-	public void loadAll() throws Exception {
+	public void loadAll(boolean reloadCache) throws Exception {
+		if (reloadCache) {
+			clearAll();
+		}
 		loadAll(myAppSettings.getGroupsFile(), myAppSettings.getUsersFile(), myAppSettings.getSubscribeFile(), myAppSettings.getAdminFile());
 	}
 	
-	public void schuduleAllSubscribes() throws SchedulerException, ParseException {
+	public void schuduleAllSubscribes() {
 		for(Subscribe subscribe: subscribesCache.values()) {
-			mailerSchedule.schedule(subscribe);
+			try {
+				mailerSchedule.schedule(subscribe);
+			} catch (SchedulerException | ParseException e) {
+				String es = String.format("subscribe : %s, cron: %s had errors.", subscribe.getId(), subscribe.getCron());
+				logger.error(es);
+				ExceptionUtil.logErrorException(logger, e);
+				System.out.println(es);
+			}
 		}
 	}
 	

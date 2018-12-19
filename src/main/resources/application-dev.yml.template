@@ -70,7 +70,15 @@ logging:
 
 myapp:
     psdataDir: psdata
+    psapp: D:\\Documents\\GitHub\\easy-installer
     downloadFolder: notingit
+    app:
+        archive: C:/Program Files/WinRAR/Rar.exe
+        client-bin: e:\\wamp64\\bin\\mysql\\mysql5.7.21\\bin\\mysql.exe
+    powershell: powershell.exe
+    consoleCharsetName: gb18030
+    notautoload: true
+    chromeexec: C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
     ssh:
         sshIdrsa: d:/cygwin64/home/admin/.ssh/id_rsa
         knownHosts: d:/cygwin64/home/admin/.ssh/known_hosts
@@ -90,14 +98,6 @@ myapp:
                 - \u6302\u8F7D\u70B9
     cache:
         combo: 0
-    app:
-        archive: C:/Program Files/WinRAR/Rar.exe
-        client-bin: e:\\wamp64\\bin\\mysql\\mysql5.7.21\\bin\\mysql.exe
-    psapp: D:\\Documents\\GitHub\\easy-installer
-    powershell: powershell.exe
-    consoleCharsetName: gb18030
-    notautoload: true
-    chromeexec: C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
 
 using.spring.schedulerFactory: true
 expectit.echo: true

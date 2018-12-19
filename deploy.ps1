@@ -1,4 +1,5 @@
 Param(
+    [Parameter(Mandatory=$True)]
     [ValidateSet("Administrator@172.19.253.244:D:\\easy-installers")]
     [string]$RemotePath
 )

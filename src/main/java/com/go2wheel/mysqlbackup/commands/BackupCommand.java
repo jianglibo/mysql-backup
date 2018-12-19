@@ -256,7 +256,7 @@ public class BackupCommand {
 			return Arrays.asList(String.format("%s: %s", envname, environment.getProperty(envname)));
 		}
 		return Arrays.asList(
-				formatKeyVal("server profile dirctory", settingsInDb.getDataDir().toAbsolutePath().toString()),
+				// formatKeyVal("server profile dirctory", settingsInDb.getDataDir().toAbsolutePath().toString()),
 				formatKeyVal("database url", environment.getProperty("spring.datasource.url")),
 				formatKeyVal("working directory", Paths.get("").toAbsolutePath().normalize().toString()),
 				formatKeyVal("download directory",

@@ -100,7 +100,7 @@ public class AppEventListenerBean implements EnvironmentAware {
 			configsDir = psdataDir.resolve("configs");
 		}
 		configFileLoader.loadAll(configsDir, reloadCache);
-		userGroupLoader.loadAll();
+		userGroupLoader.loadAll(reloadCache);
 		if (schedule) {
 			configFileLoader.scheduleAll();
 			userGroupLoader.schuduleAllSubscribes();

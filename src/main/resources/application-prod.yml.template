@@ -90,7 +90,7 @@ myapp:
     psapp: D:\\Documents\\GitHub\\easy-installer
     powershell: powershell.exe
     consoleCharsetName: gb18030
-    notautoload: true
+    notautoload: false
     chromeexec: C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe
 
 using.spring.schedulerFactory: true

@@ -1,20 +1,25 @@
 param (
-	[switch]$Debug,
 	[ValidateSet("prod", "dev")]
 	[string]$ActiveProfile="dev",
 	[int]$HttpPort=8080,
+	[Parameter(Mandatory=$false)]
 	[string]$PsDataDir,
-	[string]$PsAppDir
+	[Parameter(Mandatory=$false)]
+	[string]$PsAppDir,
+	[switch]$DebugMode
 )
 
-if (-not (Test-Path -Path $PsDataDir)) {
-	"$PsDataDir does'nt exists." | Write-Error
-	return
+if ($PsDataDir) {
+	if (-not (Test-Path -Path $PsDataDir)) {
+		"$PsDataDir does'nt exists." | Write-Error
+		return
+	}
 }
-
-if (-not (Test-Path -Path $PsAppDir)) {
-	"$PsAppDir does'nt exists." | Write-Error
-	return
+if ($PsAppDir) {
+	if (-not (Test-Path -Path $PsAppDir)) {
+		"$PsAppDir does'nt exists." | Write-Error
+		return
+	}
 }
 
 $here =  $MyInvocation.MyCommand.Path | Split-Path -Parent
@@ -39,7 +44,7 @@ $SpringParams = "--spring.datasource.url=`"jdbc:hsqldb:file:${db};shutdown=true`
 
 $jar = Get-ChildItem -Recurse -Include "mysql-backup-*.jar" | Sort-Object -Property FullName -Descending | Select-Object -First 1 | Select-Object -ExpandProperty FullName
 
-$cmd = if ($Debug) {
+$cmd = if ($DebugMode) {
 	"java -agentlib:jdwp=transport=dt_socket,server=y,address=8000,suspend=y -jar $jar $SpringParams"
 } else {
 	"java -jar $jar $SpringParams"
