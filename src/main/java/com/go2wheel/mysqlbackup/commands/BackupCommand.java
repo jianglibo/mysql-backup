@@ -1,5 +1,21 @@
 package com.go2wheel.mysqlbackup.commands;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+
+import javax.mail.MessagingException;
+import javax.validation.constraints.Email;
+
 import com.go2wheel.mysqlbackup.AppEventListenerBean;
 import com.go2wheel.mysqlbackup.LocaledMessageService;
 import com.go2wheel.mysqlbackup.MyAppSettings;
@@ -20,7 +36,6 @@ import com.go2wheel.mysqlbackup.exception.InvalidCronExpressionFieldException;
 import com.go2wheel.mysqlbackup.exception.NoActionException;
 import com.go2wheel.mysqlbackup.exception.RunRemoteCommandException;
 import com.go2wheel.mysqlbackup.exception.UnExpectedInputException;
-import com.go2wheel.mysqlbackup.exception.UnExpectedOutputException;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder;
 import com.go2wheel.mysqlbackup.job.CronExpressionBuilder.CronExpressionField;
 import com.go2wheel.mysqlbackup.job.MailerJob;
@@ -43,22 +58,6 @@ import com.go2wheel.mysqlbackup.value.FacadeResult.CommonActionResult;
 import com.go2wheel.mysqlbackup.value.ProcessExecResult;
 import com.go2wheel.mysqlbackup.value.Server;
 import com.go2wheel.mysqlbackup.value.Subscribe;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
-
-import javax.mail.MessagingException;
-import javax.validation.constraints.Email;
 
 import org.jline.utils.AttributedString;
 import org.jline.utils.AttributedStyle;
@@ -127,15 +126,6 @@ public class BackupCommand {
 
   @Autowired
   private ConfigFileLoader configFileLoader;
-
-  @ShellMethod(value = "获取CPU的核数")
-  public FacadeResult<?> serverCoreNumber(
-      @ShellOption(help = "目标服务器", defaultValue=ShellOption.NULL) Server server) throws RunRemoteCommandException, UnExpectedInputException {
-
-    // int i = serverStateService.getCoreNumber(server, sas.getSession());
-    // return FacadeResult.doneExpectedResultDone(i);
-    return null;
-  }
 
   @ShellMethod(value = "将数据库在目标服务器上重建。")
   public FacadeResult<?> serverAddDbPair(@SetServerOnly @ShellOption(help = "模拟的SET类型的服务器") Server server) throws IOException {

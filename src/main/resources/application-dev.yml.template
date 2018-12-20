@@ -51,6 +51,8 @@ spring:
     messages:
         use-code-as-default-message: false
         basename: messages.command_msg,messages.menu,messages.obname,messages.sql,messages.taskkey,messages.errors
+server:
+    port: 8080
 
 logging:
     file: log/spring.log

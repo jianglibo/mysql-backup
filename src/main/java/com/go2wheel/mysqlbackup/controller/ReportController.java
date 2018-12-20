@@ -37,7 +37,7 @@ import com.go2wheel.mysqlbackup.mail.ServerGroupContext;
 import com.go2wheel.mysqlbackup.service.ConfigFileLoader;
 import com.go2wheel.mysqlbackup.service.TemplateContextService;
 import com.go2wheel.mysqlbackup.service.UserGroupLoader;
-import com.go2wheel.mysqlbackup.util.ChromePDFWriter;
+import com.go2wheel.mysqlbackup.util.ChromePdfWriter;
 import com.go2wheel.mysqlbackup.value.Subscribe;
 import com.google.common.io.ByteStreams;
 
@@ -64,7 +64,7 @@ public class ReportController {
 	private TemplateContextService templateContextService;
 	
 	@Autowired
-	private ChromePDFWriter pdfWriter;
+	private ChromePdfWriter pdfWriter;
 
 	@GetMapping("/{tplName}")
 	public String ft(@PathVariable String tplName, @RequestParam String subscribe, Model model) throws Exception {

@@ -78,6 +78,11 @@ public class ConfigFileLoader {
   /**
    * configuration files store in the subfolder named 'configs' under the folder
    * where 'psdataDir' in the application-prod.yml point to.
+   * 
+   * We got logdir by parsing taskcmd in the configuration file,
+   * for this item: "flushlog": "%s -Action FlushLogs -ConfigFile %s -LogResult -Json",
+   * We got action 'FlushLogs', so got log directory.
+   * 
    */
 
   private ConfigFile loadOne(String configFileName)

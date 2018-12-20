@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -17,169 +18,196 @@ import com.go2wheel.mysqlbackup.util.FileUtil;
 
 public class Server {
 
-	private String host;
+  private String host;
 
-	private String name;
+  private String name;
 
-	private int coreNumber;
-	private String mem;
+  private int coreNumber;
+  private String mem;
 
-	private String os;
+  private String os;
 
-	private String username = "root";
+  private String username = "root";
 
-	private final ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-	private List<ConfigFile> configFiles = new ArrayList<>();
+  private List<ConfigFile> configFiles = new ArrayList<>();
 
-	private int loadValve = 70;
-	private int memoryValve = 70;
-	private int diskValve = 70;
+  private int loadValve = 70;
+  private int memoryValve = 70;
+  private int diskValve = 70;
 
-	public <T extends PsLogBase> List<T> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
-		List<T> results = new ArrayList<>();
-		if (cfop.isPresent()) {
-			Path logf = cfop.get().getLogDirs().get(cmdKey);
-			if (logf != null) {
-				File[] files = FileUtil.getNewestFiles(logf, num);
-				int fn = files.length;
-				if (num > fn) {
-					num = fn;
-				}
-				for (int i = 0; i < num; i++) {
-					File f = files[i];
-					byte[] bytes = Files.readAllBytes(f.toPath());
-					String content = BomUtil.removeBom(bytes).toString();
-					T result = objectMapper.readValue(content, clazz);
-					long t = f.lastModified();
-					result.setCreatedAt(new Date(t));
-					results.add(result);
-				}
-			}
-		}
-		return results;
-	}
-	
-	public List<PsDiskMemFreeResult> getMemoryFreeResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("borg", "memoryfree", PsDiskMemFreeResult.class, num);
-	}
+  /**
+   * We got logdir by parsing taskcmd item: "flushlog": "%s -Action FlushLogs
+   * -ConfigFile %s -LogResult -Json",
+   * 
+   * @param appName
+   * @param cmdKey
+   * @param clazz
+   * @param num
+   * @return
+   * @throws JsonParseException
+   * @throws JsonMappingException
+   * @throws IOException
+   */
+  public <T extends PsLogBase> Optional<List<T>> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    Optional<ConfigFile> cfop = getConfigFiles().stream().filter(cf -> cf.getAppName().equals(appName)).findAny();
+    List<T> results = new ArrayList<>();
+    if (cfop.isPresent()) {
+      Path logf = cfop.get().getLogDirs().get(cmdKey);
+      if (logf != null) {
+        File[] files = FileUtil.getNewestFiles(logf, num);
+        int fn = files.length;
+        if (num > fn) {
+          num = fn;
+        }
+        for (int i = 0; i < num; i++) {
+          File f = files[i];
+          byte[] bytes = Files.readAllBytes(f.toPath());
+          String content = BomUtil.removeBom(bytes).toString();
+          T result = objectMapper.readValue(content, clazz);
+          long t = f.lastModified();
+          result.setCreatedAt(new Date(t));
+          results.add(result);
+        }
+      }
+    } else {
+      return Optional.empty();
+    }
+    return Optional.of(results);
+  }
 
-	public List<PsDiskMemFreeResult> getDiskFreeResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("borg", "diskfree", PsDiskMemFreeResult.class, num);
-	}
+  public List<PsDiskMemFreeResult> getMemoryFreeResult(final int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    for (String an : Arrays.asList("borg", "mysql")) {
+      Optional<List<PsDiskMemFreeResult>> or = getLogResult("borg", "memoryfree", PsDiskMemFreeResult.class, num);
+      if (or.isPresent()) {
+        return or.get();
+      }
+    }
+    return new ArrayList<>();
+  }
 
-	public List<PsBorgAchiveResult> getBorgArchiveResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("borg", "archive", PsBorgAchiveResult.class, num);
-	}
+  public List<PsDiskMemFreeResult> getDiskFreeResult(int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    for (String an : Arrays.asList("borg", "mysql")) {
+      Optional<List<PsDiskMemFreeResult>> or = getLogResult("borg", "diskfree", PsDiskMemFreeResult.class, num);
+      if (or.isPresent()) {
+        return or.get();
+      }
+    }
+    return new ArrayList<>();
+  }
 
-	public List<PsBorgAchiveResult> getBorgPruneResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("borg", "prune", PsBorgAchiveResult.class, num);
-	}
+  public List<PsBorgAchiveResult> getBorgArchiveResult(int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    return getLogResult("borg", "archive", PsBorgAchiveResult.class, num).orElse(new ArrayList<>());
+  }
 
-	public List<PsMysqldumpResult> getMysqlDumpResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("mysql", "dump", PsMysqldumpResult.class, num);
-	}
+  public List<PsBorgAchiveResult> getBorgPruneResult(int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    return getLogResult("borg", "prune", PsBorgAchiveResult.class, num).orElse(new ArrayList<>());
+  }
 
-	public List<PsMysqlflushResult> getMysqlFlushResult(int num)
-			throws JsonParseException, JsonMappingException, IOException {
-		return getLogResult("mysql", "flushlog", PsMysqlflushResult.class, num);
-	}
+  public List<PsMysqldumpResult> getMysqlDumpResult(int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    return getLogResult("mysql", "dump", PsMysqldumpResult.class, num).orElse(new ArrayList<>());
+  }
 
-	public Server(ObjectMapper objectMapper) {
-		this.objectMapper = objectMapper;
-	}
+  public List<PsMysqlflushResult> getMysqlFlushResult(int num)
+      throws JsonParseException, JsonMappingException, IOException {
+    return getLogResult("mysql", "flushlog", PsMysqlflushResult.class, num).orElse(new ArrayList<>());
+  }
 
-	public String getHost() {
-		return host;
-	}
+  public Server(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
 
-	public void setHost(String host) {
-		this.host = host;
-	}
+  public String getHost() {
+    return host;
+  }
 
-	public int getCoreNumber() {
-		return coreNumber;
-	}
+  public void setHost(String host) {
+    this.host = host;
+  }
 
-	public void setCoreNumber(int coreNumber) {
-		this.coreNumber = coreNumber;
-	}
+  public int getCoreNumber() {
+    return coreNumber;
+  }
 
-	public String getUsername() {
-		return username;
-	}
+  public void setCoreNumber(int coreNumber) {
+    this.coreNumber = coreNumber;
+  }
 
-	public void setUsername(String username) {
-		this.username = username;
-	}
+  public String getUsername() {
+    return username;
+  }
 
-	public String getName() {
-		return name;
-	}
+  public void setUsername(String username) {
+    this.username = username;
+  }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+  public String getName() {
+    return name;
+  }
 
-	public String getOs() {
-		return os;
-	}
+  public void setName(String name) {
+    this.name = name;
+  }
 
-	public void setOs(String os) {
-		this.os = os;
-	}
+  public String getOs() {
+    return os;
+  }
 
-	public boolean supportSSH() {
-		if (getOs() == null) {
-			return true;
-		}
-		return getOs().contains("linux");
-	}
+  public void setOs(String os) {
+    this.os = os;
+  }
 
-	public int getLoadValve() {
-		return loadValve;
-	}
+  public boolean supportSSH() {
+    if (getOs() == null) {
+      return true;
+    }
+    return getOs().contains("linux");
+  }
 
-	public void setLoadValve(int loadValve) {
-		this.loadValve = loadValve;
-	}
+  public int getLoadValve() {
+    return loadValve;
+  }
 
-	public int getMemoryValve() {
-		return memoryValve;
-	}
+  public void setLoadValve(int loadValve) {
+    this.loadValve = loadValve;
+  }
 
-	public void setMemoryValve(int memoryValve) {
-		this.memoryValve = memoryValve;
-	}
+  public int getMemoryValve() {
+    return memoryValve;
+  }
 
-	public int getDiskValve() {
-		return diskValve;
-	}
+  public void setMemoryValve(int memoryValve) {
+    this.memoryValve = memoryValve;
+  }
 
-	public void setDiskValve(int diskValve) {
-		this.diskValve = diskValve;
-	}
+  public int getDiskValve() {
+    return diskValve;
+  }
 
-	public List<ConfigFile> getConfigFiles() {
-		return configFiles;
-	}
+  public void setDiskValve(int diskValve) {
+    this.diskValve = diskValve;
+  }
 
-	public void setConfigFiles(List<ConfigFile> configFiles) {
-		this.configFiles = configFiles;
-	}
+  public List<ConfigFile> getConfigFiles() {
+    return configFiles;
+  }
 
-	public String getMem() {
-		return mem;
-	}
+  public void setConfigFiles(List<ConfigFile> configFiles) {
+    this.configFiles = configFiles;
+  }
 
-	public void setMem(String mem) {
-		this.mem = mem;
-	}
+  public String getMem() {
+    return mem;
+  }
+
+  public void setMem(String mem) {
+    this.mem = mem;
+  }
 }
