@@ -101,6 +101,11 @@ public class ConfigFile {
     this.logDir = logDir;
   }
 
+  /**
+   * Get logdir by convention, it does't mean existance of it.
+   * 
+   * @return an map, taskcmd name as key.
+   */
   public Map<String, Path> getLogDirs() {
     return logDirs;
   }

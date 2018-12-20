@@ -63,7 +63,7 @@ public class Server {
     List<T> results = new ArrayList<>();
     if (cfop.isPresent()) {
       Path logf = cfop.get().getLogDirs().get(cmdKey);
-      if (logf != null) {
+      if (logf != null && Files.exists(logf)) {
         File[] files = FileUtil.getNewestFiles(logf, num);
         int fn = files.length;
         if (num > fn) {
@@ -78,6 +78,8 @@ public class Server {
           result.setCreatedAt(new Date(t));
           results.add(result);
         }
+      } else {
+        return Optional.empty();
       }
     } else {
       return Optional.empty();
@@ -97,7 +99,7 @@ public class Server {
   public List<PsDiskMemFreeResult> getMemoryFreeResult(final int num)
       throws JsonParseException, JsonMappingException, IOException {
     for (String an : Arrays.asList("borg", "mysql")) {
-      Optional<List<PsDiskMemFreeResult>> or = getLogResult("borg", "memoryfree", PsDiskMemFreeResult.class, num);
+      Optional<List<PsDiskMemFreeResult>> or = getLogResult(an, "memoryfree", PsDiskMemFreeResult.class, num);
       if (or.isPresent()) {
         return or.get();
       }
@@ -108,7 +110,7 @@ public class Server {
   public List<PsDiskMemFreeResult> getDiskFreeResult(int num)
       throws JsonParseException, JsonMappingException, IOException {
     for (String an : Arrays.asList("borg", "mysql")) {
-      Optional<List<PsDiskMemFreeResult>> or = getLogResult("borg", "diskfree", PsDiskMemFreeResult.class, num);
+      Optional<List<PsDiskMemFreeResult>> or = getLogResult(an, "diskfree", PsDiskMemFreeResult.class, num);
       if (or.isPresent()) {
         return or.get();
       }
