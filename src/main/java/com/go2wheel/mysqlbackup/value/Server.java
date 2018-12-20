@@ -38,17 +38,24 @@ public class Server {
   private int diskValve = 70;
 
   /**
-   * We got logdir by parsing taskcmd item: "flushlog": "%s -Action FlushLogs
+   * We got logdir by parsing taskcmd item. "flushlog": "%s -Action FlushLogs *
    * -ConfigFile %s -LogResult -Json",
    * 
    * @param appName
+   *                  appname in configuration file. borg, mysql, etc.
    * @param cmdKey
+   *                  command name in configuration file.
    * @param clazz
+   *                  class of result object.
    * @param num
-   * @return
+   *                  the number of log file to process.
+   * @return found log result.
    * @throws JsonParseException
+   *                                in case configuration file error.
    * @throws JsonMappingException
+   *                                in case configuration file error.
    * @throws IOException
+   *                                in case configuration file error.
    */
   public <T extends PsLogBase> Optional<List<T>> getLogResult(String appName, String cmdKey, Class<T> clazz, int num)
       throws JsonParseException, JsonMappingException, IOException {
@@ -78,6 +85,15 @@ public class Server {
     return Optional.of(results);
   }
 
+  /**
+   * Get memory free log result.
+   * 
+   * @param num how many log files to process.
+   * @return memory free result.
+   * @throws JsonParseException
+   * @throws JsonMappingException
+   * @throws IOException
+   */
   public List<PsDiskMemFreeResult> getMemoryFreeResult(final int num)
       throws JsonParseException, JsonMappingException, IOException {
     for (String an : Arrays.asList("borg", "mysql")) {
